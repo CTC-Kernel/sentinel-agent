@@ -366,7 +366,10 @@ impl MonitoringPage {
                     row.set_selected(is_selected);
 
                     row.col(|ui: &mut egui::Ui| {
-                        table::cell_mono_muted(ui, &entry.timestamp.format("%H:%M:%S").to_string());
+                        table::cell_mono_muted(
+                            ui,
+                            &crate::format::local_time_secs(entry.timestamp),
+                        );
                     });
 
                     row.col(|ui: &mut egui::Ui| {
@@ -552,7 +555,7 @@ impl MonitoringPage {
                 ui.label(
                     RichText::new(format!(
                         "Dernier envoi : {}",
-                        last.format("%d/%m/%Y %H:%M:%S UTC")
+                        crate::format::local_datetime_with_offset(last)
                     ))
                     .font(theme::font_label())
                     .color(theme::text_tertiary()),
@@ -1103,7 +1106,7 @@ impl MonitoringPage {
             return;
         };
 
-        let ts = entry.timestamp.format("%d/%m/%Y %H:%M:%S").to_string();
+        let ts = crate::format::local_datetime_secs(entry.timestamp);
         let (sev_color, _) = Self::severity_style(&entry.severity);
         let severity = entry.severity.full_label();
         let source = entry.source.label();

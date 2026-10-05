@@ -178,6 +178,16 @@ pub fn local_day_time(at: Utc) -> String {
     local(at).format("%d/%m %H:%M").to_string()
 }
 
+/// `04/10 14:32:05`, local date and time to the second for dense tables.
+pub fn local_day_time_secs(at: Utc) -> String {
+    local(at).format("%d/%m %H:%M:%S").to_string()
+}
+
+/// `04/10/2026 14:32:05.123`, local date and time to the millisecond.
+pub fn local_datetime_millis(at: Utc) -> String {
+    local(at).format("%d/%m/%Y %H:%M:%S%.3f").to_string()
+}
+
 /// `04/10/2026 14:32`, local date and time.
 pub fn local_datetime(at: Utc) -> String {
     local(at).format("%d/%m/%Y %H:%M").to_string()
@@ -196,6 +206,46 @@ pub fn local_datetime_with_offset(at: Utc) -> String {
 
 #[cfg(test)]
 mod tests {
+
+    /// Pages must format instants through the local-time helpers above.
+    /// A direct `.format("%H…")` on a UTC value shows UTC as local time.
+    #[test]
+    fn pages_format_instants_through_the_local_time_helpers() {
+        fn scan(dir: &std::path::Path, offenders: &mut Vec<String>) {
+            for entry in std::fs::read_dir(dir).expect("readable source dir") {
+                let path = entry.expect("dir entry").path();
+                if path.is_dir() {
+                    scan(&path, offenders);
+                    continue;
+                }
+                if path.extension().is_none_or(|ext| ext != "rs") {
+                    continue;
+                }
+                let text = std::fs::read_to_string(&path).expect("readable source");
+                let lines: Vec<&str> = text.lines().collect();
+                for (index, line) in lines.iter().enumerate() {
+                    let direct = line.contains(".format(\"%H") || line.contains(".format(\"%d/%m");
+                    // Already-local values and calendar dates are fine.
+                    let context = lines[index.saturating_sub(2)..=index].join(" ");
+                    let local = context.contains("with_timezone")
+                        || context.contains("Local::now")
+                        || line.contains("day.format(")
+                        || line.contains("date.format(")
+                        || line.contains("d.format(");
+                    if direct && !local {
+                        offenders.push(format!("{}:{}", path.display(), index + 1));
+                    }
+                }
+            }
+        }
+        let src = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("src");
+        let mut offenders = Vec::new();
+        scan(&src.join("pages"), &mut offenders);
+        assert!(
+            offenders.is_empty(),
+            "format these instants with crate::format::local_*: {offenders:?}"
+        );
+    }
 
     #[test]
     fn timestamps_are_shown_in_local_time() {

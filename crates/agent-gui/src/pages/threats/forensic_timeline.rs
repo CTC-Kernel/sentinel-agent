@@ -249,7 +249,7 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                 // Severity as a pill in its colour, like the events table.
                 let sev_label = evt.severity.label();
                 let source_label = source_label_fr(evt.source);
-                let date = evt.timestamp.format("%d/%m/%Y %H:%M").to_string();
+                let date = crate::format::local_datetime(evt.timestamp);
 
                 let cells = [
                     Cell::Badge(sev_label, severity_color(&evt.severity)),
@@ -288,10 +288,7 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
     {
         if let Some(selected_event) = events.get(sel_idx) {
             let sev_color = severity_color(&selected_event.severity);
-            let ts_str = selected_event
-                .timestamp
-                .format("%d/%m/%Y %H:%M:%S")
-                .to_string();
+            let ts_str = crate::format::local_datetime_secs(selected_event.timestamp);
 
             // Find correlated events (within +/- 5 min from ALL sources)
             let window_start = selected_event
@@ -393,9 +390,9 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                                             );
                                             ui.label(
                                                 egui::RichText::new(
-                                                    evt.timestamp
-                                                        .format("%d/%m %H:%M:%S")
-                                                        .to_string(),
+                                                    crate::format::local_day_time_secs(
+                                                        evt.timestamp,
+                                                    ),
                                                 )
                                                 .font(theme::font_min())
                                                 .color(theme::text_tertiary()),

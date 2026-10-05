@@ -363,7 +363,13 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                     .join(", ");
                 let triggered = pb
                     .last_triggered
-                    .map(|t| format!("{} ({}x)", t.format("%d/%m %H:%M"), pb.trigger_count))
+                    .map(|t| {
+                        format!(
+                            "{} ({}x)",
+                            crate::format::local_day_time(t),
+                            pb.trigger_count
+                        )
+                    })
                     .unwrap_or_else(|| "\u{2014}".to_string());
 
                 ui.push_id(row_idx, |ui: &mut egui::Ui| {
@@ -624,7 +630,7 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                 } else {
                     ("\u{00c9}chec", theme::ERROR)
                 };
-                let date = entry.triggered_at.format("%d/%m/%Y %H:%M").to_string();
+                let date = crate::format::local_datetime(entry.triggered_at);
                 let result_cell = format!(
                     "{} {}",
                     if entry.success {

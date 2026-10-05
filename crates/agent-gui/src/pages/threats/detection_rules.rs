@@ -146,7 +146,10 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                     "{}{}",
                     crate::format::count(rule.match_count, "correspondance"),
                     rule.last_match
-                        .map(|t| format!(" \u{2014} Derni\u{00e8}re : {}", t.format("%d/%m %H:%M")))
+                        .map(|t| format!(
+                            " \u{2014} Derni\u{00e8}re : {}",
+                            crate::format::local_day_time(t)
+                        ))
                         .unwrap_or_default()
                 );
 

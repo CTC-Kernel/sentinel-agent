@@ -675,10 +675,7 @@ impl NotificationsPage {
                                 });
                                 row.col(|ui: &mut egui::Ui| match wh.last_sent {
                                     Some(dt) => {
-                                        table::cell_muted(
-                                            ui,
-                                            &dt.format("%d/%m/%Y %H:%M").to_string(),
-                                        );
+                                        table::cell_muted(ui, &crate::format::local_datetime(dt));
                                     }
                                     None => {
                                         table::cell_empty(ui);
@@ -943,7 +940,7 @@ impl NotificationsPage {
         let title = notif.title.clone();
         let body = notif.body.clone();
         let severity = notif.severity.clone();
-        let ts = notif.timestamp.format("%d/%m/%Y %H:%M").to_string();
+        let ts = crate::format::local_datetime(notif.timestamp);
         let read = notif.read;
         let action_url = notif.action.clone();
         let notif_id = notif.id.to_string();

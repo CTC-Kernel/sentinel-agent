@@ -259,7 +259,7 @@ impl SyncPage {
                             row.col(|ui| {
                                 table::cell_mono_muted(
                                     ui,
-                                    &entry.timestamp.format("%H:%M:%S").to_string(),
+                                    &crate::format::local_time_secs(entry.timestamp),
                                 );
                             });
 

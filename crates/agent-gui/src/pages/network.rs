@@ -347,7 +347,7 @@ impl NetworkPage {
                                 widgets::detail_field(
                                     ui,
                                     "Date de d\u{00e9}tection",
-                                    &alert.detected_at.format("%d/%m/%Y %H:%M:%S").to_string(),
+                                    &crate::format::local_datetime_secs(alert.detected_at),
                                 );
 
                                 // AI Analysis section
@@ -1111,9 +1111,9 @@ impl NetworkPage {
                                 .color(theme::text_tertiary()),
                             );
                             ui.label(
-                                egui::RichText::new(
-                                    alert.detected_at.format("%H:%M:%S").to_string(),
-                                )
+                                egui::RichText::new(crate::format::local_time_secs(
+                                    alert.detected_at,
+                                ))
                                 .font(theme::font_min())
                                 .color(theme::text_tertiary()),
                             );

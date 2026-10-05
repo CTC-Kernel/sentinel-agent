@@ -776,7 +776,7 @@ impl RisksPage {
                     });
 
                     row.col(|ui| {
-                        table::cell_muted(ui, &risk.created_at.format("%d/%m/%Y").to_string());
+                        table::cell_muted(ui, &crate::format::local_date(risk.created_at));
                     });
 
                     if table::row_interaction(&row, is_selected) {
@@ -965,12 +965,12 @@ impl RisksPage {
                             widgets::detail_field(
                                 ui,
                                 "Cr\u{00e9}\u{00e9} le",
-                                &risk.created_at.format("%d/%m/%Y %H:%M").to_string(),
+                                &crate::format::local_datetime(risk.created_at),
                             );
                             widgets::detail_field(
                                 ui,
                                 "Mis \u{00e0} jour le",
-                                &risk.updated_at.format("%d/%m/%Y %H:%M").to_string(),
+                                &crate::format::local_datetime(risk.updated_at),
                             );
                         }
                     },
@@ -1359,7 +1359,7 @@ impl RisksPage {
                     r.status.label_fr().to_string(),
                     r.owner.clone(),
                     r.source.clone(),
-                    r.created_at.format("%d/%m/%Y").to_string(),
+                    crate::format::local_date(r.created_at),
                 ])
             })
             .collect();

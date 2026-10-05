@@ -26,6 +26,21 @@ pub mod branding {
     pub const DOWNLOADS: &str = "https://github.com/CTC-Kernel/sentinel-agent/releases/latest";
 }
 
+/// License texts of the fonts and icons compiled into the binary.
+const THIRD_PARTY_LICENSES: &[(&str, &str)] = &[
+    (
+        "Inter",
+        include_str!("../../assets/fonts/LICENSE-INTER.txt"),
+    ),
+    (
+        "JetBrains Mono",
+        include_str!("../../assets/fonts/LICENSE-JETBRAINS-MONO.txt"),
+    ),
+    (
+        "Font Awesome Free",
+        include_str!("../../assets/fonts/LICENSE-FONTAWESOME.txt"),
+    ),
+];
 pub struct AboutPage;
 
 impl AboutPage {
@@ -113,14 +128,44 @@ impl AboutPage {
                 .color(theme::text_secondary()),
             );
             ui.add_space(theme::SPACE_XS);
+            // Matches LICENSE and the SPDX headers: the agent is MIT.
             ui.label(
                 egui::RichText::new(
-                    "Ce logiciel est la propri\u{00e9}t\u{00e9} exclusive de Cyber Threat Consulting. \
-                     Toute reproduction ou distribution non autoris\u{00e9}e est strictement interdite.",
+                    "Distribu\u{00e9} sous licence MIT. Composants tiers : polices Inter et \
+                     JetBrains Mono (SIL Open Font License 1.1), ic\u{00f4}nes Font Awesome Free, \
+                     biblioth\u{00e8}ques open source list\u{00e9}es dans le SBOM CycloneDX \
+                     (page Logiciels).",
                 )
                 .font(theme::font_small())
                 .color(theme::text_tertiary()),
             );
+            ui.add_space(theme::SPACE_SM);
+            // The OFL asks for its text to travel with the fonts it covers.
+            egui::CollapsingHeader::new(
+                egui::RichText::new("Licences des polices et ic\u{00f4}nes embarqu\u{00e9}es")
+                    .font(theme::font_small())
+                    .color(theme::text_secondary()),
+            )
+            .id_salt("about_third_party_licenses")
+            .show(ui, |ui| {
+                egui::ScrollArea::vertical()
+                    .max_height(240.0)
+                    .show(ui, |ui| {
+                        for (name, text) in THIRD_PARTY_LICENSES {
+                            ui.label(
+                                egui::RichText::new(*name)
+                                    .font(theme::font_label())
+                                    .color(theme::text_primary()),
+                            );
+                            ui.label(
+                                egui::RichText::new(*text)
+                                    .font(theme::font_mono_sm())
+                                    .color(theme::text_tertiary()),
+                            );
+                            ui.add_space(theme::SPACE_SM);
+                        }
+                    });
+            });
         });
 
         ui.add_space(theme::SPACE_XL);

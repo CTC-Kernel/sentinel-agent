@@ -355,7 +355,7 @@ impl VulnerabilitiesPage {
                                 widgets::detail_field(
                                     ui,
                                     "Date de d\u{00e9}couverte",
-                                    &dt.format("%d/%m/%Y %H:%M").to_string(),
+                                    &crate::format::local_datetime(dt),
                                 );
                             }
 
@@ -722,7 +722,7 @@ impl VulnerabilitiesPage {
                     row.col(|ui| {
                         let discovered = finding
                             .discovered_at
-                            .map(|dt| dt.format("%d/%m/%Y %H:%M").to_string())
+                            .map(crate::format::local_datetime)
                             .unwrap_or_default();
                         if table::cell_link_stack(ui, &finding.cve_id, &discovered).clicked() {
                             clicked_idx = Some(real_idx);

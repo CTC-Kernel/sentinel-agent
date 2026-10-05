@@ -1236,7 +1236,7 @@ impl eframe::App for SentinelApp {
             }
             let viewport_id = egui::ViewportId::from_hash_of("jarvis_widget");
             let builder = egui::ViewportBuilder::default()
-                .with_title("Jarvis AI Assistant")
+                .with_title("Assistant Sentinel")
                 .with_inner_size([400.0, 600.0])
                 .with_decorations(false)
                 .with_transparent(!cfg!(target_os = "linux"))

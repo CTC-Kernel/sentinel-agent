@@ -69,7 +69,7 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                         target: f.path.clone(),
                         detail: format!(
                             "Changement d\u{00e9}tect\u{00e9} le {}",
-                            f.timestamp.format("%d/%m/%Y %H:%M")
+                            crate::format::local_datetime(f.timestamp)
                         ),
                     });
                 }
@@ -283,7 +283,7 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                                 "SHA-256: {} \u{2014} {} \u{2014} {}",
                                 file.sha256.chars().take(16).collect::<String>(),
                                 file.reason,
-                                file.quarantined_at.format("%d/%m/%Y %H:%M"),
+                                crate::format::local_datetime(file.quarantined_at),
                             ))
                             .font(theme::font_min())
                             .color(theme::text_tertiary()),
@@ -424,7 +424,7 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                             slot(ui, 128.0, &mut |ui| {
                                 ui.label(
                                     egui::RichText::new(
-                                        entry.timestamp.format("%d/%m/%Y %H:%M").to_string(),
+                                        crate::format::local_datetime(entry.timestamp),
                                     )
                                     .font(theme::font_label())
                                     .color(theme::text_tertiary()),

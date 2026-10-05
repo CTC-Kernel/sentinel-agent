@@ -383,7 +383,7 @@ fn rule_card(ui: &mut egui::Ui, state: &mut AppState, editor: &mut Editor, rule:
         egui::RichText::new(format!(
             "{} · {}",
             rule.created_by,
-            rule.created_at.format("%d/%m/%Y %H:%M")
+            crate::format::local_datetime(rule.created_at)
         ))
         .font(theme::font_caption())
         .color(theme::text_tertiary()),

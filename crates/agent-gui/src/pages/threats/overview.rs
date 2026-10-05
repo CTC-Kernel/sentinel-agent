@@ -655,7 +655,7 @@ fn process_detail(
                         widgets::detail_field(
                             ui,
                             "Date de d\u{00e9}tection",
-                            &p.detected_at.format("%d/%m/%Y %H:%M:%S").to_string(),
+                            &crate::format::local_datetime_secs(p.detected_at),
                         );
 
                         // AI Analysis section
@@ -809,7 +809,7 @@ fn usb_detail(
                         widgets::detail_field(
                             ui,
                             "Date",
-                            &u.timestamp.format("%d/%m/%Y %H:%M:%S").to_string(),
+                            &crate::format::local_datetime_secs(u.timestamp),
                         );
                     },
                     &actions,
@@ -926,7 +926,7 @@ fn system_detail(
                     widgets::detail_field(
                         ui,
                         "Date de d\u{00e9}tection",
-                        &inc.detected_at.format("%d/%m/%Y %H:%M:%S").to_string(),
+                        &crate::format::local_datetime_secs(inc.detected_at),
                     );
 
                     // AI Analysis section
@@ -1170,7 +1170,7 @@ fn fim_detail(
                     widgets::detail_field(
                         ui,
                         "Date de d\u{00e9}tection",
-                        &f.timestamp.format("%d/%m/%Y %H:%M:%S").to_string(),
+                        &crate::format::local_datetime_secs(f.timestamp),
                     );
                     widgets::detail_field_badge(
                         ui,
@@ -1317,7 +1317,7 @@ fn network_detail(
                     widgets::detail_field(
                         ui,
                         "Date de d\u{00e9}tection",
-                        &a.detected_at.format("%d/%m/%Y %H:%M:%S").to_string(),
+                        &crate::format::local_datetime_secs(a.detected_at),
                     );
 
                     // AI Analysis section
@@ -1515,7 +1515,7 @@ fn threat_row(ui: &mut Ui, threat: &ThreatEvent, idx: usize) -> bool {
                             egui::RichText::new(format!(
                                 "{}  {}",
                                 icons::CLOCK,
-                                threat.timestamp.format("%d/%m/%Y %H:%M"),
+                                crate::format::local_datetime(threat.timestamp),
                             ))
                             .font(theme::font_label())
                             .color(theme::text_tertiary()),
@@ -2532,7 +2532,7 @@ fn radar_signals(
                 egui::RichText::new(format!(
                     "Source : {} · {}",
                     threat.kind,
-                    threat.timestamp.format("%d/%m %H:%M:%S")
+                    crate::format::local_day_time_secs(threat.timestamp)
                 ))
                 .font(theme::font_min())
                 .color(theme::text_tertiary()),
@@ -2663,7 +2663,7 @@ fn radar_pinned_signal(
                 widgets::detail_field(
                     ui,
                     "Détecté le",
-                    &threat.timestamp.format("%d/%m/%Y %H:%M:%S").to_string(),
+                    &crate::format::local_datetime_secs(threat.timestamp),
                 );
                 if let Some(confidence) = threat.confidence {
                     widgets::detail_field(ui, "Confiance", &format!("{confidence}\u{202f}%"));

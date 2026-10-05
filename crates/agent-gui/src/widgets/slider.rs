@@ -304,7 +304,7 @@ impl Slider {
                 let value_text = if self.step.map(|s| s >= 1.0).unwrap_or(false) {
                     format!("{:.0}", *value)
                 } else {
-                    format!("{:.1}", *value)
+                    crate::format::decimal(*value, 1)
                 };
                 let display = if let Some(ref suffix) = self.suffix {
                     format!("{}{}", value_text, suffix)

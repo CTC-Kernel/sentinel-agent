@@ -86,7 +86,7 @@ impl ReportsPage {
                                 widgets::detail_field(
                                     ui,
                                     "G\u{00e9}n\u{00e9}r\u{00e9} le",
-                                    &report.generated_at.format("%d/%m/%Y %H:%M").to_string(),
+                                    &crate::format::local_datetime(report.generated_at),
                                 );
                                 if let Some(fw) = &report.framework {
                                     widgets::detail_field_badge(
@@ -207,8 +207,9 @@ impl ReportsPage {
                     });
                     ui.label(
                         egui::RichText::new(format!(
-                            "Généré le {} · {}",
-                            report.generated_at.format("%d/%m/%Y à %H:%M"),
+                            "Généré le {} à {} · {}",
+                            crate::format::local_date(report.generated_at),
+                            crate::format::local_time(report.generated_at),
                             crate::format::ago(chrono::Utc::now(), report.generated_at)
                         ))
                         .font(theme::font_caption())
@@ -340,9 +341,9 @@ impl ReportsPage {
                                 .color(theme::text_tertiary()),
                         );
                         ui.label(
-                            egui::RichText::new(
-                                previous.generated_at.format("%d/%m/%Y %H:%M").to_string(),
-                            )
+                            egui::RichText::new(crate::format::local_datetime(
+                                previous.generated_at,
+                            ))
                             .font(theme::font_body())
                             .color(theme::text_primary()),
                         );
@@ -490,7 +491,7 @@ impl ReportsPage {
                         row.col(|ui| {
                             table::cell_small(
                                 ui,
-                                &report.generated_at.format("%d/%m/%Y %H:%M").to_string(),
+                                &crate::format::local_datetime(report.generated_at),
                             );
                         });
 
@@ -540,7 +541,7 @@ impl ReportsPage {
         framework: Option<&str>,
     ) -> GeneratedReport {
         let now = chrono::Utc::now();
-        let date_str = now.format("%d/%m/%Y %H:%M").to_string();
+        let date_str = crate::format::local_datetime(now);
 
         let (title, summary, html_content, compliance_score) = match report_type {
             ReportType::Executive => Self::build_executive_report(state, &date_str),
@@ -748,7 +749,7 @@ impl ReportsPage {
                 html_escape(&proc.process_name),
                 html_escape(&proc.reason),
                 proc.confidence,
-                proc.detected_at.format("%d/%m/%Y %H:%M"),
+                crate::format::local_datetime(proc.detected_at),
             ));
         }
 
@@ -760,7 +761,7 @@ impl ReportsPage {
                 html_escape(&inc.title),
                 inc.severity.label(),
                 inc.confidence,
-                inc.detected_at.format("%d/%m/%Y %H:%M"),
+                crate::format::local_datetime(inc.detected_at),
             ));
         }
 

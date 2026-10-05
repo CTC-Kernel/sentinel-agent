@@ -438,7 +438,7 @@ impl AssetsPage {
                         let text = if ago.num_hours() < 24 {
                             crate::format::ago(now, asset.last_seen)
                         } else {
-                            asset.last_seen.format("%d/%m %H:%M").to_string()
+                            crate::format::local_day_time(asset.last_seen)
                         };
                         let color = theme::readable_color(if ago.num_hours() < 1 {
                             theme::SUCCESS
@@ -448,7 +448,7 @@ impl AssetsPage {
                             theme::text_secondary()
                         });
                         table::cell_styled(ui, &text, theme::font_small(), color)
-                            .on_hover_text(asset.last_seen.format("%d/%m/%Y %H:%M:%S").to_string());
+                            .on_hover_text(crate::format::local_datetime_secs(asset.last_seen));
                     });
 
                     if table::row_interaction(&row, is_selected) {
@@ -579,12 +579,12 @@ impl AssetsPage {
                 widgets::detail_field(
                     ui,
                     "Premi\u{00e8}re d\u{00e9}tection",
-                    &asset.first_seen.format("%d/%m/%Y %H:%M").to_string(),
+                    &crate::format::local_datetime(asset.first_seen),
                 );
                 widgets::detail_field(
                     ui,
                     "Derni\u{00e8}re d\u{00e9}tection",
-                    &asset.last_seen.format("%d/%m/%Y %H:%M").to_string(),
+                    &crate::format::local_datetime(asset.last_seen),
                 );
             },
             &actions,
@@ -904,7 +904,7 @@ impl AssetsPage {
                     a.lifecycle.label_fr().to_string(),
                     format!("{:.1}", a.risk_score),
                     a.vulnerability_count.to_string(),
-                    a.last_seen.format("%d/%m/%Y %H:%M").to_string(),
+                    crate::format::local_datetime(a.last_seen),
                     a.tags.join(", "),
                 ])
             })

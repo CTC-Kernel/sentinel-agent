@@ -440,7 +440,7 @@ impl DiscoveryPage {
                             let text = if ago.num_hours() < 24 {
                                 crate::format::ago(now, device.last_seen)
                             } else {
-                                device.last_seen.format("%d/%m %H:%M").to_string()
+                                crate::format::local_day_time(device.last_seen)
                             };
                             let color = theme::readable_color(if ago.num_hours() < 1 {
                                 theme::SUCCESS
@@ -450,7 +450,7 @@ impl DiscoveryPage {
                                 theme::text_secondary()
                             });
                             table::cell_colored(ui, &text, color).on_hover_text(
-                                device.last_seen.format("%d/%m/%Y %H:%M:%S").to_string(),
+                                crate::format::local_datetime_secs(device.last_seen),
                             );
                         });
                         row.col(|ui| {
@@ -505,8 +505,8 @@ impl DiscoveryPage {
         let open_ports = device.open_ports.clone();
         let first_seen_ts = device.first_seen;
         let last_seen_ts = device.last_seen;
-        let first_seen = device.first_seen.format("%d/%m/%Y %H:%M").to_string();
-        let last_seen = device.last_seen.format("%d/%m/%Y %H:%M").to_string();
+        let first_seen = crate::format::local_datetime(device.first_seen);
+        let last_seen = crate::format::local_datetime(device.last_seen);
         let (type_label, type_color) = device_type_badge(&device_type);
 
         // Check whether this device is already imported as a managed asset.

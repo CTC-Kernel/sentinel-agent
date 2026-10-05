@@ -255,7 +255,7 @@ impl AgentTray {
 
         let jarvis_toggle_item = CheckMenuItem::with_id(
             menu_ids::JARVIS_TOGGLE,
-            "🤖 Assistant Jarvis",
+            "🤖 Assistant Sentinel",
             true,
             false,
             None,
