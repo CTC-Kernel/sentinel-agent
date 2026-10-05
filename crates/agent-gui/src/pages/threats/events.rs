@@ -162,7 +162,8 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
         TableColumn {
             key: "date",
             label: "DATE",
-            width: ColumnWidth::Fixed(150.0),
+            // "05/10/2026 11:48" at the 14px body size, plus the sort mark.
+            width: ColumnWidth::Fixed(176.0),
             sortable: true,
             align: ColumnAlign::Right,
         },

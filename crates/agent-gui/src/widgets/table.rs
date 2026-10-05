@@ -30,6 +30,10 @@ use crate::theme;
 /// reason "the page would not scroll". Rows are striped, the header and
 /// cells centre vertically, and the widths come from the [`column`] helpers.
 pub fn builder(ui: &mut Ui) -> TableBuilder<'_> {
+    // `egui_extras` paints a hovered row with `widgets.hovered.bg_fill`,
+    // which the theme points at the generic control hover. Rows get their
+    // own colour, the same one `DataTable` uses.
+    ui.visuals_mut().widgets.hovered.bg_fill = theme::table_row_hover();
     TableBuilder::new(ui)
         .striped(true)
         .resizable(false)

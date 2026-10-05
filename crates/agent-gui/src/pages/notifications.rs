@@ -1008,7 +1008,7 @@ fn notification_row(ui: &mut Ui, notif: &crate::dto::GuiNotification, selected: 
     painter.rect_filled(
         rect.shrink2(egui::vec2(0.0, 2.0)),
         radius,
-        crate::animation::lerp_color(base, theme::hover_bg_neutral(), hover * 0.6),
+        crate::animation::lerp_color(base, theme::table_row_hover(), hover),
     );
     painter.rect_filled(
         egui::Rect::from_min_size(
