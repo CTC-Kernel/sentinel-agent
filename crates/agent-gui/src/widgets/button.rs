@@ -604,6 +604,12 @@ pub fn icon_button_with_color(
         );
     }
 
+    // An icon glyph means nothing to a screen reader: name the button by
+    // its tooltip.
+    let label = tooltip.unwrap_or(icon).to_string();
+    response.widget_info(|| {
+        egui::WidgetInfo::labeled(egui::WidgetType::Button, ui.is_enabled(), label.clone())
+    });
     let response = response.on_hover_cursor(egui::CursorIcon::PointingHand);
 
     if let Some(tip) = tooltip {

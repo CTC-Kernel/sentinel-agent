@@ -352,7 +352,7 @@ impl TerminalPage {
                         let Some(&(original_idx, entry)) = filtered.get(row.index()) else {
                             return;
                         };
-                        let ts = entry.timestamp.format("%H:%M:%S").to_string();
+                        let ts = crate::format::local_time_secs(entry.timestamp);
                         let color = level_color(&entry.level);
                         let target_short = shorten_target(&entry.target);
                         let is_selected = selected == Some(original_idx);
@@ -392,7 +392,7 @@ impl TerminalPage {
         };
 
         let entry = &state.terminal.lines[selected];
-        let ts = entry.timestamp.format("%d/%m/%Y %H:%M:%S%.3f").to_string();
+        let ts = crate::format::local_datetime_millis(entry.timestamp);
         let level = entry.level.clone();
         let target = entry.target.clone();
         let message = entry.message.clone();

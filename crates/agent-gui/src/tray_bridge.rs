@@ -183,7 +183,7 @@ impl TrayBridge {
 
         let jarvis_item = CheckMenuItem::with_id(
             ids::JARVIS_TOGGLE,
-            "🤖  Assistant Jarvis (IA)",
+            "🤖  Assistant Sentinel (IA)",
             true,
             false,
             None,

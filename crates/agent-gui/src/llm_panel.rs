@@ -195,7 +195,7 @@ impl LLMPanel {
                                             format!(
                                                 "{} · {}\n{}",
                                                 m.role.label_fr(),
-                                                m.timestamp.format("%H:%M"),
+                                                crate::format::local_time(m.timestamp),
                                                 m.content
                                             )
                                         })
@@ -1686,7 +1686,7 @@ impl LLMPanel {
                                     egui::Layout::right_to_left(egui::Align::Center),
                                     |ui: &mut egui::Ui| {
                                         // Timestamp
-                                        let time_str = msg.timestamp.format("%H:%M").to_string();
+                                        let time_str = crate::format::local_time(msg.timestamp);
                                         ui.label(
                                             egui::RichText::new(time_str)
                                                 .font(theme::font_min())
@@ -1721,9 +1721,12 @@ impl LLMPanel {
                                 }
                                 if let Some(ms) = msg.processing_time_ms {
                                     ui.label(
-                                        egui::RichText::new(format!("{:.1} s", ms as f64 / 1000.0))
-                                            .font(theme::font_small())
-                                            .color(theme::text_tertiary()),
+                                        egui::RichText::new(format!(
+                                            "{} s",
+                                            crate::format::decimal(ms as f64 / 1000.0, 1)
+                                        ))
+                                        .font(theme::font_small())
+                                        .color(theme::text_tertiary()),
                                     );
                                 }
                             });
@@ -2598,7 +2601,10 @@ impl LLMPanel {
     /// Format bytes per second to human-readable speed string.
     fn format_speed(bps: u64) -> String {
         if bps >= 1_000_000 {
-            format!("{:.1} Mo/s", bps as f64 / 1_000_000.0)
+            format!(
+                "{} Mo/s",
+                crate::format::decimal(bps as f64 / 1_000_000.0, 1)
+            )
         } else if bps >= 1_000 {
             format!("{:.0} Ko/s", bps as f64 / 1_000.0)
         } else {

@@ -501,12 +501,12 @@ impl CartographyPage {
                     widgets::detail_field(
                         ui,
                         "Première détection",
-                        &device.first_seen.format("%d/%m/%Y %H:%M").to_string(),
+                        &crate::format::local_datetime(device.first_seen),
                     );
                     widgets::detail_field(
                         ui,
                         "Dernière détection",
-                        &device.last_seen.format("%d/%m/%Y %H:%M").to_string(),
+                        &crate::format::local_datetime(device.last_seen),
                     );
                 },
                 &actions,

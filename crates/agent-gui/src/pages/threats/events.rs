@@ -208,7 +208,7 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
             };
             let (kind_label, _) = kind_badge(threat.kind);
 
-            let date = threat.timestamp.format("%d/%m/%Y %H:%M").to_string();
+            let date = crate::format::local_datetime(threat.timestamp);
 
             let (status, status_color) = if threat.allowlisted {
                 ("Autorisé", theme::INFO)
@@ -257,7 +257,7 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                 _ => theme::INFO,
             };
             let (kind_label, _) = kind_badge(threat.kind);
-            let ts = threat.timestamp.format("%d/%m/%Y %H:%M:%S").to_string();
+            let ts = crate::format::local_datetime_secs(threat.timestamp);
 
             // MITRE lookup
             let subtype = match threat.kind {

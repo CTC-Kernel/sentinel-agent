@@ -20,6 +20,8 @@ pub struct Tab<'a> {
     pub label: &'a str,
     pub icon: Option<&'a str>,
     pub badge: Option<u32>,
+    /// The badge counts work waiting for the operator: drawn in red.
+    pub badge_urgent: bool,
     pub disabled: bool,
 }
 
@@ -29,6 +31,7 @@ impl<'a> Tab<'a> {
             label,
             icon: None,
             badge: None,
+            badge_urgent: false,
             disabled: false,
         }
     }
@@ -40,9 +43,19 @@ impl<'a> Tab<'a> {
 
     /// A count on the tab. Zero is no badge: a "0" pill next to a section
     /// name says nothing the empty list will not.
+    ///
+    /// The badge is neutral: a number of playbooks or messages is not an
+    /// alarm. Use [`Tab::urgent_badge`] for work waiting on the operator.
     pub fn badge(mut self, count: u32) -> Self {
         self.badge = (count > 0).then_some(count);
         self
+    }
+
+    /// A count of items waiting for the operator (to triage, to decide),
+    /// drawn in red.
+    pub fn urgent_badge(mut self, count: u32) -> Self {
+        self.badge_urgent = true;
+        self.badge(count)
     }
 
     pub fn disabled(mut self) -> Self {
@@ -456,11 +469,12 @@ impl<'a> TabBar<'a> {
                     egui::vec2(theme::ICON_MD, theme::ICON_SM + 2.0),
                 );
                 let rounding = CornerRadius::same((theme::ICON_SM + 2.0) as u8 / 2);
-                painter.rect_filled(badge_rect, rounding, theme::badge_bg(theme::ERROR));
+                let (fill, border, text) = badge_colors(tab.badge_urgent);
+                painter.rect_filled(badge_rect, rounding, fill);
                 painter.rect_stroke(
                     badge_rect,
                     rounding,
-                    egui::Stroke::new(theme::BORDER_HAIRLINE, theme::badge_border(theme::ERROR)),
+                    egui::Stroke::new(theme::BORDER_HAIRLINE, border),
                     egui::StrokeKind::Inside,
                 );
                 painter.text(
@@ -468,7 +482,7 @@ impl<'a> TabBar<'a> {
                     egui::Align2::CENTER_CENTER,
                     badge_text,
                     theme::font_micro(),
-                    theme::badge_text(theme::ERROR),
+                    text,
                 );
             }
 
@@ -612,18 +626,12 @@ impl<'a> TabBar<'a> {
                             egui::vec2(theme::SPACE, theme::SPACE_MD + 2.0),
                         );
                         let rounding = egui::CornerRadius::same((theme::SPACE_MD + 2.0) as u8 / 2);
-                        ui.painter().rect_filled(
-                            badge_rect,
-                            rounding,
-                            theme::badge_bg(theme::ERROR),
-                        );
+                        let (fill, border, text) = badge_colors(tab.badge_urgent);
+                        ui.painter().rect_filled(badge_rect, rounding, fill);
                         ui.painter().rect_stroke(
                             badge_rect,
                             rounding,
-                            egui::Stroke::new(
-                                theme::BORDER_HAIRLINE,
-                                theme::badge_border(theme::ERROR),
-                            ),
+                            egui::Stroke::new(theme::BORDER_HAIRLINE, border),
                             egui::StrokeKind::Inside,
                         );
                         ui.painter().text(
@@ -631,7 +639,7 @@ impl<'a> TabBar<'a> {
                             egui::Align2::CENTER_CENTER,
                             &badge_text,
                             theme::font_label(),
-                            theme::badge_text(theme::ERROR),
+                            text,
                         );
                     }
 
@@ -823,9 +831,44 @@ pub fn tabs_boxed(ui: &mut Ui, labels: &[&str], selected: &mut usize) -> bool {
     }
 }
 
+/// Fill, border and text of a tab badge. Red is kept for work waiting on
+/// the operator; a plain count stays neutral so it does not read as an error.
+fn badge_colors(urgent: bool) -> (Color32, Color32, Color32) {
+    if urgent {
+        (
+            theme::badge_bg(theme::ERROR),
+            theme::badge_border(theme::ERROR),
+            theme::badge_text(theme::ERROR),
+        )
+    } else {
+        (
+            theme::bg_tertiary(),
+            theme::border_subtle(),
+            theme::text_secondary(),
+        )
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn only_urgent_badges_are_red() {
+        let plain = Tab::new("Playbooks").badge(2);
+        let urgent = Tab::new("Réponse").urgent_badge(2);
+        assert!(!plain.badge_urgent);
+        assert!(urgent.badge_urgent);
+        assert_eq!(urgent.badge, Some(2));
+        for dark in [false, true] {
+            let ctx = egui::Context::default();
+            theme::apply_theme(&ctx, dark);
+            let (_, _, neutral_text) = badge_colors(false);
+            let (_, _, urgent_text) = badge_colors(true);
+            assert_ne!(neutral_text, urgent_text);
+            assert_eq!(urgent_text, theme::badge_text(theme::ERROR));
+        }
+    }
 
     #[test]
     fn labeled_tabs_use_one_row_when_they_fit_and_wrap_when_needed() {

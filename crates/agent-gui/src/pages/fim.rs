@@ -82,15 +82,20 @@ impl FimPage {
 
         // ── Alerts table (AAA Grade) ─────────────────────────────────────
         if state.fim.alerts.is_empty() {
+            // No alert is not proof the watch works: say what is known.
+            let monitored = state.fim.monitored_count;
+            let detail = if monitored > 0 {
+                format!(
+                    "Aucune modification détectée sur les {} surveillés.",
+                    crate::format::count(monitored, "fichier")
+                )
+            } else {
+                "Le module d'intégrité n'a encore signalé aucun fichier surveillé : \
+                 vérifiez qu'il est démarré avant de conclure à l'absence de modification."
+                    .to_string()
+            };
             widgets::data_card(ui, "Alertes d’intégrité des fichiers", |ui| {
-                widgets::empty_state(
-                    ui,
-                    icons::FILE_SHIELD,
-                    "Aucune alerte FIM",
-                    Some(
-                        "Aucune modification de fichier critique détectée. La surveillance est active et fonctionnelle.",
-                    ),
-                );
+                widgets::empty_state(ui, icons::FILE_SHIELD, "Aucune alerte FIM", Some(&detail));
             });
             ui.add_space(theme::SPACE_XL);
         } else {
@@ -114,7 +119,16 @@ impl FimPage {
                                 {
                                     let all_indices: Vec<usize> =
                                         (0..state.fim.alerts.len()).collect();
-                                    Self::export_events_csv(state, &all_indices);
+                                    let toast = if Self::export_events_csv(state, &all_indices) {
+                                        crate::widgets::toast::Toast::success(
+                                            "Alertes FIM export\u{00e9}es en CSV",
+                                        )
+                                    } else {
+                                        crate::widgets::toast::Toast::error(
+                                            "\u{00c9}chec de l'export CSV des alertes FIM",
+                                        )
+                                    };
+                                    state.push_toast(toast, ui.ctx());
                                 }
                             },
                         );
@@ -129,6 +143,7 @@ impl FimPage {
                         state.fim.alerts.iter().map(|a| a.acknowledged).collect();
                     let admin_unlocked = state.security.admin_unlocked;
                     let mut ack_command = None;
+                    let mut unlock_requested = false;
 
                     const FIM_PER_PAGE: usize = 50;
                     let (fim_start, fim_len, _) = widgets::page_window(
@@ -194,7 +209,7 @@ impl FimPage {
                             row.col(|ui: &mut egui::Ui| {
                                 table::cell_mono_muted(
                                     ui,
-                                    &alert.timestamp.format("%d/%m %H:%M:%S").to_string(),
+                                    &crate::format::local_day_time_secs(alert.timestamp),
                                 );
                             });
 
@@ -215,13 +230,16 @@ impl FimPage {
                                     {
                                         ack_command = Some(idx);
                                     }
-                                } else {
-                                    widgets::chip_button(
-                                        ui,
-                                        &format!("{}  Acquitter", icons::LOCK),
-                                        false,
-                                        theme::text_tertiary(),
-                                    );
+                                } else if widgets::chip_button(
+                                    ui,
+                                    &format!("{}  Acquitter", icons::LOCK),
+                                    false,
+                                    theme::text_tertiary(),
+                                )
+                                .on_hover_text("Nécessite le mode administrateur")
+                                .clicked()
+                                {
+                                    unlock_requested = true;
                                 }
                             });
 
@@ -247,6 +265,12 @@ impl FimPage {
                     {
                         state.fim.selected_alert = Some(pos);
                         state.fim.page = pos / FIM_PER_PAGE;
+                    }
+
+                    if unlock_requested {
+                        state
+                            .security
+                            .request_unlock("Acquitter une alerte d'intégrité");
                     }
 
                     // Apply acknowledgment after the table
@@ -311,7 +335,7 @@ impl FimPage {
                         widgets::detail_field(
                             ui,
                             "Date de d\u{00e9}tection",
-                            &alert.timestamp.format("%d/%m/%Y %H:%M:%S").to_string(),
+                            &crate::format::local_datetime_secs(alert.timestamp),
                         );
 
                         widgets::detail_section(ui, "HACHAGES");

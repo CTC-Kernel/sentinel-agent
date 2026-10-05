@@ -154,7 +154,13 @@ pub struct GuiPreferences {
     pub log_collector_poll_secs: u64,
     pub discovery_enabled: bool,
     pub architecture_url: String,
-    pub admin_password_sha256: String,
+    /// Administrator password hash (Argon2id PHC string). Earlier versions
+    /// stored a SHA-256 hex digest under `admin_password_sha256`.
+    #[serde(alias = "admin_password_sha256")]
+    pub admin_password_hash: String,
+    /// Failed administrator unlocks, kept across restarts so closing the
+    /// application does not reset the lockout.
+    pub admin_lockout: crate::admin_auth::Lockout,
     #[serde(default)]
     pub sidebar_collapsed: bool,
     #[serde(default)]
@@ -194,7 +200,8 @@ impl Default for GuiPreferences {
             log_collector_poll_secs: 60,
             discovery_enabled: false,
             architecture_url: String::new(),
-            admin_password_sha256: String::new(),
+            admin_password_hash: String::new(),
+            admin_lockout: crate::admin_auth::Lockout::default(),
             sidebar_collapsed: false,
             voice_alerts_enabled: false,
             voice_conversation_enabled: false,
@@ -223,7 +230,8 @@ impl GuiPreferences {
             log_collector_poll_secs: state.settings.log_collector_poll_secs,
             discovery_enabled: state.discovery.enabled,
             architecture_url: state.settings.architecture_url.clone(),
-            admin_password_sha256: state.settings.admin_password_sha256.clone(),
+            admin_password_hash: state.settings.admin_password_hash.clone(),
+            admin_lockout: state.security.lockout,
             sidebar_collapsed: state.settings.sidebar_collapsed,
             voice_alerts_enabled: state.ai.voice_alerts_enabled,
             voice_conversation_enabled: state.ai.voice_conversation_enabled,
@@ -281,12 +289,13 @@ impl GuiPreferences {
             .settings
             .architecture_url
             .clone_from(&self.architecture_url);
-        if !self.admin_password_sha256.is_empty() {
+        if !self.admin_password_hash.is_empty() {
             state
                 .settings
-                .admin_password_sha256
-                .clone_from(&self.admin_password_sha256);
+                .admin_password_hash
+                .clone_from(&self.admin_password_hash);
         }
+        state.security.lockout = self.admin_lockout;
     }
 }
 
@@ -1042,6 +1051,8 @@ pub struct SettingsState {
     /// Selected workspace section; independent of backend configuration.
     pub active_section: usize,
     pub is_paused: bool,
+    /// When a pause started from this interface ends on its own.
+    pub pause_until: Option<chrono::DateTime<chrono::Utc>>,
     pub server_url: String,
     pub architecture_url: String,
     pub check_interval_secs: u64,
@@ -1051,8 +1062,10 @@ pub struct SettingsState {
     /// Follow the operating system's light/dark setting.
     pub follow_system_theme: bool,
     pub update_status: crate::dto::UpdateStatus,
-    /// SHA-256 hash of the admin password for danger zone access.
-    pub admin_password_sha256: String,
+    /// Administrator password hash (Argon2id PHC string, or a legacy
+    /// SHA-256 digest until the next successful unlock re-hashes it).
+    /// Empty means no administrator password exists yet.
+    pub admin_password_hash: String,
     /// Whether the SIEM forwarder is enabled.
     pub siem_enabled: bool,
     /// SIEM output format (CEF, LEEF, JSON).
@@ -1076,6 +1089,7 @@ impl Default for SettingsState {
         Self {
             active_section: 0,
             is_paused: false,
+            pause_until: None,
             server_url: agent_common::constants::DEFAULT_SERVER_URL.to_string(),
             architecture_url: format!("{}/voxel", crate::pages::about::branding::CONSOLE),
             check_interval_secs: agent_common::constants::DEFAULT_CHECK_INTERVAL_SECS,
@@ -1086,7 +1100,7 @@ impl Default for SettingsState {
             update_status: crate::dto::UpdateStatus::Idle,
             // SHA-256 of "admin" — should be changed on first deployment
             // SECURITY: No default password. Must be set via enrollment or secure storage.
-            admin_password_sha256: String::new(),
+            admin_password_hash: String::new(),
             siem_enabled: false,
             siem_format: "CEF".to_string(),
             siem_transport: "Syslog".to_string(),
@@ -1115,6 +1129,53 @@ pub struct SecurityState {
     pub admin_unlocked: bool,
     /// Timestamp of last unlock (for auto-lock timeouts).
     pub last_unlock: Option<chrono::DateTime<chrono::Utc>>,
+    /// Why the administrator password is being asked for. `Some` opens the
+    /// administrator dialog over the current page.
+    pub unlock_reason: Option<String>,
+    /// The dialog was opened to change the password of an unlocked session.
+    pub changing_password: bool,
+    /// Commands that need the administrator mode, held until the dialog
+    /// unlocks it (sent) or is cancelled (dropped).
+    pub held_commands: Vec<crate::events::GuiCommand>,
+    /// Failed unlock attempts and the lockout they triggered (persisted).
+    pub lockout: crate::admin_auth::Lockout,
+    /// Fields of the administrator dialog, wiped when it closes.
+    pub form: AdminForm,
+}
+
+/// Inputs of the administrator dialog. The secrets are zeroized on drop.
+#[derive(Default)]
+pub struct AdminForm {
+    pub password: zeroize::Zeroizing<String>,
+    pub confirmation: zeroize::Zeroizing<String>,
+    pub reveal: bool,
+    pub error: Option<String>,
+}
+
+impl SecurityState {
+    /// How long an administrator session lasts after the unlock.
+    pub const SESSION: chrono::Duration = chrono::Duration::minutes(5);
+
+    /// Open the administrator dialog, keeping the first reason if one is
+    /// already pending.
+    pub fn request_unlock(&mut self, reason: impl Into<String>) {
+        if self.unlock_reason.is_none() {
+            self.unlock_reason = Some(reason.into());
+        }
+    }
+
+    /// Close the dialog and wipe what was typed.
+    pub fn close_dialog(&mut self) {
+        self.unlock_reason = None;
+        self.changing_password = false;
+        self.form = AdminForm::default();
+    }
+
+    /// Lock the administrator mode now.
+    pub fn lock(&mut self) {
+        self.admin_unlocked = false;
+        self.last_unlock = None;
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -1254,6 +1315,35 @@ impl Default for AppState {
 }
 
 impl AppState {
+    /// Default length of a pause asked for from the tray menu.
+    pub const DEFAULT_PAUSE_MINUTES: i64 = 60;
+
+    /// Record a pause of `minutes` and return the command that starts it.
+    pub fn begin_pause(&mut self, minutes: i64) -> crate::events::GuiCommand {
+        self.settings.is_paused = true;
+        self.settings.pause_until =
+            Some(chrono::Utc::now() + chrono::Duration::minutes(minutes.max(1)));
+        tracing::info!("[AUDIT] Protection paused from the GUI for {minutes} min");
+        crate::events::GuiCommand::Pause
+    }
+
+    /// Record the end of a pause (manual or automatic).
+    pub fn end_pause(&mut self) {
+        self.settings.is_paused = false;
+        self.settings.pause_until = None;
+    }
+
+    /// `true` when the administrator mode is open. Otherwise asks for the
+    /// administrator password, explaining `reason`, and returns `false`:
+    /// call it before changing anything, then try again once unlocked.
+    pub fn require_admin(&mut self, reason: &str) -> bool {
+        if self.security.admin_unlocked {
+            return true;
+        }
+        self.security.request_unlock(reason);
+        false
+    }
+
     /// Push a toast notification with the current egui time.
     pub fn push_toast(&mut self, toast: crate::widgets::toast::Toast, ctx: &egui::Context) {
         let time = ctx.input(|i| i.time);
@@ -2100,7 +2190,7 @@ impl AppState {
                 }
             }
             AgentEvent::AdminPasswordSet { hash } => {
-                self.settings.admin_password_sha256 = hash;
+                self.settings.admin_password_hash = hash;
             }
             AgentEvent::AssetsLoaded { assets } => {
                 let selected = self

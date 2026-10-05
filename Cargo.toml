@@ -44,6 +44,8 @@ sysinfo = "0.35"
 async-trait = "0.1"
 semver = { version = "1", features = ["serde"] }
 hmac = "0.12"
+# Administrator password hashing (Argon2id, PHC strings with a random salt).
+argon2 = { version = "0.5", features = ["std"] }
 tray-icon = "0.19"
 muda = "0.15"
 image = { version = "0.25", default-features = false, features = ["png"] }
@@ -97,6 +99,14 @@ windows = { version = "0.61", features = [
     "Win32_UI_WindowsAndMessaging",
 ] }
 windows-service = "0.8"
+
+# Argon2id is deliberately expensive; unoptimised it makes every debug unlock
+# and every password test take seconds.
+[profile.dev.package.argon2]
+opt-level = 3
+
+[profile.dev.package.blake2]
+opt-level = 3
 
 [profile.release]
 opt-level = 3

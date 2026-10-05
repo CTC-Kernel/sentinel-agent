@@ -5,8 +5,9 @@
 //!
 //! Supports both dark and light themes. Surface / text colors are
 //! provided as functions that return the correct value for the active
-//! theme.  Semantic colors (accent, success, warning, error, info)
-//! remain constants shared by both themes.
+//! theme. Semantic colors (accent, success, warning, error, info) are
+//! declared once as constants; `readable_color`, `badge_text` and the other
+//! helpers swap in their calibrated light-mode counterparts when drawing.
 
 use std::cell::Cell;
 
@@ -139,41 +140,26 @@ pub fn detect_reduced_motion() -> bool {
     }
     #[cfg(target_os = "windows")]
     {
-        // Check Windows "Turn off all unnecessary animations" via registry
-        agent_common::process::silent_command("reg")
-            .args([
-                "query",
-                r"HKCU\Control Panel\Desktop",
-                "/v",
-                "UserPreferencesMask",
-            ])
-            .output()
-            .ok()
-            .and_then(|out| {
-                if !out.status.success() {
-                    return None;
-                }
-                let text = String::from_utf8(out.stdout).ok()?;
-                // UserPreferencesMask is a REG_BINARY; byte 1 bit 1 controls animations.
-                // If the value contains hex bytes and bit 1 of byte[1] is 0 → animations off.
-                // Fallback: check SPI_GETCLIENTAREAANIMATION via PowerShell as more reliable.
-                drop(text);
-                None
-            })
-            .unwrap_or_else(|| {
-                // Fallback: PowerShell SystemParametersInfo query
-                agent_common::process::silent_command("powershell")
-                    .args([
-                        "-NoProfile",
-                        "-Command",
-                        "[System.Windows.Forms.SystemInformation]::IsClientAreaAnimationEnabled",
-                    ])
-                    .output()
-                    .ok()
-                    .and_then(|out| String::from_utf8(out.stdout).ok())
-                    .map(|s| s.trim().eq_ignore_ascii_case("false"))
-                    .unwrap_or(false)
-            })
+        // "Show animations in Windows" (Settings → Accessibility → Visual
+        // effects) is SPI_GETCLIENTAREAANIMATION. Asked of the API directly:
+        // the former PowerShell query named a .NET type that is not loaded
+        // by default, so it always failed and reported "animations on", and
+        // it started a PowerShell process at every launch.
+        use windows::Win32::UI::WindowsAndMessaging::{
+            SPI_GETCLIENTAREAANIMATION, SYSTEM_PARAMETERS_INFO_UPDATE_FLAGS, SystemParametersInfoW,
+        };
+        let mut animations: windows::core::BOOL = windows::core::BOOL(1);
+        // SAFETY: SPI_GETCLIENTAREAANIMATION writes one BOOL through pvParam,
+        // which points at a live local of that type for the whole call.
+        let queried = unsafe {
+            SystemParametersInfoW(
+                SPI_GETCLIENTAREAANIMATION,
+                0,
+                Some(std::ptr::from_mut(&mut animations).cast()),
+                SYSTEM_PARAMETERS_INFO_UPDATE_FLAGS(0),
+            )
+        };
+        queried.is_ok() && !animations.as_bool()
     }
     #[cfg(target_os = "linux")]
     {
@@ -502,7 +488,7 @@ pub fn overlay_color() -> Color32 {
 // Spacing constants
 // ============================================================================
 
-/// Base spacing unit (4px).
+/// Hairline spacing (2px), below the 4px base unit.
 pub const SPACE_MICRO: f32 = 2.0;
 /// Extra-small spacing unit (4px).
 pub const SPACE_XS: f32 = 4.0;

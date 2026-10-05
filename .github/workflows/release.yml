@@ -28,6 +28,11 @@ env:
   SENTINEL_FIREBASE_PROJECT_ID: ${{ secrets.SENTINEL_FIREBASE_PROJECT_ID }}
   SENTINEL_FIREBASE_STORAGE_BUCKET: ${{ secrets.SENTINEL_FIREBASE_STORAGE_BUCKET }}
   SENTINEL_RELEASES_BASE_URL: ${{ secrets.SENTINEL_RELEASES_BASE_URL }}
+  # Ed25519 public key embedded in the agent at build time (a repository
+  # variable: it is public). Once set, agents refuse any update package
+  # without a valid signature — see docs/UPDATE_SIGNING.md. Empty: SHA-256
+  # integrity only, the behaviour of earlier releases.
+  SENTINEL_UPDATE_PUBKEY: ${{ vars.SENTINEL_UPDATE_PUBKEY }}
 
 jobs:
   # ═══════════════════════════════════════════════════════════════════
@@ -38,7 +43,24 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       version: ${{ steps.bump.outputs.version }}
+    env:
+      HAS_UPDATE_KEY: ${{ secrets.SENTINEL_UPDATE_KEY != '' }}
+      HAS_UPDATE_PUBKEY: ${{ vars.SENTINEL_UPDATE_PUBKEY != '' }}
     steps:
+      # Before anything is tagged: the public key embedded in the agents and
+      # the private key that signs the packages go together. A public key
+      # alone ships agents that refuse every update; a private key alone
+      # signs packages nobody checks.
+      - name: Check update signing configuration
+        run: |
+          if [ "$HAS_UPDATE_PUBKEY" != "$HAS_UPDATE_KEY" ]; then
+            echo "::error::Configure the SENTINEL_UPDATE_PUBKEY repository variable and the SENTINEL_UPDATE_KEY secret together (docs/UPDATE_SIGNING.md)."
+            exit 1
+          fi
+          if [ "$HAS_UPDATE_KEY" != "true" ]; then
+            echo "::warning::Update signing is not configured: agents check updates by SHA-256 only, which does not prove where a package comes from (docs/UPDATE_SIGNING.md)."
+          fi
+
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
@@ -79,13 +101,16 @@ jobs:
           sed -i "0,/^[[:space:]]*version[[:space:]]*=[[:space:]]*\".*\"/{s/^[[:space:]]*version[[:space:]]*=[[:space:]]*\".*\"/version = \"$VERSION\"/}" Cargo.toml
           echo "Updated Cargo.toml (first 15 lines):"
           head -15 Cargo.toml
+          # Keep Cargo.lock in step: only the workspace crates' own versions
+          # change, so `cargo build --locked` keeps working on the tag.
+          cargo update --workspace
 
       - name: Commit, tag, and push
         run: |
           VERSION="${{ steps.bump.outputs.version }}"
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add Cargo.toml
+          git add Cargo.toml Cargo.lock
           
           if git diff --staged --quiet; then
             echo "No changes to Cargo.toml, skipping commit"

@@ -28,6 +28,11 @@ use super::types::{
 /// The operational radar is the primary decision surface and must be visible
 /// without scrolling; secondary analytics and the feed sit below it. No inner
 /// ScrollArea: the parent in app.rs already wraps everything.
+/// Why authorising an event needs the administrator mode: an exception
+/// silences a detection for every later event that matches it.
+const AUTHORIZE_REASON: &str =
+    "Autoriser ce type d'événement (les prochains ne seront plus signalés)";
+
 pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
     // Build the unified feed once; every section below reads it.
     let all_threats = build_threat_list(state);
@@ -616,7 +621,7 @@ fn process_detail(
             ));
         }
         actions.push(widgets::DetailAction::secondary("Acquitter", icons::CHECK));
-        actions.push(widgets::DetailAction::primary(
+        actions.push(widgets::DetailAction::secondary(
             "Autoriser ce motif",
             icons::SHIELD_CHECK,
         ));
@@ -650,7 +655,7 @@ fn process_detail(
                         widgets::detail_field(
                             ui,
                             "Date de d\u{00e9}tection",
-                            &p.detected_at.format("%d/%m/%Y %H:%M:%S").to_string(),
+                            &crate::format::local_datetime_secs(p.detected_at),
                         );
 
                         // AI Analysis section
@@ -720,7 +725,7 @@ fn process_detail(
                     crate::widgets::toast::Toast::success("Processus suspect acquitt\u{00e9}")
                         .with_time(time),
                 );
-            } else if action_idx == allow_idx {
+            } else if action_idx == allow_idx && state.require_admin(AUTHORIZE_REASON) {
                 state.add_allowlist_rule_global(
                     crate::dto::AllowlistRuleType::ProcessPattern,
                     p.process_name.clone(),
@@ -769,7 +774,7 @@ fn usb_detail(
         };
         let actions = [
             widgets::DetailAction::secondary("Acquitter", icons::CHECK),
-            widgets::DetailAction::primary("Autoriser ce périphérique", icons::SHIELD_CHECK),
+            widgets::DetailAction::secondary("Autoriser ce périphérique", icons::SHIELD_CHECK),
             widgets::DetailAction::danger("Bloquer", icons::LOCK),
         ];
         let drawer_action =
@@ -804,7 +809,7 @@ fn usb_detail(
                         widgets::detail_field(
                             ui,
                             "Date",
-                            &u.timestamp.format("%d/%m/%Y %H:%M:%S").to_string(),
+                            &crate::format::local_datetime_secs(u.timestamp),
                         );
                     },
                     &actions,
@@ -821,7 +826,7 @@ fn usb_detail(
                     )
                     .with_time(time),
                 );
-            } else if action_idx == 1 {
+            } else if action_idx == 1 && state.require_admin(AUTHORIZE_REASON) {
                 let dev_pattern = format!("0x{:04x}:0x{:04x}", u.vendor_id, u.product_id);
                 state.add_allowlist_rule_global(
                     crate::dto::AllowlistRuleType::UsbDevice,
@@ -880,7 +885,7 @@ fn system_detail(
             ));
         }
         actions.push(widgets::DetailAction::secondary("Acquitter", icons::CHECK));
-        actions.push(widgets::DetailAction::primary(
+        actions.push(widgets::DetailAction::secondary(
             "Autoriser ce type d'incident",
             icons::SHIELD_CHECK,
         ));
@@ -921,7 +926,7 @@ fn system_detail(
                     widgets::detail_field(
                         ui,
                         "Date de d\u{00e9}tection",
-                        &inc.detected_at.format("%d/%m/%Y %H:%M:%S").to_string(),
+                        &crate::format::local_datetime_secs(inc.detected_at),
                     );
 
                     // AI Analysis section
@@ -989,7 +994,7 @@ fn system_detail(
                     crate::widgets::toast::Toast::success("Incident système acquitt\u{00e9}")
                         .with_time(time),
                 );
-            } else if action_idx == allow_idx {
+            } else if action_idx == allow_idx && state.require_admin(AUTHORIZE_REASON) {
                 state.add_allowlist_rule_global(
                     crate::dto::AllowlistRuleType::SystemIncident,
                     inc.incident_type.clone(),
@@ -1128,7 +1133,7 @@ fn fim_detail(
         };
         let actions = [
             widgets::DetailAction::secondary("Acquitter", icons::CHECK),
-            widgets::DetailAction::primary("Autoriser ce chemin (Exclure)", icons::SHIELD_CHECK),
+            widgets::DetailAction::secondary("Autoriser ce chemin (Exclure)", icons::SHIELD_CHECK),
             widgets::DetailAction::secondary("Copier le chemin", icons::COPY),
         ];
         let drawer_action = widgets::DetailDrawer::new("threat_detail", &f.path, icons::FILE)
@@ -1165,7 +1170,7 @@ fn fim_detail(
                     widgets::detail_field(
                         ui,
                         "Date de d\u{00e9}tection",
-                        &f.timestamp.format("%d/%m/%Y %H:%M:%S").to_string(),
+                        &crate::format::local_datetime_secs(f.timestamp),
                     );
                     widgets::detail_field_badge(
                         ui,
@@ -1200,7 +1205,7 @@ fn fim_detail(
                     crate::widgets::toast::Toast::success("Alerte FIM acquitt\u{00e9}e")
                         .with_time(time),
                 );
-            } else if action_idx == 1 {
+            } else if action_idx == 1 && state.require_admin(AUTHORIZE_REASON) {
                 state.add_allowlist_rule_global(
                     crate::dto::AllowlistRuleType::FilePath,
                     f.path.clone(),
@@ -1259,7 +1264,7 @@ fn network_detail(
         }
         actions.push(widgets::DetailAction::secondary("Acquitter", icons::CHECK));
         if has_target_ip {
-            actions.push(widgets::DetailAction::primary(
+            actions.push(widgets::DetailAction::secondary(
                 "Autoriser cette IP",
                 icons::SHIELD_CHECK,
             ));
@@ -1312,7 +1317,7 @@ fn network_detail(
                     widgets::detail_field(
                         ui,
                         "Date de d\u{00e9}tection",
-                        &a.detected_at.format("%d/%m/%Y %H:%M:%S").to_string(),
+                        &crate::format::local_datetime_secs(a.detected_at),
                     );
 
                     // AI Analysis section
@@ -1393,7 +1398,7 @@ fn network_detail(
                     crate::widgets::toast::Toast::success("Alerte réseau acquitt\u{00e9}e")
                         .with_time(time),
                 );
-            } else if allow_idx == Some(action_idx) {
+            } else if allow_idx == Some(action_idx) && state.require_admin(AUTHORIZE_REASON) {
                 if let Some(ip) = target_ip {
                     state.add_allowlist_rule_global(
                         crate::dto::AllowlistRuleType::IpAddress,
@@ -1510,7 +1515,7 @@ fn threat_row(ui: &mut Ui, threat: &ThreatEvent, idx: usize) -> bool {
                             egui::RichText::new(format!(
                                 "{}  {}",
                                 icons::CLOCK,
-                                threat.timestamp.format("%d/%m/%Y %H:%M"),
+                                crate::format::local_datetime(threat.timestamp),
                             ))
                             .font(theme::font_label())
                             .color(theme::text_tertiary()),
@@ -2527,7 +2532,7 @@ fn radar_signals(
                 egui::RichText::new(format!(
                     "Source : {} · {}",
                     threat.kind,
-                    threat.timestamp.format("%d/%m %H:%M:%S")
+                    crate::format::local_day_time_secs(threat.timestamp)
                 ))
                 .font(theme::font_min())
                 .color(theme::text_tertiary()),
@@ -2658,7 +2663,7 @@ fn radar_pinned_signal(
                 widgets::detail_field(
                     ui,
                     "Détecté le",
-                    &threat.timestamp.format("%d/%m/%Y %H:%M:%S").to_string(),
+                    &crate::format::local_datetime_secs(threat.timestamp),
                 );
                 if let Some(confidence) = threat.confidence {
                     widgets::detail_field(ui, "Confiance", &format!("{confidence}\u{202f}%"));
