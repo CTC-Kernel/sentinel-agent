@@ -59,6 +59,9 @@ pub struct TabBar<'a> {
     full_width: bool,
     /// Narrower side padding, set when that is what keeps one row.
     tight: bool,
+    /// Tight padding and the dense label size: the last step before the
+    /// bar gives up on a single row.
+    dense: bool,
     centered: bool,
 }
 
@@ -71,6 +74,7 @@ impl<'a> TabBar<'a> {
             style: TabStyle::Underline,
             full_width: false,
             tight: false,
+            dense: false,
             centered: false,
         }
     }
@@ -128,11 +132,7 @@ impl<'a> TabBar<'a> {
     }
 
     fn underline_tab_width(&self, ui: &Ui, tab: &Tab, is_selected: bool, compact: bool) -> f32 {
-        let font = if is_selected {
-            theme::font_body_strong()
-        } else {
-            theme::font_body()
-        };
+        let font = self.label_font(is_selected);
         let mut width = self.side_padding() * 2.0;
         if tab.icon.is_some() {
             width += theme::TAB_ICON_WIDTH;
@@ -158,9 +158,21 @@ impl<'a> TabBar<'a> {
         }
     }
 
+    /// Label font: weight marks the selected tab, at the body size or, when
+    /// the bar is dense, one step smaller.
+    fn label_font(&self, is_selected: bool) -> egui::FontId {
+        match (self.dense, is_selected) {
+            (false, true) => theme::font_body_strong(),
+            (false, false) => theme::font_body(),
+            (true, true) => theme::font_body_sm_medium(),
+            (true, false) => theme::font_body_sm(),
+        }
+    }
+
     /// Keep labels visible: one row when it fits, then one row with tighter
     /// padding (eight tabs on a 1440px window spilled a single tab onto a
-    /// second line), and natural wrapping only after that.
+    /// second line), then with smaller labels, and natural wrapping only
+    /// after that.
     fn show_underline(mut self, ui: &mut Ui) -> Option<usize> {
         if self.natural_width(ui, false) <= ui.available_width() {
             return self.show_underline_strip(ui);
@@ -169,7 +181,15 @@ impl<'a> TabBar<'a> {
         if self.natural_width(ui, false) <= ui.available_width() {
             return self.show_underline_strip(ui);
         }
+        // Body text went from 13 to 14px and eight tabs stopped fitting a
+        // 1360px window even with tight padding. Labels step down to the
+        // dense size before a tab is left alone on a second row.
+        self.dense = true;
+        if self.natural_width(ui, false) <= ui.available_width() {
+            return self.show_underline_strip(ui);
+        }
         self.tight = false;
+        self.dense = false;
         let mut selected = None;
         ui.horizontal_wrapped(|ui| {
             ui.spacing_mut().item_spacing.y = theme::SPACE_XS;
@@ -319,11 +339,7 @@ impl<'a> TabBar<'a> {
     ) -> (bool, egui::Rect) {
         // The selected tab carries weight as well as colour, so the active
         // section is legible without relying on hue alone (WCAG 1.4.1).
-        let font = if is_selected {
-            theme::font_body_strong()
-        } else {
-            theme::font_body()
-        };
+        let font = self.label_font(is_selected);
         // A compact tab shows its icon and keeps the label for the tooltip.
         let show_label = !(compact && tab.icon.is_some());
         let mut content_width = 0.0;
@@ -814,7 +830,9 @@ mod tests {
     #[test]
     fn labeled_tabs_use_one_row_when_they_fit_and_wrap_when_needed() {
         for dark in [false, true] {
-            for width in [420.0, 960.0] {
+            // 300: too narrow even at the dense label size, so the bar wraps.
+            // 420 used to wrap; dense labels now keep it on one row.
+            for width in [300.0, 420.0, 960.0] {
                 let ctx = egui::Context::default();
                 theme::configure_fonts(&ctx);
                 theme::apply_theme(&ctx, dark);
@@ -843,7 +861,7 @@ mod tests {
                                 })
                                 .response;
                             assert!(response.rect.right() <= bounds.right() + 1.0);
-                            if width > 900.0 {
+                            if width > 400.0 {
                                 assert!(response.rect.height() <= theme::TAB_HEIGHT + 1.0);
                             } else {
                                 assert!(response.rect.height() > theme::TAB_HEIGHT);
