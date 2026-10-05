@@ -5,8 +5,27 @@ Interface SaaS React de pilotage SSI. Cette application complète l’agent nati
 ## Démarrage
 
 ```bash
-npm install
+npm ci
 npm run dev
+```
+
+`package-lock.json` fixe les versions : `npm ci` installe exactement celles qui ont été vérifiées.
+
+### Données de démonstration
+
+Les indicateurs, incidents et matrices affichés sont encore des exemples statiques (`src/data.ts` et les pages) ; un badge « Démonstration » le signale dans la barre du haut. Seuls le lancement de workflows, l'historique des exécutions et l'assistant interrogent la passerelle.
+
+Une erreur de la passerelle est toujours affichée telle quelle : un refus (401, 403, MFA manquante, rôle insuffisant) n'est jamais présenté comme un succès. Pour une démonstration sans passerelle, construisez avec `VITE_DEMO_MODE=true` : une passerelle injoignable est alors remplacée par une simulation annoncée comme telle (« Simulation DÉMO-… : aucune exécution réelle »).
+
+### En-têtes de sécurité
+
+Le build de production ajoute une Content-Security-Policy stricte en `<meta>` (`vite.config.ts`) : tout vient de l'origine Sentinel, aucun script inline. Le thème est appliqué avant le premier affichage par `public/theme-init.js` pour cette raison. Certaines directives ne sont pas prises en compte dans un `<meta>` ; le serveur qui sert `dist/` doit envoyer :
+
+```
+Content-Security-Policy: frame-ancestors 'none'
+X-Content-Type-Options: nosniff
+Referrer-Policy: strict-origin-when-cross-origin
+Strict-Transport-Security: max-age=31536000; includeSubDomains
 ```
 
 ## Architecture de sécurité n8n

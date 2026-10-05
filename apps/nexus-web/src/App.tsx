@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { Fragment, useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import {
   Activity, ArrowRight, Bell, Bot, Check, ChevronDown, ChevronRight, Circle,
   Clock3, FileDown, Filter, Fingerprint, KeyRound, LockKeyhole, Menu, Play,
@@ -6,10 +6,12 @@ import {
   Zap, Crosshair, Eye, Globe2, Radio, Radar, ScanLine, TriangleAlert,
   Moon, Sun, Mic, MicOff, Volume2, VolumeX, Cpu, Brain, Compass, Store, AlertTriangle, Layers,
   ShieldAlert, Server, HardDrive, Terminal, CheckCircle2, AlertOctagon, SlidersHorizontal, Bug,
-  Cloud, Laptop, FileText, Download, TrendingUp, Scale, Boxes,
+  Cloud, Laptop, FileText, Download, TrendingUp, Scale, Boxes, FlaskConical,
 } from "lucide-react";
 import { compliance, genericPages, incidents, kpis, navGroups, templates, workflows } from "./data";
-import { orchestrationClient, type Execution } from "./services/orchestration";
+import { GatewayError, orchestrationClient, type Execution } from "./services/orchestration";
+import { Dialog } from "./Dialog";
+import { DEMO_DATA_NOTE, DEMO_MODE } from "./demo";
 import { intelligenceClient, modelCatalog, type ChatMessage, type ModelProvider, type ProposedAction } from "./services/ai";
 
 export function App() {
@@ -17,20 +19,34 @@ export function App() {
   const [collapsed, setCollapsed] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [assistantOpen, setAssistantOpen] = useState(false);
-  const [toast, setToast] = useState("");
-  const [theme, setTheme] = useState<"light" | "dark">(() => {
-    const saved = localStorage.getItem("nexus:theme");
-    return saved === "dark" || saved === "light" ? saved : "light";
-  });
+  const [toasts, setToasts] = useState<Toast[]>([]);
+  const toastSeq = useRef(0);
+  const [theme, setTheme] = useState<Theme>(() => savedTheme() ?? systemTheme());
 
   const pageLabel = useMemo(() => navGroups.flatMap((g) => g.items).find((item) => item.id === page)?.label ?? "Sentinel Nexus", [page]);
-  const notify = (message: string) => { setToast(message); window.setTimeout(() => setToast(""), 2600); };
+  const notify = useCallback((message: string) => {
+    const id = ++toastSeq.current;
+    setToasts((current) => [...current.slice(-(MAX_TOASTS - 1)), { id, message }]);
+  }, []);
+  const dismissToast = useCallback((id: number) => setToasts((current) => current.filter((toast) => toast.id !== id)), []);
+  const toggleTheme = () => {
+    const next = theme === "light" ? "dark" : "light";
+    setTheme(next);
+    try { localStorage.setItem(THEME_KEY, next); } catch { /* storage blocked: the choice lasts for this tab */ }
+  };
   useEffect(() => sessionStorage.setItem("nexus:last-page", page), [page]);
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
     document.documentElement.style.colorScheme = theme;
-    localStorage.setItem("nexus:theme", theme);
   }, [theme]);
+  useEffect(() => {
+    // Follow the system theme until the user picks one with the toggle.
+    const media = window.matchMedia?.("(prefers-color-scheme: dark)");
+    if (!media) return;
+    const follow = () => { if (!savedTheme()) setTheme(systemTheme()); };
+    media.addEventListener("change", follow);
+    return () => media.removeEventListener("change", follow);
+  }, []);
   useEffect(() => {
     const shortcuts = (event: KeyboardEvent) => {
       if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") { event.preventDefault(); setSearchOpen(true); }
@@ -45,10 +61,11 @@ export function App() {
     <div className="workspace">
       <header className="topbar">
         <div className="crumb"><span>ACME EUROPE</span><ChevronRight size={13}/><strong>{pageLabel}</strong></div>
-        <button className="command-search" onClick={() => setSearchOpen(true)}><Search size={16}/><span>Rechercher partout…</span><kbd>⌘ K</kbd></button>
+        <button className="command-search" onClick={() => setSearchOpen(true)} aria-label="Rechercher une page" aria-keyshortcuts="Control+K Meta+K"><Search size={16}/><span>Rechercher une page…</span><kbd>⌘ K</kbd></button>
         <div className="top-actions">
+          <span className="demo-pill" tabIndex={0} title={DEMO_DATA_NOTE} aria-label={`Données de démonstration. ${DEMO_DATA_NOTE}`}><FlaskConical size={14}/><span>Démonstration</span></span>
           <div className="secure"><ShieldCheck size={15}/><span>Protection active</span></div>
-          <button className="icon-button theme-toggle" onClick={() => setTheme(theme === "light" ? "dark" : "light")} aria-label={theme === "light" ? "Activer le thème sombre" : "Activer le thème clair"} title={theme === "light" ? "Thème sombre" : "Thème clair"}>{theme === "light" ? <Moon size={17}/> : <Sun size={17}/>}</button>
+          <button className="icon-button theme-toggle" onClick={toggleTheme} aria-label={theme === "light" ? "Activer le thème sombre" : "Activer le thème clair"} title={theme === "light" ? "Thème sombre" : "Thème clair"}>{theme === "light" ? <Moon size={17}/> : <Sun size={17}/>}</button>
           <button className="icon-button has-dot" aria-label="Notifications"><Bell size={18}/></button>
           <button className="profile"><span>CD</span><div><strong>Camille Durand</strong><small>Security Admin</small></div><ChevronDown size={14}/></button>
         </div>
@@ -70,8 +87,32 @@ export function App() {
     <button className="ai-fab" onClick={() => setAssistantOpen(true)}><Sparkles size={20}/><span>Sentinel Intelligence</span></button>
     {assistantOpen && <Assistant page={page} onClose={() => setAssistantOpen(false)} notify={notify} />}
     {searchOpen && <SearchPalette onClose={() => setSearchOpen(false)} onNavigate={(id) => { setPage(id); setSearchOpen(false); }}/>}
-    {toast && <div className="toast"><Check size={17}/>{toast}</div>}
+    <div className="toast-stack" role="status" aria-live="polite">{toasts.map((toast) => <ToastItem key={toast.id} toast={toast} onDone={dismissToast}/>)}</div>
   </div>;
+}
+
+type Theme = "light" | "dark";
+const THEME_KEY = "nexus:theme";
+const systemTheme = (): Theme => window.matchMedia?.("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+function savedTheme(): Theme | null {
+  try {
+    const saved = localStorage.getItem(THEME_KEY);
+    return saved === "dark" || saved === "light" ? saved : null;
+  } catch { return null; }
+}
+
+type Toast = { id: number; message: string };
+/** Toasts beyond this many push the oldest one out. */
+const MAX_TOASTS = 3;
+const TOAST_MS = 4000;
+
+/** One toast: removes itself after `TOAST_MS`, or on its close button; its timer dies with it. */
+function ToastItem({ toast, onDone }: { toast: Toast; onDone: (id: number) => void }) {
+  useEffect(() => {
+    const timer = window.setTimeout(() => onDone(toast.id), TOAST_MS);
+    return () => window.clearTimeout(timer);
+  }, [toast.id, onDone]);
+  return <div className="toast"><Check size={17} aria-hidden/><span>{toast.message}</span><button type="button" onClick={() => onDone(toast.id)} aria-label="Fermer la notification"><X size={14}/></button></div>;
 }
 
 function Sidebar({ page, setPage, collapsed, setCollapsed }: { page: string; setPage: (id: string) => void; collapsed: boolean; setCollapsed: (v: boolean) => void }) {
@@ -89,7 +130,7 @@ function PageHeading({ eyebrow, title, description, actions }: { eyebrow: string
 
 function Dashboard({ onNavigate, notify }: { onNavigate: (id: string) => void; notify: (s: string) => void }) {
   return <div className="page fade-in">
-    <PageHeading eyebrow="JEUDI 24 SEPTEMBRE · 15:42 UTC" title="Bonjour Camille." description="Voici l'essentiel de votre posture de sécurité aujourd'hui." actions={<><button className="secondary"><FileDown size={16}/> Rapport exécutif</button><button className="primary" onClick={() => notify("Analyse globale lancée") }><Zap size={16}/> Lancer une analyse</button></>}/>
+    <PageHeading eyebrow={todayEyebrow()} title="Bonjour Camille." description="Voici l'essentiel de votre posture de sécurité aujourd'hui." actions={<><button className="secondary"><FileDown size={16}/> Rapport exécutif</button><button className="primary" onClick={() => notify("Analyse globale lancée") }><Zap size={16}/> Lancer une analyse</button></>}/>
     <section className="hero-grid">
       <article className="posture-card panel glow-panel">
         <div className="card-top"><div><span className="eyebrow">POSTURE GLOBALE</span><h2>Votre organisation est <em>résiliente</em></h2></div><span className="live-pill"><i/> TEMPS RÉEL</span></div>
@@ -104,6 +145,13 @@ function Dashboard({ onNavigate, notify }: { onNavigate: (id: string) => void; n
       <article className="panel"><div className="section-head"><div><span className="eyebrow">COUVERTURE</span><h2>Conformité continue</h2></div><button onClick={() => onNavigate("compliance")}>Détails <ArrowRight size={15}/></button></div><div className="compliance-list">{compliance.map((item) => <div key={item.label}><div><b>{item.label}</b><small>{item.controls} contrôles</small><strong>{item.score}%</strong></div><span><i style={{width: `${item.score}%`}}/></span></div>)}</div></article>
     </section>
   </div>;
+}
+
+/** "LUNDI 5 OCTOBRE · 14:07", in the browser's time zone. */
+function todayEyebrow(now = new Date()) {
+  const day = now.toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" });
+  const time = now.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
+  return `${day} · ${time}`.toUpperCase();
 }
 
 function ScoreRing() { return <div className="score-ring"><svg viewBox="0 0 140 140"><circle cx="70" cy="70" r="57"/><circle className="score-progress" cx="70" cy="70" r="57"/></svg><div><strong>92</strong><small>/ 100</small><span>+4,8%</span></div></div>; }
@@ -174,7 +222,7 @@ function Orchestration({ notify }: { notify: (s: string) => void }) {
         <button className="primary full run" onClick={() => setLaunchOpen(true)}><Play size={16}/> Exécuter maintenant</button><button className="secondary full">Ouvrir dans l'éditeur n8n <ArrowRight size={15}/></button>
       </aside>
     </div>}
-    {launchOpen && <LaunchModal workflow={selected.name} workflowId={selected.id} onClose={() => setLaunchOpen(false)} onLaunch={(id) => { setLaunchOpen(false); notify(`Exécution ${id} lancée et journalisée`); }}/>}
+    {launchOpen && <LaunchModal workflow={selected.name} workflowId={selected.id} onClose={() => setLaunchOpen(false)} onLaunch={(id, simulated) => { setLaunchOpen(false); notify(simulated ? `Simulation ${id} : aucune exécution réelle (mode démonstration)` : `Exécution ${id} lancée et journalisée`); }}/>}
   </div>;
 }
 
@@ -261,27 +309,53 @@ function Executions() {
   </div>;
 }
 
-function Governance() { return <div className="subpage governance"><div className="security-grid">{[[LockKeyhole,"Isolation multi-tenant","Credentials, exécutions et journaux cloisonnés"],[KeyRound,"OAuth 2.1 + PKCE","Sessions courtes et rotation automatique"],[Fingerprint,"Webhooks HMAC-SHA256","Signature, timestamp et protection anti-rejeu"],[ShieldCheck,"Audit immuable","Identité, paramètres masqués et résultat"]].map(([Icon,title,text]) => { const I = Icon as typeof ShieldCheck; return <article className="panel" key={title as string}><I/><div><h3>{title as string}</h3><p>{text as string}</p></div><span><Check/> Actif</span></article>; })}</div><article className="panel permission-card"><div className="section-head"><div><span className="eyebrow">ACCÈS</span><h2>Matrice des autorisations</h2></div><span className="connection"><i/> RBAC synchronisé</span></div><div className="permission-grid"><b>Rôle</b><b>Consulter</b><b>Exécuter</b><b>Modifier</b><b>Approuver</b>{["SOC Manager","Analyste","Auditeur","Admin tenant"].map((role, r) => <><strong key={role}>{role}</strong>{[0,1,2,3].map((c) => <span key={`${role}-${c}`}>{c <= (r === 0 ? 3 : r === 1 ? 1 : r === 2 ? 0 : 2) ? <Check/> : <X/>}</span>)}</>)}</div></article></div>; }
+function Governance() { return <div className="subpage governance"><div className="security-grid">{[[LockKeyhole,"Isolation multi-tenant","Credentials, exécutions et journaux cloisonnés"],[KeyRound,"OAuth 2.1 + PKCE","Sessions courtes et rotation automatique"],[Fingerprint,"Webhooks HMAC-SHA256","Signature, timestamp et protection anti-rejeu"],[ShieldCheck,"Audit immuable","Identité, paramètres masqués et résultat"]].map(([Icon,title,text]) => { const I = Icon as typeof ShieldCheck; return <article className="panel" key={title as string}><I/><div><h3>{title as string}</h3><p>{text as string}</p></div><span><Check/> Actif</span></article>; })}</div><article className="panel permission-card"><div className="section-head"><div><span className="eyebrow">ACCÈS</span><h2>Matrice des autorisations</h2></div><span className="connection"><i/> RBAC synchronisé</span></div><div className="permission-grid"><b>Rôle</b><b>Consulter</b><b>Exécuter</b><b>Modifier</b><b>Approuver</b>{["SOC Manager","Analyste","Auditeur","Admin tenant"].map((role, r) => <Fragment key={role}><strong>{role}</strong>{[0,1,2,3].map((c) => <span key={c}>{c <= (r === 0 ? 3 : r === 1 ? 1 : r === 2 ? 0 : 2) ? <Check aria-label="Autorisé"/> : <X aria-label="Refusé"/>}</span>)}</Fragment>)}</div></article></div>; }
 
-function LaunchModal({ workflow, workflowId, onClose, onLaunch }: { workflow: string; workflowId: number; onClose: () => void; onLaunch: (id: string) => void }) {
+function LaunchModal({ workflow, workflowId, onClose, onLaunch }: { workflow: string; workflowId: number; onClose: () => void; onLaunch: (id: string, simulated: boolean) => void }) {
+  const titleId = useId();
   const [approved, setApproved] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState("");
   const [scope, setScope] = useState("production-eu/*");
   const [severity, setSeverity] = useState("high");
   const [ticket, setTicket] = useState("");
   const [channel, setChannel] = useState("slack:soc-critical");
   const launch = async () => {
     setSubmitting(true);
+    setError("");
     try {
       const execution = await orchestrationClient.execute({ workflowId, variables: { scope, severity, ticket, channel }, approval: { confirmed: true, reason: ticket || "Manual operator approval" } });
-      onLaunch(execution.id);
-    } catch {
-      // The standalone preview has no gateway; keep the UX demonstrable while
-      // making the disconnected state explicit in the generated identifier.
-      onLaunch("#PREVIEW-2842");
+      onLaunch(execution.id, false);
+    } catch (failure) {
+      // A refusal is never turned into a success. Only a demonstration build
+      // stands in for a gateway that is not there, and says so.
+      if (DEMO_MODE && gatewayUnreachable(failure)) onLaunch(`DÉMO-${Date.now().toString(36).toUpperCase()}`, true);
+      else setError(launchFailure(failure));
     } finally { setSubmitting(false); }
   };
-  return <div className="modal-backdrop" onMouseDown={onClose}><div className="modal panel" onMouseDown={(e) => e.stopPropagation()}><header><div><span className="eyebrow">EXÉCUTION CONTRÔLÉE</span><h2>{workflow}</h2></div><button className="icon-button" onClick={onClose}><X/></button></header><div className="secure-banner"><LockKeyhole/><div><b>Injection sécurisée</b><span>Les secrets sont résolus côté backend et ne transitent jamais par le navigateur.</span></div></div><label>Périmètre cible<input value={scope} onChange={(e) => setScope(e.target.value)}/></label><div className="field-row"><label>Sévérité minimale<select value={severity} onChange={(e) => setSeverity(e.target.value)}><option>critical</option><option>high</option><option>medium</option></select></label><label>Ticket de changement<input value={ticket} onChange={(e) => setTicket(e.target.value)} placeholder="CHG-2026-…"/></label></div><label>Canal de notification<select value={channel} onChange={(e) => setChannel(e.target.value)}><option value="slack:soc-critical">Slack · #soc-critical</option><option value="discord:security">Discord · Security</option><option value="email:encrypted">Email chiffré</option><option value="sms:on-call">SMS d'astreinte</option></select></label><label className="approval"><input type="checkbox" checked={approved} onChange={(e) => setApproved(e.target.checked)}/><span><b>Je confirme le périmètre et l'impact</b><small>Un dry-run et une trace d'audit seront générés.</small></span></label><footer><button className="secondary" onClick={onClose}>Annuler</button><button className="primary" disabled={!approved || submitting} onClick={launch}><Play/> {submitting ? "Lancement…" : "Lancer en sécurité"}</button></footer></div></div>;
+  return <Dialog className="modal panel" labelledBy={titleId} onClose={onClose}><header><div><span className="eyebrow">EXÉCUTION CONTRÔLÉE</span><h2 id={titleId}>{workflow}</h2></div><button className="icon-button" onClick={onClose} aria-label="Fermer"><X/></button></header><div className="secure-banner"><LockKeyhole/><div><b>Injection sécurisée</b><span>Les secrets sont résolus côté backend et ne transitent jamais par le navigateur.</span></div></div><label>Périmètre cible<input data-autofocus value={scope} onChange={(e) => setScope(e.target.value)}/></label><div className="field-row"><label>Sévérité minimale<select value={severity} onChange={(e) => setSeverity(e.target.value)}><option>critical</option><option>high</option><option>medium</option></select></label><label>Ticket de changement<input value={ticket} onChange={(e) => setTicket(e.target.value)} placeholder="CHG-2026-…"/></label></div><label>Canal de notification<select value={channel} onChange={(e) => setChannel(e.target.value)}><option value="slack:soc-critical">Slack · #soc-critical</option><option value="discord:security">Discord · Security</option><option value="email:encrypted">Email chiffré</option><option value="sms:on-call">SMS d'astreinte</option></select></label><label className="approval"><input type="checkbox" checked={approved} onChange={(e) => setApproved(e.target.checked)}/><span><b>Je confirme le périmètre et l'impact</b><small>Un dry-run et une trace d'audit seront générés.</small></span></label>{error && <p className="form-error" role="alert"><TriangleAlert size={15}/>{error}</p>}<footer><button className="secondary" onClick={onClose}>Annuler</button><button className="primary" disabled={!approved || submitting} onClick={launch}><Play/> {submitting ? "Lancement…" : "Lancer en sécurité"}</button></footer></Dialog>;
+}
+
+/** No gateway answered: network failure, or a static server without the API. */
+function gatewayUnreachable(failure: unknown) {
+  if (!(failure instanceof GatewayError)) return true;
+  return (failure.status === 404 && !failure.code) || failure.status === 502 || failure.status === 503 || failure.status === 504;
+}
+
+/** Why a launch failed, for the operator. Nothing was started in any case. */
+function launchFailure(failure: unknown) {
+  const nothingStarted = "Aucune exécution n'a été lancée.";
+  if (!(failure instanceof GatewayError) || gatewayUnreachable(failure)) return `Passerelle d'orchestration injoignable. ${nothingStarted}`;
+  switch (failure.code) {
+    case "insufficient_permission": return `Votre rôle ne permet pas d'exécuter ce workflow. ${nothingStarted}`;
+    case "mfa_required": return `Ce workflow exige une authentification multifacteur : reconnectez-vous avec MFA. ${nothingStarted}`;
+    case "rate_limited": return `Trop de lancements rapprochés : réessayez dans une minute. ${nothingStarted}`;
+    case "invalid_variables": return `Paramètres refusés : vérifiez le périmètre, la sévérité et le ticket. ${nothingStarted}`;
+    case "workflow_not_found": return `Ce workflow n'existe pas pour votre organisation. ${nothingStarted}`;
+  }
+  if (failure.status === 401) return `Session expirée : reconnectez-vous. ${nothingStarted}`;
+  if (failure.isAuthorization) return `Lancement refusé par la passerelle (${failure.status}). ${nothingStarted}`;
+  return `La passerelle a répondu ${failure.status}. ${nothingStarted}`;
 }
 
 function ModulePage({ id }: { id: string }) {
@@ -2137,4 +2211,37 @@ function Assistant({ page, onClose, notify }: { page: string; onClose: () => voi
   </aside>;
 }
 
-function SearchPalette({ onClose, onNavigate }: { onClose: () => void; onNavigate: (id: string) => void }) { return <div className="modal-backdrop command-backdrop" onMouseDown={onClose}><div className="search-palette panel" onMouseDown={(e) => e.stopPropagation()}><header><Search/><input autoFocus placeholder="Rechercher une page, un actif, une CVE…"/><kbd>ESC</kbd></header><span className="eyebrow">NAVIGATION</span>{navGroups.flatMap((g) => g.items).slice(0,7).map((item) => <button key={item.id} onClick={() => onNavigate(item.id)}><item.icon/><span><b>{item.label}</b><small>Ouvrir le module</small></span><ArrowRight/></button>)}</div></div>; }
+const searchEntries = navGroups.flatMap((group) => group.items.map((item) => ({ ...item, group: group.label })));
+/** Lower case without accents: "securite" finds "Sécurité". */
+const fold = (text: string) => text.normalize("NFD").replace(/\p{Diacritic}/gu, "").toLowerCase();
+
+function SearchPalette({ onClose, onNavigate }: { onClose: () => void; onNavigate: (id: string) => void }) {
+  const [query, setQuery] = useState("");
+  const [active, setActive] = useState(0);
+  const listId = useId();
+  const results = useMemo(() => {
+    const words = fold(query).split(/\s+/).filter(Boolean);
+    return searchEntries.filter((entry) => { const text = fold(`${entry.label} ${entry.group}`); return words.every((word) => text.includes(word)); });
+  }, [query]);
+  const current = results.length ? Math.min(active, results.length - 1) : -1;
+  const optionId = (id: string) => `${listId}-${id}`;
+  const onKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if ((event.key === "ArrowDown" || event.key === "ArrowUp") && results.length) {
+      event.preventDefault();
+      setActive((current + (event.key === "ArrowDown" ? 1 : -1) + results.length) % results.length);
+    } else if (event.key === "Enter" && current >= 0) {
+      event.preventDefault();
+      onNavigate(results[current].id);
+    }
+  };
+  const activeOption = current >= 0 ? optionId(results[current].id) : undefined;
+  useEffect(() => { if (activeOption) document.getElementById(activeOption)?.scrollIntoView({ block: "nearest" }); }, [activeOption]);
+  return <Dialog className="search-palette panel" backdropClassName="command-backdrop" label="Rechercher une page" onClose={onClose}>
+    <header><Search aria-hidden/><input data-autofocus role="combobox" aria-expanded="true" aria-autocomplete="list" aria-controls={listId} aria-activedescendant={activeOption} aria-label="Rechercher une page" value={query} onChange={(event) => { setQuery(event.target.value); setActive(0); }} onKeyDown={onKeyDown} placeholder="Rechercher une page…"/><kbd>ESC</kbd></header>
+    <span className="eyebrow">{query.trim() ? `${results.length} RÉSULTAT${results.length > 1 ? "S" : ""}` : "NAVIGATION"}</span>
+    <div className="search-results" role="listbox" id={listId} aria-label="Pages">
+      {results.map((item, index) => <button type="button" role="option" tabIndex={-1} id={optionId(item.id)} aria-selected={index === current} key={item.id} onMouseMove={() => setActive(index)} onClick={() => onNavigate(item.id)}><item.icon aria-hidden/><span><b>{item.label}</b><small>{item.group}</small></span><ArrowRight aria-hidden/></button>)}
+      {results.length === 0 && <p className="search-empty">Aucune page ne correspond à « {query.trim()} ».</p>}
+    </div>
+  </Dialog>;
+}
