@@ -229,3 +229,42 @@ fn event_category_serde_roundtrip() {
         );
     }
 }
+
+/// Exercise the real socket transport with synthetic data only. No production
+/// SIEM configuration or credentials are needed to validate delivery.
+#[tokio::test]
+async fn required_event_reaches_local_syslog_receiver() {
+    use tokio::net::UdpSocket;
+    use tokio::time::{timeout, Duration};
+
+    let receiver = UdpSocket::bind("127.0.0.1:0").await.unwrap();
+    let config = SiemConfig {
+        enabled: true,
+        format: SiemFormat::Json,
+        transport: SiemTransport::Syslog {
+            host: "127.0.0.1".into(),
+            port: receiver.local_addr().unwrap().port(),
+            protocol: SyslogProtocol::Udp,
+            tls: false,
+            client_cert: None,
+            client_key: None,
+        },
+        ..SiemConfig::default()
+    };
+    let forwarder = SiemForwarder::new(config).unwrap();
+    forwarder
+        .send_required_event(&sample_event())
+        .await
+        .unwrap();
+    let mut buffer = [0u8; 8192];
+    let (length, _) = timeout(Duration::from_secs(3), receiver.recv_from(&mut buffer))
+        .await
+        .unwrap()
+        .unwrap();
+    let message = std::str::from_utf8(&buffer[..length]).unwrap();
+    assert!(message.contains("Malware Detected"));
+    assert!(message.contains("evt-int-001"));
+    let stats = forwarder.stats().await;
+    assert_eq!(stats.events_sent, 1);
+    assert_eq!(stats.events_dropped, 0);
+}
