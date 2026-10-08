@@ -135,6 +135,7 @@ fn main() {
     cases.insert(
         "ResultItemSchema".into(),
         json!(agent_sync::result_upload::CheckResultPayload {
+            result_id: "contract-result-001".into(),
             check_id: "contract-check".into(),
             status: "pass".into(),
             score: Some(100),
