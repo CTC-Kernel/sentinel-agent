@@ -9,7 +9,7 @@
 //! - macOS: sntp or systemsetup network time
 
 use crate::check::{Check, CheckDefinitionBuilder, CheckOutput};
-#[cfg(target_os = "windows")]
+#[cfg(any(target_os = "windows", target_os = "macos"))]
 use crate::error::ScannerError;
 use crate::error::ScannerResult;
 use agent_common::process::silent_command;
@@ -357,21 +357,15 @@ impl TimeSyncCheck {
 
             // sntp outputs to stderr typically; a successful query means NTP is reachable
             let combined = format!("{} {}", result, stderr);
-            if combined.contains("+/-") || combined.contains("offset") {
+            if ntp_response_verified(output.status.success(), &combined) {
                 status.synchronized = true;
             }
         }
 
-        // If service is running but we could not verify sync, assume working
-        if status.service_running && !status.synchronized {
-            // Network time is on, trust the OS
-            status.synchronized = true;
-        }
-
         if !status.synchronized {
-            status
-                .issues
-                .push("Time synchronization could not be verified".to_string());
+            return Err(ScannerError::CheckExecution(
+                "Time synchronization could not be verified".to_string(),
+            ));
         }
 
         Ok(status)
@@ -390,6 +384,11 @@ impl TimeSyncCheck {
             raw_output: "Unsupported platform".to_string(),
         })
     }
+}
+
+#[cfg(any(target_os = "macos", test))]
+fn ntp_response_verified(success: bool, response: &str) -> bool {
+    success && (response.contains("+/-") || response.contains("offset"))
 }
 
 impl Default for TimeSyncCheck {
@@ -475,6 +474,14 @@ mod tests {
     use super::*;
 
     #[test]
+    fn ntp_requires_successful_measurement() {
+        assert!(!ntp_response_verified(false, "offset unavailable"));
+        assert!(!ntp_response_verified(true, "service running"));
+        assert!(!ntp_response_verified(true, ""));
+        assert!(ntp_response_verified(true, "0.001 +/- 0.01"));
+    }
+
+    #[test]
     fn test_check_creation() {
         let check = TimeSyncCheck::new();
         assert_eq!(check.definition().id, CHECK_ID);
@@ -552,11 +559,15 @@ mod tests {
         let check = TimeSyncCheck::new();
         let result = check.execute().await;
 
-        // Should complete without error
-        assert!(result.is_ok());
-
-        let output = result.unwrap();
-        assert!(!output.message.is_empty());
+        // Network/privilege restrictions may prevent a measurement. That
+        // must be explicit rather than converted into a passing result.
+        match result {
+            Ok(output) => assert!(!output.message.is_empty()),
+            Err(crate::error::ScannerError::CheckExecution(message)) => {
+                assert!(!message.is_empty())
+            }
+            Err(error) => panic!("Unexpected check error: {error}"),
+        }
     }
 
     #[test]

@@ -285,11 +285,12 @@ impl IntelligentCheckRunner {
         system_info: &str,
         compliance_framework: &str,
         asset_type: &str,
+        active_frameworks: Option<&[String]>,
     ) -> Result<IntelligentScanResult> {
         info!("Starting intelligent scan with LLM analysis");
 
         // Run base checks
-        let base_results = self.base_runner.run_all().await;
+        let base_results = self.base_runner.run_filtered(active_frameworks).await;
 
         // Perform LLM analysis if enabled
         let analysis = if self.llm_integration.is_enabled() {
@@ -382,6 +383,55 @@ pub struct ScanMetadata {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[tokio::test]
+    async fn intelligent_scan_respects_active_frameworks() {
+        use crate::check::{Check, CheckDefinitionBuilder, CheckOutput, CheckRegistry};
+        use crate::runner::CheckRunner;
+        use agent_common::types::CheckDefinition;
+        struct Probe(CheckDefinition);
+        #[async_trait::async_trait]
+        impl Check for Probe {
+            fn definition(&self) -> &CheckDefinition {
+                &self.0
+            }
+            async fn execute(&self) -> crate::error::ScannerResult<CheckOutput> {
+                Ok(CheckOutput::pass("verified", serde_json::json!({})))
+            }
+        }
+        let mut registry = CheckRegistry::new();
+        registry.register(Arc::new(Probe(
+            CheckDefinitionBuilder::new("iso")
+                .framework("ISO_27001")
+                .build(),
+        )));
+        registry.register(Arc::new(Probe(
+            CheckDefinitionBuilder::new("nis").framework("NIS2").build(),
+        )));
+        let registry = Arc::new(registry);
+        let base = CheckRunner::with_defaults(registry.clone());
+        #[cfg(feature = "llm")]
+        let intelligent =
+            IntelligentCheckRunner::new(CheckRunner::with_defaults(registry.clone()), None)
+                .await
+                .unwrap();
+        #[cfg(not(feature = "llm"))]
+        let intelligent = IntelligentCheckRunner::new(CheckRunner::with_defaults(registry.clone()))
+            .await
+            .unwrap();
+        let active = vec!["NIS2".to_string()];
+        let expected = base.run_filtered(Some(&active)).await;
+        let result = intelligent
+            .run_with_analysis("test", "NIS2", "endpoint", Some(&active))
+            .await
+            .unwrap();
+        assert_eq!(expected.len(), 1);
+        assert_eq!(result.base_results.len(), expected.len());
+        assert_eq!(
+            result.base_results[0].result.check_id,
+            expected[0].result.check_id
+        );
+    }
 
     #[test]
     fn test_llm_integration_disabled() {

@@ -9,7 +9,6 @@
 //! - macOS: SIP status and ASLR (always on)
 
 use crate::check::{Check, CheckDefinitionBuilder, CheckOutput};
-#[cfg(any(target_os = "windows", target_os = "macos"))]
 use crate::error::ScannerError;
 use crate::error::ScannerResult;
 use agent_common::process::silent_command;
@@ -125,11 +124,14 @@ impl KernelHardeningCheck {
         } else if let Ok(wmic_output) = silent_command("wmic")
             .args(["OS", "get", "DataExecutionPrevention_Available"])
             .output()
+            && wmic_output.status.success()
         {
             String::from_utf8_lossy(&wmic_output.stdout).to_string()
         } else {
-            // Neither tool available — assume DEP is enabled (default on modern Windows)
-            "True".to_string()
+            // No measurement: never infer a passing protection from an OS default.
+            return Err(ScannerError::CheckExecution(
+                "Cannot determine DEP state".to_string(),
+            ));
         };
 
         status
@@ -178,11 +180,15 @@ impl KernelHardeningCheck {
                     u64::from_str_radix(hex_trimmed, 16).ok()
                 })
                 .map(|val| val == 0)
-                .unwrap_or(false);
+                .ok_or_else(|| {
+                    ScannerError::CheckExecution("Cannot parse ASLR setting".to_string())
+                })?;
             status.aslr_enabled = !aslr_disabled;
         } else {
-            // Key not found = default = enabled
-            status.aslr_enabled = true;
+            // An absent setting or denied read does not prove the effective policy.
+            return Err(ScannerError::CheckExecution(
+                "Cannot determine ASLR state".to_string(),
+            ));
         }
 
         if !status.aslr_enabled {
@@ -215,91 +221,37 @@ impl KernelHardeningCheck {
             raw_output: String::new(),
         };
 
-        // Check ASLR: kernel.randomize_va_space should be 2
-        if let Ok(output) = silent_command("sysctl")
-            .args(["-n", "kernel.randomize_va_space"])
-            .output()
-        {
-            let result = String::from_utf8_lossy(&output.stdout).to_string();
-            status
-                .raw_output
-                .push_str(&format!("randomize_va_space: {}\n", result.trim()));
-
-            if let Ok(value) = result.trim().parse::<u32>() {
-                status.aslr_mode = Some(value);
-                status.aslr_enabled = value == 2;
-                if value != 2 {
-                    status.hardened = false;
-                    status.issues.push(format!(
-                        "ASLR not fully enabled (kernel.randomize_va_space = {}, should be 2)",
-                        value
-                    ));
-                }
+        let read = |key: &str| -> ScannerResult<u32> {
+            let output = silent_command("sysctl")
+                .args(["-n", key])
+                .output()
+                .map_err(|e| ScannerError::CheckExecution(format!("Cannot read {key}: {e}")))?;
+            parse_kernel_setting(key, output.status.success(), &output.stdout)
+        };
+        let aslr = read("kernel.randomize_va_space")?;
+        let forwarding = read("net.ipv4.ip_forward")?;
+        let dmesg = read("kernel.dmesg_restrict")?;
+        let kptr = read("kernel.kptr_restrict")?;
+        status.aslr_mode = Some(aslr);
+        status.aslr_enabled = aslr == 2;
+        status.ip_forward_disabled = forwarding == 0;
+        status.dmesg_restricted = Some(dmesg >= 1);
+        status.kptr_restricted = Some(kptr >= 1);
+        status.hardened =
+            status.aslr_enabled && status.ip_forward_disabled && dmesg >= 1 && kptr >= 1;
+        for (ok, message) in [
+            (status.aslr_enabled, "ASLR not fully enabled"),
+            (status.ip_forward_disabled, "IP forwarding is enabled"),
+            (dmesg >= 1, "Kernel log access is unrestricted"),
+            (kptr >= 1, "Kernel pointers are unrestricted"),
+        ] {
+            if !ok {
+                status.issues.push(message.to_string());
             }
         }
-
-        // Check IP forwarding: net.ipv4.ip_forward should be 0
-        if let Ok(output) = silent_command("sysctl")
-            .args(["-n", "net.ipv4.ip_forward"])
-            .output()
-        {
-            let result = String::from_utf8_lossy(&output.stdout).to_string();
-            status
-                .raw_output
-                .push_str(&format!("ip_forward: {}\n", result.trim()));
-
-            if let Ok(value) = result.trim().parse::<u32>() {
-                status.ip_forward_disabled = value == 0;
-                if value != 0 {
-                    status.hardened = false;
-                    status.issues.push(
-                        "IP forwarding is enabled (net.ipv4.ip_forward should be 0)".to_string(),
-                    );
-                }
-            }
-        }
-
-        // Check dmesg_restrict: kernel.dmesg_restrict should be 1
-        if let Ok(output) = silent_command("sysctl")
-            .args(["-n", "kernel.dmesg_restrict"])
-            .output()
-        {
-            let result = String::from_utf8_lossy(&output.stdout).to_string();
-            status
-                .raw_output
-                .push_str(&format!("dmesg_restrict: {}\n", result.trim()));
-
-            if let Ok(value) = result.trim().parse::<u32>() {
-                status.dmesg_restricted = Some(value == 1);
-                if value != 1 {
-                    status.hardened = false;
-                    status.issues.push(
-                        "dmesg is not restricted (kernel.dmesg_restrict should be 1)".to_string(),
-                    );
-                }
-            }
-        }
-
-        // Check kptr_restrict: kernel.kptr_restrict should be >= 1
-        if let Ok(output) = silent_command("sysctl")
-            .args(["-n", "kernel.kptr_restrict"])
-            .output()
-        {
-            let result = String::from_utf8_lossy(&output.stdout).to_string();
-            status
-                .raw_output
-                .push_str(&format!("kptr_restrict: {}\n", result.trim()));
-
-            if let Ok(value) = result.trim().parse::<u32>() {
-                status.kptr_restricted = Some(value >= 1);
-                if value < 1 {
-                    status.hardened = false;
-                    status.issues.push(
-                        "Kernel pointer display is not restricted (kernel.kptr_restrict should be >= 1)".to_string(),
-                    );
-                }
-            }
-        }
+        status.raw_output = format!(
+            "ASLR={aslr}, ip_forward={forwarding}, dmesg_restrict={dmesg}, kptr_restrict={kptr}"
+        );
 
         Ok(status)
     }
@@ -412,6 +364,17 @@ impl KernelHardeningCheck {
     }
 }
 
+#[cfg(any(target_os = "linux", test))]
+fn parse_kernel_setting(key: &str, success: bool, stdout: &[u8]) -> ScannerResult<u32> {
+    if !success {
+        return Err(ScannerError::CheckExecution(format!("Cannot read {key}")));
+    }
+    String::from_utf8_lossy(stdout)
+        .trim()
+        .parse::<u32>()
+        .map_err(|_| ScannerError::CheckExecution(format!("Invalid value for {key}")))
+}
+
 impl Default for KernelHardeningCheck {
     fn default() -> Self {
         Self::new()
@@ -479,6 +442,17 @@ impl Check for KernelHardeningCheck {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn kernel_read_requires_success_and_a_numeric_value() {
+        assert!(parse_kernel_setting("kernel.test", false, b"2").is_err());
+        assert!(parse_kernel_setting("kernel.test", true, b"").is_err());
+        assert!(parse_kernel_setting("kernel.test", true, b"permission denied").is_err());
+        assert_eq!(
+            parse_kernel_setting("kernel.test", true, b"2\n").unwrap(),
+            2
+        );
+    }
 
     #[test]
     fn test_check_creation() {
