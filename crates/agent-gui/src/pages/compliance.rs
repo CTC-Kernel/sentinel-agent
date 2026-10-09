@@ -1054,7 +1054,7 @@ impl CompliancePage {
             |ui, width, (label, count, color, icon, filter)| {
                 if widgets::metric_card(ui, width, label, &crate::format::int(*count), *color, icon)
                 {
-                    state.compliance.status_filter = filter.clone();
+                    state.compliance.status_filter = *filter;
                     state.compliance.search.clear();
                     state.compliance.current_page = 0;
                     widgets::open_data_panel(ui.ctx(), "Résultats des contrôles");
