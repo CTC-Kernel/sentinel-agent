@@ -185,8 +185,9 @@ fn friendly_error(raw: &str) -> String {
     for part in raw.split(';') {
         let part = part.trim();
         let hint = if part.contains("Elevated privileges required") {
-            "Droits administrateur requis pour modifier le pare-feu : relancez \
-             l'agent avec sudo, ou installez-le comme service (`sentinel-agent install`)."
+            "Le service privilégié Sentinel est injoignable : installez-le avec \
+             `sudo sentinel-agent install` puis `sudo sentinel-agent start` \
+             (ou réinstallez le pkg)."
         } else if part.contains("SIEM destination is not enabled") {
             "Aucune destination SIEM n'est activée : configurez-la dans \
              Paramètres › Intégration SIEM."

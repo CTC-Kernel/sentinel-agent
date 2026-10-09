@@ -396,6 +396,42 @@ PLIST
 chown "$REAL_USER" "$PLIST_PATH"
 chmod 644 "$PLIST_PATH"
 
+# 4b. Privileged helper: a small root LaunchDaemon that performs the firewall
+# and isolation actions for the app, which keeps running as the logged-in
+# user. It runs no detection and no GUI, and listens on a socket restricted
+# to the administrators' group.
+HELPER_LABEL="com.cyber-threat-consulting.sentinel-agent.helper"
+HELPER_PLIST="/Library/LaunchDaemons/$HELPER_LABEL.plist"
+cat > "$HELPER_PLIST" << HELPERPLIST
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>$HELPER_LABEL</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>$3/Applications/SentinelAgent.app/Contents/MacOS/SentinelAgent</string>
+        <string>privileged-helper</string>
+    </array>
+    <key>RunAtLoad</key>
+    <true/>
+    <key>KeepAlive</key>
+    <true/>
+    <key>ThrottleInterval</key>
+    <integer>10</integer>
+    <key>StandardOutPath</key>
+    <string>/var/log/sentinel-agent-helper.log</string>
+    <key>StandardErrorPath</key>
+    <string>/var/log/sentinel-agent-helper.log</string>
+</dict>
+</plist>
+HELPERPLIST
+chown root:wheel "$HELPER_PLIST"
+chmod 644 "$HELPER_PLIST"
+launchctl bootout system/"$HELPER_LABEL" 2>/dev/null || true
+launchctl bootstrap system "$HELPER_PLIST" || echo "Warning: could not start the privileged helper"
+
 # 5. Launch the application (Non-blocking)
 echo "Attempting to launch Sentinel Agent..."
 sudo -u "$REAL_USER" open "$3/Applications/SentinelAgent.app" || echo "Warning: Could not launch app automatically"

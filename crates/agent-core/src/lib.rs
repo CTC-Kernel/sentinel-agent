@@ -66,6 +66,7 @@ pub mod host_isolation;
 pub mod mdm;
 mod network_ops;
 pub mod playbook_engine;
+pub mod privileged;
 mod process_telemetry;
 mod ransomware_canary;
 pub mod threat_intel_feeds;

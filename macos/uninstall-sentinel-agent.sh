@@ -29,6 +29,14 @@ else
     echo "[1/5] Pas de service systeme detecte."
 fi
 
+# 1b. Privileged helper (root daemon used by the app for firewall actions)
+HELPER_LABEL="${DAEMON_PLIST}.helper"
+HELPER_PATH="/Library/LaunchDaemons/${HELPER_LABEL}.plist"
+if [ -f "$HELPER_PATH" ]; then
+    sudo launchctl bootout system/"$HELPER_LABEL" 2>/dev/null || true
+    sudo rm -f "$HELPER_PATH" /var/run/sentinel-agent.sock
+fi
+
 # 2. Stop and unload LaunchAgent (user-level, if present)
 echo "[2/5] Verification des agents utilisateur..."
 CURRENT_USER=$(stat -f%Su /dev/console 2>/dev/null || echo "$USER")
