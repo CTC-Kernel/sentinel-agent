@@ -1931,7 +1931,7 @@ impl LlmTab {
         match self {
             LlmTab::Assistant => "Assistant IA",
             LlmTab::Recommendations => "Recommandations",
-            LlmTab::ModelStatus => "Statut Mod\u{00e8}le",
+            LlmTab::ModelStatus => "Paramètres IA",
         }
     }
 }

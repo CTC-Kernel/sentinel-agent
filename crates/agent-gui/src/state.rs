@@ -753,6 +753,14 @@ pub struct ComplianceFilter {
 /// AI analysis page state.
 #[derive(Default)]
 pub struct AiState {
+    pub provider_settings: crate::ai_provider::AiProviderSettings,
+    pub provider_draft: crate::ai_provider::AiProviderSettings,
+    pub provider_key: crate::ai_provider::ApiKey,
+    pub provider_has_key: bool,
+    pub provider_profiles: Vec<(crate::ai_provider::AiProviderSettings, bool)>,
+    pub provider_loaded: bool,
+    pub provider_busy: bool,
+    pub provider_feedback: Option<String>,
     pub selected_recommendation: Option<usize>,
     pub detail_open: bool,
     pub filter: Option<String>,
@@ -841,7 +849,8 @@ impl AiState {
 
     /// Load the model once per session, when the assistant is first shown.
     pub fn take_warm_up(&mut self) -> bool {
-        !std::mem::replace(&mut self.warm_up_requested, true)
+        self.provider_settings.provider == crate::ai_provider::AiProvider::Local
+            && !std::mem::replace(&mut self.warm_up_requested, true)
     }
 
     /// Dictation can start: unknown capabilities are optimistic (the runtime
@@ -1828,6 +1837,20 @@ impl AppState {
                 if speaking {
                     self.ai.is_listening = false;
                 }
+            }
+            AgentEvent::AiProviderConfigured { settings, has_key, profiles } => {
+                self.ai.provider_settings = settings.clone();
+                self.ai.provider_draft = settings;
+                self.ai.provider_has_key = has_key;
+                self.ai.provider_profiles = profiles;
+                self.ai.provider_loaded = true;
+                self.ai.provider_busy = false;
+                self.ai.provider_key.0.clear();
+            }
+            AgentEvent::AiProviderFeedback { message } => {
+                self.ai.provider_feedback = Some(message);
+                self.ai.provider_busy = false;
+                self.ai.provider_loaded = true;
             }
             AgentEvent::LlmChatDelta { text } => {
                 // Late fragments after completion or cancellation are ignored.

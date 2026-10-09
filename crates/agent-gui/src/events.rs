@@ -204,6 +204,13 @@ pub enum AgentEvent {
     KpiSnapshot {
         snapshot: Box<crate::dto::KpiSnapshot>,
     },
+    /// Saved backend settings, without the API key.
+    AiProviderConfigured {
+        settings: crate::ai_provider::AiProviderSettings,
+        has_key: bool,
+        profiles: Vec<(crate::ai_provider::AiProviderSettings, bool)>,
+    },
+    AiProviderFeedback { message: String },
     /// Fragment of an assistant answer being generated (streaming).
     LlmChatDelta {
         /// Text to append to the answer in progress.
@@ -593,6 +600,15 @@ pub enum GuiCommand {
         event_description: String,
         /// Target identifier for routing the response (digest of the selected event, independent of list position).
         target_id: String,
+    },
+    ConfigureAiProvider {
+        settings: crate::ai_provider::AiProviderSettings,
+        api_key: crate::ai_provider::ApiKey,
+        forget_key: bool,
+    },
+    TestAiProvider {
+        settings: crate::ai_provider::AiProviderSettings,
+        api_key: crate::ai_provider::ApiKey,
     },
     /// Request current LLM model status.
     LlmGetStatus,

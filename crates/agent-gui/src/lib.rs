@@ -134,3 +134,5 @@ pub fn run_tray_popup(
         }),
     )
 }
+
+pub mod ai_provider;
