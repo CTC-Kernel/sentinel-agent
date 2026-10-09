@@ -1,26 +1,10 @@
 // Copyright (c) 2024-2026 Cyber Threat Consulting
 // SPDX-License-Identifier: MIT
 
-//! Page sub-header.
-//!
-//! The page title lives in the global top bar, which is always visible; a
-//! second H1 in the body would only repeat it. What the body owes the reader
-//! is the one line explaining what this page is for, and a way to get help.
-//!
-//! The previous version drew a gradient rule under that line and animated its
-//! brightness continuously, forcing a repaint every 100ms on every page for a
-//! decoration nobody reads. It is gone: the space below the lead does the same
-//! separating work, silently.
+//! Consistent workspace introductions and editorial section hierarchy.
+use crate::{icons, theme};
+use egui::{RichText, Ui};
 
-use egui::Ui;
-
-use crate::theme;
-
-/// Draw a page sub-header (lead line + contextual help).
-///
-/// `breadcrumbs` and `title` are retained in the signature so each page keeps
-/// declaring its location in one place; both are surfaced by the top bar.
-/// Always returns `None` — nothing here is clickable.
 pub fn page_header_nav(
     ui: &mut Ui,
     breadcrumbs: &[&str],
@@ -28,49 +12,108 @@ pub fn page_header_nav(
     subtitle: Option<&str>,
     help_text: Option<&str>,
 ) -> Option<usize> {
-    let _ = breadcrumbs;
-    page_header(ui, title, subtitle, help_text);
+    workspace_header(
+        ui,
+        breadcrumbs.first().copied().unwrap_or("Sentinel"),
+        breadcrumbs.last().copied().unwrap_or(title),
+        title,
+        subtitle,
+        help_text,
+    );
     None
 }
 
-/// Draw a page sub-header: the lead line and its contextual help.
 pub fn page_header(ui: &mut Ui, title: &str, subtitle: Option<&str>, help_text: Option<&str>) {
-    let _ = title; // Surfaced by the global top bar, not repeated in the body.
+    workspace_header(ui, "Sentinel", title, title, subtitle, help_text);
+}
 
-    if subtitle.is_none() && help_text.is_none() {
-        return;
-    }
-
-    ui.horizontal_wrapped(|ui: &mut Ui| {
-        if let Some(lead) = subtitle {
-            ui.label(
-                egui::RichText::new(lead)
-                    .font(theme::font_body_lg())
-                    .color(theme::text_secondary()),
-            );
+fn workspace_header(
+    ui: &mut Ui,
+    section: &str,
+    destination: &str,
+    title: &str,
+    subtitle: Option<&str>,
+    help_text: Option<&str>,
+) {
+    let icon = match destination {
+        "Tableau de bord" => icons::DASHBOARD,
+        "Surveillance" => icons::CHART_LINE,
+        "Notifications" => icons::BELL,
+        "Menaces" => icons::SHIELD_VIRUS,
+        "Vulnérabilités" => icons::VULNERABILITIES,
+        "FIM" => icons::FILE_SHIELD,
+        "Réseau" => icons::NETWORK,
+        "Conformité" => icons::CLIPBOARD_CHECK,
+        "Risques" => icons::SCALE_BALANCED,
+        "Rapports" => icons::FILE_EXPORT,
+        "Inventaire" => icons::BOXES_STACKED,
+        "Logiciels" => icons::SOFTWARE,
+        "Détection" => icons::DISCOVERY,
+        "Cartographie" => icons::CARTOGRAPHY,
+        "Synchronisation" => icons::SYNC,
+        "Journal d'audit" => icons::CLIPBOARD,
+        "Configuration" => icons::GEAR,
+        "Terminal" => icons::TERMINAL,
+        "À propos" => icons::ABOUT,
+        _ => icons::SHIELD,
+    };
+    let width = ui.available_width();
+    ui.horizontal_top(|ui| {
+        ui.spacing_mut().item_spacing.x = theme::SPACE_MD;
+        let emblem = width >= 540.0;
+        if emblem {
+            super::instrument_glyph(ui, icon, theme::ACCENT, 64.0);
         }
-        if let Some(help) = help_text {
-            ui.add_space(theme::SPACE_SM);
-            super::help_button(ui, help);
-        }
+        ui.vertical(|ui| {
+            ui.set_width((width - if emblem { 64.0 + theme::SPACE_MD } else { 0.0 }).max(1.0));
+            eyebrow(ui, &section.to_uppercase());
+            ui.horizontal_wrapped(|ui| {
+                ui.label(
+                    RichText::new(title)
+                        .font(theme::font_h1())
+                        .color(theme::text_primary()),
+                );
+                if let Some(help) = help_text {
+                    super::help_button(ui, help);
+                }
+            });
+            if let Some(lead) = subtitle {
+                ui.label(
+                    RichText::new(lead)
+                        .font(theme::font_body())
+                        .color(theme::text_secondary()),
+                );
+            }
+        });
     });
 }
 
-/// Draw a section heading inside a page body.
-///
-/// Use between blocks of a long page — a heading, an optional caption, and the
-/// vertical rhythm that separates it from what came before.
 pub fn section_header(ui: &mut Ui, title: &str, caption: Option<&str>) {
     ui.add_space(theme::SPACE_LG);
-    ui.label(
-        egui::RichText::new(title)
-            .font(theme::font_h3())
-            .color(theme::text_primary()),
-    );
+    ui.horizontal(|ui| {
+        let (marker, _) = ui.allocate_exact_size(egui::vec2(3.0, 18.0), egui::Sense::hover());
+        ui.painter().rect_filled(marker, 1.5, theme::accent_text());
+        ui.add_space(theme::SPACE_XS);
+        ui.label(
+            RichText::new(title)
+                .font(theme::font_h3())
+                .color(theme::text_primary()),
+        );
+        let remaining = ui.available_width();
+        if remaining > 24.0 {
+            let (rect, _) =
+                ui.allocate_exact_size(egui::vec2(remaining, 1.0), egui::Sense::hover());
+            ui.painter().hline(
+                rect.x_range(),
+                rect.center().y,
+                egui::Stroke::new(0.5_f32, theme::border_subtle()),
+            );
+        }
+    });
     if let Some(caption) = caption {
         ui.add_space(theme::SPACE_XS);
         ui.label(
-            egui::RichText::new(caption)
+            RichText::new(caption)
                 .font(theme::font_body())
                 .color(theme::text_tertiary()),
         );
@@ -78,10 +121,9 @@ pub fn section_header(ui: &mut Ui, title: &str, caption: Option<&str>) {
     ui.add_space(theme::SPACE_MD);
 }
 
-/// Draw an uppercase eyebrow label — the smallest step in the heading scale.
 pub fn eyebrow(ui: &mut Ui, text: &str) {
     ui.label(
-        egui::RichText::new(text)
+        RichText::new(text)
             .font(theme::font_label())
             .color(theme::text_tertiary())
             .extra_letter_spacing(theme::TRACKING_WIDE),

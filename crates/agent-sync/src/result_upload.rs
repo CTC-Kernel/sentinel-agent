@@ -18,6 +18,7 @@ use chrono::{DateTime, Utc};
 use flate2::Compression;
 use flate2::write::GzEncoder;
 use serde::{Deserialize, Serialize};
+use sha2::{Digest, Sha256};
 use std::io::Write;
 use std::sync::Arc;
 use std::sync::atomic::{AtomicU64, Ordering};
@@ -56,6 +57,8 @@ pub struct ResultUploadRequest {
 #[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "snake_case")]
 pub struct CheckResultPayload {
+    /// Stable identity of this measurement, retained across retries.
+    pub result_id: String,
     /// Check rule identifier.
     pub check_id: String,
     /// Result status.
@@ -91,6 +94,7 @@ pub struct CheckResultPayload {
 impl From<&CheckResult> for CheckResultPayload {
     fn from(result: &CheckResult) -> Self {
         Self {
+            result_id: measurement_id(result),
             check_id: result.check_rule_id.clone(),
             status: result.status.as_str().to_string(),
             score: result.score,
@@ -115,6 +119,9 @@ impl From<&CheckResult> for CheckResultPayload {
 pub struct ResultUploadResponse {
     /// Number of results accepted.
     pub accepted: usize,
+    /// Exact identities acknowledged by new servers. None means legacy server.
+    #[serde(default)]
+    pub accepted_result_ids: Option<Vec<String>>,
     /// Number of results rejected.
     pub rejected: usize,
     /// IDs of rejected results (if any).
@@ -246,42 +253,11 @@ impl ResultUploader {
         // Upload the batch
         let upload_result = self.upload_batch(&results).await?;
 
-        // Mark successful uploads as synced
-        if upload_result.uploaded > 0 {
-            let synced_ids: Vec<i64> = results
-                .iter()
-                .filter_map(|r| r.id)
-                .take(upload_result.uploaded)
-                .collect();
-
-            if !synced_ids.is_empty() {
-                repo.mark_synced(&synced_ids).await?;
-            }
-        }
-
-        // Log rejected results for audit trail
         if upload_result.rejected > 0 {
-            let rejected_ids: Vec<i64> = results
-                .iter()
-                .filter_map(|r| r.id)
-                .skip(upload_result.uploaded)
-                .take(upload_result.rejected)
-                .collect();
-
             warn!(
-                "Server rejected {} results (IDs: {:?}). Results will be retried on next upload.",
-                upload_result.rejected, rejected_ids
+                "Server rejected {} results; unacknowledged measurements remain queued",
+                upload_result.rejected
             );
-
-            // Log individual rejected results for debugging
-            for id in &rejected_ids {
-                if let Some(result) = results.iter().find(|r| r.id == Some(*id)) {
-                    debug!(
-                        "Rejected result: id={}, check_rule_id={}, status={:?}",
-                        id, result.check_rule_id, result.status
-                    );
-                }
-            }
         }
 
         // Get remaining pending count
@@ -406,8 +382,14 @@ impl ResultUploader {
                     response.accepted, response.rejected
                 );
 
+                let synced_ids = acknowledged_ids(results, &response);
+                if !synced_ids.is_empty() {
+                    CheckResultsRepository::new(&self.db)
+                        .mark_synced(&synced_ids)
+                        .await?;
+                }
                 Ok(UploadResult {
-                    uploaded: response.accepted,
+                    uploaded: synced_ids.len(),
                     rejected: response.rejected,
                     pending: 0,
                     compressed,
@@ -440,7 +422,7 @@ impl ResultUploader {
             let result = self.upload_pending().await?;
             total_uploaded += result.uploaded;
 
-            if result.pending == 0 {
+            if result.pending == 0 || result.uploaded == 0 {
                 break;
             }
 
@@ -460,6 +442,34 @@ impl ResultUploader {
     }
 }
 
+/// Includes execution time as well as the local row id to survive database replacement.
+fn measurement_id(result: &CheckResult) -> String {
+    hex::encode(Sha256::digest(
+        format!(
+            "{}|{}|{}",
+            result.check_rule_id,
+            result.executed_at.to_rfc3339(),
+            result.id.unwrap_or_default()
+        )
+        .as_bytes(),
+    ))
+}
+
+fn acknowledged_ids(results: &[CheckResult], response: &ResultUploadResponse) -> Vec<i64> {
+    match &response.accepted_result_ids {
+        Some(ids) => results
+            .iter()
+            .filter(|r| ids.contains(&measurement_id(r)))
+            .filter_map(|r| r.id)
+            .collect(),
+        // Legacy partial responses cannot identify individual measurements safely.
+        None if response.rejected == 0 && response.accepted == results.len() => {
+            results.iter().filter_map(|r| r.id).collect()
+        }
+        None => Vec::new(),
+    }
+}
+
 /// Compress data using gzip.
 fn compress_gzip(data: &[u8]) -> SyncResult<Vec<u8>> {
     let mut encoder = GzEncoder::new(Vec::new(), Compression::default());
@@ -475,6 +485,38 @@ fn compress_gzip(data: &[u8]) -> SyncResult<Vec<u8>> {
 mod tests {
     use super::*;
     use agent_storage::CheckStatus;
+
+    #[test]
+    fn partial_acknowledgement_uses_measurement_identity() {
+        let mut first = CheckResult::new("disk_encryption", CheckStatus::Pass);
+        first.id = Some(1);
+        let mut second = first.clone();
+        second.id = Some(2);
+        let mut third = first.clone();
+        third.id = Some(3);
+        let rows = vec![first, second, third];
+        let response = ResultUploadResponse {
+            accepted: 1,
+            rejected: 2,
+            accepted_result_ids: Some(vec![measurement_id(&rows[1])]),
+            rejected_ids: vec!["disk_encryption".into()],
+            timestamp: Utc::now(),
+        };
+        assert_eq!(acknowledged_ids(&rows, &response), vec![2]);
+        let legacy = ResultUploadResponse {
+            accepted_result_ids: None,
+            ..response
+        };
+        assert!(acknowledged_ids(&rows, &legacy).is_empty());
+        let all = ResultUploadResponse {
+            accepted: 3,
+            rejected: 0,
+            ..legacy
+        };
+        assert_eq!(acknowledged_ids(&rows, &all), vec![1, 2, 3]);
+        assert_eq!(measurement_id(&rows[0]), measurement_id(&rows[0].clone()));
+        assert_ne!(measurement_id(&rows[0]), measurement_id(&rows[1]));
+    }
 
     #[test]
     fn test_check_result_payload_from() {
@@ -505,6 +547,7 @@ mod tests {
     fn test_result_upload_request_serialization() {
         let request = ResultUploadRequest {
             results: vec![CheckResultPayload {
+                result_id: "test-result".to_string(),
                 check_id: "test".to_string(),
                 status: "pass".to_string(),
                 score: Some(100),
@@ -604,6 +647,7 @@ mod tests {
     #[test]
     fn test_payload_skip_none_fields() {
         let payload = CheckResultPayload {
+            result_id: "test-result".to_string(),
             check_id: "test".to_string(),
             status: "pass".to_string(),
             score: None,

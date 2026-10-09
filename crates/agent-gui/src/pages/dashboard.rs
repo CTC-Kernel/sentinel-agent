@@ -109,7 +109,14 @@ impl DashboardPage {
 
         ui.add_space(theme::SPACE_MD);
 
-        // The verdict is the first content, before tenant context and tools.
+        // Detection and response leads the overview, before compliance.
+        if let Some(tab) = widgets::detection_hero(ui, state) {
+            state.threats.active_tab = tab;
+            action = Some(DashboardAction::NavigateTo(Page::Threats));
+        }
+        ui.add_space(theme::SPACE);
+
+        // Compliance verdict and assistant.
         let available = ui.available_width();
         if available >= 940.0 {
             let gap = theme::SPACE;

@@ -70,9 +70,22 @@ pub fn data_card(ui: &mut Ui, title: &str, content: impl FnOnce(&mut Ui)) {
             let rect = Card::new().interactive(true).show(ui, |ui| {
                 content(ui);
                 ui.add_space(theme::SPACE_SM);
-                let response = super::button::ghost_button(ui, "Agrandir le panneau")
-                    .on_hover_text(format!("Ouvrir {title} avec ses données et commandes"));
-                expand = response.clicked();
+                super::divider_thin(ui);
+                ui.horizontal(|ui| {
+                    ui.label(
+                        egui::RichText::new(icons::EXPAND)
+                            .font(theme::font_icon(theme::ICON_XS))
+                            .color(theme::accent_text()),
+                    );
+                    ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                        let response = super::button::ghost_button(
+                            ui,
+                            format!("Vue détaillée  {}", icons::ARROW_RIGHT),
+                        )
+                        .on_hover_text(format!("Ouvrir {title} avec ses données et commandes"));
+                        expand = response.clicked();
+                    });
+                });
             });
             panel.rect = Some(rect);
             if let Some(response) = background {

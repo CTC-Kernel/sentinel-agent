@@ -85,7 +85,7 @@ impl AgentRuntime {
                                 .unwrap_or_else(|| "general".to_string());
 
                             match intelligent_runner
-                                .run_with_analysis(&system_info, &framework, "endpoint")
+                                .run_with_analysis(&system_info, &framework, "endpoint", active_frameworks.as_deref())
                                 .await
                             {
                                 Ok(scan_result) => {
@@ -240,6 +240,7 @@ impl AgentRuntime {
 
             let mut storage_result =
                 StorageCheckResult::new(&common_result.check_id, storage_status);
+            storage_result.executed_at = common_result.executed_at;
 
             if let Some(ref msg) = common_result.message {
                 storage_result = storage_result.with_message(msg.clone());

@@ -1130,44 +1130,7 @@ impl SoftwarePage {
         color: egui::Color32,
         icon: &str,
     ) -> bool {
-        let mut clicked = false;
-        let safe_color = theme::readable_color(color);
-        ui.vertical(|ui: &mut egui::Ui| {
-            ui.set_width(width);
-            clicked = widgets::clickable_card(ui, label, |ui: &mut egui::Ui| {
-                ui.set_min_height(theme::SUMMARY_CARD_MIN_HEIGHT);
-                ui.horizontal(|ui: &mut egui::Ui| {
-                    ui.vertical(|ui: &mut egui::Ui| {
-                        ui.label(
-                            egui::RichText::new(value)
-                                .font(theme::font_card_value())
-                                .color(safe_color)
-                                .strong(),
-                        );
-                        ui.label(
-                            egui::RichText::new(label)
-                                .font(theme::font_label())
-                                .color(theme::text_tertiary())
-                                .extra_letter_spacing(theme::TRACKING_NORMAL)
-                                .strong(),
-                        );
-                    });
-                    ui.with_layout(
-                        egui::Layout::right_to_left(egui::Align::Center),
-                        |ui: &mut egui::Ui| {
-                            ui.label(
-                                egui::RichText::new(icon)
-                                    .size(theme::ICON_XL)
-                                    .color(safe_color.linear_multiply(theme::OPACITY_DISABLED)),
-                            );
-                        },
-                    );
-                });
-            })
-            .on_hover_text("Consulter les données associées")
-            .clicked();
-        });
-        clicked
+        widgets::metric_card(ui, width, label, value, color, icon)
     }
 }
 

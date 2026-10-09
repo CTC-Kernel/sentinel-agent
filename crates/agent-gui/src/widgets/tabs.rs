@@ -398,6 +398,12 @@ impl<'a> TabBar<'a> {
                     CornerRadius::same(theme::ROUNDING_SM),
                     theme::badge_bg(theme::ACCENT),
                 );
+                painter.rect_stroke(
+                    rect.shrink2(egui::vec2(theme::SPACE_XS, theme::SPACE_XS)),
+                    CornerRadius::same(theme::ROUNDING_SM),
+                    egui::Stroke::new(0.8_f32, theme::badge_border(theme::ACCENT)),
+                    egui::StrokeKind::Inside,
+                );
             }
 
             // Hover wash, so a tab reads as a target before it is clicked.
@@ -826,6 +832,57 @@ pub fn tabs_boxed(ui: &mut Ui, labels: &[&str], selected: &mut usize) -> bool {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn full_width_edr_navigation_stays_inside_its_column() {
+        for width in [580.0, 760.0, 1120.0, 1400.0] {
+            let ctx = egui::Context::default();
+            theme::configure_fonts(&ctx);
+            theme::apply_theme(&ctx, true);
+            let _ = ctx.run(
+                egui::RawInput {
+                    screen_rect: Some(egui::Rect::from_min_size(
+                        egui::Pos2::ZERO,
+                        egui::vec2(width, 600.0),
+                    )),
+                    ..Default::default()
+                },
+                |ctx| {
+                    egui::CentralPanel::default().show(ctx, |ui| {
+                        let right = ui.available_rect_before_wrap().right();
+                        let response = ui
+                            .scope(|ui| {
+                                let tabs = [
+                                    "Vue d'ensemble",
+                                    "Événements",
+                                    "Investigation",
+                                    "Réponse",
+                                    "Playbooks",
+                                    "Règles",
+                                    "Chronologie",
+                                    "Autorisations",
+                                ]
+                                .iter()
+                                .enumerate()
+                                .map(|(i, label)| {
+                                    Tab::new(label)
+                                        .icon(crate::icons::SHIELD)
+                                        .badge(if i % 2 == 0 { 14 } else { 0 })
+                                })
+                                .collect();
+                                TabBar::new(tabs, 0).full_width().show(ui);
+                            })
+                            .response;
+                        assert!(
+                            response.rect.right() <= right + 1.0,
+                            "width {width}: {:?} > {right}",
+                            response.rect
+                        );
+                    });
+                },
+            );
+        }
+    }
 
     #[test]
     fn labeled_tabs_use_one_row_when_they_fit_and_wrap_when_needed() {

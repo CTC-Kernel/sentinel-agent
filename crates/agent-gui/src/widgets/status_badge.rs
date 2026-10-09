@@ -21,17 +21,26 @@ pub fn status_badge(ui: &mut Ui, text: &str, color: egui::Color32) {
     let border_color = theme::badge_border(color);
     let text_color = theme::badge_text(color);
 
-    let galley = ui
-        .painter()
-        .layout_no_wrap(text.to_string(), theme::font_label(), text_color);
+    let galley = egui::WidgetText::from(
+        egui::RichText::new(text)
+            .font(theme::font_label())
+            .color(text_color),
+    )
+    .into_galley(
+        ui,
+        Some(egui::TextWrapMode::Truncate),
+        (ui.available_width() - h_pad * 2.0 - 12.0).max(1.0),
+        theme::font_label(),
+    );
 
     let text_size = galley.size();
     let desired_size = Vec2::new(
-        text_size.x + h_pad * 2.0,
+        text_size.x + h_pad * 2.0 + 12.0,
         (text_size.y + v_pad * 2.0).max(theme::BADGE_MIN_HEIGHT),
     );
 
-    let (rect, _) = ui.allocate_exact_size(desired_size, egui::Sense::hover());
+    let (rect, response) = ui.allocate_exact_size(desired_size, egui::Sense::hover());
+    response.on_hover_text(text);
 
     if ui.is_rect_visible(rect) {
         let radius = (rect.height() / 2.0).round().min(255.0) as u8;
@@ -48,8 +57,16 @@ pub fn status_badge(ui: &mut Ui, text: &str, color: egui::Color32) {
             egui::StrokeKind::Inside,
         );
 
-        // Centered text
-        let text_pos = ui.layout().align_size_within_rect(text_size, rect).min;
+        // An inset signal dot and explicit padding keep pills aligned in every layout.
+        ui.painter().circle_filled(
+            egui::pos2(rect.left() + h_pad + 3.0, rect.center().y),
+            2.5,
+            text_color,
+        );
+        let text_pos = egui::pos2(
+            rect.left() + h_pad + 12.0,
+            rect.center().y - text_size.y * 0.5,
+        );
         ui.painter().galley(text_pos, galley, text_color);
     }
 }

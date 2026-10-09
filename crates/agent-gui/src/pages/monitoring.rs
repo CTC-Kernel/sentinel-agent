@@ -25,7 +25,6 @@ const RESOURCE_CRITICAL_THRESHOLD: f64 = 90.0;
 const RESOURCE_WARNING_THRESHOLD: f64 = 70.0;
 #[allow(dead_code)]
 const CHART_HEIGHT: f32 = 190.0;
-const SUMMARY_CARD_MIN_HEIGHT: f32 = theme::SUMMARY_CARD_MIN_HEIGHT;
 const LOGS_PER_PAGE: usize = 50;
 
 pub struct MonitoringPage;
@@ -1173,85 +1172,7 @@ impl MonitoringPage {
         color: egui::Color32,
         icon: &str,
     ) -> bool {
-        let mut clicked = false;
-        ui.vertical(|ui: &mut egui::Ui| {
-            ui.set_width(width);
-            clicked = widgets::clickable_card(ui, label, |ui: &mut egui::Ui| {
-                ui.set_min_height(SUMMARY_CARD_MIN_HEIGHT);
-
-                let response =
-                    ui.interact(ui.max_rect(), ui.id().with(label), egui::Sense::hover());
-
-                let safe_color = theme::readable_color(color);
-                ui.horizontal(|ui: &mut egui::Ui| {
-                    // Left: Value and label
-                    ui.vertical(|ui: &mut egui::Ui| {
-                        let value_color = if response.hovered() {
-                            safe_color
-                        } else {
-                            safe_color.linear_multiply(theme::OPACITY_STRONG)
-                        };
-
-                        ui.label(
-                            RichText::new(value)
-                                .font(theme::font_card_value())
-                                .color(value_color)
-                                .strong(),
-                        );
-                        ui.label(
-                            RichText::new(label)
-                                .font(theme::font_label())
-                                .color(theme::text_tertiary())
-                                .extra_letter_spacing(theme::TRACKING_NORMAL)
-                                .strong(),
-                        );
-                    });
-
-                    // Right: Icon
-                    ui.with_layout(
-                        egui::Layout::right_to_left(egui::Align::Center),
-                        |ui: &mut egui::Ui| {
-                            let icon_alpha = if response.hovered() {
-                                theme::OPACITY_MEDIUM
-                            } else {
-                                theme::OPACITY_DISABLED
-                            };
-                            ui.label(
-                                RichText::new(icon)
-                                    .size(theme::ICON_XL)
-                                    .color(safe_color.linear_multiply(icon_alpha)),
-                            );
-                        },
-                    );
-                });
-
-                // Bottom accent line on hover
-                if response.hovered() {
-                    let rect = ui.max_rect();
-                    let line_y = rect.bottom() - 1.5;
-
-                    ui.painter().hline(
-                        rect.left() + theme::CARD_GLOW_INSET
-                            ..=rect.right() - theme::CARD_GLOW_INSET,
-                        line_y,
-                        egui::Stroke::new(theme::CARD_GLOW_STROKE, color),
-                    );
-
-                    ui.painter().hline(
-                        rect.left() + theme::CARD_GLOW_OUTER_INSET
-                            ..=rect.right() - theme::CARD_GLOW_OUTER_INSET,
-                        line_y,
-                        egui::Stroke::new(
-                            theme::CARD_GLOW_OUTER_STROKE,
-                            color.linear_multiply(theme::OPACITY_TINT),
-                        ),
-                    );
-                }
-            })
-            .on_hover_text("Consulter les données associées")
-            .clicked();
-        });
-        clicked
+        widgets::metric_card(ui, width, label, value, color, icon)
     }
 
     #[allow(dead_code)]

@@ -27,7 +27,7 @@ pub fn compliance_gauge_captioned(ui: &mut Ui, score: Option<f32>, radius: f32, 
     let painter = ui.painter_at(rect);
 
     let track_color = theme::bg_tertiary();
-    let stroke_width = theme::GAUGE_STROKE;
+    let stroke_width = theme::GAUGE_STROKE * 0.65;
 
     // The dial sits on a card, so its well is one step *below* that card —
     // not at bg_deep, which is the terminal's near-black and turned an empty
@@ -36,6 +36,30 @@ pub fn compliance_gauge_captioned(ui: &mut Ui, score: Option<f32>, radius: f32, 
         center,
         radius + stroke_width * 0.5,
         theme::color_blend_pub(theme::bg_secondary(), theme::overlay_color(), 0.04),
+    );
+
+    // Calibrated outer ticks echo the detection instrument without inventing data.
+    for tick in 0..50 {
+        let angle = -PI / 2.0 + tick as f32 / 50.0 * 2.0 * PI;
+        let direction = egui::vec2(angle.cos(), angle.sin());
+        let ink = match score.filter(|s| s.is_finite()) {
+            Some(value) if tick as f32 * 2.0 < value.clamp(0.0, 100.0) => {
+                theme::chart_color(theme::score_color(value.clamp(0.0, 100.0)))
+            }
+            _ => theme::border_subtle(),
+        };
+        painter.line_segment(
+            [
+                center + direction * (radius + 4.0),
+                center + direction * (radius + 7.0),
+            ],
+            egui::Stroke::new(0.8_f32, ink),
+        );
+    }
+    painter.circle_stroke(
+        center,
+        radius * 0.78,
+        egui::Stroke::new(0.6_f32, theme::border_subtle()),
     );
 
     // Background track

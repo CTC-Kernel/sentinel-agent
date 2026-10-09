@@ -194,7 +194,6 @@ impl<'a> DetailDrawer<'a> {
             se: theme::ROUNDING_XL,
         };
         let accent = self.accent_color;
-        let accent_fg = theme::readable_color(accent);
 
         let modal = egui::Modal::new(self.id.with("modal"))
             .area(
@@ -235,27 +234,7 @@ impl<'a> DetailDrawer<'a> {
                     ui.add_space(theme::SPACE_LG);
 
                     let icon_size = theme::ICON_2XL;
-                    let (icon_rect, _) = ui.allocate_exact_size(
-                        egui::vec2(icon_size, icon_size),
-                        egui::Sense::hover(),
-                    );
-                    ui.painter().rect(
-                        icon_rect,
-                        CornerRadius::same(theme::ROUNDING_LG),
-                        theme::tinted_surface(accent),
-                        egui::Stroke::new(
-                            theme::BORDER_HAIRLINE,
-                            theme::color_blend_pub(theme::bg_secondary(), accent, 0.45),
-                        ),
-                        egui::StrokeKind::Inside,
-                    );
-                    ui.painter().text(
-                        icon_rect.center(),
-                        egui::Align2::CENTER_CENTER,
-                        self.icon,
-                        theme::font_icon(theme::ICON_LG),
-                        accent_fg,
-                    );
+                    super::instrument_glyph(ui, self.icon, accent, icon_size);
 
                     ui.add_space(theme::SPACE_MD);
 

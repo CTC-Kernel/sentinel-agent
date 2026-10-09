@@ -530,9 +530,19 @@ impl<'a> DataTable<'a> {
             };
 
             if bg_color != Color32::TRANSPARENT {
-                ui.painter().rect_filled(row_rect, 0, bg_color);
+                ui.painter().rect_filled(
+                    row_rect.shrink2(egui::vec2(0.0, 1.0)),
+                    theme::ROUNDING_XS,
+                    bg_color,
+                );
             }
             if selected {
+                ui.painter().rect_stroke(
+                    row_rect.shrink(1.0),
+                    theme::ROUNDING_XS,
+                    egui::Stroke::new(0.6_f32, theme::badge_border(theme::ACCENT)),
+                    egui::StrokeKind::Inside,
+                );
                 ui.painter().rect_filled(
                     egui::Rect::from_min_size(
                         row_rect.left_top(),
