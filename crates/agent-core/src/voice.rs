@@ -1447,7 +1447,11 @@ fn record_and_transcribe(
         Arc::new(Mutex::new(Vec::with_capacity(sample_rate as usize * 20)));
     let buf_cb = shared.clone();
 
-    let err_fn = |err| error!("cpal input error: {}", err);
+    let (stream_error_tx, stream_error_rx) = mpsc::channel();
+    let err_fn = move |err| {
+        error!("cpal input error: {}", err);
+        let _ = stream_error_tx.send(format!("erreur du microphone : {err}"));
+    };
 
     let stream = match sample_format {
         SampleFormat::F32 => device
@@ -1498,10 +1502,7 @@ fn record_and_transcribe(
     let min_speech_frames = 250 / frame_ms; // require 250 ms before ending
     let initial_timeout_frames = options.start_timeout_ms / frame_ms;
     let preroll_frames = 300 / frame_ms; // keep 300 ms before onset
-    let calibration_total = 300 / frame_ms; // first 300 ms = noise floor
-
-    let mut noise_rms: f32 = 0.004;
-    let mut calibrated = 0usize;
+    let mut vad = VoiceActivityDetector::default();
     let mut in_speech = false;
     let mut speech_frames = 0usize;
     let mut silence_frames = 0usize;
@@ -1510,6 +1511,7 @@ fn record_and_transcribe(
         std::collections::VecDeque::with_capacity(preroll_frames + 1);
     let mut captured: Vec<f32> = Vec::with_capacity(sample_rate as usize * 20);
     let mut cursor = 0usize;
+    let mut last_audio = std::time::Instant::now();
     // Throttle the audio-level event to ~10 Hz (every 5 frames at 20 ms).
     let mut level_frame_counter: usize = 0;
 
@@ -1527,6 +1529,13 @@ fn record_and_transcribe(
             break;
         }
 
+        if let Ok(error) = stream_error_rx.try_recv() {
+            return Err(error);
+        }
+        if last_audio.elapsed() > Duration::from_secs(3) {
+            return Err("aucun signal reçu du microphone : vérifiez le périphérique d’entrée et les autorisations du système".into());
+        }
+
         // Pull one frame from the shared buffer.
         let frame: Vec<f32> = {
             let guard = shared.lock().map_err(|_| "mutex poisoned".to_string())?;
@@ -1536,6 +1545,7 @@ fn record_and_transcribe(
             guard[cursor..cursor + frame_len].to_vec()
         };
         cursor += frame_len;
+        last_audio = std::time::Instant::now();
 
         let rms = rms_of(&frame);
 
@@ -1547,20 +1557,7 @@ fn record_and_transcribe(
             let _ = tx_level.send(AgentEvent::AudioLevel { rms: normalized });
         }
 
-        if calibrated < calibration_total {
-            // Track the loudest calibration frame as noise floor so breathing/fan are accepted.
-            noise_rms = noise_rms.max(rms);
-            calibrated += 1;
-            preroll.push_back(frame);
-            while preroll.len() > preroll_frames {
-                preroll.pop_front();
-            }
-            continue;
-        }
-
-        // Adaptive voice activity thresholds: sensitive enough for laptop and headset mics
-        let speech_on = (noise_rms * 1.8).clamp(0.004, 0.025);
-        let speech_off = (noise_rms * 1.2).clamp(0.002, 0.015);
+        let (speech_on, speech_off) = vad.thresholds();
 
         if !in_speech {
             preroll.push_back(frame.clone());
@@ -1574,9 +1571,9 @@ fn record_and_transcribe(
                 for p in preroll.drain(..) {
                     captured.extend_from_slice(&p);
                 }
-                captured.extend_from_slice(&frame);
                 speech_frames = 1;
             } else {
+                vad.observe_noise(rms);
                 idle_frames += 1;
                 if idle_frames >= initial_timeout_frames {
                     info!(
@@ -1707,6 +1704,34 @@ fn push_mono<T: Copy>(
     }
 }
 
+/// Start listening immediately: the first syllable must never calibrate the
+/// noise floor. Only frames below the onset threshold update the estimate.
+#[cfg(feature = "gui")]
+struct VoiceActivityDetector {
+    noise_rms: f32,
+}
+
+#[cfg(feature = "gui")]
+impl Default for VoiceActivityDetector {
+    fn default() -> Self {
+        Self { noise_rms: 0.0005 }
+    }
+}
+
+#[cfg(feature = "gui")]
+impl VoiceActivityDetector {
+    fn thresholds(&self) -> (f32, f32) {
+        (
+            (self.noise_rms * 2.5).clamp(0.002, 0.025),
+            (self.noise_rms * 1.5).clamp(0.001, 0.015),
+        )
+    }
+
+    fn observe_noise(&mut self, rms: f32) {
+        self.noise_rms = self.noise_rms * 0.95 + rms * 0.05;
+    }
+}
+
 #[cfg(feature = "gui")]
 fn rms_of(frame: &[f32]) -> f32 {
     if frame.is_empty() {
@@ -1773,6 +1798,22 @@ fn is_whisper_hallucination(text: &str) -> bool {
 #[cfg(all(test, feature = "gui"))]
 mod workflow_tests {
     use super::*;
+
+    #[test]
+    fn quiet_speech_is_detected_even_when_it_starts_immediately() {
+        let mut vad = VoiceActivityDetector::default();
+        // A quiet voice that the old 0.0072 initial threshold rejected.
+        for rms in [0.003, 0.004, 0.003, 0.005] {
+            assert!(rms > vad.thresholds().0);
+        }
+        for _ in 0..500 {
+            let noise = 0.0004;
+            assert!(noise < vad.thresholds().0);
+            vad.observe_noise(noise);
+        }
+        assert!(0.003 > vad.thresholds().0);
+        assert!(vad.thresholds().1 < vad.thresholds().0);
+    }
 
     fn silent_service(tx: mpsc::Sender<AgentEvent>) -> VoiceService {
         // No OS audio backend, microphone or model is opened in these tests.

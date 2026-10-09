@@ -3446,3 +3446,6 @@ mod tests {
         assert!(handle1.is_shutdown_requested());
     }
 }
+
+#[cfg(feature = "gui")]
+pub mod remote_ai;

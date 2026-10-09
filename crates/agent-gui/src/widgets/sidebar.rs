@@ -401,6 +401,19 @@ impl Sidebar {
             };
             if hover_t > 0.0 || row.is_current {
                 painter.rect_filled(body, radius, fill);
+                if row.is_current {
+                    painter.rect_stroke(
+                        body,
+                        radius,
+                        egui::Stroke::new(0.8_f32, theme::badge_border(theme::ACCENT)),
+                        egui::StrokeKind::Inside,
+                    );
+                    painter.hline(
+                        (body.left() + 12.0)..=(body.right() - 12.0),
+                        body.top() + 0.5,
+                        egui::Stroke::new(0.6_f32, theme::badge_border(theme::ACCENT)),
+                    );
+                }
             }
 
             // Active marker: a short accent bar bled off the left edge. Its

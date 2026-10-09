@@ -7,6 +7,8 @@ pub mod chat_input;
 mod compliance_gauge;
 pub mod copy_button;
 mod data_card;
+mod design;
+mod detection_hero;
 mod empty_state;
 mod header;
 mod help_info;
@@ -64,6 +66,8 @@ pub use card::{Card, CardVariant, card, clickable_card, danger_card, flat_card};
 pub use chat_input::{ChatInput, ChatInputResponse};
 pub use compliance_gauge::{compliance_gauge, compliance_gauge_captioned};
 pub use data_card::{data_card, open_data_panel};
+pub use design::{instrument_glyph, metric_card, surface_light};
+pub use detection_hero::detection_hero;
 pub use empty_state::{
     empty_state, empty_state_compact, empty_state_with_action, no_results_state, pending_state,
 };

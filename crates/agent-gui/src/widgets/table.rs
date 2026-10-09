@@ -154,6 +154,13 @@ pub fn column_exact(width: f32) -> Column {
 
 /// Uppercase header label in the eyebrow style, truncated to its column.
 pub fn header_cell(ui: &mut Ui, label: &str) -> Response {
+    let rect = ui.max_rect();
+    ui.painter().rect_filled(rect, 0, theme::bg_tertiary());
+    ui.painter().hline(
+        rect.x_range(),
+        rect.bottom() - 0.5,
+        egui::Stroke::new(0.6_f32, theme::border_subtle()),
+    );
     let font = theme::font_label();
     truncated(
         ui,

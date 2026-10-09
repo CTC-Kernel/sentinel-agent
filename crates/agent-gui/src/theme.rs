@@ -1458,6 +1458,13 @@ fn load_system_symbol_font() -> Option<Vec<u8>> {
 pub fn apply_theme(ctx: &egui::Context, dark: bool) {
     // Update global mode first so that color functions return the right values.
     set_dark_mode(dark);
+    // Keep egui's active style slot in sync with our palette. Otherwise an
+    // OS theme change can switch native controls back to an unstyled slot.
+    ctx.set_theme(if dark {
+        egui::Theme::Dark
+    } else {
+        egui::Theme::Light
+    });
 
     let mut style = Style::default();
 
@@ -2469,6 +2476,24 @@ mod contrast_tests {
 #[cfg(test)]
 mod motion_tests {
     use super::*;
+
+    #[test]
+    fn explicit_theme_keeps_native_controls_and_palette_in_sync() {
+        let ctx = egui::Context::default();
+        for dark in [false, true, false, true] {
+            apply_theme(&ctx, dark);
+            assert_eq!(
+                ctx.theme(),
+                if dark {
+                    egui::Theme::Dark
+                } else {
+                    egui::Theme::Light
+                }
+            );
+            assert_eq!(ctx.style().visuals.dark_mode, dark);
+            assert_eq!(ctx.style().visuals.window_fill, bg_secondary());
+        }
+    }
 
     #[test]
     fn reduced_motion_disables_egui_transitions() {

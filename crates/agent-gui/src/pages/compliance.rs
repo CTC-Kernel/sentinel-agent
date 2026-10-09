@@ -62,109 +62,28 @@ impl CompliancePage {
         }
         ui.add_space(theme::SPACE_MD);
 
-        // Summary Area (AAA Grade)
-        widgets::data_card(ui, "Synthèse des contrôles", |ui: &mut egui::Ui| {
-            ui.horizontal(|ui: &mut egui::Ui| {
-                // Left: Large Gauge
-                ui.vertical(|ui| {
-                    ui.set_width(180.0);
+        widgets::data_card(ui, "Synthèse des contrôles", |ui| {
+            let width = ui.available_width();
+            if width >= 640.0 {
+                ui.horizontal_top(|ui| {
+                    ui.spacing_mut().item_spacing.x = theme::SPACE_LG;
+                    ui.vertical(|ui| {
+                        ui.set_width(180.0);
+                        widgets::compliance_gauge(ui, state.summary.compliance_score, 70.0);
+                    });
+                    ui.vertical(|ui| {
+                        ui.set_width((width - 180.0 - theme::SPACE_LG).max(1.0));
+                        Self::control_summary(ui, state);
+                    });
+                });
+            } else {
+                ui.vertical_centered(|ui| {
                     widgets::compliance_gauge(ui, state.summary.compliance_score, 70.0);
                 });
-
-                ui.add_space(theme::SPACE_LG);
-
-                // Right: Detailed counters
-                ui.vertical(|ui| {
-                    ui.add_space(theme::SPACE_MD);
-                    ui.label(
-                        egui::RichText::new("ANALYSE SYNTHÉTIQUE DES CONTRÔLES")
-                            .font(theme::font_label())
-                            .color(theme::text_tertiary())
-                            .extra_letter_spacing(theme::TRACKING_NORMAL)
-                            .strong(),
-                    );
-                    ui.add_space(theme::SPACE_MD);
-
-                    ui.horizontal(|ui| {
-                        if Self::mini_stat(
-                            ui,
-                            "TOTAL",
-                            &state.policy.total_policies.to_string(),
-                            theme::text_primary(),
-                            icons::LIST,
-                        ) {
-                            state.compliance.status_filter = None;
-                            state.compliance.search.clear();
-                            state.compliance.current_page = 0;
-                            widgets::open_data_panel(ui.ctx(), "Résultats des contrôles");
-                        }
-                        ui.add_space(theme::SPACE_MD);
-                        if Self::mini_stat(
-                            ui,
-                            "CONFORME",
-                            &state.policy.passing.to_string(),
-                            theme::SUCCESS,
-                            icons::CIRCLE_CHECK,
-                        ) {
-                            state.compliance.status_filter = Some(GuiCheckStatus::Pass);
-                            state.compliance.search.clear();
-                            state.compliance.current_page = 0;
-                            widgets::open_data_panel(ui.ctx(), "Résultats des contrôles");
-                        }
-                        ui.add_space(theme::SPACE_MD);
-                        if Self::mini_stat(
-                            ui,
-                            "DÉFAILLANT",
-                            &state.policy.failing.to_string(),
-                            theme::ERROR,
-                            icons::CIRCLE_XMARK,
-                        ) {
-                            state.compliance.status_filter = Some(GuiCheckStatus::Fail);
-                            state.compliance.search.clear();
-                            state.compliance.current_page = 0;
-                            widgets::open_data_panel(ui.ctx(), "Résultats des contrôles");
-                        }
-                        ui.add_space(theme::SPACE_MD);
-                        if Self::mini_stat(
-                            ui,
-                            "ERREUR",
-                            &state.policy.errors.to_string(),
-                            theme::WARNING,
-                            icons::WARNING,
-                        ) {
-                            state.compliance.status_filter = Some(GuiCheckStatus::Error);
-                            state.compliance.search.clear();
-                            state.compliance.current_page = 0;
-                            widgets::open_data_panel(ui.ctx(), "Résultats des contrôles");
-                        }
-                    });
-
-                    if let Some(ref frameworks) = state.summary.active_frameworks
-                        && !frameworks.is_empty()
-                    {
-                        ui.add_space(theme::SPACE_MD);
-                        // The one place the active frameworks are listed,
-                        // all of them, wrapping rather than truncating.
-                        ui.horizontal_wrapped(|ui| {
-                            ui.label(
-                                egui::RichText::new("RÉFÉRENTIELS ACTIFS :")
-                                    .font(theme::font_min())
-                                    .color(theme::text_tertiary())
-                                    .strong(),
-                            );
-                            for fw in frameworks {
-                                widgets::status_badge(
-                                    ui,
-                                    agent_common::frameworks::framework_display_name(fw),
-                                    theme::ACCENT,
-                                );
-                            }
-                        });
-                    }
-                });
-            });
+                ui.add_space(theme::SPACE_MD);
+                Self::control_summary(ui, state);
+            }
         });
-
         ui.add_space(theme::SPACE_MD);
 
         // Per-framework score breakdown (AAA Grade)
@@ -1096,29 +1015,69 @@ impl CompliancePage {
         }
     }
 
-    fn mini_stat(ui: &mut Ui, label: &str, value: &str, color: egui::Color32, icon: &str) -> bool {
-        let row = ui.horizontal(|ui| {
-            ui.spacing_mut().item_spacing.x = theme::SPACE_MICRO;
-            ui.label(
-                egui::RichText::new(icon)
-                    .color(color.linear_multiply(theme::OPACITY_STRONG))
-                    .size(theme::ICON_INLINE),
-            );
-            ui.label(egui::RichText::new(value).color(color).strong());
-            ui.label(
-                egui::RichText::new(label)
-                    .font(theme::font_min())
-                    .color(theme::text_tertiary()),
-            );
-        });
-        ui.interact(
-            row.response.rect,
-            row.response.id.with("filter_status"),
-            egui::Sense::click(),
-        )
-        .on_hover_cursor(egui::CursorIcon::PointingHand)
-        .on_hover_text("Afficher les contrôles correspondants")
-        .clicked()
+    fn control_summary(ui: &mut Ui, state: &mut AppState) {
+        widgets::eyebrow(ui, "ANALYSE DES CONTRÔLES");
+        ui.add_space(theme::SPACE_SM);
+        let items = [
+            (
+                "TOTAL",
+                state.policy.total_policies,
+                theme::INFO,
+                icons::LIST,
+                None,
+            ),
+            (
+                "CONFORMES",
+                state.policy.passing,
+                theme::SUCCESS,
+                icons::CIRCLE_CHECK,
+                Some(GuiCheckStatus::Pass),
+            ),
+            (
+                "DÉFAILLANTS",
+                state.policy.failing,
+                theme::ERROR,
+                icons::CIRCLE_XMARK,
+                Some(GuiCheckStatus::Fail),
+            ),
+            (
+                "ERREURS",
+                state.policy.errors,
+                theme::WARNING,
+                icons::WARNING,
+                Some(GuiCheckStatus::Error),
+            ),
+        ];
+        widgets::ResponsiveGrid::new(115.0, theme::SPACE_SM).show(
+            ui,
+            &items,
+            |ui, width, (label, count, color, icon, filter)| {
+                if widgets::metric_card(ui, width, label, &crate::format::int(*count), *color, icon)
+                {
+                    state.compliance.status_filter = *filter;
+                    state.compliance.search.clear();
+                    state.compliance.current_page = 0;
+                    widgets::open_data_panel(ui.ctx(), "Résultats des contrôles");
+                }
+            },
+        );
+        if let Some(frameworks) = state
+            .summary
+            .active_frameworks
+            .as_ref()
+            .filter(|f| !f.is_empty())
+        {
+            ui.add_space(theme::SPACE_MD);
+            ui.horizontal_wrapped(|ui| {
+                for framework in frameworks {
+                    widgets::status_badge(
+                        ui,
+                        agent_common::frameworks::framework_display_name(framework),
+                        theme::ACCENT,
+                    );
+                }
+            });
+        }
     }
 
     fn status_display(status: &GuiCheckStatus) -> (&'static str, egui::Color32) {

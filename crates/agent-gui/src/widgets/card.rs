@@ -109,6 +109,8 @@ impl Card {
             .inner_margin(Margin::same(self.padding as i8))
             .stroke(stroke)
             .show(ui, |ui: &mut Ui| {
+                let ambient = (self.variant == CardVariant::Elevated)
+                    .then(|| ui.painter().add(egui::Shape::Noop));
                 if self.accent.is_some() {
                     // Reserve the accent bar's width so text never collides
                     // with it, whatever the caller puts inside.
@@ -130,6 +132,16 @@ impl Card {
                     }
                     add_contents(ui);
                 });
+                if let Some(slot) = ambient {
+                    ui.painter().set(
+                        slot,
+                        super::surface_light(
+                            ui.min_rect(),
+                            fill,
+                            self.accent.unwrap_or(theme::ACCENT),
+                        ),
+                    );
+                }
             });
 
         let rect = inner.response.rect;

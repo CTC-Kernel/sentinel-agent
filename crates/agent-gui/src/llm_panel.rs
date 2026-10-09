@@ -60,6 +60,8 @@ impl LLMPanel {
         ui.horizontal_wrapped(|ui| {
             let (status, color) = if state.ai.is_processing {
                 ("ANALYSE EN COURS", theme::WARNING)
+            } else if state.ai.provider_settings.provider != crate::ai_provider::AiProvider::Local {
+                ("FOURNISSEUR API", theme::INFO)
             } else if state.ai.model_status.is_ready {
                 ("MODÈLE LOCAL PRÊT", theme::SUCCESS)
             } else {
@@ -67,11 +69,16 @@ impl LLMPanel {
             };
             widgets::status_badge(ui, status, color);
             ui.label(
-                egui::RichText::new(if state.ai.model_status.model_name.is_empty() {
-                    "Consultez Modèle & diagnostic pour configurer le moteur."
-                } else {
-                    &state.ai.model_status.model_name
-                })
+                egui::RichText::new(
+                    if state.ai.provider_settings.provider != crate::ai_provider::AiProvider::Local
+                    {
+                        &state.ai.provider_settings.model
+                    } else if state.ai.model_status.model_name.is_empty() {
+                        "Consultez Modèle & diagnostic pour configurer le moteur."
+                    } else {
+                        &state.ai.model_status.model_name
+                    },
+                )
                 .font(theme::font_small())
                 .color(theme::text_secondary()),
             );
@@ -93,7 +100,7 @@ impl LLMPanel {
         if rec_count > 0 {
             recs_tab = recs_tab.badge(rec_count.min(99));
         }
-        let model_tab = Tab::new("Modèle & diagnostic").icon(icons::MICROCHIP);
+        let model_tab = Tab::new("Paramètres IA").icon(icons::MICROCHIP);
 
         let tabs = vec![assistant_tab, recs_tab, model_tab];
 
@@ -2008,8 +2015,93 @@ impl LLMPanel {
     // Tab 2: Statut Mod\u{00e8}le
     // ====================================================================
 
+    fn provider_settings(ui: &mut egui::Ui, state: &mut AppState) -> Option<GuiCommand> {
+        use crate::ai_provider::{AiProvider, ApiKey};
+        let mut command = None;
+        widgets::data_card(ui, "Fournisseur de l’assistant", |ui| {
+            ui.label(format!(
+                "Actif : {}",
+                state.ai.provider_settings.provider.label()
+            ));
+            ui.add_enabled_ui(state.ai.provider_loaded && !state.ai.provider_busy && !state.ai.is_processing, |ui| {
+                let previous = state.ai.provider_draft.provider;
+                egui::ComboBox::from_id_salt("ai_provider")
+                    .selected_text(previous.label()).show_ui(ui, |ui| {
+                        for provider in AiProvider::ALL {
+                            ui.selectable_value(&mut state.ai.provider_draft.provider, provider, provider.label());
+                        }
+                    });
+                if previous != state.ai.provider_draft.provider {
+                    state.ai.provider_key.0.clear();
+                    state.ai.provider_draft.model.clear();
+                    state.ai.provider_draft.base_url.clear();
+                    if let Some((saved, _)) = state.ai.provider_profiles.iter().find(|(saved, _)| saved.provider == state.ai.provider_draft.provider) {
+                        state.ai.provider_draft = saved.clone();
+                    }
+                    state.ai.provider_feedback = None;
+                }
+                let remote = state.ai.provider_draft.provider != AiProvider::Local;
+                if remote {
+                    ui.label("Modèle (identifiant exact de votre fournisseur)");
+                    ui.add(egui::TextEdit::singleline(&mut state.ai.provider_draft.model).desired_width(f32::INFINITY));
+                    if state.ai.provider_draft.provider == AiProvider::OpenAiCompatible {
+                        ui.label("URL de base, avec /v1 si requis");
+                        ui.add(egui::TextEdit::singleline(&mut state.ai.provider_draft.base_url).hint_text("https://serveur.example/v1").desired_width(f32::INFINITY));
+                    }
+                    let saved_key = state.ai.provider_profiles.iter().any(|(saved, has_key)| *has_key
+                        && saved.provider == state.ai.provider_draft.provider
+                        && saved.base_url == state.ai.provider_draft.base_url);
+                    let active_key = saved_key && state.ai.provider_draft.provider == state.ai.provider_settings.provider;
+                    ui.label(if saved_key { "Clé API enregistrée — laissez vide pour la conserver" } else { "Clé API" });
+                    ui.add(egui::TextEdit::singleline(&mut state.ai.provider_key.0).password(true).desired_width(f32::INFINITY));
+                    ui.label(egui::RichText::new("Les questions, l’historique utile et le contexte Sentinel joint sont envoyés à ce fournisseur. La dictée audio reste locale. Une clé API et une facturation API distincte peuvent être nécessaires.").color(theme::text_secondary()));
+                    ui.label(egui::RichText::new("Les analyses automatiques de sécurité continuent d’utiliser le moteur local.").color(theme::text_secondary()));
+                    ui.horizontal_wrapped(|ui| {
+                        if widgets::ghost_button(ui, "Tester la connexion").clicked() {
+                            command = Some(GuiCommand::TestAiProvider {
+                                settings: state.ai.provider_draft.clone(),
+                                api_key: state.ai.provider_key.clone(),
+                            });
+                        }
+                        if active_key && widgets::ghost_button(ui, "Supprimer la clé et revenir au local").clicked() {
+                            command = Some(GuiCommand::ConfigureAiProvider {
+                                settings: crate::ai_provider::AiProviderSettings::default(),
+                                api_key: ApiKey::default(), forget_key: true,
+                            });
+                        }
+                    });
+                    ui.label(egui::RichText::new("Le test envoie uniquement une courte demande de réponse, sans contexte Sentinel ; il peut être facturé par le fournisseur.").font(theme::font_small()).color(theme::text_secondary()));
+                } else {
+                    ui.label("Les conversations sont traitées sur ce poste par le modèle local sélectionné ci-dessous.");
+                }
+                if widgets::ghost_button(ui, "Enregistrer et utiliser ce fournisseur").clicked() {
+                    command = Some(GuiCommand::ConfigureAiProvider {
+                        settings: state.ai.provider_draft.clone(),
+                        api_key: state.ai.provider_key.clone(), forget_key: false,
+                    });
+                }
+            });
+            if state.ai.provider_busy {
+                ui.spinner();
+            }
+            if let Some(message) = &state.ai.provider_feedback {
+                ui.label(egui::RichText::new(message).color(theme::text_primary()));
+            }
+        });
+        if command.is_some() {
+            state.ai.provider_busy = true;
+            state.ai.provider_feedback = Some("Opération en cours…".into());
+        }
+        command
+    }
+
     fn show_model_status_tab(ui: &mut egui::Ui, state: &mut AppState) -> Option<GuiCommand> {
         let mut command: Option<GuiCommand> = None;
+
+        if let Some(cmd) = Self::provider_settings(ui, state) {
+            return Some(cmd);
+        }
+        ui.add_space(theme::SPACE_MD);
 
         ui.horizontal_wrapped(|ui| {
             if widgets::ghost_button(ui, format!("{}  Actualiser l’état", icons::REFRESH)).clicked() {
@@ -3428,6 +3520,32 @@ fn voice_value_row(ui: &mut egui::Ui, caption: &str, value: &str) {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn provider_settings_render_in_both_themes_without_exporting_secrets() {
+        for dark in [false, true] {
+            let ctx = egui::Context::default();
+            theme::configure_fonts(&ctx);
+            theme::apply_theme(&ctx, dark);
+            for provider in crate::ai_provider::AiProvider::ALL {
+                let mut state = AppState::default();
+                state.ai.provider_loaded = true;
+                state.ai.provider_draft.provider = provider;
+                state.ai.provider_key.0 = "secret-for-test".into();
+                let _ = ctx.run(egui::RawInput::default(), |ctx| {
+                    egui::CentralPanel::default().show(ctx, |ui| {
+                        assert!(LLMPanel::provider_settings(ui, &mut state).is_none());
+                    });
+                });
+                let prefs = crate::state::GuiPreferences::from_state(&state);
+                assert!(
+                    !serde_json::to_string(&prefs)
+                        .unwrap()
+                        .contains("secret-for-test")
+                );
+            }
+        }
+    }
 
     #[test]
     fn assistant_composer_stays_visible_below_transcript() {

@@ -1487,6 +1487,15 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
             let sync_client = runtime.sync_client();
             let handle = runtime.handle();
 
+            let mut remote_ai = agent_core::remote_ai::RemoteAi::default();
+            if let Some(db) = db_for_commands.as_ref() {
+                match agent_core::remote_ai::RemoteAi::load(db).await {
+                    Ok(saved) => remote_ai = saved,
+                    Err(message) => agent_core::remote_ai::feedback(&bg_event_tx, message),
+                }
+            }
+            let _ = bg_event_tx.send(remote_ai.event());
+
             // Initialize LLM service for AI-powered analysis
             #[cfg(feature = "llm")]
             let llm_service = {
@@ -2826,6 +2835,44 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                             });
                         }
 
+                        Ok(GuiCommand::ConfigureAiProvider { settings, api_key, forget_key }) => {
+                            match remote_ai.configured(settings, api_key, forget_key) {
+                                Ok(candidate) => {
+                                    let result = match db_for_commands.as_ref() {
+                                        Some(db) => candidate.save(db).await,
+                                        None => Err("Base chiffrée indisponible : paramètres non enregistrés.".into()),
+                                    };
+                                    match result {
+                                        Ok(()) => {
+                                            remote_ai = candidate;
+                                            let _ = bg_event_tx.send(remote_ai.event());
+                                            agent_core::remote_ai::feedback(&bg_event_tx, "Paramètres IA enregistrés.");
+                                        }
+                                        Err(message) => agent_core::remote_ai::feedback(&bg_event_tx, message),
+                                    }
+                                }
+                                Err(message) => agent_core::remote_ai::feedback(&bg_event_tx, message),
+                            }
+                        }
+                        Ok(GuiCommand::TestAiProvider { settings, api_key }) => {
+                            let candidate = remote_ai.configured(settings, api_key, false);
+                            let tx = bg_event_tx.clone();
+                            tokio::spawn(async move {
+                                let result = match candidate {
+                                    Ok(candidate) => candidate.infer(
+                                        "Reply briefly.", "Reply with OK.",
+                                        std::sync::Arc::new(std::sync::atomic::AtomicBool::new(false)),
+                                        &mut |_| {},
+                                    ).await.map(|_| ()),
+                                    Err(message) => Err(message),
+                                };
+                                agent_core::remote_ai::feedback(&tx, match result {
+                                    Ok(()) => "Connexion réussie : le modèle a répondu. Paramètres non enregistrés par ce test.".into(),
+                                    Err(message) => message,
+                                });
+                            });
+                        }
+
                         // ── LLM commands ──────────────────────────────────────
                         Ok(GuiCommand::LlmPrompt {
                             prompt,
@@ -2853,6 +2900,7 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                                 });
                             }
                             let tx = bg_event_tx.clone();
+                            let remote = remote_ai.clone();
                             let svc = llm_service.clone();
                             #[cfg(feature = "voice")]
                             let voice: Option<std::sync::Arc<agent_core::voice::VoiceService>> = voice_service.clone();
@@ -2868,6 +2916,28 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                             }
                             tokio::spawn(async move {
                                 let start = std::time::Instant::now();
+                                if remote.settings.provider != agent_gui::ai_provider::AiProvider::Local {
+                                    let context_label = context.map(|value| value.label_fr()).unwrap_or("Général");
+                                    let (system, prompt) = agent_core::llm_stream::assistant_prompt(&prompt, context_label, speak_response);
+                                    let mut forward = agent_core::llm_stream::DeltaForwarder::new(tx.clone());
+                                    #[cfg(feature = "voice")]
+                                    let mut speech = if speak_response { voice.as_ref().and_then(|v| v.speak_stream(voice_epoch)) } else { None };
+                                    let result = remote.infer(&system, &prompt, cancel.clone(), &mut |delta| {
+                                        forward.push(delta);
+                                        #[cfg(feature = "voice")]
+                                        if let Some(speech) = speech.as_mut() { speech.push(delta); }
+                                    }).await;
+                                    forward.flush();
+                                    let message = match result {
+                                        Ok(text) => text,
+                                        Err(error) => agent_core::llm_stream::interrupted_answer(
+                                            forward.text(), cancel.load(std::sync::atomic::Ordering::SeqCst), &error),
+                                    };
+                                    let _ = tx.send(AgentEvent::LlmChatResponse { message, processing_time_ms: start.elapsed().as_millis() as u64 });
+                                    #[cfg(feature = "voice")]
+                                    if let Some(speech) = speech { speech.finish(); }
+                                    return;
+                                }
                                 #[cfg(feature = "llm")]
                                 {
                                     if let Some(ref svc) = svc {
@@ -2975,6 +3045,8 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                             }
                         }
                         Ok(GuiCommand::LlmWarmUp { context }) => {
+                            if remote_ai.settings.provider != agent_gui::ai_provider::AiProvider::Local { continue; }
+
                             #[cfg(feature = "llm")]
                             {
                                 let svc = llm_service.clone();
