@@ -29,7 +29,7 @@ const SYSTEMD_UNIT_TEMPLATE: &str = r#"[Unit]
 Description=Sentinel GRC Agent - Agent de conformite endpoint
 Documentation=https://docs.sentinel-grc.com
 After=network-online.target
-Wants=network-online.target
+Wants=network-online.target sentinel-agent-helper.service
 
 [Service]
 Type=simple
@@ -80,6 +80,37 @@ MemoryHigh=100M
 CPUQuota=10%
 TasksMax=64
 LimitNOFILE=4096
+
+[Install]
+WantedBy=multi-user.target
+"#;
+
+/// systemd unit of the privileged helper.
+const HELPER_UNIT_PATH: &str = "/etc/systemd/system/sentinel-agent-helper.service";
+
+/// The helper is the only root part of the agent: it answers the firewall and
+/// isolation requests of the desktop app on a local socket and does nothing
+/// else. Its capabilities are cut down to what that needs.
+const HELPER_UNIT_TEMPLATE: &str = r#"[Unit]
+Description=Sentinel GRC Agent - privileged helper (firewall actions)
+PartOf=sentinel-agent.service
+After=network-online.target
+
+[Service]
+Type=simple
+ExecStart={executable_path} privileged-helper
+Restart=always
+RestartSec=5
+User=root
+Group=root
+ReadWritePaths=/run /var/lib/sentinel-grc /var/log/sentinel-grc
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+NoNewPrivileges=true
+CapabilityBoundingSet=CAP_NET_ADMIN CAP_NET_RAW CAP_CHOWN CAP_FOWNER CAP_DAC_OVERRIDE
+RestrictSUIDSGID=true
+LockPersonality=true
 
 [Install]
 WantedBy=multi-user.target
@@ -254,6 +285,24 @@ pub fn install_service(executable_path: &str) -> ServiceResult<()> {
         )));
     }
 
+    // The root helper that performs firewall actions for the desktop app.
+    fs::write(
+        HELPER_UNIT_PATH,
+        HELPER_UNIT_TEMPLATE.replace("{executable_path}", executable_path),
+    )
+    .map_err(|e| ServiceError::System(format!("Failed to write helper unit: {}", e)))?;
+    let _ = silent_command("systemctl").args(["daemon-reload"]).output();
+    let output = silent_command("systemctl")
+        .args(["enable", "sentinel-agent-helper.service"])
+        .output()
+        .map_err(|e| ServiceError::System(format!("Failed to enable helper: {}", e)))?;
+    if !output.status.success() {
+        return Err(ServiceError::System(format!(
+            "Failed to enable helper: {}",
+            String::from_utf8_lossy(&output.stderr)
+        )));
+    }
+
     info!("Service installed and enabled successfully");
     Ok(())
 }
@@ -319,6 +368,11 @@ pub fn uninstall_service() -> ServiceResult<()> {
     let _ = silent_command("systemctl")
         .args(["disable", "sentinel-agent.service"])
         .output();
+
+    let _ = silent_command("systemctl")
+        .args(["disable", "--now", "sentinel-agent-helper.service"])
+        .output();
+    let _ = fs::remove_file(HELPER_UNIT_PATH);
 
     // Remove the unit file
     fs::remove_file(SYSTEMD_UNIT_PATH)

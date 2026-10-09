@@ -178,6 +178,29 @@ struct InlinePlaybookForm {
 const DELETE_CONFIRM: &str = "playbook_delete_confirm";
 const EXECUTE_CONFIRM: &str = "playbook_execute_confirm";
 
+/// Turns the agent's raw action errors into something an operator can act on.
+/// Unknown errors are shown as received.
+fn friendly_error(raw: &str) -> String {
+    let mut parts: Vec<String> = Vec::new();
+    for part in raw.split(';') {
+        let part = part.trim();
+        let hint = if part.contains("Elevated privileges required") {
+            "Le service privilégié Sentinel est injoignable : installez-le avec \
+             `sudo sentinel-agent install` puis `sudo sentinel-agent start` \
+             (ou réinstallez le pkg)."
+        } else if part.contains("SIEM destination is not enabled") {
+            "Aucune destination SIEM n'est activée : configurez-la dans \
+             Paramètres › Intégration SIEM."
+        } else {
+            part
+        };
+        if !hint.is_empty() {
+            parts.push(hint.to_string());
+        }
+    }
+    parts.join(" \u{2014} ")
+}
+
 fn playbook_name(state: &AppState, id: &str) -> String {
     state
         .threats
@@ -656,14 +679,27 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
 
                 // Show error detail if present
                 if let Some(ref err) = entry.error {
-                    ui.horizontal(|ui: &mut egui::Ui| {
-                        ui.add_space(theme::SPACE_LG);
-                        ui.label(
-                            egui::RichText::new(format!("{} {}", icons::WARNING, err))
-                                .font(theme::font_min())
-                                .color(theme::readable_color(result_color)),
-                        );
-                    });
+                    // A horizontal layout never wraps, so a long error ran off
+                    // the right edge; an indented block wraps at the card.
+                    egui::Frame::new()
+                        .inner_margin(egui::Margin {
+                            left: theme::SPACE_LG as i8,
+                            ..Default::default()
+                        })
+                        .show(ui, |ui: &mut egui::Ui| {
+                            ui.add(
+                                egui::Label::new(
+                                    egui::RichText::new(format!(
+                                        "{} {}",
+                                        icons::WARNING,
+                                        friendly_error(err)
+                                    ))
+                                    .font(theme::font_min())
+                                    .color(theme::readable_color(result_color)),
+                                )
+                                .wrap(),
+                            );
+                        });
                 }
             }
 

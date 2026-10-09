@@ -89,6 +89,9 @@ enum Commands {
     Stop,
     /// Show the agent service status
     Status,
+    /// Run the privileged helper (root): executes the firewall and isolation
+    /// actions requested by the desktop app, which runs as the user.
+    PrivilegedHelper,
     /// Run in foreground mode
     Run {
         /// Run without system tray icon (headless mode for servers)
@@ -240,6 +243,7 @@ fn main() -> ExitCode {
         Some(Commands::Start) => handle_start(),
         Some(Commands::Stop) => handle_stop(),
         Some(Commands::Status) => handle_status(),
+        Some(Commands::PrivilegedHelper) => handle_privileged_helper(&cli.log_level),
         Some(Commands::Run { no_tray }) => handle_run(cli.config, no_tray, &cli.log_level),
         None => handle_run(cli.config, false, &cli.log_level),
     }
@@ -715,6 +719,36 @@ fn handle_start() -> ExitCode {
             ExitCode::FAILURE
         }
     }
+}
+
+/// Run the root helper that performs privileged actions for the desktop app.
+///
+/// It runs no detection, no sync and no GUI: it only restores the firewall
+/// state after a restart and answers requests on the local socket.
+fn handle_privileged_helper(log_level: &str) -> ExitCode {
+    init_logging(log_level);
+    if !agent_core::service::is_admin() {
+        error!("The privileged helper must run as root/Administrator");
+        return ExitCode::FAILURE;
+    }
+    let runtime = match tokio::runtime::Runtime::new() {
+        Ok(runtime) => runtime,
+        Err(e) => {
+            error!("Cannot start the async runtime: {}", e);
+            return ExitCode::FAILURE;
+        }
+    };
+    runtime.block_on(async {
+        agent_core::edr_actions::reconcile_pending_blocks().await;
+        agent_core::host_isolation::reconcile_host_isolation().await;
+        match agent_core::privileged::serve().await {
+            Ok(()) => ExitCode::SUCCESS,
+            Err(e) => {
+                error!("Privileged helper stopped: {}", e);
+                ExitCode::FAILURE
+            }
+        }
+    })
 }
 
 /// Stop the service.

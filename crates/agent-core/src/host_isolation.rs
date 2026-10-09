@@ -605,9 +605,14 @@ fn schedule_release(after_secs: u64) {
 /// that time; 0 keeps it until [`release_host`] is called.
 pub async fn isolate_host(reason: &str, duration_secs: u64) -> Result<IsolationState, CommonError> {
     if !crate::service::is_admin() {
-        return Err(CommonError::internal(
-            "Elevated privileges required to isolate the endpoint",
-        ));
+        let data = crate::privileged::delegate(crate::privileged::Request::IsolateHost {
+            reason: reason.to_string(),
+            duration_secs,
+        })
+        .await?;
+        return data
+            .and_then(|value| serde_json::from_value(value).ok())
+            .ok_or_else(|| CommonError::internal("The service returned no isolation state"));
     }
     let config = AgentConfig::load(None)
         .map_err(|e| CommonError::internal(format!("Isolation refused: {e}")))?;
@@ -648,9 +653,9 @@ pub async fn isolate_host(reason: &str, duration_secs: u64) -> Result<IsolationS
 /// Lift the isolation. Does nothing when the endpoint is not isolated.
 pub async fn release_host() -> Result<(), CommonError> {
     if !crate::service::is_admin() {
-        return Err(CommonError::internal(
-            "Elevated privileges required to lift the isolation",
-        ));
+        return crate::privileged::delegate(crate::privileged::Request::ReleaseHost)
+            .await
+            .map(|_| ());
     }
     let path = state_path();
     let state = load_state(&path).await;

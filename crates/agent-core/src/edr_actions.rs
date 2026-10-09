@@ -405,11 +405,15 @@ async fn resolves_to_backend(server_url: &str, candidate: std::net::IpAddr) -> b
 pub async fn block_ip(ip: &str, duration_secs: u64) -> Result<(), CommonError> {
     info!("Blocking IP '{}' for {} seconds", ip, duration_secs);
 
-    // Firewall operations require elevated privileges
+    // Firewall operations require root. The desktop app runs as the user and
+    // hands them to the agent service instead of asking to run as root itself.
     if !crate::service::is_admin() {
-        return Err(CommonError::internal(
-            "Elevated privileges required to modify firewall rules",
-        ));
+        return crate::privileged::delegate(crate::privileged::Request::BlockIp {
+            ip: ip.to_string(),
+            duration_secs,
+        })
+        .await
+        .map(|_| ());
     }
 
     // Validate IP format first
@@ -619,6 +623,13 @@ pub async fn reconcile_pending_blocks() {
 
 /// Unblock a previously blocked IP address.
 pub async fn unblock_ip(ip: &str) -> Result<(), CommonError> {
+    if !crate::service::is_admin() {
+        return crate::privileged::delegate(crate::privileged::Request::UnblockIp {
+            ip: ip.to_string(),
+        })
+        .await
+        .map(|_| ());
+    }
     info!("Unblocking IP '{}'", ip);
     clear_pending_block(ip).await;
 
