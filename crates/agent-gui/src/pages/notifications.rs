@@ -11,6 +11,26 @@ use crate::events::GuiCommand;
 use crate::icons;
 use crate::theme;
 use crate::widgets;
+use crate::widgets::modal;
+
+/// Confirmation dialogs of the alerting tabs.
+const RULE_DELETE_CONFIRM: &str = "alert_rule_delete_confirm";
+const WEBHOOK_DELETE_CONFIRM: &str = "webhook_delete_confirm";
+
+/// Webhook formats the agent can shape a message for, with their labels.
+const WEBHOOK_FORMATS: [(&str, &str); 3] = [
+    ("slack", "Slack"),
+    ("msteams", "Teams"),
+    ("generic", "JSON générique"),
+];
+
+/// Label of a stored webhook format, for the list.
+fn webhook_format_label(format: &str) -> String {
+    WEBHOOK_FORMATS
+        .iter()
+        .find(|(value, _)| *value == format)
+        .map_or_else(|| format.to_uppercase(), |(_, label)| (*label).to_string())
+}
 
 pub struct NotificationsPage;
 
@@ -335,7 +355,7 @@ impl NotificationsPage {
                                     if widgets::button::icon_button_with_color(
                                         ui,
                                         icons::TRASH,
-                                        Some("Supprimer"),
+                                        Some("Supprimer la règle"),
                                         theme::readable_color(theme::ERROR),
                                     )
                                     .clicked()
@@ -368,15 +388,36 @@ impl NotificationsPage {
                 }
             }
 
-            // Process deferred delete
+            // Deferred delete: administrator mode, then a confirmation.
             let delete_id_str: Option<String> =
                 ui.memory(|m| m.data.get_temp(egui::Id::new("delete_rule_id")));
-            if let Some(ref rid) = delete_id_str {
-                state.alerting.rules.retain(|r| r.id != *rid);
-                command = Some(GuiCommand::DeleteAlertRule {
-                    rule_id: rid.clone(),
-                });
+            if let Some(rid) = delete_id_str {
                 ui.memory_mut(|m| m.data.remove::<String>(egui::Id::new("delete_rule_id")));
+                if state.require_admin("Supprimer une règle d'alerte") {
+                    modal::ask_confirmation(ui.ctx(), RULE_DELETE_CONFIRM, rid);
+                }
+            }
+        }
+
+        if let Some(rid) = modal::pending_confirmation::<String>(ui.ctx(), RULE_DELETE_CONFIRM) {
+            let name = state
+                .alerting
+                .rules
+                .iter()
+                .find(|r| r.id == rid)
+                .map_or_else(|| rid.clone(), |r| r.name.clone());
+            if modal::resolve_confirmation::<String>(
+                ui.ctx(),
+                RULE_DELETE_CONFIRM,
+                "Supprimer la règle d'alerte ?",
+                &format!(
+                    "« {name} » ne déclenchera plus de notification ni d'escalade. \
+                     Cette action est irréversible."
+                ),
+                "Supprimer",
+            ) {
+                state.alerting.rules.retain(|r| r.id != rid);
+                command = Some(GuiCommand::DeleteAlertRule { rule_id: rid });
             }
         }
 
@@ -628,16 +669,13 @@ impl NotificationsPage {
                                 row.col(|ui: &mut egui::Ui| {
                                     widgets::status_badge(
                                         ui,
-                                        &wh.format.to_uppercase(),
+                                        &webhook_format_label(&wh.format),
                                         theme::INFO,
                                     );
                                 });
                                 row.col(|ui: &mut egui::Ui| match wh.last_sent {
                                     Some(dt) => {
-                                        table::cell_muted(
-                                            ui,
-                                            &dt.format("%d/%m/%Y %H:%M").to_string(),
-                                        );
+                                        table::cell_muted(ui, &crate::format::local_datetime(dt));
                                     }
                                     None => {
                                         table::cell_empty(ui);
@@ -678,7 +716,7 @@ impl NotificationsPage {
                                         if widgets::button::icon_button_with_color(
                                             ui,
                                             icons::TRASH,
-                                            Some("Supprimer"),
+                                            Some("Supprimer le webhook"),
                                             theme::readable_color(theme::ERROR),
                                         )
                                         .clicked()
@@ -698,12 +736,17 @@ impl NotificationsPage {
                 });
             });
 
-            // Process deferred toggle actions
+            // Process deferred toggle actions. A webhook decides where
+            // security data goes: changing it needs the administrator mode,
+            // asked for before the switch changes.
             for i in 0..state.alerting.webhooks.len() {
                 let toggle_id = egui::Id::new(format!("toggle_wh_{}", i));
                 if let Some(new_val) = ui.memory(|m| m.data.get_temp::<bool>(toggle_id)) {
-                    state.alerting.webhooks[i].enabled = new_val;
                     ui.memory_mut(|m| m.data.remove::<bool>(toggle_id));
+                    if !state.require_admin("Modifier la destination des alertes (webhook)") {
+                        continue;
+                    }
+                    state.alerting.webhooks[i].enabled = new_val;
                     let updated = state.alerting.webhooks[i].clone();
                     command = Some(GuiCommand::SaveWebhook {
                         webhook: Box::new(updated),
@@ -721,15 +764,35 @@ impl NotificationsPage {
                 ui.memory_mut(|m| m.data.remove::<String>(egui::Id::new("test_wh_id")));
             }
 
-            // Process deferred delete
+            // Deferred delete: administrator mode, then a confirmation.
             let delete_id: Option<String> =
                 ui.memory(|m| m.data.get_temp(egui::Id::new("delete_wh_id")));
-            if let Some(ref wid) = delete_id {
-                state.alerting.webhooks.retain(|w| w.id != *wid);
-                command = Some(GuiCommand::DeleteWebhook {
-                    webhook_id: wid.clone(),
-                });
+            if let Some(wid) = delete_id {
                 ui.memory_mut(|m| m.data.remove::<String>(egui::Id::new("delete_wh_id")));
+                if state.require_admin("Supprimer un webhook") {
+                    modal::ask_confirmation(ui.ctx(), WEBHOOK_DELETE_CONFIRM, wid);
+                }
+            }
+        }
+
+        if let Some(wid) = modal::pending_confirmation::<String>(ui.ctx(), WEBHOOK_DELETE_CONFIRM) {
+            let name = state
+                .alerting
+                .webhooks
+                .iter()
+                .find(|w| w.id == wid)
+                .map_or_else(|| wid.clone(), |w| w.name.clone());
+            if modal::resolve_confirmation::<String>(
+                ui.ctx(),
+                WEBHOOK_DELETE_CONFIRM,
+                "Supprimer le webhook ?",
+                &format!(
+                    "« {name} » ne recevra plus aucune alerte. Cette action est irréversible."
+                ),
+                "Supprimer",
+            ) {
+                state.alerting.webhooks.retain(|w| w.id != wid);
+                command = Some(GuiCommand::DeleteWebhook { webhook_id: wid });
             }
         }
 
@@ -754,8 +817,11 @@ impl NotificationsPage {
             .memory(|m| m.data.get_temp(form_id.with("enabled")))
             .unwrap_or(true);
 
-        let format_options = ["slack", "msteams", "generic", "pagerduty"];
-        let format_labels = ["Slack", "Teams", "G\u{00e9}n\u{00e9}rique"];
+        // One label per format the agent can actually shape a message for.
+        let format_options = WEBHOOK_FORMATS.map(|(value, _)| value);
+        let format_labels = WEBHOOK_FORMATS.map(|(_, label)| label);
+
+        let url_check = agent_common::webhook::validate_webhook_url(&url);
 
         widgets::card(ui, |ui: &mut egui::Ui| {
             ui.label(
@@ -773,6 +839,15 @@ impl NotificationsPage {
                 });
                 widgets::form::field(ui, "URL", 380.0, |ui: &mut egui::Ui| {
                     widgets::text_input(ui, &mut url, "https://hooks.example.com/…");
+                    if let Err(error) = &url_check
+                        && !url.trim().is_empty()
+                    {
+                        ui.label(
+                            egui::RichText::new(error.message_fr())
+                                .font(theme::font_small())
+                                .color(theme::readable_color(theme::ERROR)),
+                        );
+                    }
                 });
                 widgets::form::field(ui, "Format", 150.0, |ui: &mut egui::Ui| {
                     widgets::dropdown_width(
@@ -791,10 +866,19 @@ impl NotificationsPage {
             ui.add_space(theme::SPACE_SM);
 
             ui.horizontal(|ui: &mut egui::Ui| {
-                let can_save = !name.trim().is_empty() && !url.trim().is_empty();
-                if widgets::primary_button(ui, format!("{}  Enregistrer", icons::CHECK), can_save)
-                    .clicked()
+                let can_save = !name.trim().is_empty() && url_check.is_ok();
+                let save =
+                    widgets::primary_button(ui, format!("{}  Enregistrer", icons::CHECK), can_save);
+                let save = if can_save {
+                    save
+                } else if name.trim().is_empty() {
+                    save.on_hover_text("Donnez un nom au webhook.")
+                } else {
+                    save.on_hover_text("Saisissez une URL https:// valide.")
+                };
+                if save.clicked()
                     && can_save
+                    && state.require_admin("Modifier la destination des alertes (webhook)")
                 {
                     let webhook = WebhookConfig {
                         id: uuid::Uuid::new_v4().to_string(),
@@ -856,7 +940,7 @@ impl NotificationsPage {
         let title = notif.title.clone();
         let body = notif.body.clone();
         let severity = notif.severity.clone();
-        let ts = notif.timestamp.format("%d/%m/%Y %H:%M").to_string();
+        let ts = crate::format::local_datetime(notif.timestamp);
         let read = notif.read;
         let action_url = notif.action.clone();
         let notif_id = notif.id.to_string();

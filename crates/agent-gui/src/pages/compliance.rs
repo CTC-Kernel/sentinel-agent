@@ -53,7 +53,7 @@ impl CompliancePage {
                 ui.label(
                     egui::RichText::new(format!(
                         "Dernier audit : {}",
-                        last_check.format("%d/%m/%Y %H:%M")
+                        crate::format::local_datetime(last_check)
                     ))
                     .font(theme::font_small())
                     .color(theme::text_tertiary()),
@@ -557,7 +557,7 @@ impl CompliancePage {
                             widgets::detail_mono(ui, "D\u{00e9}tails", &display_str);
                         }
                         if let Some(dt) = check.executed_at {
-                            widgets::detail_field(ui, "Ex\u{00e9}cut\u{00e9} le", &dt.format("%d/%m/%Y %H:%M").to_string());
+                            widgets::detail_field(ui, "Ex\u{00e9}cut\u{00e9} le", &crate::format::local_datetime(dt));
                         }
 
                         // AI Analysis section
@@ -781,7 +781,7 @@ impl CompliancePage {
 
                     row.col(|ui| match check.executed_at {
                         Some(dt) => {
-                            table::cell_muted(ui, &dt.format("%d/%m %H:%M").to_string());
+                            table::cell_muted(ui, &crate::format::local_day_time(dt));
                         }
                         None => {
                             table::cell_empty(ui);

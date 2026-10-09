@@ -144,8 +144,123 @@ pub fn duration_short(secs: u64) -> String {
     }
 }
 
+// ── Dates and times ─────────────────────────────────────────────────────
+//
+// Everything the agent records is a UTC instant. Pages used to format those
+// instants directly, which showed UTC as if it were local time, while a few
+// pages converted first: the same event could read 13:39 on one screen and
+// 15:39 on another. Every displayed timestamp goes through these helpers and
+// is shown in the machine's local time; exports keep ISO 8601 UTC.
+
+type Utc = chrono::DateTime<chrono::Utc>;
+
+fn local(at: Utc) -> chrono::DateTime<chrono::Local> {
+    at.with_timezone(&chrono::Local)
+}
+
+/// `14:32`, local time.
+pub fn local_time(at: Utc) -> String {
+    local(at).format("%H:%M").to_string()
+}
+
+/// `14:32:05`, local time.
+pub fn local_time_secs(at: Utc) -> String {
+    local(at).format("%H:%M:%S").to_string()
+}
+
+/// `04/10/2026`, local date.
+pub fn local_date(at: Utc) -> String {
+    local(at).format("%d/%m/%Y").to_string()
+}
+
+/// `04/10 14:32`, local date and time for dense tables.
+pub fn local_day_time(at: Utc) -> String {
+    local(at).format("%d/%m %H:%M").to_string()
+}
+
+/// `04/10 14:32:05`, local date and time to the second for dense tables.
+pub fn local_day_time_secs(at: Utc) -> String {
+    local(at).format("%d/%m %H:%M:%S").to_string()
+}
+
+/// `04/10/2026 14:32:05.123`, local date and time to the millisecond.
+pub fn local_datetime_millis(at: Utc) -> String {
+    local(at).format("%d/%m/%Y %H:%M:%S%.3f").to_string()
+}
+
+/// `04/10/2026 14:32`, local date and time.
+pub fn local_datetime(at: Utc) -> String {
+    local(at).format("%d/%m/%Y %H:%M").to_string()
+}
+
+/// `04/10/2026 14:32:05`, local date and time to the second.
+pub fn local_datetime_secs(at: Utc) -> String {
+    local(at).format("%d/%m/%Y %H:%M:%S").to_string()
+}
+
+/// `04/10/2026 14:32:05 (UTC+02:00)`: the unambiguous form, for tooltips
+/// and evidence where the offset matters.
+pub fn local_datetime_with_offset(at: Utc) -> String {
+    local(at).format("%d/%m/%Y %H:%M:%S (UTC%:z)").to_string()
+}
+
 #[cfg(test)]
 mod tests {
+
+    /// Pages must format instants through the local-time helpers above.
+    /// A direct `.format("%H…")` on a UTC value shows UTC as local time.
+    #[test]
+    fn pages_format_instants_through_the_local_time_helpers() {
+        fn scan(dir: &std::path::Path, offenders: &mut Vec<String>) {
+            for entry in std::fs::read_dir(dir).expect("readable source dir") {
+                let path = entry.expect("dir entry").path();
+                if path.is_dir() {
+                    scan(&path, offenders);
+                    continue;
+                }
+                if path.extension().is_none_or(|ext| ext != "rs") {
+                    continue;
+                }
+                let text = std::fs::read_to_string(&path).expect("readable source");
+                let lines: Vec<&str> = text.lines().collect();
+                for (index, line) in lines.iter().enumerate() {
+                    let direct = line.contains(".format(\"%H") || line.contains(".format(\"%d/%m");
+                    // Already-local values and calendar dates are fine.
+                    let context = lines[index.saturating_sub(2)..=index].join(" ");
+                    let local = context.contains("with_timezone")
+                        || context.contains("Local::now")
+                        || line.contains("day.format(")
+                        || line.contains("date.format(")
+                        || line.contains("d.format(");
+                    if direct && !local {
+                        offenders.push(format!("{}:{}", path.display(), index + 1));
+                    }
+                }
+            }
+        }
+        let src = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("src");
+        let mut offenders = Vec::new();
+        scan(&src.join("pages"), &mut offenders);
+        assert!(
+            offenders.is_empty(),
+            "format these instants with crate::format::local_*: {offenders:?}"
+        );
+    }
+
+    #[test]
+    fn timestamps_are_shown_in_local_time() {
+        use chrono::TimeZone;
+        let at = chrono::Utc
+            .with_ymd_and_hms(2026, 10, 4, 13, 39, 5)
+            .unwrap();
+        let local = at.with_timezone(&chrono::Local);
+        assert_eq!(super::local_time(at), local.format("%H:%M").to_string());
+        assert_eq!(
+            super::local_datetime_secs(at),
+            local.format("%d/%m/%Y %H:%M:%S").to_string()
+        );
+        assert!(super::local_datetime_with_offset(at).contains("(UTC"));
+    }
     #[test]
     fn intervals_drop_zero_parts() {
         assert_eq!(super::interval(30), "30 s");

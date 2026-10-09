@@ -38,10 +38,17 @@ release, en secret CI), un attaquant ne peut pas produire de signature valide.
 2. Enregistrer la clé privée comme secret de dépôt GitHub `SENTINEL_UPDATE_KEY`
    (contenu de `sentinel-update-key.hex`), puis **supprimer le fichier local**.
 
-3. Embarquer la clé publique dans les builds de release en exportant
-   `SENTINEL_UPDATE_PUBKEY=<clé publique hex>` au moment de la compilation (dans
-   les jobs de build de `release.yml`, aux côtés des autres variables
-   `SENTINEL_*`).
+3. Enregistrer la clé publique (hex) comme **variable** de dépôt GitHub
+   `SENTINEL_UPDATE_PUBKEY` (Settings → Secrets and variables → Actions →
+   Variables) : elle est publique. `release.yml` l'exporte déjà au moment de la
+   compilation de chaque binaire.
+
+> La variable et le secret doivent être configurés **ensemble**. Le premier job
+> de `release.yml` échoue si l'un est présent sans l'autre : une clé publique
+> seule produirait des agents qui refusent toute mise à jour (non signée), une
+> clé privée seule signerait des paquets que personne ne vérifie. Tant que les
+> deux sont absents, la release passe avec un avertissement et les agents
+> vérifient le seul SHA-256.
 
 Une fois `SENTINEL_UPDATE_KEY` présent, l'étape « Sign and upload latest
 packages » de `release.yml` signe automatiquement les paquets `latest` et pousse

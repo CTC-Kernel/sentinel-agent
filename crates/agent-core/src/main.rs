@@ -1385,12 +1385,13 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                         Some(EnrollmentCommand::SetupStandalone { admin_password }) => {
                             info!("GUI setup: standalone mode chosen");
                             if let Some(ref pw) = admin_password {
-                                use sha2::{Digest, Sha256};
-                                let mut hasher = Sha256::new();
-                                hasher.update(b"sentinel-grc-v2-admin-salt-2026");
-                                hasher.update(pw.as_bytes());
-                                let hash = format!("salted:{:x}", hasher.finalize());
-                                let _ = bg_event_tx.send(AgentEvent::AdminPasswordSet { hash });
+                                // Argon2id with a random per-install salt.
+                                match agent_gui::admin_auth::hash_password(pw) {
+                                    Ok(hash) => {
+                                        let _ = bg_event_tx.send(AgentEvent::AdminPasswordSet { hash });
+                                    }
+                                    Err(e) => warn!("Admin password not stored: {}", e),
+                                }
                             }
                             match AgentConfig::persist_standalone(true) {
                                 Ok(path) => {
@@ -2689,6 +2690,19 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                             }
                         }
                         Ok(GuiCommand::SaveWebhook { webhook }) => {
+                            // Same rule as the settings form, enforced where the
+                            // destination is stored: https, no credentials, no
+                            // loopback / link-local / metadata target.
+                            if let Err(e) = agent_common::webhook::validate_webhook_url(&webhook.url) {
+                                warn!("[AUDIT] Webhook '{}' refused: {}", webhook.name, e);
+                                let _ = bg_event_tx.send(AgentEvent::Notification {
+                                    notification: agent_gui::dto::GuiNotification::error(
+                                        "Webhook refusé",
+                                        format!("Le webhook « {} » n'a pas été enregistré. {}", webhook.name, e),
+                                    ),
+                                });
+                                continue;
+                            }
                             info!("[AUDIT] GUI saved webhook: {}", webhook.name);
                             if let Some(ref db_arc) = db_for_commands {
                                 let db_clone = std::sync::Arc::clone(db_arc);
@@ -2762,14 +2776,24 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                                     None
                                 };
 
-                                let notification = if let Some(wh) = webhook_opt {
-                                    let payload = serde_json::json!({
-                                        "type": "test",
-                                        "message": "Sentinel webhook test",
-                                        "timestamp": chrono::Utc::now().to_rfc3339(),
-                                    });
+                                let notification = if let Some(ref wh) = webhook_opt
+                                    && let Err(e) = agent_common::webhook::validate_webhook_url(&wh.url)
+                                {
+                                    agent_gui::dto::GuiNotification::error(
+                                        "Test webhook refusé",
+                                        format!("Le webhook « {} » n'a pas été contacté. {}", wh.name, e),
+                                    )
+                                } else if let Some(wh) = webhook_opt {
+                                    // The stored `events` column carries the format.
+                                    let payload = agent_common::webhook::test_payload(
+                                        &wh.events,
+                                        &chrono::Utc::now().to_rfc3339(),
+                                    );
+                                    // No redirects: a 30x towards an internal address is the
+                                    // classic way around the destination check above.
                                     let client = reqwest::Client::builder()
                                         .timeout(std::time::Duration::from_secs(10))
+                                        .redirect(reqwest::redirect::Policy::none())
                                         .build()
                                         .unwrap_or_default();
                                     match client.post(&wh.url).json(&payload).send().await {
@@ -2786,9 +2810,17 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                                             )
                                         }
                                         Err(e) => {
+                                            warn!("Webhook test '{}' failed: {}", wh.name, e);
+                                            let cause = if e.is_timeout() {
+                                                "le serveur n'a pas répondu dans les 10 secondes"
+                                            } else if e.is_connect() {
+                                                "connexion impossible (adresse, pare-feu ou certificat)"
+                                            } else {
+                                                "erreur réseau ; le détail est dans les journaux de l'agent"
+                                            };
                                             agent_gui::dto::GuiNotification::error(
                                                 "Test webhook \u{00e9}chou\u{00e9}",
-                                                format!("Impossible de contacter le webhook '{}': {}", wh.name, e),
+                                                format!("Impossible de contacter le webhook « {} » : {}.", wh.name, cause),
                                             )
                                         }
                                     }
@@ -4077,14 +4109,15 @@ async fn process_enrollment_submission(
             info!("GUI enrollment: received token");
             config.enrollment_token = Some(token);
 
-            // Hash admin password (salted) for GUI unlock before zeroizing
+            // Hash the admin password for the GUI unlock before zeroizing:
+            // Argon2id with a random per-install salt.
             if let Some(ref pw) = admin_password {
-                use sha2::{Digest, Sha256};
-                let mut hasher = Sha256::new();
-                hasher.update(b"sentinel-grc-v2-admin-salt-2026");
-                hasher.update(pw.as_bytes());
-                let hash = format!("salted:{:x}", hasher.finalize());
-                let _ = events.send(AgentEvent::AdminPasswordSet { hash });
+                match agent_gui::admin_auth::hash_password(pw) {
+                    Ok(hash) => {
+                        let _ = events.send(AgentEvent::AdminPasswordSet { hash });
+                    }
+                    Err(e) => warn!("Admin password not stored: {}", e),
+                }
             }
 
             config.admin_password = admin_password.clone();

@@ -148,7 +148,7 @@ impl AuditTrailPage {
 
         let log = &filtered_logs[selected];
         let id_str = log.id.to_string();
-        let ts = log.timestamp.format("%d/%m/%Y %H:%M:%S").to_string();
+        let ts = crate::format::local_datetime_secs(log.timestamp);
         let level = log.level.clone();
         let message = log.message.clone();
         let source = log.source.clone();
@@ -295,10 +295,7 @@ impl AuditTrailPage {
                 row.set_selected(is_selected);
 
                 row.col(|ui| {
-                    table::cell_secondary(
-                        ui,
-                        &log.timestamp.format("%d/%m/%Y %H:%M:%S").to_string(),
-                    );
+                    table::cell_secondary(ui, &crate::format::local_datetime_secs(log.timestamp));
                 });
 
                 row.col(|ui| {

@@ -148,7 +148,7 @@ impl SoftwarePage {
                                     widgets::detail_field(
                                         ui,
                                         "Date d'installation",
-                                        &installed.format("%d/%m/%Y").to_string(),
+                                        &crate::format::local_date(*installed),
                                     );
                                 }
                                 if pkg.up_to_date {
@@ -710,7 +710,9 @@ impl SoftwarePage {
                         row.col(|ui: &mut egui::Ui| {
                             let installed = pkg
                                 .installed_at
-                                .map(|dt| format!("Install\u{00e9} le {}", dt.format("%d/%m/%Y")))
+                                .map(|dt| {
+                                    format!("Install\u{00e9} le {}", crate::format::local_date(dt))
+                                })
                                 .unwrap_or_default();
                             table::cell_stack(ui, &pkg.name, &installed);
                         });

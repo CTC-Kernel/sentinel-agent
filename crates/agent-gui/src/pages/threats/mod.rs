@@ -81,11 +81,11 @@ impl ThreatsPage {
 
         let mut event_tab = Tab::new("\u{00c9}v\u{00e9}nements").icon(icons::LIST);
         if total_events > 0 {
-            event_tab = event_tab.badge(total_events.min(999) as u32);
+            event_tab = event_tab.urgent_badge(total_events.min(999) as u32);
         }
         let mut response_tab = Tab::new("R\u{00e9}ponse").icon(icons::SHIELD);
         if pending_response > 0 {
-            response_tab = response_tab.badge(pending_response);
+            response_tab = response_tab.urgent_badge(pending_response);
         }
         let mut playbooks_tab = Tab::new("Playbooks").icon(icons::CLIPBOARD_LIST);
         if active_playbooks > 0 {

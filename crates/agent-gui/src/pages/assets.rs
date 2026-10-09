@@ -121,30 +121,36 @@ impl AssetsPage {
                 .filter(|d| !state.assets.assets.iter().any(|a| a.ip == d.ip))
                 .count();
 
-            if state.security.admin_unlocked {
-                let label = if discoverable > 0 {
-                    format!(
-                        "{}  AUTORISER DEPUIS LA D\u{00c9}TECTION ({})",
-                        icons::DOWNLOAD,
-                        discoverable
-                    )
-                } else {
-                    format!("{}  AUTORISER DEPUIS LA D\u{00c9}TECTION", icons::DOWNLOAD)
-                };
-                if widgets::primary_button(ui, label, discoverable > 0).clicked() {
-                    Self::import_from_discovery(state);
-                    state.push_toast(
-                        crate::widgets::toast::Toast::success(
-                            "Actifs import\u{00e9}s depuis la d\u{00e9}couverte r\u{00e9}seau",
-                        ),
-                        ui.ctx(),
-                    );
-                }
+            // Authorising devices is an administrator action. Locked, the
+            // button stays clickable and asks for the password.
+            let unlocked = state.security.admin_unlocked;
+            let label = match (discoverable, unlocked) {
+                (0, true) => format!("{}  AUTORISER DEPUIS LA D\u{00c9}TECTION", icons::DOWNLOAD),
+                (n, true) => format!(
+                    "{}  AUTORISER DEPUIS LA D\u{00c9}TECTION ({n})",
+                    icons::DOWNLOAD
+                ),
+                (_, false) => format!("{}  Autoriser depuis la d\u{00e9}tection", icons::LOCK),
+            };
+            let response = widgets::primary_button(ui, label, discoverable > 0 || !unlocked);
+            let response = if !unlocked {
+                response.on_hover_text("Nécessite le mode administrateur")
+            } else if discoverable == 0 {
+                response
+                    .on_hover_text("Tous les appareils découverts figurent déjà dans l'inventaire.")
             } else {
-                widgets::primary_button(
-                    ui,
-                    format!("{}  Autoriser depuis la d\u{00e9}tection", icons::LOCK),
-                    false,
+                response
+            };
+            if response.clicked()
+                && state.require_admin("Autoriser des appareils découverts dans l'inventaire")
+                && discoverable > 0
+            {
+                Self::import_from_discovery(state);
+                state.push_toast(
+                    crate::widgets::toast::Toast::success(
+                        "Actifs import\u{00e9}s depuis la d\u{00e9}couverte r\u{00e9}seau",
+                    ),
+                    ui.ctx(),
                 );
             }
 
@@ -432,7 +438,7 @@ impl AssetsPage {
                         let text = if ago.num_hours() < 24 {
                             crate::format::ago(now, asset.last_seen)
                         } else {
-                            asset.last_seen.format("%d/%m %H:%M").to_string()
+                            crate::format::local_day_time(asset.last_seen)
                         };
                         let color = theme::readable_color(if ago.num_hours() < 1 {
                             theme::SUCCESS
@@ -442,7 +448,7 @@ impl AssetsPage {
                             theme::text_secondary()
                         });
                         table::cell_styled(ui, &text, theme::font_small(), color)
-                            .on_hover_text(asset.last_seen.format("%d/%m/%Y %H:%M:%S").to_string());
+                            .on_hover_text(crate::format::local_datetime_secs(asset.last_seen));
                     });
 
                     if table::row_interaction(&row, is_selected) {
@@ -573,12 +579,12 @@ impl AssetsPage {
                 widgets::detail_field(
                     ui,
                     "Premi\u{00e8}re d\u{00e9}tection",
-                    &asset.first_seen.format("%d/%m/%Y %H:%M").to_string(),
+                    &crate::format::local_datetime(asset.first_seen),
                 );
                 widgets::detail_field(
                     ui,
                     "Derni\u{00e8}re d\u{00e9}tection",
-                    &asset.last_seen.format("%d/%m/%Y %H:%M").to_string(),
+                    &crate::format::local_datetime(asset.last_seen),
                 );
             },
             &actions,
@@ -861,7 +867,7 @@ impl AssetsPage {
                     a.lifecycle.label_fr().to_string(),
                     format!("{:.1}", a.risk_score),
                     a.vulnerability_count.to_string(),
-                    a.last_seen.format("%d/%m/%Y %H:%M").to_string(),
+                    crate::format::local_datetime(a.last_seen),
                     a.tags.join(", "),
                 ])
             })

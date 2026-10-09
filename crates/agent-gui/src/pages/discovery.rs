@@ -34,30 +34,37 @@ impl DiscoveryPage {
             ui.horizontal(|ui: &mut egui::Ui| {
                 let is_scanning = state.discovery.in_progress;
 
+                // Discovery probes the network, so it is an administrator
+                // action. Locked, the button stays clickable: it asks for the
+                // password instead of sitting greyed out with "· admin".
+                let unlocked = state.security.admin_unlocked;
+                let lock = if unlocked {
+                    String::new()
+                } else {
+                    format!("  {}", icons::LOCK)
+                };
                 let btn_response = if is_scanning {
                     widgets::primary_button(
                         ui,
-                        format!("{}  Interrompre l'analyse", icons::TRASH),
-                        state.security.admin_unlocked,
-                    )
-                } else if state.security.admin_unlocked {
-                    widgets::primary_button(
-                        ui,
-                        format!("{}  Lancer la découverte", icons::PLAY),
+                        format!("{}  Interrompre l'analyse{lock}", icons::TRASH),
                         true,
                     )
                 } else {
-                    // Disabled button for non-admin users
                     widgets::primary_button(
                         ui,
-                        // Disabled until the admin unlock: say so in words, keep the
-                        // run icon (a lock read as the action itself).
-                        format!("{}  Lancer la découverte · admin", icons::PLAY),
-                        false,
+                        format!("{}  Lancer la découverte{lock}", icons::PLAY),
+                        true,
                     )
                 };
+                let btn_response = if unlocked {
+                    btn_response
+                } else {
+                    btn_response.on_hover_text("Nécessite le mode administrateur")
+                };
 
-                if btn_response.clicked() {
+                if btn_response.clicked()
+                    && state.require_admin("Lancer ou interrompre la découverte réseau")
+                {
                     if is_scanning {
                         cmd = Some(crate::events::GuiCommand::StopDiscovery);
                     } else {
@@ -433,7 +440,7 @@ impl DiscoveryPage {
                             let text = if ago.num_hours() < 24 {
                                 crate::format::ago(now, device.last_seen)
                             } else {
-                                device.last_seen.format("%d/%m %H:%M").to_string()
+                                crate::format::local_day_time(device.last_seen)
                             };
                             let color = theme::readable_color(if ago.num_hours() < 1 {
                                 theme::SUCCESS
@@ -443,7 +450,7 @@ impl DiscoveryPage {
                                 theme::text_secondary()
                             });
                             table::cell_colored(ui, &text, color).on_hover_text(
-                                device.last_seen.format("%d/%m/%Y %H:%M:%S").to_string(),
+                                crate::format::local_datetime_secs(device.last_seen),
                             );
                         });
                         row.col(|ui| {
@@ -498,8 +505,8 @@ impl DiscoveryPage {
         let open_ports = device.open_ports.clone();
         let first_seen_ts = device.first_seen;
         let last_seen_ts = device.last_seen;
-        let first_seen = device.first_seen.format("%d/%m/%Y %H:%M").to_string();
-        let last_seen = device.last_seen.format("%d/%m/%Y %H:%M").to_string();
+        let first_seen = crate::format::local_datetime(device.first_seen);
+        let last_seen = crate::format::local_datetime(device.last_seen);
         let (type_label, type_color) = device_type_badge(&device_type);
 
         // Check whether this device is already imported as a managed asset.

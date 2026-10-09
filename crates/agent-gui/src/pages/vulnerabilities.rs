@@ -13,6 +13,18 @@ use crate::icons;
 use crate::theme;
 use crate::widgets;
 
+/// What a button of the vulnerability detail does.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum VulnAction {
+    CopyUpgrade,
+    AiFix,
+    AiAnalyze,
+    Export,
+}
+
+/// Confirmation dialog shown before running an AI-generated script.
+const AI_FIX_CONFIRM: &str = "vulnerability_ai_fix_confirm";
+
 pub struct VulnerabilitiesPage;
 
 impl VulnerabilitiesPage {
@@ -216,47 +228,48 @@ impl VulnerabilitiesPage {
                 theme::text_tertiary()
             };
 
+            // The footer is built from a typed list, so a button and its
+            // handler cannot drift apart when one of them is absent.
+            let has_ai_analysis = finding.ai_analysis.is_some();
+            let has_ai_fix = finding.ai_remediation_script.is_some();
+            let mut kinds = Vec::new();
             let mut actions = Vec::new();
             if finding.fix_available {
+                kinds.push(VulnAction::CopyUpgrade);
                 actions.push(widgets::DetailAction::primary(
-                    "Appliquer le correctif",
+                    "Copier la commande de mise à jour",
                     icons::WRENCH,
                 ));
             }
-            // "Analyser avec l'IA" button — only if no AI analysis yet
-            let has_ai_analysis = finding.ai_analysis.is_some();
-            if !has_ai_analysis {
-                actions.push(widgets::DetailAction::primary(
-                    "Analyser avec l'IA",
-                    icons::BRAIN,
-                ));
+            if has_ai_fix {
+                kinds.push(VulnAction::AiFix);
+                // One primary per footer: the known fix when there is one,
+                // the AI-proposed script only when it is the sole remedy.
+                actions.push(if finding.fix_available {
+                    widgets::DetailAction::secondary(
+                        "Exécuter le script proposé par l'IA",
+                        icons::WAND_SPARKLES,
+                    )
+                } else {
+                    widgets::DetailAction::primary(
+                        "Exécuter le script proposé par l'IA",
+                        icons::WAND_SPARKLES,
+                    )
+                });
             }
-            actions.push(widgets::DetailAction::secondary("Ignorer", icons::XMARK));
+            if !has_ai_analysis {
+                kinds.push(VulnAction::AiAnalyze);
+                actions.push(if actions.is_empty() {
+                    widgets::DetailAction::primary("Analyser avec l'IA", icons::BRAIN)
+                } else {
+                    widgets::DetailAction::secondary("Analyser avec l'IA", icons::BRAIN)
+                });
+            }
+            kinds.push(VulnAction::Export);
             actions.push(widgets::DetailAction::secondary(
                 "Exporter",
                 icons::DOWNLOAD,
             ));
-
-            // "Appliquer le correctif IA" button — only if AI script is available
-            let has_ai_fix = finding.ai_remediation_script.is_some();
-            if has_ai_fix {
-                // One primary per footer: the known fix when there is one,
-                // the AI-proposed script only when it is the sole remedy.
-                actions.insert(
-                    0,
-                    if finding.fix_available {
-                        widgets::DetailAction::secondary(
-                            "Appliquer le correctif IA",
-                            icons::WAND_SPARKLES,
-                        )
-                    } else {
-                        widgets::DetailAction::primary(
-                            "Appliquer le correctif IA",
-                            icons::WAND_SPARKLES,
-                        )
-                    },
-                );
-            }
 
             let cve_display = &finding.cve_id;
             let source_display = if !finding.source.is_empty() {
@@ -342,7 +355,7 @@ impl VulnerabilitiesPage {
                                 widgets::detail_field(
                                     ui,
                                     "Date de d\u{00e9}couverte",
-                                    &dt.format("%d/%m/%Y %H:%M").to_string(),
+                                    &crate::format::local_datetime(dt),
                                 );
                             }
 
@@ -400,70 +413,28 @@ impl VulnerabilitiesPage {
                         &actions,
                     );
 
-            if let Some(action_idx) = drawer_action {
-                // Action indices depend on which buttons are present:
-                // [fix_available?] -> [AI analyze?] -> Ignorer -> Exporter
-                let mut next_idx = 0_usize;
-                let fix_action_idx = if finding.fix_available {
-                    let i = next_idx;
-                    next_idx += 1;
-                    Some(i)
-                } else {
-                    None
-                };
-                let ai_action_idx = if !has_ai_analysis {
-                    let i = next_idx;
-                    next_idx += 1;
-                    Some(i)
-                } else {
-                    None
-                };
-                let ignore_action_idx = next_idx;
-                let export_action_idx = next_idx + 1;
-
-                if fix_action_idx == Some(action_idx) {
+            match drawer_action.and_then(|index| kinds.get(index).copied()) {
+                Some(VulnAction::CopyUpgrade) => {
                     let safe_name = finding.affected_software.replace('\'', "'\\''");
                     let cmd = platform_upgrade_command(&safe_name);
                     ui.ctx().copy_text(cmd);
                     let time = ui.input(|i| i.time);
                     state.toasts.push(
                         crate::widgets::toast::Toast::success(
-                            "Commande de mise \u{00e0} jour copi\u{00e9}e dans le presse-papiers",
+                            "Commande de mise \u{00e0} jour copi\u{00e9}e : ex\u{00e9}cutez-la \
+                             dans un terminal administrateur",
                         )
                         .with_time(time),
                     );
-                } else if has_ai_fix && action_idx == 0 {
-                    // Apply AI Fix action
-                    if let Some(script) = &finding.ai_remediation_script {
-                        let action = agent_common::types::RemediationAction {
-                            id: uuid::Uuid::new_v4(),
-                            check_id: finding.cve_id.clone(),
-                            description: finding.description.clone(),
-                            platform: if cfg!(target_os = "macos") {
-                                "macos"
-                            } else if cfg!(target_os = "windows") {
-                                "windows"
-                            } else {
-                                "linux"
-                            }
-                            .to_string(),
-                            script: script.join("\n"),
-                            requires_reboot: false,
-                            requires_admin: true,
-                            risk_level: agent_common::types::RemediationRisk::Moderate,
-                            rollback_script: None,
-                            status: agent_common::types::RemediationStatus::Pending,
-                            is_ai_generated: true,
-                        };
-                        command = Some(GuiCommand::ApplyAiRemediation { action });
-
-                        let time = ui.input(|i| i.time);
-                        state.toasts.push(
-                            crate::widgets::toast::Toast::info("Application du correctif IA…")
-                                .with_time(time),
-                        );
+                }
+                Some(VulnAction::AiFix) => {
+                    // A generated script runs with administrator rights:
+                    // administrator mode, then show the script and confirm.
+                    if state.require_admin("Exécuter un script de correction proposé par l'IA") {
+                        widgets::modal::ask_confirmation(ui.ctx(), AI_FIX_CONFIRM, sel_idx);
                     }
-                } else if ai_action_idx == Some(action_idx) {
+                }
+                Some(VulnAction::AiAnalyze) => {
                     command = Some(GuiCommand::LlmAnalyzeVulnerability {
                         finding_index: sel_idx,
                         target_id: crate::state::vulnerability_identity(
@@ -475,18 +446,78 @@ impl VulnerabilitiesPage {
                         crate::widgets::toast::Toast::info("Analyse IA en cours\u{2026}")
                             .with_time(time),
                     );
-                } else if action_idx == ignore_action_idx {
-                    state.vulnerability.detail_open = false;
-                } else if action_idx == export_action_idx {
+                }
+                Some(VulnAction::Export) => {
                     let success = Self::export_csv(state, &[sel_idx]);
                     let time = ui.input(|i| i.time);
-                    if success {
-                        state.toasts.push(
+                    state.toasts.push(
+                        if success {
                             crate::widgets::toast::Toast::success("Export CSV r\u{00e9}ussi")
-                                .with_time(time),
-                        );
-                    }
+                        } else {
+                            crate::widgets::toast::Toast::error(
+                                "Export CSV impossible : v\u{00e9}rifiez les droits d'\u{00e9}criture",
+                            )
+                        }
+                        .with_time(time),
+                    );
                 }
+                None => {}
+            }
+        }
+
+        if let Some(index) = widgets::modal::pending_confirmation::<usize>(ui.ctx(), AI_FIX_CONFIRM)
+            && let Some(finding) = state.vulnerability_findings.get(index).cloned()
+            && let Some(script) = finding.ai_remediation_script.clone()
+        {
+            const SHOWN_LINES: usize = 20;
+            let mut preview = script
+                .iter()
+                .take(SHOWN_LINES)
+                .cloned()
+                .collect::<Vec<_>>()
+                .join("\n");
+            if script.len() > SHOWN_LINES {
+                preview.push_str(&format!(
+                    "\n… {} lignes de plus",
+                    script.len() - SHOWN_LINES
+                ));
+            }
+            if widgets::modal::resolve_confirmation::<usize>(
+                ui.ctx(),
+                AI_FIX_CONFIRM,
+                "Exécuter le script proposé par l'IA ?",
+                &format!(
+                    "{} — {}\n\nLe script s'exécute avec les droits administrateur et \
+                     n'a pas de retour arrière automatique. Relisez-le :\n\n{preview}",
+                    finding.cve_id, finding.affected_software
+                ),
+                "Exécuter",
+            ) {
+                let action = agent_common::types::RemediationAction {
+                    id: uuid::Uuid::new_v4(),
+                    check_id: finding.cve_id.clone(),
+                    description: finding.description.clone(),
+                    platform: if cfg!(target_os = "macos") {
+                        "macos"
+                    } else if cfg!(target_os = "windows") {
+                        "windows"
+                    } else {
+                        "linux"
+                    }
+                    .to_string(),
+                    script: script.join("\n"),
+                    requires_reboot: false,
+                    requires_admin: true,
+                    risk_level: agent_common::types::RemediationRisk::Moderate,
+                    rollback_script: None,
+                    status: agent_common::types::RemediationStatus::Pending,
+                    is_ai_generated: true,
+                };
+                command = Some(GuiCommand::ApplyAiRemediation { action });
+                state.push_toast(
+                    crate::widgets::toast::Toast::info("Ex\u{00e9}cution du script IA\u{2026}"),
+                    ui.ctx(),
+                );
             }
         }
 
@@ -691,7 +722,7 @@ impl VulnerabilitiesPage {
                     row.col(|ui| {
                         let discovered = finding
                             .discovered_at
-                            .map(|dt| dt.format("%d/%m/%Y %H:%M").to_string())
+                            .map(crate::format::local_datetime)
                             .unwrap_or_default();
                         if table::cell_link_stack(ui, &finding.cve_id, &discovered).clicked() {
                             clicked_idx = Some(real_idx);

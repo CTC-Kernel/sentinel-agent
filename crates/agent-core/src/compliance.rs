@@ -85,7 +85,12 @@ impl AgentRuntime {
                                 .unwrap_or_else(|| "general".to_string());
 
                             match intelligent_runner
-                                .run_with_analysis(&system_info, &framework, "endpoint", active_frameworks.as_deref())
+                                .run_with_analysis(
+                                    &system_info,
+                                    &framework,
+                                    "endpoint",
+                                    active_frameworks.as_deref(),
+                                )
                                 .await
                             {
                                 Ok(scan_result) => {

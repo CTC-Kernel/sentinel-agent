@@ -209,11 +209,19 @@ pub fn explain_system_incident(
             "L'accès administrateur permet de contourner toutes les politiques de sécurité et d'installer des logiciels à votre insu.".to_string(),
             "Vérifiez l'utilisateur à l'origine de la demande et révoquez la session en cas de doute.".to_string(),
         ),
+        // An incident the agent cannot name may still be an intrusion
+        // (a persistence task, an unknown service): the advice is to check
+        // its origin first, never to acknowledge it by default.
         _ => (
             title.to_string(),
             format!("Événement système capturé : {description}."),
-            "Cet événement modifie l'état de sécurité ou de conformité de votre poste de travail.".to_string(),
-            "Si cette modification a été réalisée dans le cadre d'une intervention planifiée, vous pouvez acquitter l'alerte.".to_string(),
+            "Cet événement modifie l'état de sécurité ou de conformité de votre poste de travail. \
+             Tant que son origine n'est pas connue, il doit être traité comme suspect."
+                .to_string(),
+            "Vérifiez qui ou quoi en est à l'origine avant toute décision. S'il ne correspond à \
+             aucune intervention planifiée, conservez les éléments (programme, fichier, compte) et \
+             isolez le poste ; acquittez seulement une modification connue et légitime."
+                .to_string(),
         ),
     };
 
@@ -462,4 +470,18 @@ pub fn render_human_explanation_card(ui: &mut egui::Ui, exp: &HumanEventExplanat
             );
         });
     ui.add_space(crate::theme::SPACE_MD);
+}
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn an_unknown_incident_is_investigated_before_it_is_acknowledged() {
+        let explanation = super::explain_system_incident(
+            "scheduled_task_created",
+            "Persistance par tâche planifiée",
+            r"Tâche « OneDriveUpdaterX » lançant C:\Users\Public\p.bin",
+        );
+        assert!(explanation.recommended_action.starts_with("Vérifiez"));
+        assert!(explanation.business_impact.contains("suspect"));
+    }
 }

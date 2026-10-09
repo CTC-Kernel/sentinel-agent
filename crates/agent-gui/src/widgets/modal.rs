@@ -168,7 +168,9 @@ impl Modal {
         let (icon, color) = match self.style {
             ModalStyle::Info => (icons::INFO, theme::INFO),
             ModalStyle::Warning => (icons::WARNING, theme::WARNING),
-            ModalStyle::Danger => (icons::CIRCLE_XMARK, theme::ERROR),
+            // A red cross in a circle read as "close" or "failed" above a
+            // question; the warning sign in red says "irreversible".
+            ModalStyle::Danger => (icons::WARNING, theme::ERROR),
             ModalStyle::Success => (icons::CIRCLE_CHECK, theme::SUCCESS),
         };
 
@@ -311,6 +313,49 @@ pub fn confirm_dialog(
         .style(ModalStyle::Warning)
         .confirm_text("Confirmer")
         .show(ctx)
+}
+
+/// Ask for a destructive confirmation about `subject` (an id, a name…).
+///
+/// The subject is remembered with the dialog, so the page that asked does
+/// not need its own state: draw [`pending_confirmation`] /
+/// [`resolve_confirmation`] every frame and act on the subject only once
+/// the operator confirmed.
+pub fn ask_confirmation<T: Clone + Send + Sync + 'static>(
+    ctx: &egui::Context,
+    key: &str,
+    subject: T,
+) {
+    ctx.memory_mut(|mem| mem.data.insert_temp(subject_id(key), subject));
+    Modal::open(ctx, key);
+}
+
+/// The subject waiting for confirmation under `key`, if any.
+pub fn pending_confirmation<T: Clone + Send + Sync + 'static>(
+    ctx: &egui::Context,
+    key: &str,
+) -> Option<T> {
+    ctx.memory(|mem| mem.data.get_temp::<T>(subject_id(key)))
+}
+
+/// Draw the pending confirmation. `true` once the operator confirmed; the
+/// subject is forgotten as soon as they confirm, cancel or dismiss.
+pub fn resolve_confirmation<T: Clone + Send + Sync + 'static>(
+    ctx: &egui::Context,
+    key: &str,
+    title: &str,
+    message: &str,
+    confirm_text: &str,
+) -> bool {
+    let result = danger_dialog(ctx, key, title, message, confirm_text);
+    if result != ModalResult::None || !Modal::is_open(ctx, key) {
+        ctx.memory_mut(|mem| mem.data.remove::<T>(subject_id(key)));
+    }
+    result == ModalResult::Confirm
+}
+
+fn subject_id(key: &str) -> egui::Id {
+    egui::Id::new(key).with("confirmation_subject")
 }
 
 /// A danger confirmation dialog (for destructive actions).

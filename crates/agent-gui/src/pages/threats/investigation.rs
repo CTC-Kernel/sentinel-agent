@@ -194,9 +194,9 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                                 egui::Layout::right_to_left(egui::Align::Center),
                                 |ui: &mut egui::Ui| {
                                     ui.label(
-                                        egui::RichText::new(
-                                            result.timestamp.format("%d/%m/%Y %H:%M").to_string(),
-                                        )
+                                        egui::RichText::new(crate::format::local_datetime(
+                                            result.timestamp,
+                                        ))
                                         .font(theme::font_label())
                                         .color(theme::text_tertiary()),
                                     );
