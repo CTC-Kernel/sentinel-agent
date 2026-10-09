@@ -177,7 +177,7 @@ impl ScoreCalculator {
         let mut weighted_pass = 0.0;
         let mut weighted_total = 0.0;
 
-        // (passed, total, errors) — errors contribute 0.5 to the score
+        // (passed, total, errors) — unknown states never earn compliance credit
         let mut category_data: HashMap<String, (usize, usize, usize)> = HashMap::new();
         let mut framework_data: HashMap<String, (f64, f64)> = HashMap::new();
 
@@ -224,23 +224,20 @@ impl ScoreCalculator {
                 }
                 CheckStatus::Error => {
                     error_count += 1;
-                    // Errors contribute partially to score (50% penalty)
-                    // This prevents masking systematic issues while not being as harsh as failure
-                    weighted_pass += weight * 0.5;
+                    // Failed measurements remain in scope but earn no compliance credit.
                     weighted_total += weight;
 
-                    // Track in category as partial (0.5 pass contribution, consistent with overall)
+                    // Keep errors distinct from explicit failures in the counters.
                     let entry = category_data
                         .entry(input.category.clone())
                         .or_insert((0, 0, 0));
                     entry.1 += 1; // Add to total
-                    entry.2 += 1; // Track error count for 0.5 contribution
+                    entry.2 += 1; // Track error count
 
                     for framework in &input.frameworks {
                         let entry = framework_data
                             .entry(framework.clone())
                             .or_insert((0.0, 0.0));
-                        entry.0 += weight * 0.5; // Partial pass
                         entry.1 += weight;
                     }
                 }
@@ -268,9 +265,9 @@ impl ScoreCalculator {
         let category_scores: HashMap<String, CategoryScore> = category_data
             .into_iter()
             .map(|(category, (passed, total, errors))| {
-                // Errors contribute 0.5 to score (consistent with overall weighted score)
+                // Only demonstrated passes earn compliance credit.
                 let cat_score = if total > 0 {
-                    ((passed as f64 + errors as f64 * 0.5) / total as f64) * 100.0
+                    (passed as f64 / total as f64) * 100.0
                 } else {
                     0.0
                 };
@@ -318,7 +315,12 @@ impl ScoreCalculator {
     pub fn calculate_simple(&self, results: &[CheckResult]) -> f64 {
         let countable: Vec<_> = results
             .iter()
-            .filter(|r| matches!(r.status, CheckStatus::Pass | CheckStatus::Fail))
+            .filter(|r| {
+                matches!(
+                    r.status,
+                    CheckStatus::Pass | CheckStatus::Fail | CheckStatus::Error
+                )
+            })
             .collect();
 
         if countable.is_empty() {
@@ -360,6 +362,17 @@ mod tests {
             category: category.to_string(),
             frameworks: vec!["NIS2".to_string()],
         }
+    }
+
+    #[test]
+    fn errors_never_earn_compliance_credit() {
+        let mut input = create_pass_input("security", CheckSeverity::High);
+        input.result = CheckResult::error("unknown", "permission denied");
+        let score = ScoreCalculator::new().calculate(&[input]);
+        assert_eq!(score.score, 0.0);
+        assert_eq!(score.error_count, 1);
+        assert_eq!(score.category_scores["security"].score, 0.0);
+        assert_eq!(score.framework_scores["NIS2"], 0.0);
     }
 
     #[test]
@@ -509,13 +522,13 @@ mod tests {
             CheckResult::pass("test1"),
             CheckResult::pass("test2"),
             CheckResult::fail("test3", "failed"),
-            CheckResult::error("test4", "error"), // excluded
+            CheckResult::error("test4", "error"), // no credit, still in scope
         ];
 
         let score = calculator.calculate_simple(&results);
 
-        // 2 pass / 3 countable = 66.67%
-        assert!((score - 66.67).abs() < 0.01);
+        // 2 pass / 4 in scope = 50%
+        assert!((score - 50.0).abs() < 0.01);
     }
 
     #[test]

@@ -350,10 +350,10 @@ fn test_scan_summary_counts_all_status_categories() {
     assert_eq!(summary.skipped, 0);
     assert_eq!(summary.duration_ms, 50);
 
-    // Score = 2 pass / (2 pass + 1 fail) countable = 66.67%
+    // Score = 2 pass / (2 pass + 1 fail + 1 error) = 50%
     assert!(
-        (summary.score - 66.67).abs() < 0.1,
-        "Score should be ~66.67, got {}",
+        (summary.score - 50.0).abs() < 0.01,
+        "Score should be 50, got {}",
         summary.score
     );
 }
@@ -584,22 +584,22 @@ fn test_score_delta_from_previous_score() {
     assert_eq!(result.previous_score, Some(30.0));
 }
 
-/// `calculate_simple` produces correct unweighted score ignoring errors.
+/// Measurement errors stay in scope without receiving compliance credit.
 #[test]
-fn test_simple_score_excludes_errors() {
+fn test_simple_score_counts_errors_without_credit() {
     let calculator = ScoreCalculator::new();
     let results = vec![
         CheckResult::pass("c1"),
         CheckResult::pass("c2"),
         CheckResult::fail("c3", "bad"),
-        CheckResult::error("c4", "boom"), // excluded from simple score
+        CheckResult::error("c4", "boom"), // stays in the denominator with no credit
     ];
 
     let score = calculator.calculate_simple(&results);
-    // 2 pass / (2 pass + 1 fail) = 66.67%
+    // 2 pass / (2 pass + 1 fail + 1 error) = 50%
     assert!(
-        (score - 66.67).abs() < 0.01,
-        "Simple score should be ~66.67, got {}",
+        (score - 50.0).abs() < 0.01,
+        "Simple score should be 50, got {}",
         score
     );
 }
@@ -814,4 +814,43 @@ fn test_proof_verify_signature_without_signature_returns_false() {
         !generator.verify_signature(&proof, b"any-key"),
         "Unsigned proof must return false from verify_signature"
     );
+}
+
+/// The summary and simple score use the same scope, including unavailable measurements.
+#[test]
+fn test_summary_and_simple_score_agree_for_measurement_errors() {
+    use CheckStatus::{Error, Fail, Pass, Pending, Skipped};
+    use agent_scanner::runner::CheckExecutionResult;
+
+    let cases = [
+        (vec![], 0.0),
+        (vec![Error, Error], 0.0),
+        (vec![Pass, Error], 50.0),
+        (vec![Pass, Fail, Error], 100.0 / 3.0),
+        (vec![Pass, Error, Skipped, Pending], 50.0),
+        (vec![Skipped, Pending], 0.0),
+    ];
+    for (statuses, expected) in cases {
+        let measurements: Vec<_> = statuses
+            .iter()
+            .map(|status| {
+                let mut result = CheckResult::pass("scope-check");
+                result.status = *status;
+                result
+            })
+            .collect();
+        let executions: Vec<_> = measurements
+            .iter()
+            .cloned()
+            .map(|result| CheckExecutionResult {
+                result,
+                proof: None,
+                duration_ms: 0,
+            })
+            .collect();
+        let summary = ScanSummary::from_results(&executions, 0);
+        let simple = ScoreCalculator::new().calculate_simple(&measurements);
+        assert!((summary.score - expected).abs() < 0.01, "{statuses:?}");
+        assert!((simple - expected).abs() < 0.01, "{statuses:?}");
+    }
 }

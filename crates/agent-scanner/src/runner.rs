@@ -343,8 +343,8 @@ impl ScanSummary {
             }
         }
 
-        // Calculate score excluding errors and skipped
-        let countable = passed + failed;
+        // Errors remain in scope with no compliance credit; skipped/pending do not.
+        let countable = passed + failed + errors;
         let score = if countable > 0 {
             (passed as f64 / countable as f64) * 100.0
         } else {
