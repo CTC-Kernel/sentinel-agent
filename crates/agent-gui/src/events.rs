@@ -210,7 +210,9 @@ pub enum AgentEvent {
         has_key: bool,
         profiles: Vec<(crate::ai_provider::AiProviderSettings, bool)>,
     },
-    AiProviderFeedback { message: String },
+    AiProviderFeedback {
+        message: String,
+    },
     /// Fragment of an assistant answer being generated (streaming).
     LlmChatDelta {
         /// Text to append to the answer in progress.
@@ -322,7 +324,9 @@ pub enum AgentEvent {
         text: String,
     },
     /// Audio failure, never a user transcription.
-    VoiceError { message: String },
+    VoiceError {
+        message: String,
+    },
     /// Capture ended and Whisper is transcribing the recorded speech.
     VoiceTranscribing,
     /// Capture ended without intelligible speech (silence timeout).
@@ -341,7 +345,9 @@ pub enum AgentEvent {
         speaking: bool,
     },
     /// Risks loaded or auto-generated from the backend.
-    RisksSnapshot { risks: Vec<crate::dto::RiskEntry> },
+    RisksSnapshot {
+        risks: Vec<crate::dto::RiskEntry>,
+    },
     RisksLoaded {
         /// Risk entries to merge into GUI state.
         risks: Vec<crate::dto::RiskEntry>,

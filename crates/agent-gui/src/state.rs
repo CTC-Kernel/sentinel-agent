@@ -1928,7 +1928,11 @@ impl AppState {
                     self.ai.is_listening = false;
                 }
             }
-            AgentEvent::AiProviderConfigured { settings, has_key, profiles } => {
+            AgentEvent::AiProviderConfigured {
+                settings,
+                has_key,
+                profiles,
+            } => {
                 self.ai.provider_settings = settings.clone();
                 self.ai.provider_draft = settings;
                 self.ai.provider_has_key = has_key;

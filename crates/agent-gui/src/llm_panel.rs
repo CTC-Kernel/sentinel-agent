@@ -69,13 +69,16 @@ impl LLMPanel {
             };
             widgets::status_badge(ui, status, color);
             ui.label(
-                egui::RichText::new(if state.ai.provider_settings.provider != crate::ai_provider::AiProvider::Local {
-                    &state.ai.provider_settings.model
-                } else if state.ai.model_status.model_name.is_empty() {
-                    "Consultez Modèle & diagnostic pour configurer le moteur."
-                } else {
-                    &state.ai.model_status.model_name
-                })
+                egui::RichText::new(
+                    if state.ai.provider_settings.provider != crate::ai_provider::AiProvider::Local
+                    {
+                        &state.ai.provider_settings.model
+                    } else if state.ai.model_status.model_name.is_empty() {
+                        "Consultez Modèle & diagnostic pour configurer le moteur."
+                    } else {
+                        &state.ai.model_status.model_name
+                    },
+                )
                 .font(theme::font_small())
                 .color(theme::text_secondary()),
             );
@@ -2016,7 +2019,10 @@ impl LLMPanel {
         use crate::ai_provider::{AiProvider, ApiKey};
         let mut command = None;
         widgets::data_card(ui, "Fournisseur de l’assistant", |ui| {
-            ui.label(format!("Actif : {}", state.ai.provider_settings.provider.label()));
+            ui.label(format!(
+                "Actif : {}",
+                state.ai.provider_settings.provider.label()
+            ));
             ui.add_enabled_ui(state.ai.provider_loaded && !state.ai.provider_busy && !state.ai.is_processing, |ui| {
                 let previous = state.ai.provider_draft.provider;
                 egui::ComboBox::from_id_salt("ai_provider")
@@ -2075,7 +2081,9 @@ impl LLMPanel {
                     });
                 }
             });
-            if state.ai.provider_busy { ui.spinner(); }
+            if state.ai.provider_busy {
+                ui.spinner();
+            }
             if let Some(message) = &state.ai.provider_feedback {
                 ui.label(egui::RichText::new(message).color(theme::text_primary()));
             }
@@ -2090,7 +2098,9 @@ impl LLMPanel {
     fn show_model_status_tab(ui: &mut egui::Ui, state: &mut AppState) -> Option<GuiCommand> {
         let mut command: Option<GuiCommand> = None;
 
-        if let Some(cmd) = Self::provider_settings(ui, state) { return Some(cmd); }
+        if let Some(cmd) = Self::provider_settings(ui, state) {
+            return Some(cmd);
+        }
         ui.add_space(theme::SPACE_MD);
 
         ui.horizontal_wrapped(|ui| {
@@ -3528,7 +3538,11 @@ mod tests {
                     });
                 });
                 let prefs = crate::state::GuiPreferences::from_state(&state);
-                assert!(!serde_json::to_string(&prefs).unwrap().contains("secret-for-test"));
+                assert!(
+                    !serde_json::to_string(&prefs)
+                        .unwrap()
+                        .contains("secret-for-test")
+                );
             }
         }
     }
