@@ -186,10 +186,10 @@ fn friendly_error(raw: &str) -> String {
         let part = part.trim();
         let hint = if part.contains("Elevated privileges required") {
             "Droits administrateur requis pour modifier le pare-feu : relancez \
-             l'agent en administrateur (ou via le service)."
+             l'agent avec sudo, ou installez-le comme service (`sentinel-agent install`)."
         } else if part.contains("SIEM destination is not enabled") {
             "Aucune destination SIEM n'est activée : configurez-la dans \
-             Surveillance & SIEM."
+             Paramètres › Intégration SIEM."
         } else {
             part
         };
