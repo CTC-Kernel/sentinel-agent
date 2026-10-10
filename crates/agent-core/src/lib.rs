@@ -1031,34 +1031,7 @@ impl AgentRuntime {
             self.report_started_processes(&mut pass).await;
 
             // 0. Ransomware canaries (always — security-critical even when paused)
-            if self
-                .state
-                .ransomware_canaries_changed
-                .swap(false, Ordering::AcqRel)
-            {
-                self.stop_ransomware_canaries();
-                self.start_ransomware_canaries().await;
-            }
-            for canary in self.take_canary_incidents().await {
-                let incident = ransomware_canary::incident_from(&canary);
-                warn!("{}: {}", incident.title, canary.folder.display());
-                if let Err(e) = self.upload_incident(&incident).await {
-                    error!("Failed to upload ransomware canary incident: {}", e);
-                }
-                #[cfg(feature = "gui")]
-                {
-                    self.emit_system_incident(&incident);
-                    self.emit_notification(&incident.title, &incident.description, "error");
-                    pass.kpi_incident_count = pass.kpi_incident_count.saturating_add(1);
-                }
-                if ransomware_canary::triggers_response(&canary) {
-                    pass.fim_alerts.push((
-                        canary.folder.to_string_lossy().to_string(),
-                        ransomware_canary::PLAYBOOK_CHANGE_TYPE.to_string(),
-                    ));
-                }
-                pass.incidents.push(incident);
-            }
+            self.check_ransomware_canaries(&mut pass).await;
 
             // 1. Process FIM alerts (always — security-critical even when paused)
             //    Collect all pending alerts first, then batch-upload to avoid 429 rate limits.

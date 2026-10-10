@@ -4,11 +4,13 @@
 //! Detection stages of the main loop: what was observed since the last pass
 //! and must reach the threat pipeline. They run on every pass, paused or not.
 
+use agent_fim::canary::CanaryIncident;
 use agent_scanner::SecurityIncident;
+use std::sync::atomic::Ordering;
 use tracing::{error, warn};
 
 use super::LoopPass;
-use crate::AgentRuntime;
+use crate::{AgentRuntime, ransomware_canary};
 
 impl AgentRuntime {
     /// Apply the indicator feeds refreshed in the background, if any.
@@ -58,15 +60,63 @@ impl AgentRuntime {
         self.report_process_start_incidents(pass, process_start_incidents)
             .await;
     }
+
+    /// Report tampered decoy folders: platform, interface, then the threat
+    /// pipeline of this pass (as a file change when it calls for a response).
+    pub(crate) async fn report_canary_incidents(
+        &self,
+        pass: &mut LoopPass,
+        canaries: Vec<CanaryIncident>,
+    ) {
+        for canary in canaries {
+            let incident = ransomware_canary::incident_from(&canary);
+            warn!("{}: {}", incident.title, canary.folder.display());
+            if let Err(e) = self.upload_incident(&incident).await {
+                error!("Failed to upload ransomware canary incident: {}", e);
+            }
+            #[cfg(feature = "gui")]
+            {
+                self.emit_system_incident(&incident);
+                self.emit_notification(&incident.title, &incident.description, "error");
+                pass.kpi_incident_count = pass.kpi_incident_count.saturating_add(1);
+            }
+            if ransomware_canary::triggers_response(&canary) {
+                pass.fim_alerts.push((
+                    canary.folder.to_string_lossy().to_string(),
+                    ransomware_canary::PLAYBOOK_CHANGE_TYPE.to_string(),
+                ));
+            }
+            pass.incidents.push(incident);
+        }
+    }
+
+    /// Ransomware canaries: restart the watcher when the option changed,
+    /// then report what it found. Always runs: security-critical even when
+    /// paused.
+    pub(crate) async fn check_ransomware_canaries(&self, pass: &mut LoopPass) {
+        if self
+            .state
+            .ransomware_canaries_changed
+            .swap(false, Ordering::AcqRel)
+        {
+            self.stop_ransomware_canaries();
+            self.start_ransomware_canaries().await;
+        }
+        let canaries = self.take_canary_incidents().await;
+        self.report_canary_incidents(pass, canaries).await;
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use crate::main_loop::LoopPass;
     use crate::main_loop::testing::standalone_runtime;
+    use crate::ransomware_canary;
+    use agent_fim::canary::{CanaryIncident, CanaryTamper};
     #[cfg(feature = "gui")]
     use agent_gui::events::AgentEvent;
     use agent_scanner::{IncidentSeverity, IncidentType, SecurityIncident};
+    use std::path::PathBuf;
 
     fn miner_started() -> SecurityIncident {
         SecurityIncident {
@@ -110,6 +160,64 @@ mod tests {
                 other => panic!("expected a notification, got {:?}", other.map(|_| ())),
             }
         }
+    }
+
+    fn canary(tamper: CanaryTamper) -> CanaryIncident {
+        CanaryIncident {
+            folder: PathBuf::from("/Users/alice/Documents/.0-archives-1a2b3c"),
+            tamper,
+            modified: vec![PathBuf::from(
+                "/Users/alice/Documents/.0-archives-1a2b3c/contrat-signe.pdf",
+            )],
+            missing: Vec::new(),
+            foreign: Vec::new(),
+            detected_at: chrono::Utc::now(),
+            while_stopped: false,
+        }
+    }
+
+    #[tokio::test]
+    async fn encrypted_decoys_reach_the_playbooks_as_a_file_change() {
+        let test = standalone_runtime();
+        let mut pass = LoopPass::new(true);
+
+        test.runtime
+            .report_canary_incidents(&mut pass, vec![canary(CanaryTamper::Encrypted)])
+            .await;
+
+        assert_eq!(pass.incidents.len(), 1);
+        assert_eq!(
+            pass.fim_alerts,
+            vec![(
+                "/Users/alice/Documents/.0-archives-1a2b3c".to_string(),
+                ransomware_canary::PLAYBOOK_CHANGE_TYPE.to_string()
+            )]
+        );
+        #[cfg(feature = "gui")]
+        {
+            assert_eq!(pass.kpi_incident_count, 1);
+            assert!(matches!(
+                test.events.try_recv(),
+                Ok(AgentEvent::SystemIncident { .. })
+            ));
+            assert!(matches!(
+                test.events.try_recv(),
+                Ok(AgentEvent::Notification { .. })
+            ));
+        }
+    }
+
+    #[tokio::test]
+    async fn removed_decoys_are_reported_without_triggering_a_response() {
+        let test = standalone_runtime();
+        let mut pass = LoopPass::new(false);
+
+        test.runtime
+            .report_canary_incidents(&mut pass, vec![canary(CanaryTamper::Removed)])
+            .await;
+
+        assert_eq!(pass.incidents.len(), 1);
+        assert!(pass.fim_alerts.is_empty());
     }
 
     #[tokio::test]
