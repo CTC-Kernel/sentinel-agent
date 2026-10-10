@@ -7,6 +7,7 @@
 mod compliance;
 mod detection;
 mod fim;
+mod maintenance;
 mod network;
 mod pass;
 mod pipeline;

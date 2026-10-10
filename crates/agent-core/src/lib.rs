@@ -1097,23 +1097,8 @@ impl AgentRuntime {
             // Check for force_sync flag (GUI "Forcer la synchronisation" button)
             self.forced_sync_stage(&mut st).await;
 
-            // Check for force_update flag (trigger from GUI button)
-            if self.state.force_update.swap(false, Ordering::AcqRel) {
-                // Release discovery is public and does not require platform
-                // enrollment, so standalone installations follow the same
-                // signed self-update path as connected agents.
-                if let Err(e) = self.run_self_update().await {
-                    warn!("Self-update failed: {}", e);
-                }
-            }
-
-            // Periodic background update check against the public catalog.
-            if st.last_update_check.elapsed().as_secs() >= UPDATE_CHECK_INTERVAL_SECS {
-                st.last_update_check = std::time::Instant::now();
-                if let Err(e) = self.run_scheduled_update_check().await {
-                    debug!("Scheduled update check did not complete: {}", e);
-                }
-            }
+            // Self-update: on request, and as a periodic background check
+            self.update_stage(&mut st).await;
 
             // Check for force_discovery flag (GUI network discovery)
             #[cfg(feature = "gui")]
