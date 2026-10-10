@@ -8,6 +8,7 @@ mod detection;
 mod fim;
 mod network;
 mod pass;
+mod pipeline;
 mod platform;
 mod scans;
 mod siem;
