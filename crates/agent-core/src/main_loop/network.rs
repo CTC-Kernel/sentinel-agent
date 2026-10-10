@@ -7,7 +7,7 @@
 use agent_gui::events::AgentEvent;
 use tracing::{info, warn};
 
-use super::LoopState;
+use super::{LoopPass, LoopState};
 use crate::AgentRuntime;
 
 impl AgentRuntime {
@@ -94,12 +94,101 @@ impl AgentRuntime {
             }
         }
     }
+
+    /// Collect the static network information (interfaces, routes, DNS)
+    /// when its interval has passed, and upload it. Skipped when paused or
+    /// without the platform's consent.
+    pub(crate) async fn network_static_stage(
+        &self,
+        st: &mut LoopState,
+        pass: &mut LoopPass,
+        network_allowed: bool,
+    ) {
+        if !pass.is_paused
+            && network_allowed
+            && st.last_network_static.elapsed() >= st.network_static_interval
+        {
+            pass.is_active = true;
+            match self.run_network_collection().await {
+                Ok(snapshot) => {
+                    #[cfg(feature = "gui")]
+                    {
+                        self.emit_gui_event(AgentEvent::NetworkUpdate {
+                            interfaces_count: u32::try_from(snapshot.interfaces.len())
+                                .unwrap_or(u32::MAX),
+                            connections_count: u32::try_from(snapshot.connections.len())
+                                .unwrap_or(u32::MAX),
+                            alerts_count: st.gui.last_network_alert_count,
+                            primary_ip: snapshot.primary_ip.clone(),
+                            primary_mac: snapshot.primary_mac.clone(),
+                        });
+                        let (interfaces, connections) = Self::snapshot_to_gui_network(&snapshot);
+                        self.emit_gui_event(AgentEvent::NetworkDetailUpdate {
+                            interfaces,
+                            connections,
+                        });
+                    }
+                    if let Err(e) = self.upload_network_snapshot(&snapshot).await {
+                        warn!("Failed to upload network snapshot: {}", e);
+                        #[cfg(feature = "gui")]
+                        self.emit_gui_event(AgentEvent::SyncStatus {
+                            syncing: false,
+                            pending_count: 0,
+                            last_sync_at: None,
+                            error: Some(format!("Network upload failed: {}", e)),
+                        });
+                    }
+                }
+                Err(e) => {
+                    warn!("Network static collection failed: {}", e);
+                    #[cfg(feature = "gui")]
+                    self.emit_gui_event(AgentEvent::SyncStatus {
+                        syncing: false,
+                        pending_count: 0,
+                        last_sync_at: None,
+                        error: Some(format!("Network static collection error: {}", e)),
+                    });
+                }
+            }
+            st.last_network_static = std::time::Instant::now();
+            let mut network_manager = self.network_manager.write().await;
+            st.network_static_interval = network_manager.next_static_interval();
+        }
+    }
 }
 
 #[cfg(all(test, feature = "gui"))]
 mod tests {
     use crate::main_loop::testing::standalone_runtime;
+    use crate::main_loop::{LoopPass, LoopState};
     use std::sync::atomic::Ordering;
+    use std::time::{Duration, Instant};
+
+    /// A state whose three network collections are overdue.
+    fn overdue() -> (LoopState, Instant) {
+        let started = Instant::now() - Duration::from_secs(3600);
+        (LoopState::starting_at(started, 6 * 3600, 3600), started)
+    }
+
+    #[tokio::test]
+    async fn static_collection_needs_consent_and_a_running_agent() {
+        let test = standalone_runtime();
+        let (mut st, started) = overdue();
+
+        let mut pass = LoopPass::new(false);
+        test.runtime
+            .network_static_stage(&mut st, &mut pass, false)
+            .await;
+        assert!(!pass.is_active);
+
+        let mut paused = LoopPass::new(true);
+        test.runtime
+            .network_static_stage(&mut st, &mut paused, true)
+            .await;
+        assert!(!paused.is_active);
+        // The timer is left as it was, so collection resumes at once.
+        assert_eq!(st.last_network_static, started);
+    }
 
     #[tokio::test]
     async fn initial_collection_is_skipped_without_the_platforms_consent() {
