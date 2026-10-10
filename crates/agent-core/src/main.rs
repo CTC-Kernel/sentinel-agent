@@ -1669,39 +1669,13 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                             info!("[AUDIT] GUI user proposed asset: {}", ip);
                             ctx.handle.propose_asset(ip, hostname, device_type);
                         }
-                        Ok(GuiCommand::UpdateCheckInterval { interval_secs }) => {
-                            info!("[AUDIT] GUI user updated check interval to {} seconds", interval_secs);
-                            ctx.handle.set_check_interval(interval_secs);
-                        }
-                        Ok(GuiCommand::UpdateAllowlist { rules }) => {
-                            info!(
-                                "[AUDIT] GUI updated triage authorizations: {} rule(s) [{}]",
-                                rules.len(),
-                                rules
-                                    .iter()
-                                    .map(|r| format!("{:?}={} by {}", r.rule_type, r.pattern, r.created_by))
-                                    .collect::<Vec<_>>()
-                                    .join(", ")
-                            );
-                            ctx.handle.set_allowlist_rules(rules);
-                        }
-                        Ok(GuiCommand::SetLogLevel { level }) => {
-                            ctx.handle.set_log_level(level);
-                        }
-                        Ok(GuiCommand::SetRansomwareCanaries { enabled }) => {
-                            info!("[AUDIT] GUI user set ransomware canary files to {}", enabled);
-                            // Applied now; persisted so it survives a restart.
-                            if let Err(e) = AgentConfig::persist_value_to(
-                                &AgentConfig::platform_config_path(),
-                                "ransomware_canaries",
-                                serde_json::Value::Bool(enabled),
-                            ) {
-                                warn!(
-                                    "Ransomware canary setting applied but not saved to the config file: {}",
-                                    e
-                                );
-                            }
-                            ctx.handle.state.set_ransomware_canaries(enabled);
+                        Ok(command @ (GuiCommand::UpdateCheckInterval { .. }
+                            | GuiCommand::UpdateAllowlist { .. }
+                            | GuiCommand::SetLogLevel { .. }
+                            | GuiCommand::SetRansomwareCanaries { .. }
+                            | GuiCommand::UpdateSiemConfig { .. }
+                            | GuiCommand::UpdateLogCollectorConfig { .. })) => {
+                            gui_commands::settings::handle(&mut ctx, command).await;
                         }
                         Ok(GuiCommand::Remediate { check_id }) => {
                             info!("[AUDIT] GUI user requested remediation for check: {}", check_id);
@@ -1827,47 +1801,7 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
 
 
 
-                        Ok(GuiCommand::UpdateSiemConfig {
-                            enabled,
-                            format,
-                            transport,
-                            destination,
-                        }) => {
-                            info!(
-                                "[AUDIT] SIEM config updated via GUI: enabled={}, format={}, transport={}, dest={}",
-                                enabled, format, transport, destination
-                            );
-                            // Update the runtime SIEM config and notify the GUI
-                            ctx.handle.update_siem_config(
-                                enabled,
-                                format.clone(),
-                                transport.clone(),
-                                destination.clone(),
-                            );
-                            let _ = ctx.events.send(AgentEvent::SiemConfigUpdate {
-                                enabled,
-                                format,
-                                transport,
-                                destination,
-                            });
-                        }
 
-                        Ok(GuiCommand::UpdateLogCollectorConfig {
-                            enabled,
-                            sources,
-                            poll_interval_secs,
-                        }) => {
-                            info!(
-                                "[AUDIT] Log collector config updated via GUI: enabled={}, sources={:?}, poll={}s",
-                                enabled, sources, poll_interval_secs
-                            );
-                            // Update runtime log collector config
-                            ctx.handle.update_log_collector_config(
-                                enabled,
-                                &sources,
-                                poll_interval_secs,
-                            );
-                        }
 
                         Err(mpsc::TryRecvError::Empty) => {
                             tokio::time::sleep(std::time::Duration::from_millis(100)).await;
