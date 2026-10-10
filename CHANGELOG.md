@@ -10,6 +10,22 @@ Tous les changements notables apportés au projet **Sentinel GRC Agent** sont co
 
 ## 🚀 [Non publié]
 
+### 🛡️ Réponse : la quarantaine refuse les dossiers et protège mieux l'agent
+
+- **Fichiers uniquement** : la mise en quarantaine refuse tout ce qui n'est pas
+  un fichier ordinaire. Un playbook visant un dossier (`/etc/sentinel`,
+  `/var/lib`, un dossier personnel…) le déplaçait en entier dans la
+  quarantaine, avec tout son contenu.
+- **Protection de l'agent étendue** : un dossier qui contient un chemin protégé
+  est refusé au même titre que ce chemin, à la mise en quarantaine comme à la
+  restauration, et tout le dossier de configuration est protégé (plus
+  seulement `agent.json`). Un dossier déjà en quarantaine reste restaurable.
+- **Destination de restauration toujours vérifiée** : un chemin d'origine
+  relatif réduit à un nom de fichier échappait au contrôle de la destination,
+  et le fichier était restauré dans le dossier de travail de l'agent — la
+  racine du système pour le service. Il est désormais résolu puis contrôlé
+  comme les autres, et une destination impossible à résoudre est refusée.
+
 ### 🛡️ Sécurité : la surveillance d'intégrité n'ignore plus les fichiers nommés « sentinel »
 
 - **Contournement corrigé** : les exclusions `dossier/**` étaient comparées en

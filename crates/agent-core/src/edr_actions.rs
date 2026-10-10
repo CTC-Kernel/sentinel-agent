@@ -53,6 +53,34 @@ fn quarantine_dir() -> PathBuf {
     TEST_QUARANTINE.with(|directory| directory.path().to_path_buf())
 }
 
+/// Paths that belong to the agent itself or to the operating system, as
+/// configured -- see [`protected_paths`] for the canonicalized list the guard
+/// compares against.
+fn protected_path_candidates() -> Vec<PathBuf> {
+    let config_path = agent_common::config::AgentConfig::platform_config_path();
+    let mut paths = vec![
+        agent_common::config::AgentConfig::platform_data_dir(),
+        quarantine_dir(),
+    ];
+
+    // The whole configuration directory, not only `agent.json`: on Linux it is
+    // separate from the data directory (/etc/sentinel) and also holds
+    // `llm.json` and the CA certificate.
+    if let Some(config_dir) = config_path.parent() {
+        paths.push(config_dir.to_path_buf());
+    }
+    paths.push(config_path);
+
+    if let Ok(exe) = std::env::current_exe() {
+        paths.push(exe);
+    }
+
+    paths.extend(crate::logging::log_dir_candidates());
+    paths.extend(SYSTEM_CRITICAL_DIRS.iter().map(PathBuf::from));
+
+    paths
+}
+
 /// Canonicalized paths that belong to the agent itself or to the operating
 /// system, and must never be moved into (or restored out of) quarantine.
 ///
@@ -62,37 +90,46 @@ fn quarantine_dir() -> PathBuf {
 /// Non-existent paths are dropped by canonicalization -- they cannot be a
 /// quarantine target anyway, since `quarantine_file` requires the file to exist.
 fn protected_paths() -> Vec<PathBuf> {
-    let mut paths = vec![
-        agent_common::config::AgentConfig::platform_config_path(),
-        agent_common::config::AgentConfig::platform_data_dir(),
-        quarantine_dir(),
-    ];
-
-    if let Ok(exe) = std::env::current_exe() {
-        paths.push(exe);
-    }
-
-    paths.extend(crate::logging::log_dir_candidates());
-    paths.extend(SYSTEM_CRITICAL_DIRS.iter().map(PathBuf::from));
-
-    paths.iter().filter_map(|p| p.canonicalize().ok()).collect()
+    protected_path_candidates()
+        .iter()
+        .filter_map(|p| p.canonicalize().ok())
+        .collect()
 }
 
-/// Whether `target` is, or lives inside, a protected path.
+/// Whether `target` is a protected path, lives inside one, or contains one.
 ///
 /// `target` must already be canonicalized so symlinks cannot be used to slip a
 /// protected path past the comparison.
 fn is_protected_target(target: &Path, protected: &[PathBuf]) -> bool {
-    // A file sitting directly at the filesystem root is system-critical.
-    // Handled here because listing "/" as a prefix would match everything.
-    if target.parent() == Some(Path::new("/")) {
+    // The filesystem root, or an entry sitting directly under it, is
+    // system-critical. Handled here because listing "/" as a prefix would
+    // match everything.
+    if target.parent().is_none() || target.parent() == Some(Path::new("/")) {
         return true;
     }
     // `starts_with` is component-wise, so "/usr/bindings" does not match
-    // "/usr/bin".
+    // "/usr/bin". It is checked in both directions: moving an ancestor of a
+    // protected path ("/etc/sentinel" for "/etc/sentinel/agent.json") takes
+    // the protected path along with it.
     protected
         .iter()
-        .any(|p| target == p || target.starts_with(p))
+        .any(|p| target.starts_with(p) || p.starts_with(target))
+}
+
+/// Canonical destination of a restore, or `None` when it cannot be resolved.
+///
+/// The file does not exist yet at the destination, so the parent is
+/// canonicalized and the file name re-attached. A bare relative name ("foo")
+/// has an empty parent, which stands for the current directory -- that is
+/// where `rename` puts it. A path with no file name (the root, or one ending
+/// in "..") names no entry to restore to.
+fn resolve_restore_target(restore_path: &Path) -> Option<PathBuf> {
+    let name = restore_path.file_name()?;
+    let parent = match restore_path.parent()? {
+        parent if parent.as_os_str().is_empty() => Path::new("."),
+        parent => parent,
+    };
+    parent.canonicalize().ok().map(|parent| parent.join(name))
 }
 
 /// Kill a process by name and PID.
@@ -216,6 +253,28 @@ pub async fn quarantine_file(path: &str) -> Result<String, CommonError> {
         )));
     }
 
+    // Only regular files are quarantined. `rename` moves a directory as readily
+    // as a file, so a directory target would be swept into the store with
+    // everything beneath it. The path is canonical, so `symlink_metadata` sees
+    // the target itself: a directory, a socket, a device node -- or a link
+    // swapped in since canonicalization.
+    let file_type = tokio::fs::symlink_metadata(&source)
+        .await
+        .map_err(|e| {
+            CommonError::internal(format!("Failed to inspect '{}': {}", source.display(), e))
+        })?
+        .file_type();
+    if !file_type.is_file() {
+        warn!(
+            "Refused to quarantine '{}': not a regular file",
+            source.display()
+        );
+        return Err(CommonError::internal(format!(
+            "Refusing to quarantine '{}': not a regular file",
+            source.display()
+        )));
+    }
+
     // Create quarantine directory under the local data directory
     let quarantine_dir = quarantine_dir();
 
@@ -292,20 +351,19 @@ pub async fn restore_quarantined_file(quarantine_id: &str) -> Result<(), CommonE
     //
     // The metadata file is attacker-influenced (it records whatever path was
     // quarantined), so this validates the *destination* rather than trusting it.
-    let restore_path = Path::new(original_path);
-    let protected = protected_paths();
-    // The file does not exist yet at the destination, so canonicalize the
-    // parent and re-attach the file name.
-    let canonical_target = restore_path
-        .parent()
-        .and_then(|p| p.canonicalize().ok())
-        .map(|parent| match restore_path.file_name() {
-            Some(name) => parent.join(name),
-            None => parent,
-        });
-    if let Some(ref target) = canonical_target
-        && is_protected_target(target, &protected)
-    {
+    // It fails closed: a destination that cannot be resolved cannot be checked,
+    // so it is refused rather than handed to `rename` unchecked.
+    let Some(target) = resolve_restore_target(Path::new(original_path)) else {
+        warn!(
+            "Refused to restore to '{}': destination cannot be resolved",
+            original_path
+        );
+        return Err(CommonError::internal(format!(
+            "Refusing to restore to '{}': destination cannot be resolved",
+            original_path
+        )));
+    };
+    if is_protected_target(&target, &protected_paths()) {
         warn!(
             "Anti-Draper triggered: refused to restore into protected path '{}'",
             original_path
@@ -316,7 +374,9 @@ pub async fn restore_quarantined_file(quarantine_id: &str) -> Result<(), CommonE
         )));
     }
 
-    // Restore file to its original location
+    // Restore file to its original location. No file-type check here, unlike
+    // `quarantine_file`: a directory quarantined before that check existed has
+    // no other way back.
     tokio::fs::rename(&quarantined_file, original_path)
         .await
         .map_err(|e| CommonError::internal(format!("Failed to restore file: {}", e)))?;
@@ -746,6 +806,45 @@ mod tests {
         let protected: Vec<PathBuf> = vec![];
         assert!(is_protected_target(Path::new("/vmlinuz"), &protected));
         assert!(!is_protected_target(Path::new("/tmp/evil"), &protected));
+        // The root itself has no parent, so it needs its own case.
+        assert!(is_protected_target(Path::new("/"), &protected));
+    }
+
+    /// Moving a directory takes everything beneath it along, so an ancestor of
+    /// a protected path is as dangerous a target as the path itself. Listing
+    /// the config *file* must therefore also cover the directory holding it.
+    #[test]
+    fn test_is_protected_target_refuses_ancestors() {
+        let protected = vec![
+            PathBuf::from("/etc/sentinel/agent.json"),
+            PathBuf::from("/var/lib/sentinel-grc"),
+        ];
+
+        assert!(is_protected_target(Path::new("/etc/sentinel"), &protected));
+        assert!(is_protected_target(Path::new("/var/lib"), &protected));
+        // The comparison stays component-wise in this direction too: "/var/li"
+        // is not an ancestor of "/var/lib/sentinel-grc".
+        assert!(!is_protected_target(Path::new("/var/li"), &protected));
+        // Neighbours of a protected path are not ancestors of it.
+        assert!(!is_protected_target(Path::new("/etc/cron.d"), &protected));
+        assert!(!is_protected_target(
+            Path::new("/etc/sentinel/dropped.bin"),
+            &protected
+        ));
+    }
+
+    /// Only `agent.json` used to be listed, which left its neighbours
+    /// quarantinable one by one. This bites on Linux, where the config
+    /// directory is not also the data directory.
+    #[test]
+    fn test_protected_candidates_cover_config_directory() {
+        let config = agent_common::config::AgentConfig::platform_config_path();
+        let sibling = config.with_file_name("llm.json");
+        assert!(
+            is_protected_target(&sibling, &protected_path_candidates()),
+            "files next to {:?} must be protected",
+            config
+        );
     }
 
     #[test]
@@ -821,6 +920,65 @@ mod tests {
         }
     }
 
+    // ── quarantine: regular files only ──────────────────────────────────
+
+    /// Number of entries in the (per-test) quarantine store.
+    fn quarantine_store_len() -> usize {
+        std::fs::read_dir(quarantine_dir())
+            .map(|entries| entries.count())
+            .unwrap_or(0)
+    }
+
+    /// `rename` moves a directory as readily as a file. Without a file-type
+    /// check, a playbook naming a directory sweeps it into the store with
+    /// everything beneath it -- including a protected file, when only the file
+    /// and not its directory is on the protected list.
+    #[tokio::test]
+    async fn test_quarantine_refuses_directories() {
+        // Same shape as /etc/sentinel/agent.json: a directory holding a file.
+        let dir = tempfile::tempdir().unwrap();
+        let config_dir = dir.path().join("sentinel");
+        std::fs::create_dir(&config_dir).unwrap();
+        let config_file = config_dir.join("agent.json");
+        std::fs::write(&config_file, b"{}").unwrap();
+        let stored_before = quarantine_store_len();
+
+        let result = quarantine_file(config_dir.to_str().unwrap()).await;
+        assert!(
+            config_file.exists(),
+            "the directory was moved into quarantine with its contents, got: {:?}",
+            result
+        );
+        let msg = result
+            .expect_err("a directory must not be quarantined")
+            .to_string();
+        assert!(
+            msg.contains("not a regular file"),
+            "expected a file-type refusal, got: {}",
+            msg
+        );
+        // A refusal must not leave an orphan metadata file behind.
+        assert_eq!(quarantine_store_len(), stored_before);
+    }
+
+    /// Sockets, FIFOs and device nodes are renamed just as readily, and are
+    /// not files to quarantine either.
+    #[cfg(unix)]
+    #[tokio::test]
+    async fn test_quarantine_refuses_special_files() {
+        let dir = tempfile::tempdir().unwrap();
+        let socket = dir.path().join("s");
+        let _listener = std::os::unix::net::UnixListener::bind(&socket).unwrap();
+
+        let result = quarantine_file(socket.to_str().unwrap()).await;
+        assert!(
+            socket.exists(),
+            "the socket was moved into quarantine, got: {:?}",
+            result
+        );
+        assert!(result.is_err(), "a socket must not be quarantined");
+    }
+
     // ── backend resolution ──────────────────────────────────────────────
 
     #[tokio::test]
@@ -863,10 +1021,11 @@ mod tests {
         );
 
         // A path with ".." that technically resolves to an existing dir
-        // (e.g., /tmp/../tmp) would be canonicalized to /tmp, but since
-        // quarantine_file operates on files and /tmp is a directory, the
-        // rename would fail. We verify the canonicalization happens by
-        // creating a temp file with a traversal path.
+        // (e.g., /tmp/../tmp) would be canonicalized to /tmp, which
+        // quarantine_file refuses because it is not a regular file (see
+        // test_quarantine_refuses_directories). We verify the
+        // canonicalization happens by creating a temp file with a traversal
+        // path.
         let dir = tempfile::tempdir().unwrap();
         let real_file = dir.path().join("secret.txt");
         std::fs::write(&real_file, b"test").unwrap();
@@ -980,6 +1139,128 @@ mod tests {
         let _ = tokio::fs::remove_file(qdir.join(&quarantine_id)).await;
         let _ = tokio::fs::remove_file(&meta_path).await;
         let _ = quarantine_dir.close();
+    }
+
+    /// Writes the metadata file of a quarantine entry, as `quarantine_file`
+    /// would have for `original_path`.
+    async fn write_quarantine_metadata(quarantine_id: &str, original_path: &Path) {
+        let metadata = serde_json::json!({
+            "original_path": original_path.to_str().unwrap(),
+            "quarantined_at": chrono::Utc::now().to_rfc3339(),
+            "file_name": original_path.file_name().map(|n| n.to_string_lossy().to_string()),
+        });
+        tokio::fs::write(
+            super::quarantine_dir().join(format!("{}.meta", quarantine_id)),
+            serde_json::to_string_pretty(&metadata).unwrap(),
+        )
+        .await
+        .unwrap();
+    }
+
+    /// Restore shares the policy of quarantine, ancestors included: metadata
+    /// naming a directory that holds a protected path is refused up front,
+    /// rather than left to `rename` failing on a non-empty directory.
+    #[tokio::test]
+    async fn test_restore_rejects_ancestor_of_protected_path() {
+        let src_dir = tempfile::tempdir().unwrap();
+        let src_file = src_dir.path().join("testfile.txt");
+        std::fs::write(&src_file, b"test data").unwrap();
+        let quarantine_id = quarantine_file(src_file.to_str().unwrap())
+            .await
+            .expect("quarantine should succeed");
+
+        // The quarantine store is protected, and this directory holds it.
+        let qdir = super::quarantine_dir();
+        let ancestor = qdir.parent().expect("store has a parent");
+        write_quarantine_metadata(&quarantine_id, ancestor).await;
+
+        let result = restore_quarantined_file(&quarantine_id).await;
+        let err_msg = result
+            .expect_err("restore onto an ancestor of a protected path must be rejected")
+            .to_string();
+        assert!(
+            err_msg.contains("system-critical"),
+            "expected a policy refusal, got: {}",
+            err_msg
+        );
+        assert!(
+            qdir.join(&quarantine_id).exists(),
+            "a refused restore must leave the entry in the store"
+        );
+    }
+
+    /// Restore deliberately keeps accepting a directory: an entry quarantined
+    /// before `quarantine_file` refused directories has no other way back.
+    #[tokio::test]
+    async fn test_restore_returns_previously_quarantined_directory() {
+        let dest_dir = tempfile::tempdir().unwrap();
+        let original = dest_dir.path().join("swept");
+
+        // What the store holds after a directory went through `rename`.
+        let qdir = super::quarantine_dir();
+        let quarantine_id = uuid::Uuid::new_v4().to_string();
+        std::fs::create_dir(qdir.join(&quarantine_id)).unwrap();
+        std::fs::write(qdir.join(&quarantine_id).join("inner.txt"), b"data").unwrap();
+        write_quarantine_metadata(&quarantine_id, &original).await;
+
+        let result = restore_quarantined_file(&quarantine_id).await;
+        assert!(
+            result.is_ok(),
+            "a quarantined directory must stay restorable, got: {:?}",
+            result.err()
+        );
+        assert!(original.join("inner.txt").exists());
+    }
+
+    /// A bare relative name has an empty parent, which used to leave the
+    /// destination unresolved and the check skipped, while `rename` went on to
+    /// restore it into the working directory -- "/" for the daemon. It now
+    /// resolves there, so a protected working directory refuses it.
+    #[test]
+    fn test_restore_target_resolves_bare_name_in_working_directory() {
+        let cwd = std::env::current_dir()
+            .and_then(|dir| dir.canonicalize())
+            .expect("resolve working directory");
+
+        let target = resolve_restore_target(Path::new("restored.bin"))
+            .expect("a bare relative name must resolve");
+        assert_eq!(target, cwd.join("restored.bin"));
+        assert!(is_protected_target(&target, std::slice::from_ref(&cwd)));
+
+        // No file name: these name no entry to restore to.
+        for unresolvable in ["", "/", ".."] {
+            assert_eq!(resolve_restore_target(Path::new(unresolvable)), None);
+        }
+    }
+
+    /// Fail closed: a destination that cannot be resolved cannot be checked,
+    /// so restore refuses it instead of handing it to `rename` unchecked.
+    #[tokio::test]
+    async fn test_restore_refuses_unresolvable_destination() {
+        let src_dir = tempfile::tempdir().unwrap();
+        let src_file = src_dir.path().join("testfile.txt");
+        std::fs::write(&src_file, b"test data").unwrap();
+        let quarantine_id = quarantine_file(src_file.to_str().unwrap())
+            .await
+            .expect("quarantine should succeed");
+
+        // The parent directory does not exist, so it cannot be canonicalized.
+        let missing = src_dir.path().join("gone").join("testfile.txt");
+        write_quarantine_metadata(&quarantine_id, &missing).await;
+
+        let result = restore_quarantined_file(&quarantine_id).await;
+        let err_msg = result
+            .expect_err("restore to an unresolvable destination must be rejected")
+            .to_string();
+        assert!(
+            err_msg.contains("cannot be resolved"),
+            "expected a refusal ahead of the rename, got: {}",
+            err_msg
+        );
+        assert!(
+            super::quarantine_dir().join(&quarantine_id).exists(),
+            "a refused restore must leave the entry in the store"
+        );
     }
 
     // ── block_ip: loopback rejection ────────────────────────────────────
