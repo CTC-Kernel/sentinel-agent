@@ -9,6 +9,45 @@ use tracing::{debug, info, warn};
 
 use super::{CommandContext, expected};
 
+/// The first hundred characters of a text, for the audit trail. Cut on a
+/// character boundary: French prompts routinely contain multi-byte ones.
+fn audit_preview(text: &str) -> String {
+    if text.chars().count() > 100 {
+        format!("{}...", text.chars().take(97).collect::<String>())
+    } else {
+        text.to_string()
+    }
+}
+
+/// Record in the audit trail that the operator asked the AI model something.
+fn log_ai_interaction(ctx: &mut CommandContext, task: &'static str, prompt_preview: String) {
+    if let Some(ref trail) = ctx.audit_trail {
+        let trail = std::sync::Arc::clone(trail);
+        ctx.tasks.spawn_expected(task, expected::SHORT, async move {
+            trail
+                .log(
+                    agent_core::audit_trail::AuditAction::AIInteraction { prompt_preview },
+                    "user",
+                    None,
+                )
+                .await;
+        });
+    }
+}
+
+/// An analysis of the AI model made of text only, for the item `target`.
+fn analysis_text(target: String, analysis: String) -> AgentEvent {
+    AgentEvent::LlmAnalysisComplete {
+        target,
+        analysis,
+        severity_override: None,
+        is_false_positive: None,
+        confidence: None,
+        ai_remediation_script: None,
+        ai_remediation_explanation: None,
+    }
+}
+
 /// Run one command of this group.
 pub(crate) async fn handle(ctx: &mut CommandContext, command: GuiCommand) {
     match command {
@@ -130,29 +169,7 @@ async fn llm_prompt(
     speak_response: bool,
 ) {
     info!("[AUDIT] GUI sent LLM prompt ({} chars)", prompt.len());
-    if let Some(ref trail) = ctx.audit_trail {
-        let trail: std::sync::Arc<agent_core::audit_trail::LocalAuditTrail> =
-            std::sync::Arc::clone(trail);
-        // Audit previews must truncate on Unicode scalar boundaries:
-        // French prompts routinely contain multi-byte characters.
-        let prompt_cut = if prompt.chars().count() > 100 {
-            format!("{}...", prompt.chars().take(97).collect::<String>())
-        } else {
-            prompt.clone()
-        };
-        ctx.tasks
-            .spawn_expected("llm prompt: audit trail", expected::SHORT, async move {
-                trail
-                    .log(
-                        agent_core::audit_trail::AuditAction::AIInteraction {
-                            prompt_preview: prompt_cut,
-                        },
-                        "user",
-                        None,
-                    )
-                    .await;
-            });
-    }
+    log_ai_interaction(ctx, "llm prompt: audit trail", audit_preview(&prompt));
     let tx = ctx.events.clone();
     let remote = ctx.remote_ai.clone();
     let svc = ctx.llm_service.clone();
@@ -669,27 +686,11 @@ async fn llm_analyze_vulnerability(
         "[AUDIT] GUI requested LLM vulnerability analysis for finding #{}",
         finding_index
     );
-    if let Some(ref trail) = ctx.audit_trail {
-        let trail = std::sync::Arc::clone(trail);
-        ctx.tasks.spawn_expected(
-            "llm analyze vulnerability: audit trail",
-            expected::SHORT,
-            async move {
-                trail
-                    .log(
-                        agent_core::audit_trail::AuditAction::AIInteraction {
-                            prompt_preview: format!(
-                                "Vulnerability analysis index: #{}",
-                                finding_index
-                            ),
-                        },
-                        "user",
-                        None,
-                    )
-                    .await;
-            },
-        );
-    }
+    log_ai_interaction(
+        ctx,
+        "llm analyze vulnerability: audit trail",
+        format!("Vulnerability analysis index: #{}", finding_index),
+    );
     let tx = ctx.events.clone();
     let svc = ctx.llm_service.clone();
     let handle = ctx.handle.clone();
@@ -737,27 +738,14 @@ async fn llm_analyze_vulnerability(
                     if let Some(finding) = finding {
                         match svc.analyze_vulnerability(&finding).await {
                             Ok(analysis) => {
-                                let _ = tx.send(AgentEvent::LlmAnalysisComplete {
-                                    target: target.clone(),
-                                    analysis,
-                                    severity_override: None,
-                                    is_false_positive: None,
-                                    confidence: None,
-                                    ai_remediation_script: None,
-                                    ai_remediation_explanation: None,
-                                });
+                                let _ = tx.send(analysis_text(target.clone(), analysis));
                             }
                             Err(e) => {
                                 warn!("LLM vulnerability analysis error: {}", e);
-                                let _ = tx.send(AgentEvent::LlmAnalysisComplete {
+                                let _ = tx.send(analysis_text(
                                     target,
-                                    analysis: format!("Erreur d'analyse : {}", e),
-                                    severity_override: None,
-                                    is_false_positive: None,
-                                    confidence: None,
-                                    ai_remediation_script: None,
-                                    ai_remediation_explanation: None,
-                                });
+                                    format!("Erreur d'analyse : {}", e),
+                                ));
                             }
                         }
                         return;
@@ -770,15 +758,10 @@ async fn llm_analyze_vulnerability(
                 }
             }
             let _ = svc;
-            let _ = tx.send(AgentEvent::LlmAnalysisComplete {
+            let _ = tx.send(analysis_text(
                 target,
-                analysis: "Module IA non disponible ou finding introuvable.".to_string(),
-                severity_override: None,
-                is_false_positive: None,
-                confidence: None,
-                ai_remediation_script: None,
-                ai_remediation_explanation: None,
-            });
+                "Module IA non disponible ou finding introuvable.".to_string(),
+            ));
         },
     );
 }
@@ -1024,32 +1007,14 @@ async fn llm_classify_threat(
         "[AUDIT] GUI requested LLM threat classification: {}",
         description_preview
     );
-    if let Some(ref trail) = ctx.audit_trail {
-        let trail = std::sync::Arc::clone(trail);
-        let desc_cut = if event_description.chars().count() > 100 {
-            format!(
-                "{}...",
-                event_description.chars().take(97).collect::<String>()
-            )
-        } else {
-            event_description.clone()
-        };
-        ctx.tasks.spawn_expected(
-            "llm classify threat: audit trail",
-            expected::SHORT,
-            async move {
-                trail
-                    .log(
-                        agent_core::audit_trail::AuditAction::AIInteraction {
-                            prompt_preview: format!("Threat classification: {}", desc_cut),
-                        },
-                        "user",
-                        None,
-                    )
-                    .await;
-            },
-        );
-    }
+    log_ai_interaction(
+        ctx,
+        "llm classify threat: audit trail",
+        format!(
+            "Threat classification: {}",
+            audit_preview(&event_description)
+        ),
+    );
     let tx = ctx.events.clone();
     let svc = ctx.llm_service.clone();
     ctx.tasks.spawn_expected("llm classify threat", expected::ANALYSIS, async move {
@@ -1092,15 +1057,7 @@ async fn llm_classify_threat(
                     }
                     Err(e) => {
                         warn!("LLM threat classification error: {}", e);
-                        let _ = tx.send(AgentEvent::LlmAnalysisComplete {
-                            target: target_id.clone(),
-                            analysis: format!("Erreur de classification : {}", e),
-                            severity_override: None,
-                            is_false_positive: None,
-                            confidence: None,
-                            ai_remediation_script: None,
-                            ai_remediation_explanation: None,
-                        });
+                        let _ = tx.send(analysis_text(target_id.clone(), format!("Erreur de classification : {}", e)));
                     }
                 }
                 return;
@@ -1108,15 +1065,7 @@ async fn llm_classify_threat(
         }
         let _ = svc;
         let _ = start;
-        let _ = tx.send(AgentEvent::LlmAnalysisComplete {
-            target: target_id,
-            analysis: "Modèle IA non disponible pour la classification des menaces.".to_string(),
-            severity_override: None,
-            is_false_positive: None,
-            confidence: None,
-            ai_remediation_script: None,
-            ai_remediation_explanation: None,
-        });
+        let _ = tx.send(analysis_text(target_id, "Modèle IA non disponible pour la classification des menaces.".to_string()));
     });
 }
 
@@ -1133,25 +1082,11 @@ async fn llm_analyze_risk(
         "[AUDIT] GUI requested AI risk analysis for: {} (prob={}, impact={})",
         risk_title, current_probability, current_impact
     );
-    if let Some(ref trail) = ctx.audit_trail {
-        let trail = std::sync::Arc::clone(trail);
-        let title_copy = risk_title.clone();
-        ctx.tasks.spawn_expected(
-            "llm analyze risk: audit trail",
-            expected::SHORT,
-            async move {
-                trail
-                    .log(
-                        agent_core::audit_trail::AuditAction::AIInteraction {
-                            prompt_preview: format!("Risk analysis: {}", title_copy),
-                        },
-                        "user",
-                        None,
-                    )
-                    .await;
-            },
-        );
-    }
+    log_ai_interaction(
+        ctx,
+        "llm analyze risk: audit trail",
+        format!("Risk analysis: {}", risk_title),
+    );
     let _ = &risk_description; // used inside #[cfg(feature = "llm")] below
     let tx = ctx.events.clone();
     let svc = ctx.llm_service.clone();
@@ -1218,4 +1153,61 @@ async fn llm_analyze_risk(
             mitigation_suggestions: vec![],
         });
     });
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::gui_commands::testing;
+
+    #[test]
+    fn a_short_prompt_is_kept_whole_in_the_audit_trail() {
+        assert_eq!(
+            audit_preview("Que faire du CVE-2026-1234 ?"),
+            "Que faire du CVE-2026-1234 ?"
+        );
+        let exactly_100 = "é".repeat(100);
+        assert_eq!(audit_preview(&exactly_100), exactly_100);
+    }
+
+    #[test]
+    fn a_long_prompt_is_cut_on_a_character_boundary() {
+        // Multi-byte characters: cutting on bytes would panic or garble.
+        let prompt = "é".repeat(150);
+        let preview = audit_preview(&prompt);
+        assert_eq!(preview.chars().count(), 100);
+        assert_eq!(preview, format!("{}...", "é".repeat(97)));
+    }
+
+    #[test]
+    fn a_text_analysis_carries_no_verdict() {
+        match analysis_text(
+            "finding-1".to_string(),
+            "Mise à jour disponible.".to_string(),
+        ) {
+            AgentEvent::LlmAnalysisComplete {
+                target,
+                analysis,
+                severity_override,
+                is_false_positive,
+                confidence,
+                ai_remediation_script,
+                ai_remediation_explanation,
+            } => {
+                assert_eq!(target, "finding-1");
+                assert_eq!(analysis, "Mise à jour disponible.");
+                assert!(severity_override.is_none() && is_false_positive.is_none());
+                assert!(confidence.is_none());
+                assert!(ai_remediation_script.is_none() && ai_remediation_explanation.is_none());
+            }
+            _ => panic!("expected an analysis"),
+        }
+    }
+
+    #[tokio::test]
+    async fn without_an_audit_trail_nothing_is_logged() {
+        let (mut ctx, _events) = testing::context();
+        log_ai_interaction(&mut ctx, "llm prompt: audit trail", "question".to_string());
+        assert!(ctx.tasks.is_empty());
+    }
 }
