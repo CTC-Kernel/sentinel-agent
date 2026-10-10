@@ -170,132 +170,40 @@ async fn llm_prompt(
 ) {
     info!("[AUDIT] GUI sent LLM prompt ({} chars)", prompt.len());
     log_ai_interaction(ctx, "llm prompt: audit trail", audit_preview(&prompt));
-    let tx = ctx.events.clone();
     let remote = ctx.remote_ai.clone();
     let svc = ctx.llm_service.clone();
     #[cfg(feature = "voice")]
     let voice: Option<std::sync::Arc<agent_core::voice::VoiceService>> = ctx.voice_service.clone();
     #[cfg(feature = "voice")]
     let voice_epoch = voice.as_ref().map_or(0, |v| v.speech_generation());
-    #[cfg(not(feature = "voice"))]
-    let _ = speak_response;
     let cancel = std::sync::Arc::new(std::sync::atomic::AtomicBool::new(false));
     if let Ok(mut slot) = ctx.llm_cancel.lock()
         && let Some(previous) = slot.replace(cancel.clone())
     {
         previous.store(true, std::sync::atomic::Ordering::SeqCst);
     }
+    let job = PromptJob {
+        tx: ctx.events.clone(),
+        prompt,
+        context,
+        speak_response,
+        cancel,
+        #[cfg(feature = "voice")]
+        voice,
+        #[cfg(feature = "voice")]
+        voice_epoch,
+    };
     ctx.tasks.spawn_expected("llm prompt", expected::ANALYSIS, async move {
         let start = std::time::Instant::now();
         if remote.settings.provider != agent_gui::ai_provider::AiProvider::Local {
-            let context_label = context.map(|value| value.label_fr()).unwrap_or("Général");
-            let (system, prompt) =
-                agent_core::llm_stream::assistant_prompt(&prompt, context_label, speak_response);
-            let mut forward = agent_core::llm_stream::DeltaForwarder::new(tx.clone());
-            #[cfg(feature = "voice")]
-            let mut speech = if speak_response {
-                voice.as_ref().and_then(|v| v.speak_stream(voice_epoch))
-            } else {
-                None
-            };
-            let result = remote
-                .infer(&system, &prompt, cancel.clone(), &mut |delta| {
-                    forward.push(delta);
-                    #[cfg(feature = "voice")]
-                    if let Some(speech) = speech.as_mut() {
-                        speech.push(delta);
-                    }
-                })
-                .await;
-            forward.flush();
-            let message = match result {
-                Ok(text) => text,
-                Err(error) => agent_core::llm_stream::interrupted_answer(
-                    forward.text(),
-                    cancel.load(std::sync::atomic::Ordering::SeqCst),
-                    &error,
-                ),
-            };
-            let _ = tx.send(AgentEvent::LlmChatResponse {
-                message,
-                processing_time_ms: start.elapsed().as_millis() as u64,
-            });
-            #[cfg(feature = "voice")]
-            if let Some(speech) = speech {
-                speech.finish();
-            }
+            job.answer_remotely(&remote, start).await;
             return;
         }
         #[cfg(feature = "llm")]
         {
             if let Some(ref svc) = svc {
                 if let Some(manager) = svc.get_manager().await {
-                    let context_label = context.map(|value| value.label_fr()).unwrap_or("Général");
-                    let (system_prompt, prompt) = agent_core::llm_stream::assistant_prompt(
-                        &prompt,
-                        context_label,
-                        speak_response,
-                    );
-                    let max_tokens = if speak_response { 400 } else { 640 };
-                    let req = agent_llm::engine::InferenceRequest::new(&prompt)
-                        .with_system_prompt(system_prompt)
-                        .with_max_tokens(max_tokens)
-                        .with_temperature(0.2)
-                        .with_cancel(cancel.clone());
-                    // Stream the answer: the GUI shows it as it is written
-                    // and the voice starts with the first sentence.
-                    let mut forward = agent_core::llm_stream::DeltaForwarder::new(tx.clone());
-                    #[cfg(feature = "voice")]
-                    let mut speech = if speak_response {
-                        voice.as_ref().and_then(|v| v.speak_stream(voice_epoch))
-                    } else {
-                        None
-                    };
-                    let result = manager
-                        .engine()
-                        .infer_stream(req, &mut |delta: &str| {
-                            forward.push(delta);
-                            #[cfg(feature = "voice")]
-                            if let Some(speech) = speech.as_mut() {
-                                speech.push(delta);
-                            }
-                        })
-                        .await;
-                    forward.flush();
-                    let (message, processing_time_ms) = match result {
-                        Ok(resp) => (resp.text, resp.duration_ms),
-                        Err(e) => {
-                            let cancelled = cancel.load(std::sync::atomic::Ordering::SeqCst);
-                            if cancelled {
-                                info!("[AUDIT] Assistant answer interrupted by the operator");
-                            } else {
-                                warn!("LLM inference error: {}", e);
-                            }
-                            #[cfg(feature = "voice")]
-                            if !cancelled
-                                && forward.text().trim().is_empty()
-                                && let Some(speech) = speech.as_mut()
-                            {
-                                speech.push(&format!("Erreur d'inférence : {e}"));
-                            }
-                            (
-                                agent_core::llm_stream::interrupted_answer(
-                                    forward.text(),
-                                    cancelled,
-                                    &e.to_string(),
-                                ),
-                                start.elapsed().as_millis() as u64,
-                            )
-                        }
-                    };
-                    let _ = tx.send(AgentEvent::LlmChatResponse {
-                        message,
-                        processing_time_ms,
-                    });
-                    #[cfg(feature = "voice")]
-                    if let Some(speech) = speech {
-                        speech.finish();
-                    }
+                    job.answer_locally(&manager, start).await;
                     return;
                 }
                 let reason = svc
@@ -305,29 +213,171 @@ async fn llm_prompt(
                 let message = format!(
                     "Analyse IA indisponible : {reason}.\n\nAucune analyse n’a été exécutée pour cette question. Ouvrez « Modèle & diagnostic » pour vérifier ou charger le modèle, puis renvoyez votre question. Les recommandations déterministes restent consultables dans l’onglet Recommandations."
                 );
-                let _ = tx.send(AgentEvent::LlmChatResponse {
-                    message: message.clone(),
-                    processing_time_ms: start.elapsed().as_millis() as u64,
-                });
-                #[cfg(feature = "voice")]
-                if speak_response && let Some(ref v) = voice {
-                    v.speak_if_current(&message, voice_epoch);
-                }
+                job.unavailable(message, start);
                 return;
             }
         }
         // LLM not available (feature disabled or no service)
         let _ = &svc; // suppress unused-variable warning when llm feature is off
         let message = "Service IA indisponible. Aucune analyse n’a été exécutée. Consultez Modèle & diagnostic avant de renvoyer votre question.".to_string();
-        let _ = tx.send(AgentEvent::LlmChatResponse {
+        job.unavailable(message, start);
+    });
+}
+
+/// One question to the assistant, moved into the task that answers it.
+struct PromptJob {
+    tx: std::sync::mpsc::Sender<AgentEvent>,
+    prompt: String,
+    context: Option<agent_gui::dto::LlmPromptContext>,
+    /// The answer is also spoken.
+    #[cfg_attr(not(feature = "voice"), allow(dead_code))]
+    speak_response: bool,
+    /// Set by the operator to stop the answer.
+    cancel: std::sync::Arc<std::sync::atomic::AtomicBool>,
+    #[cfg(feature = "voice")]
+    voice: Option<std::sync::Arc<agent_core::voice::VoiceService>>,
+    /// The speech this answer belongs to: a newer one silences it.
+    #[cfg(feature = "voice")]
+    voice_epoch: u64,
+}
+
+impl PromptJob {
+    /// The system prompt and the question as the model receives them.
+    fn assistant_prompt(&self) -> (String, String) {
+        let context_label = self
+            .context
+            .map(|value| value.label_fr())
+            .unwrap_or("Général");
+        agent_core::llm_stream::assistant_prompt(&self.prompt, context_label, self.speak_response)
+    }
+
+    /// Answer with the remote AI provider. The answer is streamed: the
+    /// interface shows it as it is written, the voice starts with the first
+    /// sentence.
+    async fn answer_remotely(
+        &self,
+        remote: &agent_core::remote_ai::RemoteAi,
+        start: std::time::Instant,
+    ) {
+        let (system, prompt) = self.assistant_prompt();
+        let mut forward = agent_core::llm_stream::DeltaForwarder::new(self.tx.clone());
+        #[cfg(feature = "voice")]
+        let mut speech = if self.speak_response {
+            self.voice
+                .as_ref()
+                .and_then(|v| v.speak_stream(self.voice_epoch))
+        } else {
+            None
+        };
+        let result = remote
+            .infer(&system, &prompt, self.cancel.clone(), &mut |delta| {
+                forward.push(delta);
+                #[cfg(feature = "voice")]
+                if let Some(speech) = speech.as_mut() {
+                    speech.push(delta);
+                }
+            })
+            .await;
+        forward.flush();
+        let message = match result {
+            Ok(text) => text,
+            Err(error) => agent_core::llm_stream::interrupted_answer(
+                forward.text(),
+                self.cancel.load(std::sync::atomic::Ordering::SeqCst),
+                &error,
+            ),
+        };
+        let _ = self.tx.send(AgentEvent::LlmChatResponse {
+            message,
+            processing_time_ms: start.elapsed().as_millis() as u64,
+        });
+        #[cfg(feature = "voice")]
+        if let Some(speech) = speech {
+            speech.finish();
+        }
+    }
+
+    /// Answer with the local model, streamed the same way.
+    #[cfg(feature = "llm")]
+    async fn answer_locally(&self, manager: &agent_llm::LLMManager, start: std::time::Instant) {
+        let (system_prompt, prompt) = self.assistant_prompt();
+        let max_tokens = if self.speak_response { 400 } else { 640 };
+        let req = agent_llm::engine::InferenceRequest::new(&prompt)
+            .with_system_prompt(system_prompt)
+            .with_max_tokens(max_tokens)
+            .with_temperature(0.2)
+            .with_cancel(self.cancel.clone());
+        // Stream the answer: the GUI shows it as it is written
+        // and the voice starts with the first sentence.
+        let mut forward = agent_core::llm_stream::DeltaForwarder::new(self.tx.clone());
+        #[cfg(feature = "voice")]
+        let mut speech = if self.speak_response {
+            self.voice
+                .as_ref()
+                .and_then(|v| v.speak_stream(self.voice_epoch))
+        } else {
+            None
+        };
+        let result = manager
+            .engine()
+            .infer_stream(req, &mut |delta: &str| {
+                forward.push(delta);
+                #[cfg(feature = "voice")]
+                if let Some(speech) = speech.as_mut() {
+                    speech.push(delta);
+                }
+            })
+            .await;
+        forward.flush();
+        let (message, processing_time_ms) = match result {
+            Ok(resp) => (resp.text, resp.duration_ms),
+            Err(e) => {
+                let cancelled = self.cancel.load(std::sync::atomic::Ordering::SeqCst);
+                if cancelled {
+                    info!("[AUDIT] Assistant answer interrupted by the operator");
+                } else {
+                    warn!("LLM inference error: {}", e);
+                }
+                #[cfg(feature = "voice")]
+                if !cancelled
+                    && forward.text().trim().is_empty()
+                    && let Some(speech) = speech.as_mut()
+                {
+                    speech.push(&format!("Erreur d'inférence : {e}"));
+                }
+                (
+                    agent_core::llm_stream::interrupted_answer(
+                        forward.text(),
+                        cancelled,
+                        &e.to_string(),
+                    ),
+                    start.elapsed().as_millis() as u64,
+                )
+            }
+        };
+        let _ = self.tx.send(AgentEvent::LlmChatResponse {
+            message,
+            processing_time_ms,
+        });
+        #[cfg(feature = "voice")]
+        if let Some(speech) = speech {
+            speech.finish();
+        }
+    }
+
+    /// Answer that no analysis ran, in text and, when asked, in voice.
+    fn unavailable(&self, message: String, start: std::time::Instant) {
+        let _ = self.tx.send(AgentEvent::LlmChatResponse {
             message: message.clone(),
             processing_time_ms: start.elapsed().as_millis() as u64,
         });
         #[cfg(feature = "voice")]
-        if speak_response && let Some(ref v) = voice {
-            v.speak_if_current(&message, voice_epoch);
+        if self.speak_response
+            && let Some(ref v) = self.voice
+        {
+            v.speak_if_current(&message, self.voice_epoch);
         }
-    });
+    }
 }
 
 /// Stop the answer being generated; the partial answer is kept.
@@ -1303,6 +1353,70 @@ mod tests {
         assert_ne!(std::fs::read(&config_path).unwrap(), before);
         second.restore_previous_config().unwrap();
         assert_eq!(std::fs::read(&config_path).unwrap(), before);
+    }
+
+    fn prompt_job() -> (PromptJob, std::sync::mpsc::Receiver<AgentEvent>) {
+        let (tx, events) = std::sync::mpsc::channel();
+        let job = PromptJob {
+            tx,
+            prompt: "Que faire du CVE-2026-1234 ?".to_string(),
+            context: None,
+            speak_response: false,
+            cancel: std::sync::Arc::new(std::sync::atomic::AtomicBool::new(false)),
+            #[cfg(feature = "voice")]
+            voice: None,
+            #[cfg(feature = "voice")]
+            voice_epoch: 0,
+        };
+        (job, events)
+    }
+
+    #[test]
+    fn an_unavailable_model_is_answered_in_the_chat() {
+        let (job, events) = prompt_job();
+
+        job.unavailable(
+            "Service IA indisponible.".to_string(),
+            std::time::Instant::now(),
+        );
+
+        match events.try_recv() {
+            Ok(AgentEvent::LlmChatResponse { message, .. }) => {
+                assert_eq!(message, "Service IA indisponible.");
+            }
+            other => panic!("expected a chat answer, got {:?}", other.map(|_| ())),
+        }
+    }
+
+    #[test]
+    fn a_question_without_context_is_a_general_one() {
+        let (job, _events) = prompt_job();
+        let (_, general) = job.assistant_prompt();
+        let (_, expected) = agent_core::llm_stream::assistant_prompt(&job.prompt, "Général", false);
+        assert_eq!(general, expected);
+    }
+
+    #[tokio::test]
+    async fn a_prompt_without_any_model_is_answered_and_replaces_the_previous_one() {
+        let (mut ctx, events) = testing::context();
+        let previous = std::sync::Arc::new(std::sync::atomic::AtomicBool::new(false));
+        *ctx.llm_cancel.lock().unwrap() = Some(previous.clone());
+
+        llm_prompt(&mut ctx, "Bonjour".to_string(), None, false).await;
+
+        // The answer that was being written is told to stop.
+        assert!(previous.load(std::sync::atomic::Ordering::SeqCst));
+        assert!(ctx.tasks.is_running("llm prompt"));
+        while !ctx.tasks.is_empty() {
+            tokio::task::yield_now().await;
+            ctx.tasks.reap();
+        }
+        match events.try_recv() {
+            Ok(AgentEvent::LlmChatResponse { message, .. }) => {
+                assert!(message.starts_with("Service IA indisponible."));
+            }
+            other => panic!("expected a chat answer, got {:?}", other.map(|_| ())),
+        }
     }
 
     #[tokio::test]
