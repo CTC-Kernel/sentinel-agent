@@ -7,7 +7,7 @@
 use agent_gui::events::{AgentEvent, GuiCommand};
 use tracing::{debug, info, warn};
 
-use super::{CommandContext, expected};
+use super::{CommandContext, LlmService, expected};
 
 /// The first hundred characters of a text, for the audit trail. Cut on a
 /// character boundary: French prompts routinely contain multi-byte ones.
@@ -778,222 +778,238 @@ async fn llm_select_model(
     info!("[AUDIT] GUI requested model switch to '{}'", model_key);
     let tx = ctx.events.clone();
     let svc = ctx.llm_service.clone();
-    let model_key_clone = model_key.clone();
-    let model_name_clone = model_name.clone();
     ctx.tasks
         .spawn_expected("llm select model", expected::DOWNLOAD, async move {
-            // Determine the config path
-            let config_path = agent_common::config::AgentConfig::platform_data_dir()
-                .join("config")
-                .join("llm.json");
-            let previous_config = std::fs::read(&config_path).ok();
-
-            // Load or create base config
-            let mut llm_cfg = if config_path.exists() {
-                agent_llm::LLMConfig::from_file(&config_path).unwrap_or_default()
-            } else {
-                agent_llm::LLMConfig::default()
-            };
-
-            // Update model fields
-            llm_cfg.model.name = model_key_clone.clone();
-            if let Some(ref fname) = gguf_filename {
-                let candidate = std::path::Path::new(fname);
-                if candidate.file_name().and_then(|value| value.to_str()) != Some(fname.as_str())
-                    || candidate.extension().and_then(|value| value.to_str()) != Some("gguf")
-                {
-                    let _ = tx.send(AgentEvent::LlmDownloadFailed {
-                        model_name: model_name_clone,
-                        error: "Nom de fichier GGUF non valide".to_string(),
-                    });
-                    return;
-                }
-                llm_cfg.model.path = agent_common::config::AgentConfig::platform_data_dir()
-                    .join("models")
-                    .join(fname);
-            }
-            // Never inherit the previous model's URL. When absent,
-            // the download service resolves the selected registry key.
-            llm_cfg.model.download_url = download_url.clone();
-
-            // Save updated config
-            if let Some(parent) = config_path.parent() {
-                let _ = std::fs::create_dir_all(parent);
-            }
-            if let Err(e) = llm_cfg.save_to_file(&config_path) {
-                warn!("Failed to save updated LLM config: {}", e);
-                let _ = tx.send(AgentEvent::LlmDownloadFailed {
-                    model_name: model_name_clone,
-                    error: format!("Erreur de configuration: {}", e),
-                });
+            let data_dir = agent_common::config::AgentConfig::platform_data_dir();
+            let Some(switch) = ModelSwitch::prepare(
+                &data_dir,
+                tx,
+                &model_key,
+                model_name,
+                download_url,
+                gguf_filename,
+            ) else {
                 return;
-            }
-
-            // A model switch is transactional: failed downloads or
-            // initialization must not leave the next application start
-            // pinned to an unusable model configuration.
-            let restore_previous_config = || match &previous_config {
-                Some(contents) => std::fs::write(&config_path, contents),
-                None => match std::fs::remove_file(&config_path) {
-                    Ok(()) => Ok(()),
-                    Err(error) if error.kind() == std::io::ErrorKind::NotFound => Ok(()),
-                    Err(error) => Err(error),
-                },
             };
 
             info!(
                 "LLM config updated for model '{}', starting download/reload",
-                model_key_clone
+                model_key
             );
 
-            // If model file doesn't exist → trigger download
-            if !llm_cfg.model.path.exists() {
-                if let Some(ref llm_svc) = svc {
-                    let tx2 = tx.clone();
-                    let name_c = model_name_clone.clone();
-                    let name_c2 = model_name_clone.clone();
-                    let progress_tx = tx.clone();
-                    let progress_name = model_name_clone.clone();
-                    let progress_cb: agent_core::llm_service::DownloadProgressFn =
-                        Box::new(move |pct, dl, total, speed| {
-                            let _ = progress_tx.send(AgentEvent::LlmDownloadProgress {
-                                model_name: progress_name.clone(),
-                                progress_percent: pct,
-                                downloaded_bytes: dl,
-                                total_bytes: total,
-                                speed_bps: speed,
-                            });
-                        });
-                    match llm_svc
-                        .download_model_with_progress(&llm_cfg, Some(progress_cb))
-                        .await
-                    {
-                        Ok(()) => {
-                            // Auto-reload after download
-                            if let Err(e) = llm_svc.reload().await {
-                                warn!("Auto-reload after download failed: {}", e);
-                                if let Err(restore_error) = restore_previous_config() {
-                                    warn!(
-                                        "Failed to restore previous LLM config: {}",
-                                        restore_error
-                                    );
-                                } else if previous_config.is_some()
-                                    && let Err(restore_error) = llm_svc.reload().await
-                                {
-                                    warn!(
-                                        "Failed to reactivate previous LLM model: {}",
-                                        restore_error
-                                    );
-                                }
-                                let _ = tx2.send(AgentEvent::LlmDownloadFailed {
-                                    model_name: name_c,
-                                    error: format!(
-                                        "Modèle téléchargé mais impossible à charger: {}",
-                                        e
-                                    ),
-                                });
-                            } else {
-                                let _ = tx2.send(AgentEvent::LlmDownloadComplete {
-                                    model_name: name_c,
-                                    total_bytes: llm_cfg
-                                        .model
-                                        .path
-                                        .metadata()
-                                        .map(|m| m.len())
-                                        .unwrap_or(0),
-                                });
-                                if let agent_core::llm_service::LLMServiceStatus::Ready {
-                                    model_name,
-                                    inference_count,
-                                    memory_usage_mb,
-                                } = llm_svc.get_status().await
-                                {
-                                    let _ = tx2.send(AgentEvent::LlmStatusUpdate {
-                                        model_name,
-                                        status: "ready".to_string(),
-                                        inference_count,
-                                        memory_mb: memory_usage_mb,
-                                    });
-                                }
-                            }
-                        }
-                        Err(e) => {
-                            warn!("Download failed for '{}': {}", name_c2, e);
-                            if let Err(restore_error) = restore_previous_config() {
-                                warn!("Failed to restore previous LLM config: {}", restore_error);
-                            }
-                            let _ = tx.send(AgentEvent::LlmDownloadFailed {
-                                model_name: name_c2,
-                                error: e.to_string(),
-                            });
-                        }
-                    }
-                } else {
-                    if let Err(restore_error) = restore_previous_config() {
-                        warn!("Failed to restore previous LLM config: {}", restore_error);
-                    }
-                    let _ = tx.send(AgentEvent::LlmDownloadFailed {
-                        model_name: model_name_clone,
-                        error: "Service IA indisponible dans cette installation".to_string(),
-                    });
-                }
+            let Some(llm_svc) = svc else {
+                switch.restore_or_warn();
+                switch.failed("Service IA indisponible dans cette installation".to_string());
+                return;
+            };
+            if !switch.llm_cfg.model.path.exists() {
+                // If model file doesn't exist → trigger download
+                switch.download_and_load(&llm_svc).await;
             } else {
                 // Model already exists locally → just reload
-                if let Some(ref llm_svc) = svc {
-                    match llm_svc.reload().await {
-                        Ok(()) => {
-                            let _ = tx.send(AgentEvent::LlmDownloadComplete {
-                                model_name: model_name_clone,
-                                total_bytes: llm_cfg
-                                    .model
-                                    .path
-                                    .metadata()
-                                    .map(|metadata| metadata.len())
-                                    .unwrap_or(0),
-                            });
-                            if let agent_core::llm_service::LLMServiceStatus::Ready {
-                                model_name,
-                                inference_count,
-                                memory_usage_mb,
-                            } = llm_svc.get_status().await
-                            {
-                                let _ = tx.send(AgentEvent::LlmStatusUpdate {
-                                    model_name,
-                                    status: "ready".to_string(),
-                                    inference_count,
-                                    memory_mb: memory_usage_mb,
-                                });
-                            }
-                        }
-                        Err(e) => {
-                            warn!("Reload after model switch failed: {}", e);
-                            if let Err(restore_error) = restore_previous_config() {
-                                warn!("Failed to restore previous LLM config: {}", restore_error);
-                            } else if previous_config.is_some()
-                                && let Err(restore_error) = llm_svc.reload().await
-                            {
-                                warn!("Failed to reactivate previous LLM model: {}", restore_error);
-                            }
-                            let _ = tx.send(AgentEvent::LlmDownloadFailed {
-                                model_name: model_name_clone,
-                                error: format!(
-                                    "Le fichier GGUF existe mais son chargement a échoué: {}",
-                                    e
-                                ),
-                            });
-                        }
-                    }
-                } else {
-                    if let Err(restore_error) = restore_previous_config() {
-                        warn!("Failed to restore previous LLM config: {}", restore_error);
-                    }
-                    let _ = tx.send(AgentEvent::LlmDownloadFailed {
-                        model_name: model_name_clone,
-                        error: "Service IA indisponible dans cette installation".to_string(),
-                    });
-                }
+                switch.load_existing(&llm_svc).await;
             }
         });
+}
+
+/// A switch to another model: the configuration it wrote, and what was
+/// there before. The switch is transactional: a failed download or load
+/// must not leave the next start of the application pinned to a model
+/// that cannot be used.
+struct ModelSwitch {
+    tx: std::sync::mpsc::Sender<AgentEvent>,
+    /// The model's name, as the interface shows it.
+    model_name: String,
+    config_path: std::path::PathBuf,
+    /// The configuration file before the switch; `None` when there was none.
+    previous_config: Option<Vec<u8>>,
+    llm_cfg: agent_llm::LLMConfig,
+}
+
+impl ModelSwitch {
+    /// Write the selection of `model_key` in the model configuration under
+    /// `data_dir`. Returns `None`, after telling the interface why, when
+    /// the file name is not a plain `.gguf` name or the configuration
+    /// cannot be written.
+    fn prepare(
+        data_dir: &std::path::Path,
+        tx: std::sync::mpsc::Sender<AgentEvent>,
+        model_key: &str,
+        model_name: String,
+        download_url: Option<String>,
+        gguf_filename: Option<String>,
+    ) -> Option<Self> {
+        // Determine the config path
+        let config_path = data_dir.join("config").join("llm.json");
+        let previous_config = std::fs::read(&config_path).ok();
+
+        // Load or create base config
+        let mut llm_cfg = if config_path.exists() {
+            agent_llm::LLMConfig::from_file(&config_path).unwrap_or_default()
+        } else {
+            agent_llm::LLMConfig::default()
+        };
+
+        // Update model fields
+        llm_cfg.model.name = model_key.to_string();
+        if let Some(ref fname) = gguf_filename {
+            let candidate = std::path::Path::new(fname);
+            if candidate.file_name().and_then(|value| value.to_str()) != Some(fname.as_str())
+                || candidate.extension().and_then(|value| value.to_str()) != Some("gguf")
+            {
+                let _ = tx.send(AgentEvent::LlmDownloadFailed {
+                    model_name,
+                    error: "Nom de fichier GGUF non valide".to_string(),
+                });
+                return None;
+            }
+            llm_cfg.model.path = data_dir.join("models").join(fname);
+        }
+        // Never inherit the previous model's URL. When absent,
+        // the download service resolves the selected registry key.
+        llm_cfg.model.download_url = download_url;
+
+        // Save updated config
+        if let Some(parent) = config_path.parent() {
+            let _ = std::fs::create_dir_all(parent);
+        }
+        if let Err(e) = llm_cfg.save_to_file(&config_path) {
+            warn!("Failed to save updated LLM config: {}", e);
+            let _ = tx.send(AgentEvent::LlmDownloadFailed {
+                model_name,
+                error: format!("Erreur de configuration: {}", e),
+            });
+            return None;
+        }
+
+        Some(Self {
+            tx,
+            model_name,
+            config_path,
+            previous_config,
+            llm_cfg,
+        })
+    }
+
+    /// Put back the configuration that was there before the switch.
+    fn restore_previous_config(&self) -> std::io::Result<()> {
+        match &self.previous_config {
+            Some(contents) => std::fs::write(&self.config_path, contents),
+            None => match std::fs::remove_file(&self.config_path) {
+                Ok(()) => Ok(()),
+                Err(error) if error.kind() == std::io::ErrorKind::NotFound => Ok(()),
+                Err(error) => Err(error),
+            },
+        }
+    }
+
+    /// Put the previous configuration back; a failure is only logged.
+    fn restore_or_warn(&self) {
+        if let Err(restore_error) = self.restore_previous_config() {
+            warn!("Failed to restore previous LLM config: {}", restore_error);
+        }
+    }
+
+    /// Put the previous configuration back and, when there was one, load
+    /// its model again.
+    async fn roll_back(&self, llm_svc: &LlmService) {
+        if let Err(restore_error) = self.restore_previous_config() {
+            warn!("Failed to restore previous LLM config: {}", restore_error);
+        } else if self.previous_config.is_some()
+            && let Err(restore_error) = llm_svc.reload().await
+        {
+            warn!("Failed to reactivate previous LLM model: {}", restore_error);
+        }
+    }
+
+    /// Tell the interface the switch failed.
+    fn failed(&self, error: String) {
+        let _ = self.tx.send(AgentEvent::LlmDownloadFailed {
+            model_name: self.model_name.clone(),
+            error,
+        });
+    }
+
+    /// Tell the interface the model is in place, and its state once ready.
+    async fn announce_loaded(&self, llm_svc: &LlmService) {
+        let _ = self.tx.send(AgentEvent::LlmDownloadComplete {
+            model_name: self.model_name.clone(),
+            total_bytes: self
+                .llm_cfg
+                .model
+                .path
+                .metadata()
+                .map(|metadata| metadata.len())
+                .unwrap_or(0),
+        });
+        if let agent_core::llm_service::LLMServiceStatus::Ready {
+            model_name,
+            inference_count,
+            memory_usage_mb,
+        } = llm_svc.get_status().await
+        {
+            let _ = self.tx.send(AgentEvent::LlmStatusUpdate {
+                model_name,
+                status: "ready".to_string(),
+                inference_count,
+                memory_mb: memory_usage_mb,
+            });
+        }
+    }
+
+    /// Download the model file, with its progress shown, then load it.
+    async fn download_and_load(&self, llm_svc: &LlmService) {
+        let progress_tx = self.tx.clone();
+        let progress_name = self.model_name.clone();
+        let progress_cb: agent_core::llm_service::DownloadProgressFn =
+            Box::new(move |pct, dl, total, speed| {
+                let _ = progress_tx.send(AgentEvent::LlmDownloadProgress {
+                    model_name: progress_name.clone(),
+                    progress_percent: pct,
+                    downloaded_bytes: dl,
+                    total_bytes: total,
+                    speed_bps: speed,
+                });
+            });
+        match llm_svc
+            .download_model_with_progress(&self.llm_cfg, Some(progress_cb))
+            .await
+        {
+            Ok(()) => {
+                // Auto-reload after download
+                if let Err(e) = llm_svc.reload().await {
+                    warn!("Auto-reload after download failed: {}", e);
+                    self.roll_back(llm_svc).await;
+                    self.failed(format!(
+                        "Modèle téléchargé mais impossible à charger: {}",
+                        e
+                    ));
+                } else {
+                    self.announce_loaded(llm_svc).await;
+                }
+            }
+            Err(e) => {
+                warn!("Download failed for '{}': {}", self.model_name, e);
+                self.restore_or_warn();
+                self.failed(e.to_string());
+            }
+        }
+    }
+
+    /// Load a model whose file is already there.
+    async fn load_existing(&self, llm_svc: &LlmService) {
+        match llm_svc.reload().await {
+            Ok(()) => self.announce_loaded(llm_svc).await,
+            Err(e) => {
+                warn!("Reload after model switch failed: {}", e);
+                self.roll_back(llm_svc).await;
+                self.failed(format!(
+                    "Le fichier GGUF existe mais son chargement a échoué: {}",
+                    e
+                ));
+            }
+        }
+    }
 }
 
 /// Classify a threat event with AI.
@@ -1202,6 +1218,91 @@ mod tests {
             }
             _ => panic!("expected an analysis"),
         }
+    }
+
+    fn switch_in(
+        data_dir: &std::path::Path,
+        gguf: &str,
+    ) -> (Option<ModelSwitch>, std::sync::mpsc::Receiver<AgentEvent>) {
+        let (tx, events) = std::sync::mpsc::channel();
+        let switch = ModelSwitch::prepare(
+            data_dir,
+            tx,
+            "mistral-7b",
+            "Mistral 7B".to_string(),
+            Some("https://models.example/mistral-7b.gguf".to_string()),
+            Some(gguf.to_string()),
+        );
+        (switch, events)
+    }
+
+    #[test]
+    fn a_model_switch_writes_the_selection_under_the_data_directory() {
+        let dir = tempfile::tempdir().unwrap();
+        let (switch, _events) = switch_in(dir.path(), "mistral-7b.Q4.gguf");
+
+        let switch = switch.expect("a switch");
+        assert!(switch.previous_config.is_none());
+        let saved =
+            agent_llm::LLMConfig::from_file(&dir.path().join("config").join("llm.json")).unwrap();
+        assert_eq!(saved.model.name, "mistral-7b");
+        assert_eq!(
+            saved.model.path,
+            dir.path().join("models").join("mistral-7b.Q4.gguf")
+        );
+        assert_eq!(
+            saved.model.download_url.as_deref(),
+            Some("https://models.example/mistral-7b.gguf")
+        );
+    }
+
+    #[test]
+    fn a_model_file_name_cannot_leave_the_models_directory() {
+        for name in [
+            "../../etc/evil.gguf",
+            "sub/model.gguf",
+            "model.bin",
+            "model",
+        ] {
+            let dir = tempfile::tempdir().unwrap();
+            let (switch, events) = switch_in(dir.path(), name);
+
+            assert!(switch.is_none(), "{name}");
+            // Refused before anything is written, and the interface is told.
+            assert!(!dir.path().join("config").join("llm.json").exists());
+            match events.try_recv() {
+                Ok(AgentEvent::LlmDownloadFailed { model_name, error }) => {
+                    assert_eq!(model_name, "Mistral 7B");
+                    assert_eq!(error, "Nom de fichier GGUF non valide");
+                }
+                other => panic!("expected a refusal, got {:?}", other.map(|_| ())),
+            }
+        }
+    }
+
+    #[test]
+    fn a_failed_switch_puts_the_previous_configuration_back() {
+        let dir = tempfile::tempdir().unwrap();
+        let config_path = dir.path().join("config").join("llm.json");
+
+        // No configuration before: the one written by the switch is removed.
+        let (switch, _events) = switch_in(dir.path(), "first.gguf");
+        let switch = switch.unwrap();
+        assert!(config_path.exists());
+        switch.restore_previous_config().unwrap();
+        assert!(!config_path.exists());
+        // Restoring twice is not an error.
+        switch.restore_previous_config().unwrap();
+
+        // A configuration before: its exact content comes back.
+        let (first, _events) = switch_in(dir.path(), "first.gguf");
+        drop(first);
+        let before = std::fs::read(&config_path).unwrap();
+        let (second, _events) = switch_in(dir.path(), "second.gguf");
+        let second = second.unwrap();
+        assert_ne!(std::fs::read(&config_path).unwrap(), before);
+        second.restore_previous_config().unwrap();
+        assert_eq!(std::fs::read(&config_path).unwrap(), before);
     }
 
     #[tokio::test]
