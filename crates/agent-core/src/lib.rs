@@ -1028,26 +1028,7 @@ impl AgentRuntime {
             self.apply_fresh_feed_intel().await;
 
             // Processes started since the last pass, evaluated as they start
-            let (process_starts, process_start_incidents) = self.take_process_starts();
-            pass.observed
-                .add_processes(process_starts.iter().map(|start| &start.process));
-            for incident in process_start_incidents {
-                warn!("{}", incident.title);
-                if let Err(e) = self.upload_incident(&incident).await {
-                    error!("Failed to upload process incident: {}", e);
-                }
-                #[cfg(feature = "gui")]
-                {
-                    self.emit_process_incident(&incident);
-                    self.emit_notification(
-                        "Processus suspect détecté à son lancement",
-                        &incident.title,
-                        "error",
-                    );
-                    pass.kpi_incident_count = pass.kpi_incident_count.saturating_add(1);
-                }
-                pass.incidents.push(incident);
-            }
+            self.report_started_processes(&mut pass).await;
 
             // 0. Ransomware canaries (always — security-critical even when paused)
             if self
