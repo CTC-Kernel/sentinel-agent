@@ -1009,12 +1009,7 @@ impl AgentRuntime {
         self.init_log_collector().await;
 
         // Initialize correlation engine with default rules
-        {
-            let engine = agent_siem::CorrelationEngine::with_default_rules();
-            let mut guard = self.correlation_engine.write().await;
-            *guard = Some(engine);
-            info!("Correlation engine initialized");
-        }
+        self.init_correlation_engine().await;
 
         info!("Agent main loop started");
         loop {

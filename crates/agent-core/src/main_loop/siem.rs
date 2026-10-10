@@ -84,6 +84,14 @@ impl AgentRuntime {
         *guard = Some(collector);
         info!("Log collector initialized");
     }
+
+    /// Create the correlation engine with its default rules.
+    pub(crate) async fn init_correlation_engine(&self) {
+        let engine = agent_siem::CorrelationEngine::with_default_rules();
+        let mut guard = self.correlation_engine.write().await;
+        *guard = Some(engine);
+        info!("Correlation engine initialized");
+    }
 }
 
 #[cfg(test)]
@@ -107,6 +115,16 @@ mod tests {
             let collector = test.runtime.log_collector.read().await;
             assert_eq!(collector.as_ref().map(|c| c.is_enabled()), Some(enabled));
         }
+    }
+
+    #[tokio::test]
+    async fn the_correlation_engine_is_ready_after_start_up() {
+        let test = standalone_runtime();
+        assert!(test.runtime.correlation_engine.read().await.is_none());
+
+        test.runtime.init_correlation_engine().await;
+
+        assert!(test.runtime.correlation_engine.read().await.is_some());
     }
 
     #[cfg(feature = "gui")]
