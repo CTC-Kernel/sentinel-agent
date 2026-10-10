@@ -10,6 +10,25 @@ Tous les changements notables apportés au projet **Sentinel GRC Agent** sont co
 
 ## 🚀 [Non publié]
 
+### 🛡️ Sécurité : la surveillance d'intégrité n'ignore plus les fichiers nommés « sentinel »
+
+- **Contournement corrigé** : les exclusions `dossier/**` étaient comparées en
+  sous-chaîne, si bien que l'auto-exclusion `sentinel/**` écartait tout chemin
+  contenant « sentinel » (`/etc/cron.d/sentinel-update`,
+  `/etc/hosts.sentinel-test`…) : ni alerte d'intégrité, ni analyse YARA, ni
+  playbook. Elles ne s'appliquent plus qu'au contenu d'un dossier portant
+  exactement ce nom ; un fichier nommé `sentinel` reste surveillé.
+- **Motifs d'exclusion** : un motif sans joker (`node_modules`) désigne
+  désormais un fichier ou un dossier de ce nom, et non plus tout chemin qui le
+  contient ; un motif vide n'exclut plus rien (il excluait tout). Les motifs
+  `*.ext` sont inchangés.
+- **Dossiers de l'agent** : configuration, données, journaux, quarantaine et
+  préférences de l'interface restent exclus sous Linux, macOS et Windows ; ils
+  sont maintenant listés par leur nom exact. Le binaire Linux
+  `/usr/bin/sentinel-agent` et les fichiers de service de l'agent (unité
+  systemd, logrotate, AppArmor, LaunchDaemon macOS) n'étaient exclus que par ce
+  défaut : ils sont désormais surveillés comme les autres.
+
 ### 🎯 Détection : les règles personnalisées s'appliquent à toute l'activité observée
 
 - **Portée** : les conditions « nom de processus », « ligne de commande » et
