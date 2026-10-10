@@ -7,7 +7,7 @@
 use std::sync::atomic::Ordering;
 use tracing::{debug, warn};
 
-use super::LoopState;
+use super::{LoopPass, LoopState};
 use crate::{AgentRuntime, ProposeAssetData, UPDATE_CHECK_INTERVAL_SECS};
 
 impl AgentRuntime {
@@ -48,6 +48,30 @@ impl AgentRuntime {
             }
         }
     }
+
+    /// Measure the agent's own resource usage: checked against its limits
+    /// when this pass ran a scan or a collection, and shown in the
+    /// interface every second.
+    #[cfg_attr(not(feature = "gui"), allow(unused_variables))]
+    pub(crate) fn resource_stage(&self, st: &mut LoopState, pass: &LoopPass) {
+        let usage = self.resource_monitor.get_usage();
+
+        // Sync LLM loaded flag from runtime state to resource monitor
+        self.resource_monitor
+            .set_llm_loaded(self.state.llm_loaded.load(Ordering::Acquire));
+
+        if pass.is_active {
+            self.resource_monitor
+                .check_limits_with_usage(&usage, pass.is_active);
+        }
+
+        // Periodically push resource usage to the GUI (every 1 second)
+        #[cfg(feature = "gui")]
+        if st.gui.last_resource_update.elapsed().as_secs() >= 1 {
+            self.emit_resource_update(Some(usage));
+            st.gui.last_resource_update = std::time::Instant::now();
+        }
+    }
 }
 
 #[cfg(test)]
@@ -76,6 +100,37 @@ mod tests {
                 .unwrap()
                 .is_empty()
         );
+    }
+
+    #[tokio::test]
+    async fn the_resource_monitor_follows_the_llm_flag() {
+        let test = standalone_runtime();
+        let mut st = LoopState::starting_at(Instant::now(), 6 * 3600, 3600);
+        let idle = test.runtime.resource_monitor.effective_memory_limit();
+        test.runtime.state.llm_loaded.store(true, Ordering::Release);
+
+        test.runtime.resource_stage(&mut st, &LoopPass::new(false));
+
+        // A loaded model raises the memory the agent may use.
+        assert!(test.runtime.resource_monitor.effective_memory_limit() > idle);
+    }
+
+    #[cfg(feature = "gui")]
+    #[tokio::test]
+    async fn resource_usage_is_shown_at_most_once_a_second() {
+        use agent_gui::events::AgentEvent;
+        let test = standalone_runtime();
+        let mut st = LoopState::starting_at(Instant::now(), 6 * 3600, 3600);
+        st.gui.last_resource_update = Instant::now() - std::time::Duration::from_secs(2);
+
+        test.runtime.resource_stage(&mut st, &LoopPass::new(false));
+        assert!(matches!(
+            test.events.try_recv(),
+            Ok(AgentEvent::ResourceUpdate { .. })
+        ));
+
+        test.runtime.resource_stage(&mut st, &LoopPass::new(false));
+        assert!(test.events.try_recv().is_err());
     }
 
     #[tokio::test]

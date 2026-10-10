@@ -1104,23 +1104,7 @@ impl AgentRuntime {
             self.upload_asset_proposals().await;
 
             // Periodically collect resource usage and push to GUI/Check limits
-            let usage = self.resource_monitor.get_usage();
-
-            // Sync LLM loaded flag from runtime state to resource monitor
-            self.resource_monitor
-                .set_llm_loaded(self.state.llm_loaded.load(Ordering::Acquire));
-
-            if pass.is_active {
-                self.resource_monitor
-                    .check_limits_with_usage(&usage, pass.is_active);
-            }
-
-            // Periodically push resource usage to the GUI (every 1 second)
-            #[cfg(feature = "gui")]
-            if st.gui.last_resource_update.elapsed().as_secs() >= 1 {
-                self.emit_resource_update(Some(usage));
-                st.gui.last_resource_update = std::time::Instant::now();
-            }
+            self.resource_stage(&mut st, &pass);
 
             // Sleep for a short interval before checking shutdown again
             tokio::select! {
