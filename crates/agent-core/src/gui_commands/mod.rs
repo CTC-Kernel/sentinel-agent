@@ -15,6 +15,7 @@ use agent_storage::Database;
 use agent_sync::AuthenticatedClient;
 use tracing::error;
 
+pub(crate) mod playbooks;
 pub(crate) mod response;
 
 /// The local AI model service, when the agent is built with it.
