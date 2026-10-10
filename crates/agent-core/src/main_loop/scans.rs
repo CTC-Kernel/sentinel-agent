@@ -4,12 +4,16 @@
 //! Scan stages of the main loop: the background vulnerability scan and the
 //! periodic security scan.
 
+use agent_common::types::UsbEvent;
 #[cfg(feature = "gui")]
 use agent_gui::dto::{
     GuiSuspiciousProcess, GuiUsbEvent, GuiVulnerabilitySummary, UsbEventType as GuiUsbEventType,
 };
 #[cfg(feature = "gui")]
 use agent_gui::events::AgentEvent;
+#[cfg(feature = "gui")]
+use agent_scanner::SecurityIncident;
+use agent_scanner::SecurityScanResult;
 #[cfg(feature = "gui")]
 use agent_scanner::VulnerabilityScanResult;
 #[cfg(feature = "gui")]
@@ -20,6 +24,77 @@ use super::{LoopPass, LoopState};
 use crate::AgentRuntime;
 #[cfg(feature = "gui")]
 use crate::triage_allowlist;
+
+/// What identifies an incident from one security scan to the next.
+#[cfg(feature = "gui")]
+fn incident_fingerprint(incident: &SecurityIncident) -> String {
+    format!(
+        "{}|{}|{}|{}",
+        incident.incident_type, incident.title, incident.description, incident.evidence
+    )
+}
+
+/// Whether the incident is about a process, shown in the process view.
+#[cfg(feature = "gui")]
+fn is_process_incident(incident: &SecurityIncident) -> bool {
+    incident.incident_type == agent_scanner::IncidentType::SuspiciousProcess
+        || incident.incident_type == agent_scanner::IncidentType::CryptoMiner
+}
+
+/// The process behind a process incident, read from its evidence.
+#[cfg(feature = "gui")]
+fn gui_suspicious_process(incident: &SecurityIncident) -> GuiSuspiciousProcess {
+    let process_name = incident
+        .evidence
+        .get("process_name")
+        .and_then(|v| v.as_str())
+        .unwrap_or("unknown")
+        .to_string();
+    let pid: u32 = incident
+        .evidence
+        .get("pid")
+        .and_then(|v| v.as_u64())
+        .and_then(|v| v.try_into().ok())
+        .unwrap_or(0);
+    let command_line = incident
+        .evidence
+        .get("path")
+        .and_then(|v| v.as_str())
+        .unwrap_or("")
+        .to_string();
+    GuiSuspiciousProcess {
+        process_name,
+        pid,
+        command_line,
+        reason: incident.description.clone(),
+        confidence: incident.confidence,
+        detected_at: incident.detected_at,
+        ai_confidence: None,
+        is_false_positive: None,
+        ai_analysis: None,
+        acknowledged: false,
+        allowlisted: false,
+    }
+}
+
+/// A USB device event as the interface shows it.
+#[cfg(feature = "gui")]
+fn gui_usb_event(event: UsbEvent) -> GuiUsbEvent {
+    let gui_event_type = match event.event_type {
+        agent_common::types::UsbEventType::Connected => GuiUsbEventType::Connected,
+        agent_common::types::UsbEventType::Disconnected => GuiUsbEventType::Disconnected,
+        agent_common::types::UsbEventType::Blocked => GuiUsbEventType::Blocked,
+    };
+    GuiUsbEvent {
+        device_name: event.device.description,
+        vendor_id: event.device.vendor_id,
+        product_id: event.device.product_id,
+        event_type: gui_event_type,
+        timestamp: event.timestamp,
+        acknowledged: false,
+        allowlisted: false,
+    }
+}
 
 /// Notification shown when a vulnerability scan ends: its text and its
 /// severity ("error" as soon as a finding is known to be exploited).
@@ -183,163 +258,130 @@ impl AgentRuntime {
         {
             pass.is_active = true;
             match self.run_security_scan().await {
-                Ok(result) => {
-                    let count = result.incidents.len();
-                    if count > 0 {
-                        warn!("Security scan detected {} incident(s)!", count);
-                        #[cfg(feature = "gui")]
-                        {
-                            let authorizations = self.state.allowlist_snapshot();
-                            let current: std::collections::HashSet<String> = result
-                                .incidents
-                                .iter()
-                                // Authorized incidents are still reported to the GUI
-                                // (shown as "Autorisé") but never notified.
-                                .filter(|i| {
-                                    !triage_allowlist::incident_is_authorized(&authorizations, i)
-                                })
-                                .map(|i| {
-                                    format!(
-                                        "{}|{}|{}|{}",
-                                        i.incident_type, i.title, i.description, i.evidence
-                                    )
-                                })
-                                .collect();
-                            let new_count = current.difference(&st.gui.previous_incidents).count();
-                            st.gui.previous_incidents = current;
-                            if new_count > 0 {
-                                self.emit_notification(
-                                    "Incidents de sécurité détectés",
-                                    &format!("{} nouvel(s) incident(s) détecté(s)", new_count),
-                                    "error",
-                                );
-                            }
-                            for incident in &result.incidents {
-                                let is_process = incident.incident_type
-                                    == agent_scanner::IncidentType::SuspiciousProcess
-                                    || incident.incident_type
-                                        == agent_scanner::IncidentType::CryptoMiner;
-                                // Process detections are reported once, as a
-                                // SuspiciousProcess: a duplicate SystemIncident
-                                // could not be covered by a process authorization
-                                // and was counted twice.
-                                if !is_process {
-                                    self.emit_system_incident(incident);
-                                }
-
-                                if is_process {
-                                    let process_name = incident
-                                        .evidence
-                                        .get("process_name")
-                                        .and_then(|v| v.as_str())
-                                        .unwrap_or("unknown")
-                                        .to_string();
-                                    let pid: u32 = incident
-                                        .evidence
-                                        .get("pid")
-                                        .and_then(|v| v.as_u64())
-                                        .and_then(|v| v.try_into().ok())
-                                        .unwrap_or(0);
-                                    let command_line = incident
-                                        .evidence
-                                        .get("path")
-                                        .and_then(|v| v.as_str())
-                                        .unwrap_or("")
-                                        .to_string();
-                                    self.emit_gui_event(AgentEvent::SuspiciousProcess {
-                                        process: GuiSuspiciousProcess {
-                                            process_name,
-                                            pid,
-                                            command_line,
-                                            reason: incident.description.clone(),
-                                            confidence: incident.confidence,
-                                            detected_at: incident.detected_at,
-                                            ai_confidence: None,
-                                            is_false_positive: None,
-                                            ai_analysis: None,
-                                            acknowledged: false,
-                                            allowlisted: false,
-                                        },
-                                    });
-                                }
-                            }
-                        }
-                    }
-
-                    // Accumulate incidents for threat pipeline
-                    #[cfg(feature = "gui")]
-                    {
-                        pass.kpi_incident_count =
-                            pass.kpi_incident_count.saturating_add(count as u32);
-                    }
-                    pass.incidents.extend(result.incidents.iter().cloned());
-                    pass.observed.add_processes(&result.processes);
-
-                    if count == 0 {
-                        // A clean periodic scan is not news: logging it avoids a
-                        // notification every few minutes.
-                        debug!("Security scan: no incident detected");
-                        #[cfg(feature = "gui")]
-                        st.gui.previous_incidents.clear();
-                    }
-                }
+                Ok(result) => self.record_security_scan(st, pass, &result),
                 Err(e) => {
                     warn!("Security scan failed: {}", e);
                 }
             }
             // Run USB device scan alongside security scan
-            // Collect events inside mutex scope, then release before async upload
-            let usb_events = self
-                .usb_monitor
-                .lock()
-                .ok()
-                .map(|mut usb| usb.scan())
-                .unwrap_or_default();
-
-            for event in &usb_events {
-                debug!(
-                    "USB event: {} ({:04X}:{:04X}) - {:?}",
-                    event.device.description,
-                    event.device.vendor_id,
-                    event.device.product_id,
-                    event.event_type
-                );
-            }
-
-            // Upload USB events to SaaS (populates USB tab)
-            if !usb_events.is_empty()
-                && let Some(ref auth_client) = self.authenticated_client
-            {
-                let payloads: Vec<agent_sync::types::UsbEventPayload> =
-                    usb_events.iter().cloned().map(Into::into).collect();
-                if let Err(e) = auth_client.upload_usb_events(payloads).await {
-                    warn!("Failed to upload USB events to SaaS: {}", e);
-                }
-            }
-
-            #[cfg(feature = "gui")]
-            for event in usb_events {
-                let gui_event_type = match event.event_type {
-                    agent_common::types::UsbEventType::Connected => GuiUsbEventType::Connected,
-                    agent_common::types::UsbEventType::Disconnected => {
-                        GuiUsbEventType::Disconnected
-                    }
-                    agent_common::types::UsbEventType::Blocked => GuiUsbEventType::Blocked,
-                };
-                self.emit_gui_event(AgentEvent::UsbEvent {
-                    event: GuiUsbEvent {
-                        device_name: event.device.description,
-                        vendor_id: event.device.vendor_id,
-                        product_id: event.device.product_id,
-                        event_type: gui_event_type,
-                        timestamp: event.timestamp,
-                        acknowledged: false,
-                        allowlisted: false,
-                    },
-                });
-            }
+            self.scan_usb_devices().await;
 
             st.last_security_scan = std::time::Instant::now();
+        }
+    }
+
+    /// Hand the result of a security scan to the interface and to the
+    /// threat pipeline of this pass.
+    #[cfg_attr(not(feature = "gui"), allow(unused_variables))]
+    fn record_security_scan(
+        &self,
+        st: &mut LoopState,
+        pass: &mut LoopPass,
+        result: &SecurityScanResult,
+    ) {
+        let count = result.incidents.len();
+        if count > 0 {
+            warn!("Security scan detected {} incident(s)!", count);
+            #[cfg(feature = "gui")]
+            self.show_security_incidents(st, &result.incidents);
+        }
+
+        // Accumulate incidents for threat pipeline
+        #[cfg(feature = "gui")]
+        {
+            pass.kpi_incident_count = pass.kpi_incident_count.saturating_add(count as u32);
+        }
+        pass.incidents.extend(result.incidents.iter().cloned());
+        pass.observed.add_processes(&result.processes);
+
+        if count == 0 {
+            // A clean periodic scan is not news: logging it avoids a
+            // notification every few minutes.
+            debug!("Security scan: no incident detected");
+            #[cfg(feature = "gui")]
+            st.gui.previous_incidents.clear();
+        }
+    }
+
+    /// Show the incidents of a scan. A persistent condition is found again
+    /// by every scan: the notification only counts what the previous scan
+    /// did not report.
+    #[cfg(feature = "gui")]
+    fn show_security_incidents(&self, st: &mut LoopState, incidents: &[SecurityIncident]) {
+        let authorizations = self.state.allowlist_snapshot();
+        let current: std::collections::HashSet<String> = incidents
+            .iter()
+            // Authorized incidents are still reported to the GUI
+            // (shown as "Autorisé") but never notified.
+            .filter(|i| !triage_allowlist::incident_is_authorized(&authorizations, i))
+            .map(incident_fingerprint)
+            .collect();
+        let new_count = current.difference(&st.gui.previous_incidents).count();
+        st.gui.previous_incidents = current;
+        if new_count > 0 {
+            self.emit_notification(
+                "Incidents de sécurité détectés",
+                &format!("{} nouvel(s) incident(s) détecté(s)", new_count),
+                "error",
+            );
+        }
+        for incident in incidents {
+            // Process detections are reported once, as a
+            // SuspiciousProcess: a duplicate SystemIncident
+            // could not be covered by a process authorization
+            // and was counted twice.
+            if is_process_incident(incident) {
+                self.emit_gui_event(AgentEvent::SuspiciousProcess {
+                    process: gui_suspicious_process(incident),
+                });
+            } else {
+                self.emit_system_incident(incident);
+            }
+        }
+    }
+
+    /// Check the USB devices: what was plugged in or removed since the last
+    /// scan is logged, uploaded and shown.
+    async fn scan_usb_devices(&self) {
+        // Collect events inside mutex scope, then release before async upload
+        let usb_events = self
+            .usb_monitor
+            .lock()
+            .ok()
+            .map(|mut usb| usb.scan())
+            .unwrap_or_default();
+
+        self.report_usb_events(usb_events).await;
+    }
+
+    /// Log, upload and show USB device events.
+    async fn report_usb_events(&self, usb_events: Vec<UsbEvent>) {
+        for event in &usb_events {
+            debug!(
+                "USB event: {} ({:04X}:{:04X}) - {:?}",
+                event.device.description,
+                event.device.vendor_id,
+                event.device.product_id,
+                event.event_type
+            );
+        }
+
+        // Upload USB events to SaaS (populates USB tab)
+        if !usb_events.is_empty()
+            && let Some(ref auth_client) = self.authenticated_client
+        {
+            let payloads: Vec<agent_sync::types::UsbEventPayload> =
+                usb_events.iter().cloned().map(Into::into).collect();
+            if let Err(e) = auth_client.upload_usb_events(payloads).await {
+                warn!("Failed to upload USB events to SaaS: {}", e);
+            }
+        }
+
+        #[cfg(feature = "gui")]
+        for event in usb_events {
+            self.emit_gui_event(AgentEvent::UsbEvent {
+                event: gui_usb_event(event),
+            });
         }
     }
 }
@@ -349,7 +391,9 @@ mod tests {
     use super::*;
     use crate::main_loop::testing::standalone_runtime;
     use agent_common::error::CommonError;
-    use agent_scanner::{ScanType, Severity, VulnerabilityFinding, VulnerabilityScanResult};
+    use agent_scanner::{
+        ScanType, SecurityIncident, Severity, VulnerabilityFinding, VulnerabilityScanResult,
+    };
     use std::time::Instant;
 
     fn scan_result(severities: &[Severity]) -> VulnerabilityScanResult {
@@ -372,6 +416,181 @@ mod tests {
             errors: Vec::new(),
             packages: Vec::new(),
             exploit_intel: None,
+        }
+    }
+
+    fn incident(incident_type: agent_scanner::IncidentType, title: &str) -> SecurityIncident {
+        SecurityIncident {
+            incident_type,
+            severity: agent_scanner::IncidentSeverity::High,
+            title: title.to_string(),
+            description: format!("{title} détecté"),
+            evidence: serde_json::json!({ "process_name": "xmrig", "pid": 4242, "path": "/tmp/xmrig" }),
+            confidence: 90,
+            detected_at: chrono::Utc::now(),
+        }
+    }
+
+    fn security_scan(incidents: Vec<SecurityIncident>) -> SecurityScanResult {
+        let now = chrono::Utc::now();
+        SecurityScanResult {
+            incidents,
+            started_at: now,
+            completed_at: now,
+            processes_scanned: 1,
+            system_checks_performed: 1,
+            errors: Vec::new(),
+            processes: vec![agent_scanner::security::process_monitor::ProcessInfo {
+                pid: 4242,
+                name: "xmrig".to_string(),
+                path: Some("/tmp/xmrig".to_string()),
+                cmdline: Some("/tmp/xmrig --donate-level 1".to_string()),
+                ppid: Some(1),
+                user: Some("alice".to_string()),
+            }],
+        }
+    }
+
+    #[cfg(feature = "gui")]
+    fn drain(test: &crate::main_loop::testing::TestRuntime) -> Vec<AgentEvent> {
+        std::iter::from_fn(|| test.events.try_recv().ok()).collect()
+    }
+
+    #[tokio::test]
+    async fn scan_incidents_and_processes_reach_the_pass() {
+        let test = standalone_runtime();
+        let mut st = LoopState::starting_at(Instant::now(), 6 * 3600, 3600);
+        let mut pass = LoopPass::new(false);
+        let firewall = incident(
+            agent_scanner::IncidentType::FirewallDisabled,
+            "Pare-feu désactivé",
+        );
+
+        test.runtime
+            .record_security_scan(&mut st, &mut pass, &security_scan(vec![firewall]));
+
+        assert_eq!(pass.incidents.len(), 1);
+        // Every scanned process is kept for the custom detection rules.
+        assert_eq!(pass.observed.processes.len(), 1);
+        assert_eq!(pass.observed.processes[0].name, "xmrig");
+        #[cfg(feature = "gui")]
+        assert_eq!(pass.kpi_incident_count, 1);
+    }
+
+    #[cfg(feature = "gui")]
+    #[tokio::test]
+    async fn a_persisting_incident_is_notified_once_and_again_after_it_cleared() {
+        let test = standalone_runtime();
+        let mut st = LoopState::starting_at(Instant::now(), 6 * 3600, 3600);
+        let scan = security_scan(vec![incident(
+            agent_scanner::IncidentType::FirewallDisabled,
+            "Pare-feu désactivé",
+        )]);
+        let notified = |events: &[AgentEvent]| {
+            events
+                .iter()
+                .filter(|event| matches!(event, AgentEvent::Notification { .. }))
+                .count()
+        };
+        let shown = |events: &[AgentEvent]| {
+            events
+                .iter()
+                .filter(|event| matches!(event, AgentEvent::SystemIncident { .. }))
+                .count()
+        };
+
+        test.runtime
+            .record_security_scan(&mut st, &mut LoopPass::new(false), &scan);
+        let first = drain(&test);
+        assert_eq!((notified(&first), shown(&first)), (1, 1));
+
+        // Still there at the next scan: shown, not notified again.
+        test.runtime
+            .record_security_scan(&mut st, &mut LoopPass::new(false), &scan);
+        let second = drain(&test);
+        assert_eq!((notified(&second), shown(&second)), (0, 1));
+
+        // A clean scan forgets it; when it comes back it is news again.
+        test.runtime.record_security_scan(
+            &mut st,
+            &mut LoopPass::new(false),
+            &security_scan(Vec::new()),
+        );
+        assert!(st.gui.previous_incidents.is_empty());
+        assert!(drain(&test).is_empty());
+        test.runtime
+            .record_security_scan(&mut st, &mut LoopPass::new(false), &scan);
+        assert_eq!(notified(&drain(&test)), 1);
+    }
+
+    #[cfg(feature = "gui")]
+    #[tokio::test]
+    async fn a_process_incident_is_shown_once_as_a_process() {
+        let test = standalone_runtime();
+        let mut st = LoopState::starting_at(Instant::now(), 6 * 3600, 3600);
+        let miner = incident(agent_scanner::IncidentType::CryptoMiner, "Mineur");
+
+        test.runtime.record_security_scan(
+            &mut st,
+            &mut LoopPass::new(false),
+            &security_scan(vec![miner]),
+        );
+
+        let events = drain(&test);
+        assert!(
+            !events
+                .iter()
+                .any(|e| matches!(e, AgentEvent::SystemIncident { .. }))
+        );
+        let process = events
+            .iter()
+            .find_map(|event| match event {
+                AgentEvent::SuspiciousProcess { process } => Some(process),
+                _ => None,
+            })
+            .expect("the process");
+        assert_eq!(process.process_name, "xmrig");
+        assert_eq!(process.pid, 4242);
+        assert_eq!(process.command_line, "/tmp/xmrig");
+    }
+
+    #[cfg(feature = "gui")]
+    #[test]
+    fn a_process_without_evidence_is_shown_as_unknown() {
+        let mut bare = incident(agent_scanner::IncidentType::SuspiciousProcess, "Processus");
+        bare.evidence = serde_json::Value::Null;
+        let process = gui_suspicious_process(&bare);
+        assert_eq!(process.process_name, "unknown");
+        assert_eq!(process.pid, 0);
+        assert_eq!(process.command_line, "");
+    }
+
+    #[cfg(feature = "gui")]
+    #[tokio::test]
+    async fn usb_events_are_shown_with_their_device() {
+        let test = standalone_runtime();
+        let event = UsbEvent {
+            device: agent_common::types::UsbDevice {
+                vendor_id: 0x0781,
+                product_id: 0x5581,
+                serial: None,
+                description: "SanDisk Ultra".to_string(),
+                class: agent_common::types::UsbDeviceClass::MassStorage,
+            },
+            event_type: agent_common::types::UsbEventType::Connected,
+            timestamp: chrono::Utc::now(),
+            allowed: false,
+        };
+
+        test.runtime.report_usb_events(vec![event]).await;
+
+        match test.events.try_recv() {
+            Ok(AgentEvent::UsbEvent { event }) => {
+                assert_eq!(event.device_name, "SanDisk Ultra");
+                assert_eq!((event.vendor_id, event.product_id), (0x0781, 0x5581));
+                assert!(matches!(event.event_type, GuiUsbEventType::Connected));
+            }
+            other => panic!("expected the USB event, got {:?}", other.map(|_| ())),
         }
     }
 
