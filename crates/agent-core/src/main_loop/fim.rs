@@ -6,6 +6,7 @@
 //! the threat pipeline and sent in one batch.
 
 use agent_common::constants::AGENT_VERSION;
+use agent_common::types::{FimAlert, FimChangeType};
 #[cfg(feature = "gui")]
 use agent_gui::dto::{FimChangeType as GuiFimChangeType, GuiFimAlert};
 #[cfg(feature = "gui")]
@@ -27,154 +28,311 @@ pub(crate) struct FimBatch {
     pub reports: Vec<api_client::SecurityIncidentReport>,
 }
 
+/// The incident reported to the platform for one file change.
+fn fim_incident_report(alert: &FimAlert) -> api_client::SecurityIncidentReport {
+    api_client::SecurityIncidentReport {
+        incident_type: api_client::IncidentType::UnauthorizedChange,
+        severity: api_client::Severity::Medium,
+        title: format!("File Integrity Alert: {}", alert.path.display()),
+        description: format!(
+            "File {} was modified. Change type: {:?}.",
+            alert.path.display(),
+            alert.change
+        ),
+        evidence: serde_json::json!({
+            "path": alert.path,
+            "change_type": alert.change,
+            "old_hash": alert.old_hash,
+            "new_hash": alert.new_hash,
+            "timestamp": alert.timestamp,
+        }),
+        confidence: 100,
+        detected_at: chrono::Utc::now().to_rfc3339(),
+    }
+}
+
+/// Whether the change left content on disk that the YARA rules can scan.
+fn is_yara_candidate(change: &FimChangeType) -> bool {
+    matches!(
+        change,
+        FimChangeType::Created | FimChangeType::Modified | FimChangeType::Renamed
+    )
+}
+
+/// The SIEM event recorded for one file change.
+fn fim_siem_event(alert: &FimAlert, description: String) -> agent_siem::SiemEvent {
+    agent_siem::SiemEvent {
+        timestamp: chrono::Utc::now(),
+        severity: 5,
+        category: agent_siem::EventCategory::FileIntegrity,
+        name: "File Integrity Change".to_string(),
+        description,
+        source_host: hostname::get()
+            .map(|h| h.to_string_lossy().to_string())
+            .unwrap_or_default(),
+        source_ip: None,
+        destination_ip: None,
+        destination_port: None,
+        user: None,
+        process_name: None,
+        process_id: None,
+        file_path: Some(alert.path.to_string_lossy().to_string()),
+        custom_fields: serde_json::Value::Null,
+        event_id: uuid::Uuid::new_v4().to_string(),
+        agent_version: AGENT_VERSION.to_string(),
+    }
+}
+
+#[cfg(feature = "gui")]
+fn gui_change_type(change: &FimChangeType) -> GuiFimChangeType {
+    match change {
+        FimChangeType::Created => GuiFimChangeType::Created,
+        FimChangeType::Modified => GuiFimChangeType::Modified,
+        FimChangeType::Deleted => GuiFimChangeType::Deleted,
+        FimChangeType::PermissionChanged => GuiFimChangeType::PermissionChanged,
+        FimChangeType::Renamed => GuiFimChangeType::Renamed,
+    }
+}
+
+/// Day number (UTC) used to restart the daily count of file changes.
+#[cfg(feature = "gui")]
+fn today() -> u64 {
+    chrono::Utc::now().timestamp().max(0) as u64 / agent_common::constants::SECS_PER_DAY
+}
+
+#[cfg(feature = "gui")]
+impl super::state::GuiLoopState {
+    /// Restart the daily count of file changes when the day changed.
+    pub(crate) fn roll_fim_day(&mut self, today: u64) {
+        if today != self.fim_last_day {
+            self.fim_changes_today = 0;
+            self.fim_last_day = today;
+        }
+    }
+}
+
 impl AgentRuntime {
     /// Read every pending alert of the FIM engine: interface, threat
     /// pipeline of this pass, SIEM. What must be uploaded is returned as a
     /// batch.
-    #[cfg_attr(not(feature = "gui"), allow(unused_variables))]
     pub(crate) async fn drain_fim_alerts(
         &self,
         st: &mut LoopState,
         pass: &mut LoopPass,
     ) -> FimBatch {
         let mut batch = FimBatch::default();
-        {
-            let mut rx_guard = self.fim_rx.lock().await;
-            if let Some(rx) = rx_guard.as_mut() {
-                while let Ok(alert) = rx.try_recv() {
-                    info!("FIM Alert: {:?} on {}", alert.change, alert.path.display());
-
-                    let report = api_client::SecurityIncidentReport {
-                        incident_type: api_client::IncidentType::UnauthorizedChange,
-                        severity: api_client::Severity::Medium,
-                        title: format!("File Integrity Alert: {}", alert.path.display()),
-                        description: format!(
-                            "File {} was modified. Change type: {:?}.",
-                            alert.path.display(),
-                            alert.change
-                        ),
-                        evidence: serde_json::json!({
-                            "path": alert.path,
-                            "change_type": alert.change,
-                            "old_hash": alert.old_hash,
-                            "new_hash": alert.new_hash,
-                            "timestamp": alert.timestamp,
-                        }),
-                        confidence: 100,
-                        detected_at: chrono::Utc::now().to_rfc3339(),
-                    };
-
-                    #[cfg(feature = "gui")]
-                    {
-                        let gui_change_type = match alert.change {
-                            agent_common::types::FimChangeType::Created => {
-                                GuiFimChangeType::Created
-                            }
-                            agent_common::types::FimChangeType::Modified => {
-                                GuiFimChangeType::Modified
-                            }
-                            agent_common::types::FimChangeType::Deleted => {
-                                GuiFimChangeType::Deleted
-                            }
-                            agent_common::types::FimChangeType::PermissionChanged => {
-                                GuiFimChangeType::PermissionChanged
-                            }
-                            agent_common::types::FimChangeType::Renamed => {
-                                GuiFimChangeType::Renamed
-                            }
-                        };
-                        self.emit_gui_event(AgentEvent::FimAlert {
-                            alert: GuiFimAlert {
-                                id: uuid::Uuid::new_v4().to_string(),
-                                path: alert.path.to_string_lossy().to_string(),
-                                change_type: gui_change_type,
-                                old_hash: alert.old_hash.clone(),
-                                new_hash: alert.new_hash.clone(),
-                                timestamp: alert.timestamp,
-                                acknowledged: false,
-                                allowlisted: false,
-                            },
-                        });
-                        let today = chrono::Utc::now().timestamp().max(0) as u64
-                            / agent_common::constants::SECS_PER_DAY;
-                        if today != st.gui.fim_last_day {
-                            st.gui.fim_changes_today = 0;
-                            st.gui.fim_last_day = today;
-                        }
-                        st.gui.fim_changes_today = st.gui.fim_changes_today.saturating_add(1);
-                    }
-
-                    pass.fim_alerts.push((
-                        alert.path.to_string_lossy().to_string(),
-                        format!("{}", alert.change),
-                    ));
-                    if matches!(
-                        alert.change,
-                        agent_common::types::FimChangeType::Created
-                            | agent_common::types::FimChangeType::Modified
-                            | agent_common::types::FimChangeType::Renamed
-                    ) {
-                        batch
-                            .yara_candidates
-                            .push(alert.path.to_string_lossy().to_string());
-                    }
-
-                    // Collect for batched uploads (avoid per-alert HTTP requests → 429)
-                    batch
-                        .payloads
-                        .push(agent_sync::types::FimAlertPayload::from(alert.clone()));
-
-                    // Forward to SIEM (always record for platform, optionally send to external)
-                    let siem_description = report.description.clone();
-                    batch.reports.push(report);
-                    let siem_guard = self.siem_forwarder.read().await;
-                    if let Some(siem) = siem_guard.as_ref() {
-                        let mut event = agent_siem::SiemEvent {
-                            timestamp: chrono::Utc::now(),
-                            severity: 5,
-                            category: agent_siem::EventCategory::FileIntegrity,
-                            name: "File Integrity Change".to_string(),
-                            description: siem_description,
-                            source_host: hostname::get()
-                                .map(|h| h.to_string_lossy().to_string())
-                                .unwrap_or_default(),
-                            source_ip: None,
-                            destination_ip: None,
-                            destination_port: None,
-                            user: None,
-                            process_name: None,
-                            process_id: None,
-                            file_path: Some(alert.path.to_string_lossy().to_string()),
-                            custom_fields: serde_json::Value::Null,
-                            event_id: uuid::Uuid::new_v4().to_string(),
-                            agent_version: AGENT_VERSION.to_string(),
-                        };
-
-                        // Enrich with AI classification before forwarding
-                        #[cfg(feature = "llm")]
-                        {
-                            if let Some(ref llm_svc) = self.llm_service {
-                                siem_enrichment::enrich_siem_event(&mut event, llm_svc).await;
-                            }
-                        }
-                        #[cfg(not(feature = "llm"))]
-                        {
-                            siem_enrichment::enrich_siem_event(&mut event).await;
-                        }
-
-                        // Always record for platform SIEM tab
-                        siem.record_event(event.clone()).await;
-
-                        // Optionally forward to external SIEM
-                        if siem.is_enabled()
-                            && let Err(e) = siem.send_event(&event).await
-                        {
-                            warn!("Failed to forward FIM event to external SIEM: {}", e);
-                        }
-                    }
-                }
+        let mut rx_guard = self.fim_rx.lock().await;
+        if let Some(rx) = rx_guard.as_mut() {
+            while let Ok(alert) = rx.try_recv() {
+                self.handle_fim_alert(st, pass, &mut batch, alert).await;
             }
         }
         batch
+    }
+
+    /// One file change: interface, threat pipeline of this pass, batch to
+    /// upload, SIEM.
+    #[cfg_attr(not(feature = "gui"), allow(unused_variables))]
+    async fn handle_fim_alert(
+        &self,
+        st: &mut LoopState,
+        pass: &mut LoopPass,
+        batch: &mut FimBatch,
+        alert: FimAlert,
+    ) {
+        info!("FIM Alert: {:?} on {}", alert.change, alert.path.display());
+
+        let report = fim_incident_report(&alert);
+
+        #[cfg(feature = "gui")]
+        {
+            self.emit_gui_event(AgentEvent::FimAlert {
+                alert: GuiFimAlert {
+                    id: uuid::Uuid::new_v4().to_string(),
+                    path: alert.path.to_string_lossy().to_string(),
+                    change_type: gui_change_type(&alert.change),
+                    old_hash: alert.old_hash.clone(),
+                    new_hash: alert.new_hash.clone(),
+                    timestamp: alert.timestamp,
+                    acknowledged: false,
+                    allowlisted: false,
+                },
+            });
+            st.gui.roll_fim_day(today());
+            st.gui.fim_changes_today = st.gui.fim_changes_today.saturating_add(1);
+        }
+
+        pass.fim_alerts.push((
+            alert.path.to_string_lossy().to_string(),
+            format!("{}", alert.change),
+        ));
+        if is_yara_candidate(&alert.change) {
+            batch
+                .yara_candidates
+                .push(alert.path.to_string_lossy().to_string());
+        }
+
+        // Collect for batched uploads (avoid per-alert HTTP requests → 429)
+        batch
+            .payloads
+            .push(agent_sync::types::FimAlertPayload::from(alert.clone()));
+
+        // Forward to SIEM (always record for platform, optionally send to external)
+        let siem_description = report.description.clone();
+        batch.reports.push(report);
+        self.record_fim_alert_in_siem(&alert, siem_description)
+            .await;
+    }
+
+    /// Record the file change for the platform's SIEM tab and, when an
+    /// external SIEM is configured, forward it there.
+    async fn record_fim_alert_in_siem(&self, alert: &FimAlert, description: String) {
+        let siem_guard = self.siem_forwarder.read().await;
+        if let Some(siem) = siem_guard.as_ref() {
+            let mut event = fim_siem_event(alert, description);
+
+            // Enrich with AI classification before forwarding
+            #[cfg(feature = "llm")]
+            {
+                if let Some(ref llm_svc) = self.llm_service {
+                    siem_enrichment::enrich_siem_event(&mut event, llm_svc).await;
+                }
+            }
+            #[cfg(not(feature = "llm"))]
+            {
+                siem_enrichment::enrich_siem_event(&mut event).await;
+            }
+
+            // Always record for platform SIEM tab
+            siem.record_event(event.clone()).await;
+
+            // Optionally forward to external SIEM
+            if siem.is_enabled()
+                && let Err(e) = siem.send_event(&event).await
+            {
+                warn!("Failed to forward FIM event to external SIEM: {}", e);
+            }
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::main_loop::testing::standalone_runtime;
+    use std::path::PathBuf;
+    use std::time::Instant;
+
+    fn alert(path: &str, change: FimChangeType) -> FimAlert {
+        FimAlert {
+            path: PathBuf::from(path),
+            change,
+            old_hash: Some("aa11".to_string()),
+            new_hash: Some("bb22".to_string()),
+            new_size: Some(128),
+            timestamp: chrono::Utc::now(),
+            acknowledged: false,
+        }
+    }
+
+    #[test]
+    fn a_file_change_is_reported_as_an_unauthorized_change() {
+        let report = fim_incident_report(&alert("/etc/hosts", FimChangeType::Modified));
+        assert_eq!(report.title, "File Integrity Alert: /etc/hosts");
+        assert_eq!(
+            report.description,
+            "File /etc/hosts was modified. Change type: Modified."
+        );
+        assert_eq!(report.confidence, 100);
+        assert_eq!(report.evidence["old_hash"], "aa11");
+        assert_eq!(report.evidence["new_hash"], "bb22");
+    }
+
+    #[test]
+    fn only_changes_that_leave_content_are_scanned_with_yara() {
+        assert!(is_yara_candidate(&FimChangeType::Created));
+        assert!(is_yara_candidate(&FimChangeType::Modified));
+        assert!(is_yara_candidate(&FimChangeType::Renamed));
+        assert!(!is_yara_candidate(&FimChangeType::Deleted));
+        assert!(!is_yara_candidate(&FimChangeType::PermissionChanged));
+    }
+
+    #[test]
+    fn the_siem_event_names_the_file() {
+        let event = fim_siem_event(
+            &alert("/etc/sudoers", FimChangeType::Modified),
+            "File /etc/sudoers was modified.".to_string(),
+        );
+        assert_eq!(event.severity, 5);
+        assert_eq!(event.name, "File Integrity Change");
+        assert_eq!(event.description, "File /etc/sudoers was modified.");
+        assert_eq!(event.file_path.as_deref(), Some("/etc/sudoers"));
+        assert_eq!(event.agent_version, AGENT_VERSION);
+    }
+
+    #[cfg(feature = "gui")]
+    #[test]
+    fn the_daily_count_restarts_on_a_new_day() {
+        let mut st = LoopState::starting_at(Instant::now(), 3600, 3600);
+        st.gui.fim_last_day = 20_000;
+        st.gui.fim_changes_today = 12;
+
+        st.gui.roll_fim_day(20_000);
+        assert_eq!(st.gui.fim_changes_today, 12);
+
+        st.gui.roll_fim_day(20_001);
+        assert_eq!(st.gui.fim_changes_today, 0);
+        assert_eq!(st.gui.fim_last_day, 20_001);
+    }
+
+    #[tokio::test]
+    async fn pending_alerts_are_drained_into_the_pass_and_the_batch() {
+        let test = standalone_runtime();
+        test.runtime.init_siem_forwarder().await;
+        let (tx, rx) = tokio::sync::mpsc::channel(8);
+        *test.runtime.fim_rx.lock().await = Some(rx);
+        tx.send(alert("/etc/hosts", FimChangeType::Modified))
+            .await
+            .unwrap();
+        tx.send(alert("/etc/old.conf", FimChangeType::Deleted))
+            .await
+            .unwrap();
+        let mut st = LoopState::starting_at(Instant::now(), 3600, 3600);
+        let mut pass = LoopPass::new(true);
+
+        let batch = test.runtime.drain_fim_alerts(&mut st, &mut pass).await;
+
+        assert_eq!(
+            pass.fim_alerts,
+            vec![
+                ("/etc/hosts".to_string(), "modified".to_string()),
+                ("/etc/old.conf".to_string(), "deleted".to_string()),
+            ]
+        );
+        assert_eq!(batch.yara_candidates, vec!["/etc/hosts".to_string()]);
+        assert_eq!(batch.payloads.len(), 2);
+        assert_eq!(batch.reports.len(), 2);
+        // Both changes are kept for the platform's SIEM tab.
+        let siem = test.runtime.siem_forwarder.read().await;
+        let recorded = siem.as_ref().unwrap().take_recent_events().await;
+        assert_eq!(recorded.len(), 2);
+        assert_eq!(recorded[0].file_path.as_deref(), Some("/etc/hosts"));
+        #[cfg(feature = "gui")]
+        assert_eq!(st.gui.fim_changes_today, 2);
+        // Nothing is left for the next pass.
+        let again = test.runtime.drain_fim_alerts(&mut st, &mut pass).await;
+        assert!(again.payloads.is_empty());
+    }
+
+    #[tokio::test]
+    async fn without_a_fim_engine_the_batch_is_empty() {
+        let test = standalone_runtime();
+        let mut st = LoopState::starting_at(Instant::now(), 3600, 3600);
+        let mut pass = LoopPass::new(false);
+
+        let batch = test.runtime.drain_fim_alerts(&mut st, &mut pass).await;
+
+        assert!(batch.payloads.is_empty() && batch.yara_candidates.is_empty());
+        assert!(pass.fim_alerts.is_empty());
     }
 }
