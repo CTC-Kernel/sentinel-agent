@@ -247,9 +247,7 @@ impl AgentRuntime {
     ) {
         for (path, incident) in matched {
             warn!("{}: {}", incident.title, path);
-            if let Err(e) = self.upload_incident(&incident).await {
-                error!("Failed to upload YARA incident: {}", e);
-            }
+            self.queue_incident(&incident, "YARA incident").await;
             #[cfg(feature = "gui")]
             {
                 self.emit_system_incident(&incident);

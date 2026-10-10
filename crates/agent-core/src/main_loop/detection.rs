@@ -7,7 +7,7 @@
 use agent_fim::canary::CanaryIncident;
 use agent_scanner::SecurityIncident;
 use std::sync::atomic::Ordering;
-use tracing::{error, warn};
+use tracing::warn;
 
 use super::LoopPass;
 use crate::{AgentRuntime, ransomware_canary};
@@ -35,9 +35,7 @@ impl AgentRuntime {
     ) {
         for incident in process_start_incidents {
             warn!("{}", incident.title);
-            if let Err(e) = self.upload_incident(&incident).await {
-                error!("Failed to upload process incident: {}", e);
-            }
+            self.queue_incident(&incident, "process incident").await;
             #[cfg(feature = "gui")]
             {
                 self.emit_process_incident(&incident);
@@ -71,9 +69,8 @@ impl AgentRuntime {
         for canary in canaries {
             let incident = ransomware_canary::incident_from(&canary);
             warn!("{}: {}", incident.title, canary.folder.display());
-            if let Err(e) = self.upload_incident(&incident).await {
-                error!("Failed to upload ransomware canary incident: {}", e);
-            }
+            self.queue_incident(&incident, "ransomware canary incident")
+                .await;
             #[cfg(feature = "gui")]
             {
                 self.emit_system_incident(&incident);
@@ -110,6 +107,7 @@ impl AgentRuntime {
 #[cfg(test)]
 mod tests {
     use crate::main_loop::LoopPass;
+    use crate::main_loop::outbox::Outbound;
     use crate::main_loop::testing::standalone_runtime;
     use crate::ransomware_canary;
     use agent_fim::canary::{CanaryIncident, CanaryTamper};
@@ -142,6 +140,14 @@ mod tests {
         assert_eq!(pass.incidents.len(), 1);
         assert_eq!(pass.incidents[0].incident_type, IncidentType::CryptoMiner);
         assert!(pass.has_flagged_activity());
+        // The upload is queued, not waited for.
+        match test.runtime.outbox.take_queued().await.as_slice() {
+            [Outbound::Incident { incident, what }] => {
+                assert_eq!(incident.incident_type, IncidentType::CryptoMiner);
+                assert_eq!(*what, "process incident");
+            }
+            other => panic!("expected one queued incident, got {other:?}"),
+        }
         #[cfg(feature = "gui")]
         {
             assert_eq!(pass.kpi_incident_count, 1);
@@ -218,6 +224,7 @@ mod tests {
 
         assert_eq!(pass.incidents.len(), 1);
         assert!(pass.fim_alerts.is_empty());
+        assert_eq!(test.runtime.outbox.unsent(), 1);
     }
 
     #[tokio::test]

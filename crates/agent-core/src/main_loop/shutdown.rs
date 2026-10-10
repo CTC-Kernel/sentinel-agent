@@ -65,6 +65,8 @@ impl AgentRuntime {
         if let Some(task) = st.vuln_scan_task.take() {
             task.abort();
         }
+        // What the loop queued for upload leaves before the tasks stop.
+        self.flush_outbox().await;
         st.tasks.shutdown().await;
 
         // 1. Flush pending check results

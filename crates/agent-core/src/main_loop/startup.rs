@@ -102,7 +102,7 @@ impl AgentRuntime {
     /// Everything that precedes the first pass: connection to the platform
     /// (unless standalone), initial scans, then the engines the loop reads
     /// from. Returns the schedule the loop starts with.
-    pub(crate) async fn start_up(&self) -> Result<LoopState, CommonError> {
+    pub(crate) async fn start_up(self: &Arc<Self>) -> Result<LoopState, CommonError> {
         self.announce_start();
 
         // Honor timed IP unblocks whose in-memory timers died with the previous
@@ -157,6 +157,10 @@ impl AgentRuntime {
             self.vuln_scan_interval_secs,
             self.state.get_check_interval(),
         );
+
+        // Uploads are queued from here on: the task that sends them starts
+        // before the first scan.
+        self.start_outbox(&mut st.tasks);
 
         // Run initial security scan on startup (quick check)
         info!("Running initial security scan...");

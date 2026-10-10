@@ -366,6 +366,8 @@ pub struct AgentRuntime {
     /// Voice service for auditory feedback and speech interface.
     #[cfg(feature = "voice")]
     voice_service: Option<Arc<voice::VoiceService>>,
+    /// Uploads queued by the main loop, sent by a background task.
+    outbox: main_loop::Outbox,
     /// Consecutive authentication failure count for re-enrollment tracking.
     auth_failure_count: std::sync::atomic::AtomicU32,
     re_enrollment_attempts: std::sync::atomic::AtomicU32,
@@ -700,6 +702,7 @@ impl AgentRuntime {
             llm_service: None,
             #[cfg(feature = "voice")]
             voice_service: None,
+            outbox: main_loop::Outbox::new(),
             auth_failure_count: std::sync::atomic::AtomicU32::new(0),
             re_enrollment_attempts: std::sync::atomic::AtomicU32::new(0),
             last_re_enrollment_attempt: std::sync::atomic::AtomicU64::new(0),
