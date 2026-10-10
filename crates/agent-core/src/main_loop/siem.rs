@@ -12,6 +12,7 @@ use std::sync::atomic::Ordering;
 use tracing::{debug, error, info, warn};
 
 use super::LoopState;
+use super::outbox::Outbound;
 use crate::AgentRuntime;
 
 /// The incident type the platform files a correlation rule under.
@@ -322,7 +323,7 @@ impl AgentRuntime {
                 warn!("Correlation engine triggered {} alert(s)", alerts.len());
                 self.record_correlation_alerts_in_siem(engine, &alerts)
                     .await;
-                self.report_correlation_alerts(&alerts).await;
+                self.outbox.push(Outbound::CorrelationAlerts(alerts)).await;
             }
         }
     }
@@ -355,7 +356,7 @@ impl AgentRuntime {
     }
 
     /// Upload correlation alerts as security incidents.
-    async fn report_correlation_alerts(&self, alerts: &[CorrelationAlert]) {
+    pub(crate) async fn report_correlation_alerts(&self, alerts: &[CorrelationAlert]) {
         for alert in alerts {
             if let Some(ref client) = self.authenticated_client
                 && let Err(e) = client

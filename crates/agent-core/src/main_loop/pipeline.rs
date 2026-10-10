@@ -10,6 +10,7 @@ use agent_scanner::SecurityIncident;
 use agent_siem::{SiemEvent, SiemForwarder};
 use tracing::{debug, info, warn};
 
+use super::outbox::Outbound;
 use super::{LoopPass, LoopState};
 use crate::threat_pipeline::{PipelineResult, RuleMatch};
 use crate::{AgentRuntime, siem_enrichment, threat_pipeline, triage_allowlist};
@@ -173,7 +174,13 @@ impl AgentRuntime {
                 .await;
                 drop(siem_delivery);
 
-                self.upload_pipeline_result(&pipeline_result).await;
+                if !pipeline_result.rule_matches.is_empty()
+                    || !pipeline_result.playbook_logs.is_empty()
+                {
+                    self.outbox
+                        .push(Outbound::PipelineResult(pipeline_result))
+                        .await;
+                }
             }
 
             self.forward_findings_to_siem(&pass.incidents, &pass.network_alerts)
@@ -223,7 +230,7 @@ impl AgentRuntime {
 
     /// Upload the detection matches and the playbook execution logs of a
     /// pass to the platform.
-    async fn upload_pipeline_result(&self, pipeline_result: &PipelineResult) {
+    pub(crate) async fn upload_pipeline_result(&self, pipeline_result: &PipelineResult) {
         if let Some(ref client) = self.authenticated_client {
             // Upload detection matches to the platform
             if !pipeline_result.rule_matches.is_empty() {

@@ -14,6 +14,7 @@ use agent_gui::events::AgentEvent;
 use agent_scanner::SecurityIncident;
 use tracing::{error, info, warn};
 
+use super::outbox::Outbound;
 use super::{LoopPass, LoopState};
 use crate::{AgentRuntime, api_client, siem_enrichment, yara_scan};
 
@@ -276,6 +277,13 @@ impl AgentRuntime {
         }
     }
 
+    /// Queue the file changes of the pass for upload, when there are any.
+    pub(crate) async fn queue_fim_batch(&self, batch: FimBatch) {
+        if !batch.payloads.is_empty() {
+            self.outbox.push(Outbound::FimBatch(batch)).await;
+        }
+    }
+
     /// Upload the file changes of the pass in one request, and report one
     /// summary incident instead of one per change.
     pub(crate) async fn upload_fim_batch(&self, batch: FimBatch) {
@@ -371,6 +379,25 @@ mod tests {
     #[test]
     fn no_change_means_no_summary() {
         assert!(fim_summary_report(Vec::new()).is_none());
+    }
+
+    #[tokio::test]
+    async fn only_a_batch_with_changes_is_queued() {
+        let test = standalone_runtime();
+        test.runtime.queue_fim_batch(FimBatch::default()).await;
+        assert_eq!(test.runtime.outbox.unsent(), 0);
+
+        let changed = alert("/etc/hosts", FimChangeType::Modified);
+        let batch = FimBatch {
+            payloads: vec![agent_sync::types::FimAlertPayload::from(changed.clone())],
+            yara_candidates: Vec::new(),
+            reports: vec![fim_incident_report(&changed)],
+        };
+        test.runtime.queue_fim_batch(batch).await;
+        match test.runtime.outbox.take_queued().await.as_slice() {
+            [Outbound::FimBatch(batch)] => assert_eq!(batch.payloads.len(), 1),
+            other => panic!("expected the batch, got {other:?}"),
+        }
     }
 
     #[tokio::test]

@@ -23,7 +23,7 @@
 //! | 3  | `check_ransomware_canaries`    | every pass                           | pass: incidents, file changes                 |
 //! | 4  | `drain_fim_alerts`             | every pass                           | pass: file changes; FIM batch; SIEM events    |
 //! | 5  | `scan_changed_files_with_yara` | when the batch has candidates        | pass: incidents, file changes                 |
-//! | 6  | `upload_fim_batch`             | when the batch is not empty          | (consumes the batch)                          |
+//! | 6  | `queue_fim_batch`              | when the batch is not empty          | (queues the batch for upload)                 |
 //! | 7  | `emit_fim_stats` (gui)         | every pass                           | state: daily FIM count                        |
 //! | 8  | `sync_gui_siem_config` (gui)   | every pass                           | SIEM forwarder configuration                  |
 //! | 9  | `heartbeat_stage`              | heartbeat interval, not standalone   | state: heartbeat timer, pending sync count    |
@@ -50,6 +50,7 @@
 //! | Task                        | Started by   | Collected by | After a panic                    |
 //! |-----------------------------|--------------|--------------|----------------------------------|
 //! | `threat intelligence feeds` | start-up     | stage 1      | logged, started again            |
+//! | `platform uploads`          | start-up     | (none)       | logged, started again, next item |
 //! | `vulnerability scan`        | stage 11, 21 | stage 10     | logged, next scan at its usual time |
 //! | `compliance checks`         | stage 19, 21 | stage 18     | logged, next run at its usual time |
 //! | `network discovery`         | stage 24     | (interface)  | logged                           |
@@ -58,7 +59,8 @@
 //!
 //! - The response, stage 17, acts on what stages 2 to 5, 12 and 15 put in
 //!   the pass: they must run before it, in the same pass. Everything a
-//!   stage awaits before 17 (uploads included) delays the response.
+//!   stage awaits before 17 delays the response, which is why the stages
+//!   queue their uploads in the `Outbox` instead of sending them.
 //! - Stages 4, 5 and 6 share the FIM batch: drain, scan, then upload.
 //! - Stage 1 gives the network detector its indicators before stage 15.
 //! - The heartbeat (9, and 22 on request) sends the score that stage 18
@@ -129,7 +131,7 @@ impl AgentRuntime {
             .await;
 
         // Batch-upload collected FIM alerts and report summary incident
-        self.upload_fim_batch(fim_batch).await;
+        self.queue_fim_batch(fim_batch).await;
 
         // 1b. Emit FIM stats to GUI periodically
         #[cfg(feature = "gui")]

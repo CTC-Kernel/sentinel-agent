@@ -13,12 +13,17 @@ use std::sync::Arc;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::time::{Duration, Instant};
 
+use agent_common::types::UsbEvent;
+use agent_network::{NetworkSecurityAlert, NetworkSnapshot};
 use agent_scanner::SecurityIncident;
+use agent_siem::correlation::CorrelationAlert;
 use tokio::sync::mpsc;
 use tracing::{debug, error, warn};
 
+use super::fim::FimBatch;
 use crate::AgentRuntime;
 use crate::supervised_tasks::TaskSet;
+use crate::threat_pipeline::PipelineResult;
 
 /// Name of the background task that sends the queued uploads.
 pub(crate) const OUTBOX_TASK: &str = "platform uploads";
@@ -32,13 +37,49 @@ const OUTBOX_CAPACITY: usize = 256;
 const OUTBOX_FLUSH_TIMEOUT: Duration = Duration::from_secs(10);
 
 /// Something to send to the platform.
-#[derive(Debug)]
 pub(crate) enum Outbound {
     /// A security incident; `what` names it in the log when the upload fails.
     Incident {
         incident: Box<SecurityIncident>,
         what: &'static str,
     },
+    /// The file changes of one pass.
+    FimBatch(FimBatch),
+    /// USB devices plugged in or removed.
+    UsbEvents(Vec<UsbEvent>),
+    /// A network collection; `what` names it in the log when the upload
+    /// fails.
+    NetworkSnapshot {
+        snapshot: Box<NetworkSnapshot>,
+        what: &'static str,
+    },
+    /// The alerts of a network detection.
+    NetworkAlerts(Vec<NetworkSecurityAlert>),
+    /// Alerts of the correlation engine, reported as incidents.
+    CorrelationAlerts(Vec<CorrelationAlert>),
+    /// Detection rule matches and playbook executions of one pass.
+    PipelineResult(PipelineResult),
+}
+
+impl Outbound {
+    /// What the item is, for the logs.
+    pub(crate) fn kind(&self) -> &'static str {
+        match self {
+            Self::Incident { what, .. } => what,
+            Self::FimBatch(_) => "file changes",
+            Self::UsbEvents(_) => "USB events",
+            Self::NetworkSnapshot { what, .. } => what,
+            Self::NetworkAlerts(_) => "network alerts",
+            Self::CorrelationAlerts(_) => "correlation alerts",
+            Self::PipelineResult(_) => "detection matches and playbook logs",
+        }
+    }
+}
+
+impl std::fmt::Debug for Outbound {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Outbound({})", self.kind())
+    }
 }
 
 /// The queue of uploads, and the count of those not sent yet.
@@ -148,6 +189,23 @@ impl AgentRuntime {
                     error!("Failed to upload {}: {}", what, e);
                 }
             }
+            Outbound::FimBatch(batch) => self.upload_fim_batch(batch).await,
+            Outbound::UsbEvents(events) => self.upload_usb_events(&events).await,
+            Outbound::NetworkSnapshot { snapshot, what } => {
+                if let Err(e) = self.upload_network_snapshot(&snapshot).await {
+                    warn!("Failed to upload {}: {}", what, e);
+                    #[cfg(feature = "gui")]
+                    self.emit_gui_event(agent_gui::events::AgentEvent::SyncStatus {
+                        syncing: false,
+                        pending_count: 0,
+                        last_sync_at: None,
+                        error: Some(format!("Network upload failed: {}", e)),
+                    });
+                }
+            }
+            Outbound::NetworkAlerts(alerts) => self.upload_network_alerts(&alerts).await,
+            Outbound::CorrelationAlerts(alerts) => self.report_correlation_alerts(&alerts).await,
+            Outbound::PipelineResult(result) => self.upload_pipeline_result(&result).await,
         }
     }
 
@@ -203,6 +261,7 @@ mod tests {
     fn title(item: &Outbound) -> String {
         match item {
             Outbound::Incident { incident, .. } => incident.title.clone(),
+            other => other.kind().to_string(),
         }
     }
 
@@ -281,6 +340,33 @@ mod tests {
         let left = outbox.wait_until_empty(Duration::from_millis(120)).await;
 
         assert_eq!(left, 1);
+    }
+
+    #[tokio::test]
+    async fn every_kind_of_item_is_sent_by_the_runtime() {
+        let test = standalone_runtime();
+        let runtime = Arc::new(test.runtime);
+        let mut tasks = TaskSet::new("test");
+        for item in [
+            Outbound::FimBatch(FimBatch::default()),
+            Outbound::UsbEvents(Vec::new()),
+            Outbound::NetworkAlerts(Vec::new()),
+            Outbound::CorrelationAlerts(Vec::new()),
+            Outbound::PipelineResult(PipelineResult {
+                rule_matches: Vec::new(),
+                playbook_logs: Vec::new(),
+            }),
+        ] {
+            runtime.outbox.push(item).await;
+        }
+
+        runtime.start_outbox(&mut tasks);
+        runtime.flush_outbox().await;
+
+        // Standalone: nothing leaves, and nothing is left behind.
+        assert_eq!(runtime.outbox.unsent(), 0);
+        assert!(tasks.reap().is_empty());
+        tasks.shutdown().await;
     }
 
     #[tokio::test]

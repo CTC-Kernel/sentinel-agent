@@ -7,6 +7,7 @@
 use agent_gui::events::AgentEvent;
 use tracing::{info, warn};
 
+use super::outbox::Outbound;
 use super::{LoopPass, LoopState};
 use crate::AgentRuntime;
 
@@ -128,16 +129,12 @@ impl AgentRuntime {
                             connections,
                         });
                     }
-                    if let Err(e) = self.upload_network_snapshot(&snapshot).await {
-                        warn!("Failed to upload network snapshot: {}", e);
-                        #[cfg(feature = "gui")]
-                        self.emit_gui_event(AgentEvent::SyncStatus {
-                            syncing: false,
-                            pending_count: 0,
-                            last_sync_at: None,
-                            error: Some(format!("Network upload failed: {}", e)),
-                        });
-                    }
+                    self.outbox
+                        .push(Outbound::NetworkSnapshot {
+                            snapshot: Box::new(snapshot),
+                            what: "network snapshot",
+                        })
+                        .await;
                 }
                 Err(e) => {
                     warn!("Network static collection failed: {}", e);
@@ -188,16 +185,12 @@ impl AgentRuntime {
                             connections,
                         });
                     }
-                    if let Err(e) = self.upload_network_snapshot(&snapshot).await {
-                        warn!("Failed to upload network connections: {}", e);
-                        #[cfg(feature = "gui")]
-                        self.emit_gui_event(AgentEvent::SyncStatus {
-                            syncing: false,
-                            pending_count: 0,
-                            last_sync_at: None,
-                            error: Some(format!("Network upload failed: {}", e)),
-                        });
-                    }
+                    self.outbox
+                        .push(Outbound::NetworkSnapshot {
+                            snapshot: Box::new(snapshot),
+                            what: "network connections",
+                        })
+                        .await;
                 }
                 Err(e) => {
                     warn!("Network connection collection failed: {}", e);
@@ -246,7 +239,11 @@ impl AgentRuntime {
                             for alert in &alerts {
                                 self.emit_network_security_alert_to_gui(alert);
                             }
-                            self.upload_network_alerts(&alerts).await;
+                            if !alerts.is_empty() {
+                                self.outbox
+                                    .push(Outbound::NetworkAlerts(alerts.clone()))
+                                    .await;
+                            }
 
                             // Accumulate network alerts for threat pipeline
                             pass.network_alerts.extend(alerts.iter().cloned());

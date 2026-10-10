@@ -23,6 +23,7 @@ use std::sync::atomic::Ordering;
 use tokio::sync::oneshot;
 use tracing::{debug, error, info, warn};
 
+use super::outbox::Outbound;
 use super::{LoopPass, LoopState};
 use crate::AgentRuntime;
 use crate::supervised_tasks::TaskSet;
@@ -409,7 +410,18 @@ impl AgentRuntime {
         self.report_usb_events(usb_events).await;
     }
 
-    /// Log, upload and show USB device events.
+    /// Upload USB device events to the platform.
+    pub(crate) async fn upload_usb_events(&self, usb_events: &[UsbEvent]) {
+        if let Some(ref auth_client) = self.authenticated_client {
+            let payloads: Vec<agent_sync::types::UsbEventPayload> =
+                usb_events.iter().cloned().map(Into::into).collect();
+            if let Err(e) = auth_client.upload_usb_events(payloads).await {
+                warn!("Failed to upload USB events to SaaS: {}", e);
+            }
+        }
+    }
+
+    /// Log, queue for upload and show USB device events.
     async fn report_usb_events(&self, usb_events: Vec<UsbEvent>) {
         for event in &usb_events {
             debug!(
@@ -422,14 +434,10 @@ impl AgentRuntime {
         }
 
         // Upload USB events to SaaS (populates USB tab)
-        if !usb_events.is_empty()
-            && let Some(ref auth_client) = self.authenticated_client
-        {
-            let payloads: Vec<agent_sync::types::UsbEventPayload> =
-                usb_events.iter().cloned().map(Into::into).collect();
-            if let Err(e) = auth_client.upload_usb_events(payloads).await {
-                warn!("Failed to upload USB events to SaaS: {}", e);
-            }
+        if !usb_events.is_empty() && self.authenticated_client.is_some() {
+            self.outbox
+                .push(Outbound::UsbEvents(usb_events.clone()))
+                .await;
         }
 
         #[cfg(feature = "gui")]
