@@ -10,8 +10,8 @@ use agent_gui::dto::GuiPolicySummary;
 use agent_gui::events::AgentEvent;
 #[cfg(feature = "gui")]
 use agent_scanner::{CheckExecutionResult, ComplianceScore};
-#[cfg(feature = "gui")]
 use std::sync::atomic::Ordering;
+use tracing::info;
 
 use super::{LoopPass, LoopState};
 use crate::AgentRuntime;
@@ -86,6 +86,50 @@ impl AgentRuntime {
             self.publish_compliance(st, pass, &check_results, &score, false);
 
             st.last_compliance_check = std::time::Instant::now();
+        }
+    }
+
+    /// The check the operator asked for ("Vérifier maintenant"): start the
+    /// vulnerability scan unless one is running, then run the compliance
+    /// checks at once, paused or not.
+    pub(crate) async fn forced_check_stage(&self, st: &mut LoopState, pass: &mut LoopPass) {
+        if self.state.force_check.load(Ordering::Acquire) {
+            info!("Force check triggered");
+            pass.is_active = true;
+            #[cfg(feature = "gui")]
+            {
+                self.state.scanning.store(true, Ordering::Release);
+                self.emit_status_update(
+                    st.gui.last_check_at,
+                    st.compliance_score,
+                    st.gui.cached_pending_sync,
+                    st.gui.cached_policy_summary,
+                );
+            }
+
+            // The vulnerability scan runs in the background task; its
+            // results are published when the task is collected by the loop.
+            if st.vuln_scan_task.is_none() {
+                st.vuln_scan_task = Some(tokio::spawn(self.vuln_scan_job().run()));
+            } else {
+                info!("Vulnerability scan already running, not starting another one");
+            }
+
+            let (check_results, score) = self.run_compliance_checks().await;
+            st.compliance_score = Some(score.score);
+            st.last_compliance_check_at = Some(chrono::Utc::now());
+            self.store_check_results(&check_results).await;
+            self.upload_check_results().await;
+
+            #[cfg(feature = "gui")]
+            {
+                // Still "scanning" while the vulnerability task runs.
+                let still_scanning = st.vuln_scan_task.is_some();
+                self.publish_compliance(st, pass, &check_results, &score, still_scanning);
+            }
+            st.last_vuln_scan = std::time::Instant::now();
+            st.last_compliance_check = std::time::Instant::now();
+            self.state.force_check.store(false, Ordering::Release);
         }
     }
 
@@ -220,6 +264,19 @@ mod tests {
             }
             other => panic!("expected the KPI snapshot, got {:?}", other.map(|_| ())),
         }
+    }
+
+    #[tokio::test]
+    async fn nothing_is_forced_unless_the_operator_asked() {
+        let test = standalone_runtime();
+        let mut st = LoopState::starting_at(Instant::now(), 6 * 3600, 3600);
+        let mut pass = LoopPass::new(false);
+
+        test.runtime.forced_check_stage(&mut st, &mut pass).await;
+
+        assert!(!pass.is_active);
+        assert!(st.vuln_scan_task.is_none());
+        assert_eq!(st.compliance_score, None);
     }
 
     #[tokio::test]

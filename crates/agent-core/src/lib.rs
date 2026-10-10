@@ -129,7 +129,7 @@ use agent_fim::FimEngine;
 use agent_siem::SiemForwarder;
 
 #[cfg(feature = "gui")]
-use agent_gui::dto::{GuiDiscoveredDevice, GuiPolicySummary};
+use agent_gui::dto::GuiDiscoveredDevice;
 #[cfg(feature = "gui")]
 use agent_gui::events::AgentEvent;
 
@@ -1092,90 +1092,7 @@ impl AgentRuntime {
             self.certificate_renewal_stage(&mut st).await;
 
             // Check for force_check flag (GUI "Vérifier maintenant" button)
-            if self.state.force_check.load(Ordering::Acquire) {
-                info!("Force check triggered");
-                pass.is_active = true;
-                #[cfg(feature = "gui")]
-                {
-                    self.state.scanning.store(true, Ordering::Release);
-                    self.emit_status_update(
-                        st.gui.last_check_at,
-                        st.compliance_score,
-                        st.gui.cached_pending_sync,
-                        st.gui.cached_policy_summary,
-                    );
-                }
-
-                // The vulnerability scan runs in the background task; its
-                // results are published when the task is collected above.
-                if st.vuln_scan_task.is_none() {
-                    st.vuln_scan_task = Some(tokio::spawn(self.vuln_scan_job().run()));
-                } else {
-                    info!("Vulnerability scan already running, not starting another one");
-                }
-
-                let (check_results, score) = self.run_compliance_checks().await;
-                st.compliance_score = Some(score.score);
-                st.last_compliance_check_at = Some(chrono::Utc::now());
-                self.store_check_results(&check_results).await;
-                self.upload_check_results().await;
-
-                #[cfg(feature = "gui")]
-                {
-                    let total = u32::try_from(score.total_count).unwrap_or(u32::MAX);
-                    st.gui.cached_policy_summary = Some(GuiPolicySummary {
-                        total_policies: total,
-                        passing: u32::try_from(score.passed_count).unwrap_or(u32::MAX),
-                        failing: u32::try_from(score.failed_count).unwrap_or(u32::MAX),
-                        errors: u32::try_from(score.error_count).unwrap_or(u32::MAX),
-                        pending: {
-                            let passed = u32::try_from(score.passed_count).unwrap_or(u32::MAX);
-                            let failed = u32::try_from(score.failed_count).unwrap_or(u32::MAX);
-                            let errored = u32::try_from(score.error_count).unwrap_or(u32::MAX);
-                            total.saturating_sub(
-                                passed.saturating_add(failed).saturating_add(errored),
-                            )
-                        },
-                    });
-
-                    for exec_result in &check_results {
-                        let gui_result = self.execution_result_to_gui(exec_result);
-                        self.emit_gui_event(AgentEvent::CheckCompleted { result: gui_result });
-                    }
-                    st.gui.last_check_at = Some(chrono::Utc::now());
-                    self.emit_notification(
-                        "Compliance vérifiée",
-                        &format!(
-                            "Score: {:.1}% ({} passés, {} échoués)",
-                            score.score, score.passed_count, score.failed_count
-                        ),
-                        if score.score >= 80.0 {
-                            "info"
-                        } else {
-                            "warning"
-                        },
-                    );
-                    // Still "scanning" while the vulnerability task runs.
-                    self.state
-                        .scanning
-                        .store(st.vuln_scan_task.is_some(), Ordering::Release);
-                    self.emit_status_update(
-                        st.gui.last_check_at,
-                        st.compliance_score,
-                        st.gui.cached_pending_sync,
-                        st.gui.cached_policy_summary,
-                    );
-                    self.emit_kpi_snapshot(
-                        st.compliance_score,
-                        pass.kpi_incident_count,
-                        st.gui.kpi_open_vulns,
-                        0,
-                    );
-                }
-                st.last_vuln_scan = std::time::Instant::now();
-                st.last_compliance_check = std::time::Instant::now();
-                self.state.force_check.store(false, Ordering::Release);
-            }
+            self.forced_check_stage(&mut st, &mut pass).await;
 
             // A sync request in standalone mode has nothing to sync: say so
             // once in the interface instead of spinning against no server.
