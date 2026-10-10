@@ -1101,19 +1101,7 @@ impl AgentRuntime {
             self.forced_discovery_stage().await;
 
             // Check for pending asset proposals
-            {
-                let proposals: Vec<ProposeAssetData> = {
-                    match self.pending_asset_proposals.lock() {
-                        Ok(mut queue) => queue.drain(..).collect(),
-                        Err(_) => Vec::new(),
-                    }
-                };
-                for proposal in proposals {
-                    if let Err(e) = self.upload_proposed_asset(&proposal).await {
-                        warn!("Failed to propose asset {}: {}", proposal.ip, e);
-                    }
-                }
-            }
+            self.upload_asset_proposals().await;
 
             // Periodically collect resource usage and push to GUI/Check limits
             let usage = self.resource_monitor.get_usage();

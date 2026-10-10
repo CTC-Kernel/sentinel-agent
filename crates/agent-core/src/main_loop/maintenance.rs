@@ -8,7 +8,7 @@ use std::sync::atomic::Ordering;
 use tracing::{debug, warn};
 
 use super::LoopState;
-use crate::{AgentRuntime, UPDATE_CHECK_INTERVAL_SECS};
+use crate::{AgentRuntime, ProposeAssetData, UPDATE_CHECK_INTERVAL_SECS};
 
 impl AgentRuntime {
     /// Self-update: at once when the operator asked for it, and as a
@@ -32,6 +32,22 @@ impl AgentRuntime {
             }
         }
     }
+
+    /// Send to the platform the discovered devices the operator proposed
+    /// as assets since the last pass.
+    pub(crate) async fn upload_asset_proposals(&self) {
+        let proposals: Vec<ProposeAssetData> = {
+            match self.pending_asset_proposals.lock() {
+                Ok(mut queue) => queue.drain(..).collect(),
+                Err(_) => Vec::new(),
+            }
+        };
+        for proposal in proposals {
+            if let Err(e) = self.upload_proposed_asset(&proposal).await {
+                warn!("Failed to propose asset {}: {}", proposal.ip, e);
+            }
+        }
+    }
 }
 
 #[cfg(test)]
@@ -39,6 +55,28 @@ mod tests {
     use super::*;
     use crate::main_loop::testing::standalone_runtime;
     use std::time::Instant;
+
+    #[tokio::test]
+    async fn proposed_assets_are_taken_from_the_queue() {
+        let test = standalone_runtime();
+        let handle = test.runtime.handle();
+        handle.propose_asset("192.168.7.20".to_string(), None, "printer".to_string());
+        handle.propose_asset(
+            "192.168.7.1".to_string(),
+            Some("box".to_string()),
+            "router".to_string(),
+        );
+
+        test.runtime.upload_asset_proposals().await;
+
+        assert!(
+            test.runtime
+                .pending_asset_proposals
+                .lock()
+                .unwrap()
+                .is_empty()
+        );
+    }
 
     #[tokio::test]
     async fn no_update_check_before_its_interval_or_a_request() {
