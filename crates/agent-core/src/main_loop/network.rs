@@ -215,6 +215,81 @@ impl AgentRuntime {
             st.network_connection_interval = network_manager.next_connection_interval();
         }
     }
+
+    /// Run the network detection when its interval has passed: the alerts
+    /// are shown, uploaded and handed to the threat pipeline of this pass
+    /// with the connections observed. Skipped when paused or without the
+    /// platform's consent.
+    pub(crate) async fn network_security_stage(
+        &self,
+        st: &mut LoopState,
+        pass: &mut LoopPass,
+        network_allowed: bool,
+    ) {
+        if !pass.is_paused
+            && network_allowed
+            && st.last_network_security.elapsed() >= st.network_security_interval
+        {
+            pass.is_active = true;
+            match self.run_network_collection().await {
+                Ok(snapshot) => {
+                    pass.observed.add_connections(&snapshot.connections);
+                    #[cfg(feature = "gui")]
+                    let mut alert_count: u32 = 0;
+                    match self.run_network_security_detection(&snapshot).await {
+                        Ok(alerts) => {
+                            #[cfg(feature = "gui")]
+                            {
+                                alert_count = u32::try_from(alerts.len()).unwrap_or(u32::MAX);
+                            }
+                            #[cfg(feature = "gui")]
+                            for alert in &alerts {
+                                self.emit_network_security_alert_to_gui(alert);
+                            }
+                            self.upload_network_alerts(&alerts).await;
+
+                            // Accumulate network alerts for threat pipeline
+                            pass.network_alerts.extend(alerts.iter().cloned());
+                        }
+                        Err(e) => {
+                            warn!("Network security detection failed: {}", e);
+                        }
+                    }
+                    #[cfg(feature = "gui")]
+                    {
+                        st.gui.last_network_alert_count = alert_count;
+                        self.emit_gui_event(AgentEvent::NetworkUpdate {
+                            interfaces_count: u32::try_from(snapshot.interfaces.len())
+                                .unwrap_or(u32::MAX),
+                            connections_count: u32::try_from(snapshot.connections.len())
+                                .unwrap_or(u32::MAX),
+                            alerts_count: alert_count,
+                            primary_ip: snapshot.primary_ip.clone(),
+                            primary_mac: snapshot.primary_mac.clone(),
+                        });
+                        let (interfaces, connections) = Self::snapshot_to_gui_network(&snapshot);
+                        self.emit_gui_event(AgentEvent::NetworkDetailUpdate {
+                            interfaces,
+                            connections,
+                        });
+                    }
+                }
+                Err(e) => {
+                    warn!("Network collection for security scan failed: {}", e);
+                    #[cfg(feature = "gui")]
+                    self.emit_gui_event(AgentEvent::SyncStatus {
+                        syncing: false,
+                        pending_count: 0,
+                        last_sync_at: None,
+                        error: Some(format!("Network security scan collection error: {}", e)),
+                    });
+                }
+            }
+            st.last_network_security = std::time::Instant::now();
+            let mut network_manager = self.network_manager.write().await;
+            st.network_security_interval = network_manager.next_security_interval();
+        }
+    }
 }
 
 #[cfg(all(test, feature = "gui"))]
@@ -246,6 +321,25 @@ mod tests {
 
         assert!(!pass.is_active && !paused.is_active);
         assert_eq!(st.last_network_connections, started);
+    }
+
+    #[tokio::test]
+    async fn network_detection_needs_consent_and_a_running_agent() {
+        let test = standalone_runtime();
+        let (mut st, started) = overdue();
+
+        let mut pass = LoopPass::new(false);
+        test.runtime
+            .network_security_stage(&mut st, &mut pass, false)
+            .await;
+        let mut paused = LoopPass::new(true);
+        test.runtime
+            .network_security_stage(&mut st, &mut paused, true)
+            .await;
+
+        assert!(!pass.is_active && !paused.is_active);
+        assert!(pass.network_alerts.is_empty() && pass.observed.is_empty());
+        assert_eq!(st.last_network_security, started);
     }
 
     #[tokio::test]

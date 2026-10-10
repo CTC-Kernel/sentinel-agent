@@ -1076,70 +1076,8 @@ impl AgentRuntime {
                 .await;
 
             // Run network security detection if interval has passed (skip when paused)
-            if !pass.is_paused
-                && network_allowed
-                && st.last_network_security.elapsed() >= st.network_security_interval
-            {
-                pass.is_active = true;
-                match self.run_network_collection().await {
-                    Ok(snapshot) => {
-                        pass.observed.add_connections(&snapshot.connections);
-                        #[cfg(feature = "gui")]
-                        let mut alert_count: u32 = 0;
-                        match self.run_network_security_detection(&snapshot).await {
-                            Ok(alerts) => {
-                                #[cfg(feature = "gui")]
-                                {
-                                    alert_count = u32::try_from(alerts.len()).unwrap_or(u32::MAX);
-                                }
-                                #[cfg(feature = "gui")]
-                                for alert in &alerts {
-                                    self.emit_network_security_alert_to_gui(alert);
-                                }
-                                self.upload_network_alerts(&alerts).await;
-
-                                // Accumulate network alerts for threat pipeline
-                                pass.network_alerts.extend(alerts.iter().cloned());
-                            }
-                            Err(e) => {
-                                warn!("Network security detection failed: {}", e);
-                            }
-                        }
-                        #[cfg(feature = "gui")]
-                        {
-                            st.gui.last_network_alert_count = alert_count;
-                            self.emit_gui_event(AgentEvent::NetworkUpdate {
-                                interfaces_count: u32::try_from(snapshot.interfaces.len())
-                                    .unwrap_or(u32::MAX),
-                                connections_count: u32::try_from(snapshot.connections.len())
-                                    .unwrap_or(u32::MAX),
-                                alerts_count: alert_count,
-                                primary_ip: snapshot.primary_ip.clone(),
-                                primary_mac: snapshot.primary_mac.clone(),
-                            });
-                            let (interfaces, connections) =
-                                Self::snapshot_to_gui_network(&snapshot);
-                            self.emit_gui_event(AgentEvent::NetworkDetailUpdate {
-                                interfaces,
-                                connections,
-                            });
-                        }
-                    }
-                    Err(e) => {
-                        warn!("Network collection for security scan failed: {}", e);
-                        #[cfg(feature = "gui")]
-                        self.emit_gui_event(AgentEvent::SyncStatus {
-                            syncing: false,
-                            pending_count: 0,
-                            last_sync_at: None,
-                            error: Some(format!("Network security scan collection error: {}", e)),
-                        });
-                    }
-                }
-                st.last_network_security = std::time::Instant::now();
-                let mut network_manager = self.network_manager.write().await;
-                st.network_security_interval = network_manager.next_security_interval();
-            }
+            self.network_security_stage(&mut st, &mut pass, network_allowed)
+                .await;
 
             // ── Log collection & correlation ──
             // Collect OS event logs and forward to SIEM + run through correlation engine
