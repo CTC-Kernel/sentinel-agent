@@ -4,6 +4,7 @@
 //! Network discovery asked for from the interface: a scan of the subnet of
 //! the primary IPv4 address, run in its own task.
 
+use std::future::Future;
 use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::mpsc::Sender;
@@ -16,7 +17,11 @@ use agent_storage::repositories::StoredDevice;
 use agent_sync::AuthenticatedClient;
 use tracing::{info, warn};
 
+use crate::supervised_tasks::TaskSet;
 use crate::{AgentRuntime, network_ops};
+
+/// Name of the background task that scans the network.
+const DISCOVERY_TASK: &str = "network discovery";
 
 /// A device found by the scan, as the interface shows it.
 fn gui_device(d: &DiscoveredDevice) -> GuiDiscoveredDevice {
@@ -69,8 +74,9 @@ fn asset_payload(d: &GuiDiscoveredDevice) -> agent_sync::DiscoveredAssetPayload 
 
 impl AgentRuntime {
     /// Start the network discovery the operator asked for: only the subnet
-    /// of the primary IPv4 address is scanned, in a task of its own.
-    pub(crate) async fn forced_discovery_stage(&self) {
+    /// of the primary IPv4 address is scanned, in a background task of
+    /// `tasks`.
+    pub(crate) async fn forced_discovery_stage(&self, tasks: &mut TaskSet) {
         if self.state.force_discovery.swap(false, Ordering::AcqRel) {
             info!("Network discovery scan triggered");
             let cancel = self.state.discovery_cancel.clone();
@@ -91,7 +97,10 @@ impl AgentRuntime {
                         }
                     }
                     Ok(subnet) => {
-                        tokio::spawn(run_discovery(subnet, cancel, tx, db_clone, sync_client));
+                        tasks.spawn(
+                            DISCOVERY_TASK,
+                            run_discovery(subnet, cancel, tx, db_clone, sync_client),
+                        );
                     }
                 }
             }
@@ -141,13 +150,7 @@ async fn run_discovery(
 ) {
     let config = DiscoveryConfig::default();
     let discovery = NetworkDiscovery::new(config);
-
-    let done = Arc::new(AtomicBool::new(false));
-    tokio::spawn(watch_cancellation(
-        cancel.clone(),
-        discovery.cancel_handle(),
-        done.clone(),
-    ));
+    let watcher = watch_cancellation(cancel, discovery.cancel_handle());
 
     if let Err(e) = tx.send(AgentEvent::DiscoveryProgress {
         phase: "Scan ARP en cours...".to_string(),
@@ -157,8 +160,7 @@ async fn run_discovery(
         warn!("Failed to send discovery progress: {}", e);
     }
 
-    let scan_result = discovery.scan(&subnet).await;
-    done.store(true, Ordering::Relaxed);
+    let scan_result = alongside(discovery.scan(&subnet), watcher).await;
     match scan_result {
         Ok(result) => publish_discovery(&result, &tx, db.as_ref(), sync_client.as_deref()).await,
         Err(e) => {
@@ -174,17 +176,23 @@ async fn run_discovery(
     }
 }
 
-/// Pass the operator's cancellation on to the running scan; stops watching
-/// once the scan is `done`.
-async fn watch_cancellation(
-    cancel: Arc<AtomicBool>,
-    scan_cancel: Arc<AtomicBool>,
-    done: Arc<AtomicBool>,
-) {
+/// Run `work` to its end with `watcher` running alongside it, in the same
+/// task. The watcher is dropped when the work is done, and may end first.
+async fn alongside<T>(work: impl Future<Output = T>, watcher: impl Future<Output = ()>) -> T {
+    tokio::pin!(work);
+    tokio::pin!(watcher);
+    let mut watching = true;
     loop {
-        if done.load(Ordering::Relaxed) {
-            break;
+        tokio::select! {
+            output = &mut work => break output,
+            _ = &mut watcher, if watching => watching = false,
         }
+    }
+}
+
+/// Pass the operator's cancellation on to the running scan.
+async fn watch_cancellation(cancel: Arc<AtomicBool>, scan_cancel: Arc<AtomicBool>) {
+    loop {
         if cancel.load(Ordering::Relaxed) {
             scan_cancel.store(true, Ordering::Relaxed);
             break;
@@ -318,8 +326,10 @@ mod tests {
             .force_discovery
             .store(true, Ordering::Release);
 
-        test.runtime.forced_discovery_stage().await;
+        let mut tasks = TaskSet::new("test");
+        test.runtime.forced_discovery_stage(&mut tasks).await;
 
+        assert!(tasks.is_empty());
         assert!(!test.runtime.state.force_discovery.load(Ordering::Acquire));
         match test.events.try_recv() {
             Ok(AgentEvent::DiscoveryProgress {
@@ -338,7 +348,9 @@ mod tests {
     #[tokio::test]
     async fn nothing_is_scanned_unless_the_operator_asked() {
         let test = standalone_runtime();
-        test.runtime.forced_discovery_stage().await;
+        let mut tasks = TaskSet::new("test");
+        test.runtime.forced_discovery_stage(&mut tasks).await;
+        assert!(tasks.is_empty());
         assert!(test.events.try_recv().is_err());
     }
 
@@ -346,12 +358,7 @@ mod tests {
     async fn the_operators_cancellation_reaches_the_scan() {
         let cancel = Arc::new(AtomicBool::new(false));
         let scan_cancel = Arc::new(AtomicBool::new(false));
-        let done = Arc::new(AtomicBool::new(false));
-        let watcher = tokio::spawn(watch_cancellation(
-            cancel.clone(),
-            scan_cancel.clone(),
-            done.clone(),
-        ));
+        let watcher = tokio::spawn(watch_cancellation(cancel.clone(), scan_cancel.clone()));
 
         tokio::time::sleep(Duration::from_millis(250)).await;
         assert!(!scan_cancel.load(Ordering::Relaxed));
@@ -362,12 +369,25 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn the_watcher_stops_with_the_scan() {
-        let scan_cancel = Arc::new(AtomicBool::new(false));
-        let done = Arc::new(AtomicBool::new(true));
+    async fn the_watcher_is_dropped_when_the_work_is_done() {
+        let work = async {
+            tokio::time::sleep(Duration::from_millis(20)).await;
+            7
+        };
+        assert_eq!(alongside(work, std::future::pending()).await, 7);
+    }
 
-        watch_cancellation(Arc::new(AtomicBool::new(false)), scan_cancel.clone(), done).await;
+    #[tokio::test]
+    async fn a_watcher_that_ends_first_does_not_end_the_work() {
+        let watched = Arc::new(AtomicBool::new(false));
+        let flag = watched.clone();
+        let work = async {
+            tokio::time::sleep(Duration::from_millis(30)).await;
+            "scanned"
+        };
+        let watcher = async move { flag.store(true, Ordering::Relaxed) };
 
-        assert!(!scan_cancel.load(Ordering::Relaxed));
+        assert_eq!(alongside(work, watcher).await, "scanned");
+        assert!(watched.load(Ordering::Relaxed));
     }
 }

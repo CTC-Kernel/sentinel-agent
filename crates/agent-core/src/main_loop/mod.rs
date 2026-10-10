@@ -176,7 +176,7 @@ impl AgentRuntime {
 
         // Check for force_discovery flag (GUI network discovery)
         #[cfg(feature = "gui")]
-        self.forced_discovery_stage().await;
+        self.forced_discovery_stage(&mut st.tasks).await;
 
         // Check for pending asset proposals
         self.upload_asset_proposals().await;
