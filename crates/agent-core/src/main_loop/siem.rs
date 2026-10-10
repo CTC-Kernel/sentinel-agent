@@ -57,13 +57,59 @@ impl AgentRuntime {
             Err(e) => error!("Failed to initialize SIEM forwarder: {}", e),
         }
     }
+
+    /// Create the collector of OS event logs (Windows Event Log, syslog...)
+    /// with the settings currently held by the runtime state.
+    pub(crate) async fn init_log_collector(&self) {
+        let collector_config = agent_siem::LogCollectorConfig {
+            enabled: self
+                .state
+                .log_collector_enabled
+                .load(std::sync::atomic::Ordering::Acquire),
+            sources: vec![
+                agent_siem::LogSource::System,
+                agent_siem::LogSource::Auth,
+                agent_siem::LogSource::Application,
+                agent_siem::LogSource::Firewall,
+            ],
+            lookback_secs: 300,
+            poll_interval_secs: self
+                .state
+                .log_collector_poll_secs
+                .load(std::sync::atomic::Ordering::Acquire),
+            ..Default::default()
+        };
+        let collector = agent_siem::LogCollector::new(collector_config);
+        let mut guard = self.log_collector.write().await;
+        *guard = Some(collector);
+        info!("Log collector initialized");
+    }
 }
 
-#[cfg(all(test, feature = "gui"))]
+#[cfg(test)]
 mod tests {
     use crate::main_loop::testing::standalone_runtime;
+    #[cfg(feature = "gui")]
     use agent_gui::events::AgentEvent;
+    use std::sync::atomic::Ordering;
 
+    #[tokio::test]
+    async fn the_log_collector_follows_the_runtime_setting() {
+        for enabled in [true, false] {
+            let test = standalone_runtime();
+            test.runtime
+                .state
+                .log_collector_enabled
+                .store(enabled, Ordering::Release);
+
+            test.runtime.init_log_collector().await;
+
+            let collector = test.runtime.log_collector.read().await;
+            assert_eq!(collector.as_ref().map(|c| c.is_enabled()), Some(enabled));
+        }
+    }
+
+    #[cfg(feature = "gui")]
     #[tokio::test]
     async fn the_forwarder_starts_disabled_and_tells_the_interface() {
         let test = standalone_runtime();

@@ -9,7 +9,7 @@ mod pass;
 mod siem;
 mod startup;
 mod state;
-#[cfg(all(test, feature = "gui"))]
+#[cfg(test)]
 pub(crate) mod testing;
 
 pub(crate) use pass::LoopPass;

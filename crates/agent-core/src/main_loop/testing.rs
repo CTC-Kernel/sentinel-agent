@@ -13,7 +13,10 @@ use crate::AgentRuntime;
 
 pub(crate) struct TestRuntime {
     pub runtime: AgentRuntime,
+    /// The runtime's database, for the tests that seed or read it.
+    #[cfg_attr(not(feature = "gui"), allow(dead_code))]
     pub db: Arc<Database>,
+    #[cfg(feature = "gui")]
     pub events: std::sync::mpsc::Receiver<agent_gui::events::AgentEvent>,
     _dir: tempfile::TempDir,
 }
@@ -31,12 +34,19 @@ pub(crate) fn standalone_runtime() -> TestRuntime {
         standalone: true,
         ..AgentConfig::default()
     };
-    let mut runtime = AgentRuntime::new(config).with_database(Arc::clone(&db));
-    let (tx, events) = std::sync::mpsc::channel();
-    runtime.set_gui_event_tx(tx);
+    #[cfg(not(feature = "gui"))]
+    let runtime = AgentRuntime::new(config).with_database(Arc::clone(&db));
+    #[cfg(feature = "gui")]
+    let (runtime, events) = {
+        let mut runtime = AgentRuntime::new(config).with_database(Arc::clone(&db));
+        let (tx, events) = std::sync::mpsc::channel();
+        runtime.set_gui_event_tx(tx);
+        (runtime, events)
+    };
     TestRuntime {
         runtime,
         db,
+        #[cfg(feature = "gui")]
         events,
         _dir: dir,
     }

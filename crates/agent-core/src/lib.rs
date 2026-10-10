@@ -1006,30 +1006,7 @@ impl AgentRuntime {
         self.init_siem_forwarder().await;
 
         // Initialize log collector for OS event log ingestion
-        {
-            let collector_config = agent_siem::LogCollectorConfig {
-                enabled: self
-                    .state
-                    .log_collector_enabled
-                    .load(std::sync::atomic::Ordering::Acquire),
-                sources: vec![
-                    agent_siem::LogSource::System,
-                    agent_siem::LogSource::Auth,
-                    agent_siem::LogSource::Application,
-                    agent_siem::LogSource::Firewall,
-                ],
-                lookback_secs: 300,
-                poll_interval_secs: self
-                    .state
-                    .log_collector_poll_secs
-                    .load(std::sync::atomic::Ordering::Acquire),
-                ..Default::default()
-            };
-            let collector = agent_siem::LogCollector::new(collector_config);
-            let mut guard = self.log_collector.write().await;
-            *guard = Some(collector);
-            info!("Log collector initialized");
-        }
+        self.init_log_collector().await;
 
         // Initialize correlation engine with default rules
         {
