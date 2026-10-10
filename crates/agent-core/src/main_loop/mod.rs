@@ -6,6 +6,8 @@
 
 mod compliance;
 mod detection;
+#[cfg(feature = "gui")]
+mod discovery;
 mod fim;
 mod maintenance;
 mod network;
