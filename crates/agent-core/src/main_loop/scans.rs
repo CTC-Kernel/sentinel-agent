@@ -14,7 +14,7 @@ use agent_scanner::VulnerabilityScanResult;
 use std::sync::atomic::Ordering;
 use tracing::{error, info, warn};
 
-use super::LoopState;
+use super::{LoopPass, LoopState};
 use crate::AgentRuntime;
 
 /// Notification shown when a vulnerability scan ends: its text and its
@@ -146,6 +146,27 @@ impl AgentRuntime {
                     st.gui.cached_policy_summary,
                 );
             }
+        }
+    }
+
+    /// Start the background vulnerability scan when its interval has passed
+    /// and none is running (never while paused).
+    pub(crate) fn start_vuln_scan_if_due(&self, st: &mut LoopState, pass: &LoopPass) {
+        if !pass.is_paused
+            && st.vuln_scan_task.is_none()
+            && st.last_vuln_scan.elapsed().as_secs() >= self.vuln_scan_interval_secs
+        {
+            #[cfg(feature = "gui")]
+            {
+                self.state.scanning.store(true, Ordering::Release);
+                self.emit_status_update(
+                    st.gui.last_check_at,
+                    st.compliance_score,
+                    st.gui.cached_pending_sync,
+                    st.gui.cached_policy_summary,
+                );
+            }
+            st.vuln_scan_task = Some(tokio::spawn(self.vuln_scan_job().run()));
         }
     }
 }
@@ -285,6 +306,62 @@ mod tests {
                 other => panic!("expected a notification, got {:?}", other.map(|_| ())),
             }
         }
+    }
+
+    /// A state whose vulnerability scan is due, as at start-up. `None` on a
+    /// clock too young to be set one interval back (Windows shortly after
+    /// boot): the first scan then waits a full interval.
+    fn due_state(runtime: &AgentRuntime) -> Option<LoopState> {
+        let st = LoopState::starting_at(Instant::now(), runtime.vuln_scan_interval_secs, 3600);
+        (st.last_vuln_scan.elapsed().as_secs() >= runtime.vuln_scan_interval_secs).then_some(st)
+    }
+
+    #[tokio::test]
+    async fn a_due_scan_is_started_once() {
+        let test = standalone_runtime();
+        let Some(mut st) = due_state(&test.runtime) else {
+            return;
+        };
+
+        test.runtime
+            .start_vuln_scan_if_due(&mut st, &LoopPass::new(false));
+
+        // Aborted before it is ever polled: nothing is scanned by this test.
+        let task = st.vuln_scan_task.as_ref().expect("a scan task");
+        task.abort();
+        #[cfg(feature = "gui")]
+        {
+            assert!(test.runtime.state.scanning.load(Ordering::Acquire));
+            assert!(matches!(
+                test.events.try_recv(),
+                Ok(AgentEvent::StatusChanged { .. })
+            ));
+        }
+        // A second pass does not start another scan next to the first.
+        let first = task.id();
+        test.runtime
+            .start_vuln_scan_if_due(&mut st, &LoopPass::new(false));
+        assert_eq!(
+            st.vuln_scan_task.as_ref().map(|task| task.id()),
+            Some(first)
+        );
+    }
+
+    #[tokio::test]
+    async fn no_scan_starts_while_paused_or_before_its_interval() {
+        let test = standalone_runtime();
+
+        if let Some(mut paused) = due_state(&test.runtime) {
+            test.runtime
+                .start_vuln_scan_if_due(&mut paused, &LoopPass::new(true));
+            assert!(paused.vuln_scan_task.is_none());
+        }
+
+        let mut not_due = LoopState::starting_at(Instant::now(), 6 * 3600, 3600);
+        not_due.last_vuln_scan = Instant::now();
+        test.runtime
+            .start_vuln_scan_if_due(&mut not_due, &LoopPass::new(false));
+        assert!(not_due.vuln_scan_task.is_none());
     }
 
     #[tokio::test]

@@ -1061,22 +1061,7 @@ impl AgentRuntime {
             //    started once the previous task handle has been collected here.
             self.collect_vuln_scan(&mut st).await;
 
-            if !pass.is_paused
-                && st.vuln_scan_task.is_none()
-                && st.last_vuln_scan.elapsed().as_secs() >= self.vuln_scan_interval_secs
-            {
-                #[cfg(feature = "gui")]
-                {
-                    self.state.scanning.store(true, Ordering::Release);
-                    self.emit_status_update(
-                        st.gui.last_check_at,
-                        st.compliance_score,
-                        st.gui.cached_pending_sync,
-                        st.gui.cached_policy_summary,
-                    );
-                }
-                st.vuln_scan_task = Some(tokio::spawn(self.vuln_scan_job().run()));
-            }
+            self.start_vuln_scan_if_due(&mut st, &pass);
 
             // Run security scan if interval has passed (skip when paused)
             if !pass.is_paused
