@@ -1038,30 +1038,8 @@ impl AgentRuntime {
             let fim_batch = self.drain_fim_alerts(&mut st, &mut pass).await;
 
             // YARA: scan the files just created or changed
-            if !fim_batch.yara_candidates.is_empty() && self.yara_enabled() {
-                let matched = tokio::task::block_in_place(|| {
-                    self.yara_scan_files(&fim_batch.yara_candidates)
-                });
-                for (path, incident) in matched {
-                    warn!("{}: {}", incident.title, path);
-                    if let Err(e) = self.upload_incident(&incident).await {
-                        error!("Failed to upload YARA incident: {}", e);
-                    }
-                    #[cfg(feature = "gui")]
-                    {
-                        self.emit_system_incident(&incident);
-                        self.emit_notification(
-                            "Fichier malveillant détecté (YARA)",
-                            &incident.description,
-                            "error",
-                        );
-                        pass.kpi_incident_count = pass.kpi_incident_count.saturating_add(1);
-                    }
-                    pass.fim_alerts
-                        .push((path, yara_scan::PLAYBOOK_CHANGE_TYPE.to_string()));
-                    pass.incidents.push(incident);
-                }
-            }
+            self.scan_changed_files_with_yara(&mut pass, &fim_batch.yara_candidates)
+                .await;
 
             // Batch-upload collected FIM alerts and report summary incident
             if !fim_batch.payloads.is_empty() {

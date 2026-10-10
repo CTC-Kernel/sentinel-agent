@@ -11,10 +11,11 @@ use agent_common::types::{FimAlert, FimChangeType};
 use agent_gui::dto::{FimChangeType as GuiFimChangeType, GuiFimAlert};
 #[cfg(feature = "gui")]
 use agent_gui::events::AgentEvent;
-use tracing::{info, warn};
+use agent_scanner::SecurityIncident;
+use tracing::{error, info, warn};
 
 use super::{LoopPass, LoopState};
-use crate::{AgentRuntime, api_client, siem_enrichment};
+use crate::{AgentRuntime, api_client, siem_enrichment, yara_scan};
 
 /// File changes of one pass, collected first and sent together: one request
 /// per alert runs into the platform's rate limit (429).
@@ -214,6 +215,46 @@ impl AgentRuntime {
             }
         }
     }
+
+    /// Report the files matched by a YARA rule: platform, interface, then
+    /// the threat pipeline of this pass, as an incident and a file change.
+    pub(crate) async fn report_yara_matches(
+        &self,
+        pass: &mut LoopPass,
+        matched: Vec<(String, SecurityIncident)>,
+    ) {
+        for (path, incident) in matched {
+            warn!("{}: {}", incident.title, path);
+            if let Err(e) = self.upload_incident(&incident).await {
+                error!("Failed to upload YARA incident: {}", e);
+            }
+            #[cfg(feature = "gui")]
+            {
+                self.emit_system_incident(&incident);
+                self.emit_notification(
+                    "Fichier malveillant détecté (YARA)",
+                    &incident.description,
+                    "error",
+                );
+                pass.kpi_incident_count = pass.kpi_incident_count.saturating_add(1);
+            }
+            pass.fim_alerts
+                .push((path, yara_scan::PLAYBOOK_CHANGE_TYPE.to_string()));
+            pass.incidents.push(incident);
+        }
+    }
+
+    /// Scan the files just created or changed with the YARA rules.
+    pub(crate) async fn scan_changed_files_with_yara(
+        &self,
+        pass: &mut LoopPass,
+        candidates: &[String],
+    ) {
+        if !candidates.is_empty() && self.yara_enabled() {
+            let matched = tokio::task::block_in_place(|| self.yara_scan_files(candidates));
+            self.report_yara_matches(pass, matched).await;
+        }
+    }
 }
 
 #[cfg(test)]
@@ -322,6 +363,63 @@ mod tests {
         // Nothing is left for the next pass.
         let again = test.runtime.drain_fim_alerts(&mut st, &mut pass).await;
         assert!(again.payloads.is_empty());
+    }
+
+    #[tokio::test]
+    async fn a_yara_match_reaches_the_pipeline_as_incident_and_file_change() {
+        let test = standalone_runtime();
+        let mut pass = LoopPass::new(false);
+        let incident = SecurityIncident {
+            incident_type: agent_scanner::IncidentType::Malware,
+            severity: agent_scanner::IncidentSeverity::Critical,
+            title: "Règle YARA : Ransom_Note".to_string(),
+            description: "/tmp/README_DECRYPT.txt correspond à Ransom_Note".to_string(),
+            evidence: serde_json::json!({ "rule": "Ransom_Note" }),
+            confidence: 90,
+            detected_at: chrono::Utc::now(),
+        };
+
+        test.runtime
+            .report_yara_matches(
+                &mut pass,
+                vec![("/tmp/README_DECRYPT.txt".to_string(), incident)],
+            )
+            .await;
+
+        assert_eq!(pass.incidents.len(), 1);
+        assert_eq!(
+            pass.fim_alerts,
+            vec![(
+                "/tmp/README_DECRYPT.txt".to_string(),
+                yara_scan::PLAYBOOK_CHANGE_TYPE.to_string()
+            )]
+        );
+        #[cfg(feature = "gui")]
+        {
+            assert_eq!(pass.kpi_incident_count, 1);
+            assert!(matches!(
+                test.events.try_recv(),
+                Ok(AgentEvent::SystemIncident { .. })
+            ));
+            match test.events.try_recv() {
+                Ok(AgentEvent::Notification { notification }) => {
+                    assert_eq!(notification.title, "Fichier malveillant détecté (YARA)");
+                }
+                other => panic!("expected a notification, got {:?}", other.map(|_| ())),
+            }
+        }
+    }
+
+    #[tokio::test]
+    async fn nothing_is_scanned_without_candidates_or_rules() {
+        let test = standalone_runtime();
+        let mut pass = LoopPass::new(false);
+
+        test.runtime
+            .scan_changed_files_with_yara(&mut pass, &[])
+            .await;
+
+        assert!(!pass.has_flagged_activity());
     }
 
     #[tokio::test]
