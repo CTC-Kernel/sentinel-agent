@@ -26,6 +26,7 @@ pub mod llm_service;
 #[cfg(feature = "gui")]
 pub mod llm_stream;
 pub mod logging;
+mod main_loop;
 pub mod resources;
 pub mod self_protection;
 pub mod service;
@@ -948,20 +949,6 @@ impl AgentRuntime {
             usage.memory_bytes / (1024 * 1024)
         );
 
-        // Compliance tracking variables
-        let mut compliance_score: Option<f64> = None;
-        let mut last_compliance_check_at: Option<chrono::DateTime<chrono::Utc>> = None;
-
-        // Cached values for GUI status updates (updated after each heartbeat / compliance check)
-        #[cfg(feature = "gui")]
-        let mut cached_pending_sync: u32 = 0;
-        #[cfg(feature = "gui")]
-        let mut cached_policy_summary: Option<GuiPolicySummary> = None;
-
-        // KPI tracking counters — declared here, reset each iteration inside the loop.
-        #[cfg(feature = "gui")]
-        let mut kpi_open_vulns: u32 = 0;
-
         // Emit initial GUI state
         #[cfg(feature = "gui")]
         {
@@ -1009,54 +996,20 @@ impl AgentRuntime {
         #[cfg(feature = "gui")]
         self.sync_assets_to_gui().await;
 
-        // Track last operation times
-        let mut last_heartbeat = std::time::Instant::now();
-        let mut last_vuln_scan = std::time::Instant::now()
-            .checked_sub(std::time::Duration::from_secs(self.vuln_scan_interval_secs))
-            .unwrap_or_else(std::time::Instant::now);
-        // Background vulnerability scan (see `VulnScanJob`); `Some` while running.
-        let mut vuln_scan_task: Option<
-            tokio::task::JoinHandle<Result<agent_scanner::VulnerabilityScanResult, CommonError>>,
-        > = None;
-        // Compliance check timer: trigger immediately on first loop
-        let mut last_compliance_check_time = std::time::Instant::now()
-            .checked_sub(std::time::Duration::from_secs(
-                self.state.get_check_interval(),
-            ))
-            .unwrap_or_else(std::time::Instant::now);
-        // Certificate renewal timer (daily)
-        let mut last_cert_check = std::time::Instant::now();
-        let cert_check_interval_secs: u64 = 24 * 3600;
-        // Background update check timer: first tick shortly after start-up.
-        let mut last_update_check = std::time::Instant::now()
-            .checked_sub(std::time::Duration::from_secs(
-                UPDATE_CHECK_INTERVAL_SECS - FIRST_UPDATE_CHECK_DELAY_SECS,
-            ))
-            .unwrap_or_else(std::time::Instant::now);
-        #[cfg(feature = "gui")]
-        let mut last_check_at: Option<chrono::DateTime<chrono::Utc>> = None;
-        #[cfg(feature = "gui")]
-        let mut last_gui_resource_update = std::time::Instant::now();
-        #[cfg(feature = "gui")]
-        let mut fim_changes_today: u32 = 0;
-        #[cfg(feature = "gui")]
-        let mut fim_last_day: u64 =
-            chrono::Utc::now().timestamp().max(0) as u64 / agent_common::constants::SECS_PER_DAY;
+        // Schedule and last results of the loop: vulnerability scan and
+        // compliance check on the first pass, update check shortly after.
+        let mut st = main_loop::LoopState::starting_at(
+            std::time::Instant::now(),
+            self.vuln_scan_interval_secs,
+            self.state.get_check_interval(),
+        );
 
         // Run initial security scan on startup (quick check)
         info!("Running initial security scan...");
         if let Err(e) = self.run_security_scan().await {
             warn!("Initial security scan failed: {}", e);
         }
-        let mut last_security_scan = std::time::Instant::now();
-        // What the custom detection rules have already reported.
-        let mut rule_hit_memory = threat_pipeline::RuleHitMemory::default();
-        // Fingerprints of the incidents reported by the previous scan. A
-        // persistent condition is re-detected on every scan; only notify when
-        // it is new (or reappears after having cleared).
-        #[cfg(feature = "gui")]
-        let mut previous_incidents: std::collections::HashSet<String> =
-            std::collections::HashSet::new();
+        st.last_security_scan = std::time::Instant::now();
 
         // Initialize network collection with staggered start
         let (network_static_interval, network_connection_interval, network_security_interval) = {
@@ -1074,17 +1027,15 @@ impl AgentRuntime {
         };
 
         // Initialize network timing with staggered delays
-        let mut last_network_static = std::time::Instant::now();
-        let mut last_network_connections = std::time::Instant::now();
-        let mut last_network_security = std::time::Instant::now();
-        let mut current_network_static_interval = network_static_interval;
-        let mut current_network_connection_interval = network_connection_interval;
-        let mut current_network_security_interval = network_security_interval;
-        #[cfg(feature = "gui")]
-        let mut last_network_alert_count: u32 = 0;
+        st.start_network_schedule(
+            std::time::Instant::now(),
+            network_static_interval,
+            network_connection_interval,
+            network_security_interval,
+        );
 
         // Log collector timer — polls OS event logs at the configured interval
-        let mut last_log_collection = std::time::Instant::now();
+        st.last_log_collection = std::time::Instant::now();
 
         // Run initial network collection (with 30s timeout to avoid blocking the main loop)
         if !self.state.network_monitoring_enabled() {
@@ -1415,11 +1366,11 @@ impl AgentRuntime {
                             });
                             let today = chrono::Utc::now().timestamp().max(0) as u64
                                 / agent_common::constants::SECS_PER_DAY;
-                            if today != fim_last_day {
-                                fim_changes_today = 0;
-                                fim_last_day = today;
+                            if today != st.gui.fim_last_day {
+                                st.gui.fim_changes_today = 0;
+                                st.gui.fim_last_day = today;
                             }
-                            fim_changes_today = fim_changes_today.saturating_add(1);
+                            st.gui.fim_changes_today = st.gui.fim_changes_today.saturating_add(1);
                         }
 
                         pipeline_fim_alerts.push((
@@ -1559,13 +1510,13 @@ impl AgentRuntime {
                 if let Some(engine) = fim_engine.as_ref() {
                     let today = chrono::Utc::now().timestamp().max(0) as u64
                         / agent_common::constants::SECS_PER_DAY;
-                    if today != fim_last_day {
-                        fim_changes_today = 0;
-                        fim_last_day = today;
+                    if today != st.gui.fim_last_day {
+                        st.gui.fim_changes_today = 0;
+                        st.gui.fim_last_day = today;
                     }
                     self.emit_gui_event(AgentEvent::FimStats {
                         monitored_count: u32::try_from(engine.baseline_count()).unwrap_or(u32::MAX),
-                        changes_today: fim_changes_today,
+                        changes_today: st.gui.fim_changes_today,
                     });
                 }
             }
@@ -1636,11 +1587,12 @@ impl AgentRuntime {
 
             // 2. Heartbeat & Config Sync (a standalone agent has nobody to report to)
             if !self.config.standalone
-                && last_heartbeat.elapsed().as_secs() >= *self.heartbeat_interval_secs.read().await
+                && st.last_heartbeat.elapsed().as_secs()
+                    >= *self.heartbeat_interval_secs.read().await
             {
-                last_heartbeat = std::time::Instant::now();
+                st.last_heartbeat = std::time::Instant::now();
                 match self
-                    .send_heartbeat(compliance_score, last_compliance_check_at)
+                    .send_heartbeat(st.compliance_score, st.last_compliance_check_at)
                     .await
                 {
                     Ok(_) => {
@@ -1655,7 +1607,7 @@ impl AgentRuntime {
 
                         #[cfg(feature = "gui")]
                         {
-                            cached_pending_sync = self.get_pending_sync_count().await as u32;
+                            st.gui.cached_pending_sync = self.get_pending_sync_count().await as u32;
                         }
 
                         if self.state.force_sync.load(Ordering::Acquire) {
@@ -1668,10 +1620,10 @@ impl AgentRuntime {
                         #[cfg(feature = "gui")]
                         {
                             self.emit_status_update(
-                                last_check_at,
-                                compliance_score,
-                                cached_pending_sync,
-                                cached_policy_summary,
+                                st.gui.last_check_at,
+                                st.compliance_score,
+                                st.gui.cached_pending_sync,
+                                st.gui.cached_policy_summary,
                             );
                             self.emit_resource_update(None);
                         }
@@ -1849,10 +1801,10 @@ impl AgentRuntime {
             //    scan (inventory, OSV lookups, AI analysis, uploads) never delays
             //    heartbeats. At most one scan runs at a time: a new one is only
             //    started once the previous task handle has been collected here.
-            if vuln_scan_task.as_ref().is_some_and(|t| t.is_finished())
-                && let Some(task) = vuln_scan_task.take()
+            if st.vuln_scan_task.as_ref().is_some_and(|t| t.is_finished())
+                && let Some(task) = st.vuln_scan_task.take()
             {
-                last_vuln_scan = std::time::Instant::now();
+                st.last_vuln_scan = std::time::Instant::now();
                 match task.await {
                     Ok(Ok(result)) => {
                         let count = result.vulnerabilities.len();
@@ -1932,8 +1884,8 @@ impl AgentRuntime {
                             self.emit_gui_event(AgentEvent::BrowserExtensions {
                                 extensions: self.build_browser_extensions(&extensions),
                             });
-                            kpi_open_vulns = count as u32;
-                            last_check_at = Some(chrono::Utc::now());
+                            st.gui.kpi_open_vulns = count as u32;
+                            st.gui.last_check_at = Some(chrono::Utc::now());
                         }
                     }
                     Ok(Err(e)) => {
@@ -1953,34 +1905,34 @@ impl AgentRuntime {
                 {
                     self.state.scanning.store(false, Ordering::Release);
                     self.emit_status_update(
-                        last_check_at,
-                        compliance_score,
-                        cached_pending_sync,
-                        cached_policy_summary,
+                        st.gui.last_check_at,
+                        st.compliance_score,
+                        st.gui.cached_pending_sync,
+                        st.gui.cached_policy_summary,
                     );
                 }
             }
 
             if !is_paused
-                && vuln_scan_task.is_none()
-                && last_vuln_scan.elapsed().as_secs() >= self.vuln_scan_interval_secs
+                && st.vuln_scan_task.is_none()
+                && st.last_vuln_scan.elapsed().as_secs() >= self.vuln_scan_interval_secs
             {
                 #[cfg(feature = "gui")]
                 {
                     self.state.scanning.store(true, Ordering::Release);
                     self.emit_status_update(
-                        last_check_at,
-                        compliance_score,
-                        cached_pending_sync,
-                        cached_policy_summary,
+                        st.gui.last_check_at,
+                        st.compliance_score,
+                        st.gui.cached_pending_sync,
+                        st.gui.cached_policy_summary,
                     );
                 }
-                vuln_scan_task = Some(tokio::spawn(self.vuln_scan_job().run()));
+                st.vuln_scan_task = Some(tokio::spawn(self.vuln_scan_job().run()));
             }
 
             // Run security scan if interval has passed (skip when paused)
             if !is_paused
-                && last_security_scan.elapsed().as_secs() >= self.security_scan_interval_secs
+                && st.last_security_scan.elapsed().as_secs() >= self.security_scan_interval_secs
             {
                 is_active = true;
                 match self.run_security_scan().await {
@@ -2009,8 +1961,9 @@ impl AgentRuntime {
                                         )
                                     })
                                     .collect();
-                                let new_count = current.difference(&previous_incidents).count();
-                                previous_incidents = current;
+                                let new_count =
+                                    current.difference(&st.gui.previous_incidents).count();
+                                st.gui.previous_incidents = current;
                                 if new_count > 0 {
                                     self.emit_notification(
                                         "Incidents de sécurité détectés",
@@ -2083,7 +2036,7 @@ impl AgentRuntime {
                             // notification every few minutes.
                             debug!("Security scan: no incident detected");
                             #[cfg(feature = "gui")]
-                            previous_incidents.clear();
+                            st.gui.previous_incidents.clear();
                         }
                     }
                     Err(e) => {
@@ -2142,7 +2095,7 @@ impl AgentRuntime {
                     });
                 }
 
-                last_security_scan = std::time::Instant::now();
+                st.last_security_scan = std::time::Instant::now();
             }
 
             // Network collection/detection only with the platform's consent
@@ -2152,7 +2105,7 @@ impl AgentRuntime {
             // Run network static info collection if interval has passed (skip when paused)
             if !is_paused
                 && network_allowed
-                && last_network_static.elapsed() >= current_network_static_interval
+                && st.last_network_static.elapsed() >= st.network_static_interval
             {
                 is_active = true;
                 match self.run_network_collection().await {
@@ -2164,7 +2117,7 @@ impl AgentRuntime {
                                     .unwrap_or(u32::MAX),
                                 connections_count: u32::try_from(snapshot.connections.len())
                                     .unwrap_or(u32::MAX),
-                                alerts_count: last_network_alert_count,
+                                alerts_count: st.gui.last_network_alert_count,
                                 primary_ip: snapshot.primary_ip.clone(),
                                 primary_mac: snapshot.primary_mac.clone(),
                             });
@@ -2197,15 +2150,15 @@ impl AgentRuntime {
                         });
                     }
                 }
-                last_network_static = std::time::Instant::now();
+                st.last_network_static = std::time::Instant::now();
                 let mut network_manager = self.network_manager.write().await;
-                current_network_static_interval = network_manager.next_static_interval();
+                st.network_static_interval = network_manager.next_static_interval();
             }
 
             // Run network connection scan if interval has passed (skip when paused)
             if !is_paused
                 && network_allowed
-                && last_network_connections.elapsed() >= current_network_connection_interval
+                && st.last_network_connections.elapsed() >= st.network_connection_interval
             {
                 is_active = true;
                 match self.run_network_collection().await {
@@ -2217,7 +2170,7 @@ impl AgentRuntime {
                                     .unwrap_or(u32::MAX),
                                 connections_count: u32::try_from(snapshot.connections.len())
                                     .unwrap_or(u32::MAX),
-                                alerts_count: last_network_alert_count,
+                                alerts_count: st.gui.last_network_alert_count,
                                 primary_ip: snapshot.primary_ip.clone(),
                                 primary_mac: snapshot.primary_mac.clone(),
                             });
@@ -2250,15 +2203,15 @@ impl AgentRuntime {
                         });
                     }
                 }
-                last_network_connections = std::time::Instant::now();
+                st.last_network_connections = std::time::Instant::now();
                 let mut network_manager = self.network_manager.write().await;
-                current_network_connection_interval = network_manager.next_connection_interval();
+                st.network_connection_interval = network_manager.next_connection_interval();
             }
 
             // Run network security detection if interval has passed (skip when paused)
             if !is_paused
                 && network_allowed
-                && last_network_security.elapsed() >= current_network_security_interval
+                && st.last_network_security.elapsed() >= st.network_security_interval
             {
                 is_active = true;
                 match self.run_network_collection().await {
@@ -2287,7 +2240,7 @@ impl AgentRuntime {
                         }
                         #[cfg(feature = "gui")]
                         {
-                            last_network_alert_count = alert_count;
+                            st.gui.last_network_alert_count = alert_count;
                             self.emit_gui_event(AgentEvent::NetworkUpdate {
                                 interfaces_count: u32::try_from(snapshot.interfaces.len())
                                     .unwrap_or(u32::MAX),
@@ -2316,9 +2269,9 @@ impl AgentRuntime {
                         });
                     }
                 }
-                last_network_security = std::time::Instant::now();
+                st.last_network_security = std::time::Instant::now();
                 let mut network_manager = self.network_manager.write().await;
-                current_network_security_interval = network_manager.next_security_interval();
+                st.network_security_interval = network_manager.next_security_interval();
             }
 
             // ── Log collection & correlation ──
@@ -2333,7 +2286,7 @@ impl AgentRuntime {
                     .log_collector_enabled
                     .load(std::sync::atomic::Ordering::Acquire);
 
-                if collector_enabled && last_log_collection.elapsed().as_secs() >= poll_secs {
+                if collector_enabled && st.last_log_collection.elapsed().as_secs() >= poll_secs {
                     let collector_guard = self.log_collector.read().await;
                     if let Some(ref collector) = *collector_guard {
                         let siem_events = collector.collect().await;
@@ -2482,7 +2435,7 @@ impl AgentRuntime {
                         }
                     }
                     drop(collector_guard);
-                    last_log_collection = std::time::Instant::now();
+                    st.last_log_collection = std::time::Instant::now();
                 }
             }
 
@@ -2550,7 +2503,7 @@ impl AgentRuntime {
                         &playbooks,
                         &threat_context,
                         &observed_activity,
-                        &mut rule_hit_memory,
+                        &mut st.rule_hit_memory,
                         #[cfg(feature = "gui")]
                         &self.gui_event_tx,
                         #[cfg(not(feature = "gui"))]
@@ -2746,23 +2699,23 @@ impl AgentRuntime {
 
             // Run compliance checks if interval has passed (skip when paused)
             if !is_paused
-                && last_compliance_check_time.elapsed().as_secs() >= self.state.get_check_interval()
+                && st.last_compliance_check.elapsed().as_secs() >= self.state.get_check_interval()
             {
                 is_active = true;
                 #[cfg(feature = "gui")]
                 {
                     self.state.scanning.store(true, Ordering::Release);
                     self.emit_status_update(
-                        last_check_at,
-                        compliance_score,
-                        cached_pending_sync,
-                        cached_policy_summary,
+                        st.gui.last_check_at,
+                        st.compliance_score,
+                        st.gui.cached_pending_sync,
+                        st.gui.cached_policy_summary,
                     );
                 }
 
                 let (check_results, score) = self.run_compliance_checks().await;
-                compliance_score = Some(score.score);
-                last_compliance_check_at = Some(chrono::Utc::now());
+                st.compliance_score = Some(score.score);
+                st.last_compliance_check_at = Some(chrono::Utc::now());
 
                 self.store_check_results(&check_results).await;
                 self.upload_check_results().await;
@@ -2773,7 +2726,7 @@ impl AgentRuntime {
                 #[cfg(feature = "gui")]
                 {
                     let total = u32::try_from(score.total_count).unwrap_or(u32::MAX);
-                    cached_policy_summary = Some(GuiPolicySummary {
+                    st.gui.cached_policy_summary = Some(GuiPolicySummary {
                         total_policies: total,
                         passing: u32::try_from(score.passed_count).unwrap_or(u32::MAX),
                         failing: u32::try_from(score.failed_count).unwrap_or(u32::MAX),
@@ -2792,7 +2745,7 @@ impl AgentRuntime {
                         let gui_result = self.execution_result_to_gui(exec_result);
                         self.emit_gui_event(AgentEvent::CheckCompleted { result: gui_result });
                     }
-                    last_check_at = Some(chrono::Utc::now());
+                    st.gui.last_check_at = Some(chrono::Utc::now());
                     self.state.scanning.store(false, Ordering::Release);
                     self.emit_notification(
                         "Compliance vérifiée",
@@ -2807,20 +2760,25 @@ impl AgentRuntime {
                         },
                     );
                     self.emit_status_update(
-                        last_check_at,
-                        compliance_score,
-                        cached_pending_sync,
-                        cached_policy_summary,
+                        st.gui.last_check_at,
+                        st.compliance_score,
+                        st.gui.cached_pending_sync,
+                        st.gui.cached_policy_summary,
                     );
-                    self.emit_kpi_snapshot(compliance_score, kpi_incident_count, kpi_open_vulns, 0);
+                    self.emit_kpi_snapshot(
+                        st.compliance_score,
+                        kpi_incident_count,
+                        st.gui.kpi_open_vulns,
+                        0,
+                    );
                 }
 
-                last_compliance_check_time = std::time::Instant::now();
+                st.last_compliance_check = std::time::Instant::now();
             }
 
             // Certificate renewal check (daily)
             if !self.config.standalone
-                && last_cert_check.elapsed().as_secs() >= cert_check_interval_secs
+                && st.last_cert_check.elapsed().as_secs() >= main_loop::CERT_CHECK_INTERVAL_SECS
             {
                 if let Some(ref auth_client) = self.authenticated_client {
                     match auth_client.check_and_renew_if_needed().await {
@@ -2850,7 +2808,7 @@ impl AgentRuntime {
                         }
                     }
                 }
-                last_cert_check = std::time::Instant::now();
+                st.last_cert_check = std::time::Instant::now();
             }
 
             // Check for force_check flag (GUI "Vérifier maintenant" button)
@@ -2861,31 +2819,31 @@ impl AgentRuntime {
                 {
                     self.state.scanning.store(true, Ordering::Release);
                     self.emit_status_update(
-                        last_check_at,
-                        compliance_score,
-                        cached_pending_sync,
-                        cached_policy_summary,
+                        st.gui.last_check_at,
+                        st.compliance_score,
+                        st.gui.cached_pending_sync,
+                        st.gui.cached_policy_summary,
                     );
                 }
 
                 // The vulnerability scan runs in the background task; its
                 // results are published when the task is collected above.
-                if vuln_scan_task.is_none() {
-                    vuln_scan_task = Some(tokio::spawn(self.vuln_scan_job().run()));
+                if st.vuln_scan_task.is_none() {
+                    st.vuln_scan_task = Some(tokio::spawn(self.vuln_scan_job().run()));
                 } else {
                     info!("Vulnerability scan already running, not starting another one");
                 }
 
                 let (check_results, score) = self.run_compliance_checks().await;
-                compliance_score = Some(score.score);
-                last_compliance_check_at = Some(chrono::Utc::now());
+                st.compliance_score = Some(score.score);
+                st.last_compliance_check_at = Some(chrono::Utc::now());
                 self.store_check_results(&check_results).await;
                 self.upload_check_results().await;
 
                 #[cfg(feature = "gui")]
                 {
                     let total = u32::try_from(score.total_count).unwrap_or(u32::MAX);
-                    cached_policy_summary = Some(GuiPolicySummary {
+                    st.gui.cached_policy_summary = Some(GuiPolicySummary {
                         total_policies: total,
                         passing: u32::try_from(score.passed_count).unwrap_or(u32::MAX),
                         failing: u32::try_from(score.failed_count).unwrap_or(u32::MAX),
@@ -2904,7 +2862,7 @@ impl AgentRuntime {
                         let gui_result = self.execution_result_to_gui(exec_result);
                         self.emit_gui_event(AgentEvent::CheckCompleted { result: gui_result });
                     }
-                    last_check_at = Some(chrono::Utc::now());
+                    st.gui.last_check_at = Some(chrono::Utc::now());
                     self.emit_notification(
                         "Compliance vérifiée",
                         &format!(
@@ -2920,17 +2878,22 @@ impl AgentRuntime {
                     // Still "scanning" while the vulnerability task runs.
                     self.state
                         .scanning
-                        .store(vuln_scan_task.is_some(), Ordering::Release);
+                        .store(st.vuln_scan_task.is_some(), Ordering::Release);
                     self.emit_status_update(
-                        last_check_at,
-                        compliance_score,
-                        cached_pending_sync,
-                        cached_policy_summary,
+                        st.gui.last_check_at,
+                        st.compliance_score,
+                        st.gui.cached_pending_sync,
+                        st.gui.cached_policy_summary,
                     );
-                    self.emit_kpi_snapshot(compliance_score, kpi_incident_count, kpi_open_vulns, 0);
+                    self.emit_kpi_snapshot(
+                        st.compliance_score,
+                        kpi_incident_count,
+                        st.gui.kpi_open_vulns,
+                        0,
+                    );
                 }
-                last_vuln_scan = std::time::Instant::now();
-                last_compliance_check_time = std::time::Instant::now();
+                st.last_vuln_scan = std::time::Instant::now();
+                st.last_compliance_check = std::time::Instant::now();
                 self.state.force_check.store(false, Ordering::Release);
             }
 
@@ -2978,7 +2941,7 @@ impl AgentRuntime {
                 }
 
                 match self
-                    .send_heartbeat(compliance_score, last_compliance_check_at)
+                    .send_heartbeat(st.compliance_score, st.last_compliance_check_at)
                     .await
                 {
                     Ok(()) => {
@@ -3016,14 +2979,14 @@ impl AgentRuntime {
                         }
                     }
                 }
-                last_heartbeat = std::time::Instant::now();
+                st.last_heartbeat = std::time::Instant::now();
                 #[cfg(feature = "gui")]
                 {
                     self.emit_status_update(
-                        last_check_at,
-                        compliance_score,
-                        cached_pending_sync,
-                        cached_policy_summary,
+                        st.gui.last_check_at,
+                        st.compliance_score,
+                        st.gui.cached_pending_sync,
+                        st.gui.cached_policy_summary,
                     );
                     self.emit_resource_update(None);
                 }
@@ -3041,8 +3004,8 @@ impl AgentRuntime {
             }
 
             // Periodic background update check against the public catalog.
-            if last_update_check.elapsed().as_secs() >= UPDATE_CHECK_INTERVAL_SECS {
-                last_update_check = std::time::Instant::now();
+            if st.last_update_check.elapsed().as_secs() >= UPDATE_CHECK_INTERVAL_SECS {
+                st.last_update_check = std::time::Instant::now();
                 if let Err(e) = self.run_scheduled_update_check().await {
                     debug!("Scheduled update check did not complete: {}", e);
                 }
@@ -3276,9 +3239,9 @@ impl AgentRuntime {
 
             // Periodically push resource usage to the GUI (every 1 second)
             #[cfg(feature = "gui")]
-            if last_gui_resource_update.elapsed().as_secs() >= 1 {
+            if st.gui.last_resource_update.elapsed().as_secs() >= 1 {
                 self.emit_resource_update(Some(usage));
-                last_gui_resource_update = std::time::Instant::now();
+                st.gui.last_resource_update = std::time::Instant::now();
             }
 
             // Sleep for a short interval before checking shutdown again
@@ -3318,7 +3281,7 @@ impl AgentRuntime {
         info!("Performing final cleanup and data flush...");
 
         // 0. Do not keep scanning/uploading while shutting down.
-        if let Some(task) = vuln_scan_task.take() {
+        if let Some(task) = st.vuln_scan_task.take() {
             task.abort();
         }
 
@@ -3358,8 +3321,8 @@ impl AgentRuntime {
                 network_bytes_recv: 0,
                 uptime_seconds: usage.uptime_ms / 1000,
                 ip_address: None,
-                last_check_at: last_compliance_check_at.map(|dt| dt.to_rfc3339()),
-                compliance_score,
+                last_check_at: st.last_compliance_check_at.map(|dt| dt.to_rfc3339()),
+                compliance_score: st.compliance_score,
                 pending_sync_count: 0,
                 self_check_result: None,
                 processes: vec![],
