@@ -16,6 +16,7 @@ mod pass;
 mod pipeline;
 mod platform;
 mod scans;
+mod shutdown;
 mod siem;
 mod startup;
 mod state;
