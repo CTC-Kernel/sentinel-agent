@@ -2378,136 +2378,17 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                             });
                         }
 
-                        Ok(GuiCommand::StopVoice) => {
-                            #[cfg(feature = "voice")]
-                            if let Some(ref voice) = ctx.voice_service {
-                                voice.stop_listening();
-                                voice.stop_speaking();
-                            }
-                            let _ = ctx.events.send(AgentEvent::LlmVoiceState { active: false });
-                            let _ = ctx.events.send(AgentEvent::VoiceStatus { speaking: false });
-                        }
-                        Ok(GuiCommand::ConfigureVoice { settings }) => {
-                            #[cfg(feature = "voice")]
-                            if let Some(ref voice) = ctx.voice_service {
-                                voice.configure(settings);
-                            }
-                            #[cfg(not(feature = "voice"))]
-                            let _ = settings;
-                        }
-                        Ok(GuiCommand::VoiceRefreshStatus) => {
-                            #[cfg(feature = "voice")]
-                            if let Some(ref voice) = ctx.voice_service {
-                                voice.publish_status();
-                            }
-                            #[cfg(not(feature = "voice"))]
-                            let _ = ctx.events.send(AgentEvent::VoiceEngineStatus {
-                                info: Box::default(),
-                            });
-                        }
-                        Ok(GuiCommand::VoiceInstallModel { model_key }) => {
-                            info!("[AUDIT] GUI requested Whisper model installation: {}", model_key);
-                            #[cfg(feature = "voice")]
-                            if let Some(voice) = ctx.voice_service.clone() {
-                                tokio::spawn(async move {
-                                    voice.install_model(&model_key).await;
-                                });
-                            }
-                            #[cfg(not(feature = "voice"))]
-                            let _ = ctx.events.send(AgentEvent::VoiceModelInstall {
-                                progress: agent_gui::dto::VoiceInstallProgress {
-                                    model_key,
-                                    phase: agent_gui::dto::VoiceInstallPhase::Failed,
-                                    downloaded_bytes: 0,
-                                    total_bytes: 0,
-                                    error: Some("Reconnaissance vocale indisponible dans cette version.".to_string()),
-                                },
-                            });
-                        }
-                        Ok(GuiCommand::VoiceCancelModelInstall) => {
-                            #[cfg(feature = "voice")]
-                            if let Some(ref voice) = ctx.voice_service {
-                                voice.cancel_install();
-                            }
-                        }
-                        Ok(GuiCommand::SetVoiceListening { enabled }) => {
-                            info!("[AUDIT] GUI requested voice listening: {}", enabled);
-                            #[cfg(feature = "voice")]
-                            {
-                                let voice: Option<std::sync::Arc<agent_core::voice::VoiceService>> = ctx.voice_service.clone();
-                                let tx = ctx.events.clone();
-                                {
-                                    if let Some(ref voice) = voice {
-                                        if enabled {
-                                            // Natural barge-in: silence any answer/alert before
-                                            // opening the microphone so Whisper cannot transcribe
-                                            // Sentinel's own synthesized voice.
-                                            voice.stop_speaking();
-                                            voice.start_listening().await;
-                                        } else {
-                                            // Ending the dictation keeps what was already
-                                            // said: it is transcribed right away.
-                                            voice.finish_listening();
-                                        }
-                                    } else if enabled {
-                                        let _ = tx.send(AgentEvent::VoiceError { message: "Service vocal indisponible. Vérifiez le microphone et le modèle Whisper.".to_string() });
-                                    }
-                                }
-                            }
-                            #[cfg(not(feature = "voice"))]
-                            {
-                                let tx = ctx.events.clone();
-                                tokio::spawn(async move {
-                                    if enabled {
-                                        tokio::time::sleep(std::time::Duration::from_millis(500)).await;
-                                        let _ = tx.send(AgentEvent::VoiceError {
-                                            message: "Reconnaissance vocale indisponible dans cette version.".to_string()
-                                        });
-                                    }
-                                });
-                            }
-                        }
-                        Ok(GuiCommand::SpeakNotification { text }) => {
-                            info!("[AUDIT] GUI requested a spoken security notification");
-                            let speech_started = {
-                                #[cfg(feature = "voice")]
-                                {
-                                    if let Some(ref voice) = ctx.voice_service {
-                                        voice.speak(&text);
-                                        true
-                                    } else {
-                                        false
-                                    }
-                                }
-                                #[cfg(not(feature = "voice"))]
-                                {
-                                    false
-                                }
-                            };
-                            if !speech_started {
-                                let _ = text;
-                                let _ = ctx.events.send(AgentEvent::VoiceError { message: "Synthèse vocale indisponible dans cette version.".to_string() });
-                                // Match the service's completion event even in
-                                // voice-less builds or when initialization failed.
-                                let _ = ctx.events.send(AgentEvent::VoiceStatus {
-                                    speaking: false,
-                                });
-                            }
+                        Ok(command @ (GuiCommand::StopVoice
+                            | GuiCommand::ConfigureVoice { .. }
+                            | GuiCommand::VoiceRefreshStatus
+                            | GuiCommand::VoiceInstallModel { .. }
+                            | GuiCommand::VoiceCancelModelInstall
+                            | GuiCommand::SetVoiceListening { .. }
+                            | GuiCommand::SpeakNotification { .. }
+                            | GuiCommand::LlmToggleVoice)) => {
+                            gui_commands::voice::handle(&mut ctx, command).await;
                         }
 
-                        Ok(GuiCommand::LlmToggleVoice) => {
-                            // Toggle voice: uses SetVoiceListening path — GUI manages the toggle state.
-                            info!("[AUDIT] GUI toggled voice recognition");
-                            #[cfg(feature = "voice")]
-                            {
-                                let voice: Option<std::sync::Arc<agent_core::voice::VoiceService>> = ctx.voice_service.clone();
-                                tokio::spawn(async move {
-                                    if let Some(ref voice) = voice {
-                                        voice.start_listening().await;
-                                    }
-                                });
-                            }
-                        }
 
                         Ok(GuiCommand::LlmSelectModel { model_key, model_name, download_url, gguf_filename }) => {
                             info!("[AUDIT] GUI requested model switch to '{}'", model_key);

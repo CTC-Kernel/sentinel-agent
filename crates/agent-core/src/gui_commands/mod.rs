@@ -19,6 +19,7 @@ pub(crate) mod grc;
 pub(crate) mod playbooks;
 pub(crate) mod reports;
 pub(crate) mod response;
+pub(crate) mod voice;
 
 /// The local AI model service, when the agent is built with it.
 #[cfg(feature = "llm")]
