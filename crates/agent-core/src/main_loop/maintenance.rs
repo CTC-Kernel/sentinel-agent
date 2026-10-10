@@ -4,32 +4,44 @@
 //! Housekeeping stages of the main loop: self-update, asset proposals and
 //! the agent's own resource usage.
 
+use std::sync::Arc;
 use std::sync::atomic::Ordering;
 use tracing::{debug, warn};
 
 use super::{LoopPass, LoopState};
 use crate::{AgentRuntime, ProposeAssetData, UPDATE_CHECK_INTERVAL_SECS};
 
+/// Name of the background task that checks for an update and installs it.
+const UPDATE_TASK: &str = "self-update";
+
 impl AgentRuntime {
-    /// Self-update: at once when the operator asked for it, and as a
-    /// periodic background check of the public release catalog.
-    pub(crate) async fn update_stage(&self, st: &mut LoopState) {
+    /// Self-update, in a background task: at once when the operator asked
+    /// for it, and as a periodic check of the public release catalog. One
+    /// at a time: a request made while an update runs is served after it.
+    pub(crate) fn update_stage(self: &Arc<Self>, st: &mut LoopState) {
+        if st.tasks.is_running(UPDATE_TASK) {
+            return;
+        }
+        let runtime = Arc::clone(self);
         // Check for force_update flag (trigger from GUI button)
         if self.state.force_update.swap(false, Ordering::AcqRel) {
             // Release discovery is public and does not require platform
             // enrollment, so standalone installations follow the same
             // signed self-update path as connected agents.
-            if let Err(e) = self.run_self_update().await {
-                warn!("Self-update failed: {}", e);
-            }
+            st.tasks.spawn(UPDATE_TASK, async move {
+                if let Err(e) = runtime.run_self_update().await {
+                    warn!("Self-update failed: {}", e);
+                }
+            });
         }
-
         // Periodic background update check against the public catalog.
-        if st.last_update_check.elapsed().as_secs() >= UPDATE_CHECK_INTERVAL_SECS {
+        else if st.last_update_check.elapsed().as_secs() >= UPDATE_CHECK_INTERVAL_SECS {
             st.last_update_check = std::time::Instant::now();
-            if let Err(e) = self.run_scheduled_update_check().await {
-                debug!("Scheduled update check did not complete: {}", e);
-            }
+            st.tasks.spawn(UPDATE_TASK, async move {
+                if let Err(e) = runtime.run_scheduled_update_check().await {
+                    debug!("Scheduled update check did not complete: {}", e);
+                }
+            });
         }
     }
 
@@ -136,13 +148,37 @@ mod tests {
     #[tokio::test]
     async fn no_update_check_before_its_interval_or_a_request() {
         let test = standalone_runtime();
+        let runtime = Arc::new(test.runtime);
         let mut st = LoopState::starting_at(Instant::now(), 6 * 3600, 3600);
         let scheduled = Instant::now();
         st.last_update_check = scheduled;
 
-        test.runtime.update_stage(&mut st).await;
+        runtime.update_stage(&mut st);
 
         assert_eq!(st.last_update_check, scheduled);
-        assert!(!test.runtime.state.force_update.load(Ordering::Acquire));
+        assert!(st.tasks.is_empty());
+        assert!(!runtime.state.force_update.load(Ordering::Acquire));
+    }
+
+    #[tokio::test]
+    async fn a_requested_update_runs_in_the_background_one_at_a_time() {
+        let test = standalone_runtime();
+        let runtime = Arc::new(test.runtime);
+        let mut st = LoopState::starting_at(Instant::now(), 6 * 3600, 3600);
+        st.last_update_check = Instant::now();
+        runtime.state.force_update.store(true, Ordering::Release);
+
+        runtime.update_stage(&mut st);
+        assert!(st.tasks.is_running(UPDATE_TASK));
+        assert!(!runtime.state.force_update.load(Ordering::Acquire));
+
+        // Asked again while the first one runs: served once it is over.
+        runtime.state.force_update.store(true, Ordering::Release);
+        runtime.update_stage(&mut st);
+        assert_eq!(st.tasks.len(), 1);
+        assert!(runtime.state.force_update.load(Ordering::Acquire));
+
+        // Stopped before it is ever polled: nothing is downloaded by this test.
+        st.tasks.shutdown().await;
     }
 }

@@ -40,7 +40,7 @@
 //! | 20 | `certificate_renewal_stage`    | daily, not standalone                | state: timer                                  |
 //! | 21 | `forced_check_stage`           | operator request                     | state: scan task, compliance task             |
 //! | 22 | `forced_sync_stage`            | operator request                     | state: heartbeat timer                        |
-//! | 23 | `update_stage`                 | operator request, or every 6 hours   | state: timer                                  |
+//! | 23 | `update_stage`                 | operator request, or every 6 hours   | state: timer (starts the update task)         |
 //! | 24 | `forced_discovery_stage` (gui) | operator request                     | (starts the discovery task)                   |
 //! | 25 | `upload_asset_proposals`       | every pass                           | (drains the proposal queue)                   |
 //! | 26 | `resource_stage`               | every pass                           | resource monitor                              |
@@ -54,6 +54,7 @@
 //! | `vulnerability scan`        | stage 11, 21 | stage 10     | logged, next scan at its usual time |
 //! | `compliance checks`         | stage 19, 21 | stage 18     | logged, next run at its usual time |
 //! | `heartbeat`                 | stage 9      | stage 9      | logged, next one at its interval |
+//! | `self-update`               | stage 23     | (none)       | logged                           |
 //! | `network discovery`         | stage 24     | (interface)  | logged                           |
 //!
 //! # Order that matters
@@ -198,7 +199,7 @@ impl AgentRuntime {
         self.forced_sync_stage(st).await;
 
         // Self-update: on request, and as a periodic background check
-        self.update_stage(st).await;
+        self.update_stage(st);
 
         // Check for force_discovery flag (GUI network discovery)
         #[cfg(feature = "gui")]
