@@ -230,7 +230,6 @@ struct PromptJob {
     prompt: String,
     context: Option<agent_gui::dto::LlmPromptContext>,
     /// The answer is also spoken.
-    #[cfg_attr(not(feature = "voice"), allow(dead_code))]
     speak_response: bool,
     /// Set by the operator to stop the answer.
     cancel: std::sync::Arc<std::sync::atomic::AtomicBool>,

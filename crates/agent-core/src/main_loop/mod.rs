@@ -64,7 +64,8 @@
 //!   stage awaits before 17 delays the response, which is why the stages
 //!   queue in the `Outbox` what they upload and what they record in the
 //!   SIEM (classified by the AI model first) instead of doing it.
-//! - Stages 4, 5 and 6 share the FIM batch: drain, scan, then upload.
+//! - Stages 4, 5 and 6 share the FIM batch: drain, scan, then queue for
+//!   upload.
 //! - Stage 1 gives the network detector its indicators before stage 15.
 //! - The heartbeat (9, and 22 on request) sends the score that stage 18
 //!   collected in an earlier pass. On a forced sync, the heartbeat applies
@@ -80,6 +81,10 @@
 //! - Stages 12 to 15 and 18 mark the pass active, which stage 26 reads.
 //! - Stages 2 to 6 run even when the agent is paused: they are the
 //!   security-critical ones.
+
+// The functions of this module stay short: one stage, one handler each.
+// The threshold is `too-many-lines-threshold` in clippy.toml.
+#![warn(clippy::too_many_lines)]
 
 mod compliance;
 mod detection;

@@ -4,6 +4,10 @@
 //! Commands sent by the desktop interface to the agent, and what handles
 //! them.
 
+// The functions of this module stay short: one stage, one handler each.
+// The threshold is `too-many-lines-threshold` in clippy.toml.
+#![warn(clippy::too_many_lines)]
+
 use std::future::Future;
 use std::panic::AssertUnwindSafe;
 use std::sync::atomic::AtomicBool;
