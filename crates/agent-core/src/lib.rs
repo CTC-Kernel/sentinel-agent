@@ -892,7 +892,14 @@ impl AgentRuntime {
     /// Run the agent until shutdown is requested: start-up, then one pass of
     /// the main loop about every second (see [`main_loop`]), then the
     /// shutdown sequence.
-    pub async fn run(&self) -> Result<(), CommonError> {
+    ///
+    /// The runtime is consumed: the loop shares it with the background
+    /// tasks it starts.
+    pub async fn run(self) -> Result<(), CommonError> {
+        Arc::new(self).run_loop().await
+    }
+
+    async fn run_loop(self: Arc<Self>) -> Result<(), CommonError> {
         let mut st = self.start_up().await?;
 
         info!("Agent main loop started");

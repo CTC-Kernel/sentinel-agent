@@ -82,12 +82,14 @@ pub(crate) mod testing;
 pub(crate) use pass::LoopPass;
 pub(crate) use state::{CERT_CHECK_INTERVAL_SECS, LoopState};
 
+use std::sync::Arc;
+
 use crate::AgentRuntime;
 
 impl AgentRuntime {
     /// One pass of the main loop: every stage in the order of the table
     /// above.
-    pub(crate) async fn run_pass(&self, st: &mut LoopState) {
+    pub(crate) async fn run_pass(self: &Arc<Self>, st: &mut LoopState) {
         // Background tasks that ended since the last pass: a panic is logged,
         // a task meant to keep running is started again.
         st.tasks.reap();
