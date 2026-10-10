@@ -116,6 +116,22 @@ fn is_protected_target(target: &Path, protected: &[PathBuf]) -> bool {
         .any(|p| target.starts_with(p) || p.starts_with(target))
 }
 
+/// Canonical destination of a restore, or `None` when it cannot be resolved.
+///
+/// The file does not exist yet at the destination, so the parent is
+/// canonicalized and the file name re-attached. A bare relative name ("foo")
+/// has an empty parent, which stands for the current directory -- that is
+/// where `rename` puts it. A path with no file name (the root, or one ending
+/// in "..") names no entry to restore to.
+fn resolve_restore_target(restore_path: &Path) -> Option<PathBuf> {
+    let name = restore_path.file_name()?;
+    let parent = match restore_path.parent()? {
+        parent if parent.as_os_str().is_empty() => Path::new("."),
+        parent => parent,
+    };
+    parent.canonicalize().ok().map(|parent| parent.join(name))
+}
+
 /// Kill a process by name and PID.
 pub async fn kill_process(process_name: &str, pid: u32) -> Result<(), CommonError> {
     // Anti-Draper protection: reject the PIDs that would take the host or the
@@ -335,20 +351,19 @@ pub async fn restore_quarantined_file(quarantine_id: &str) -> Result<(), CommonE
     //
     // The metadata file is attacker-influenced (it records whatever path was
     // quarantined), so this validates the *destination* rather than trusting it.
-    let restore_path = Path::new(original_path);
-    let protected = protected_paths();
-    // The file does not exist yet at the destination, so canonicalize the
-    // parent and re-attach the file name.
-    let canonical_target = restore_path
-        .parent()
-        .and_then(|p| p.canonicalize().ok())
-        .map(|parent| match restore_path.file_name() {
-            Some(name) => parent.join(name),
-            None => parent,
-        });
-    if let Some(ref target) = canonical_target
-        && is_protected_target(target, &protected)
-    {
+    // It fails closed: a destination that cannot be resolved cannot be checked,
+    // so it is refused rather than handed to `rename` unchecked.
+    let Some(target) = resolve_restore_target(Path::new(original_path)) else {
+        warn!(
+            "Refused to restore to '{}': destination cannot be resolved",
+            original_path
+        );
+        return Err(CommonError::internal(format!(
+            "Refusing to restore to '{}': destination cannot be resolved",
+            original_path
+        )));
+    };
+    if is_protected_target(&target, &protected_paths()) {
         warn!(
             "Anti-Draper triggered: refused to restore into protected path '{}'",
             original_path
@@ -1195,6 +1210,57 @@ mod tests {
             result.err()
         );
         assert!(original.join("inner.txt").exists());
+    }
+
+    /// A bare relative name has an empty parent, which used to leave the
+    /// destination unresolved and the check skipped, while `rename` went on to
+    /// restore it into the working directory -- "/" for the daemon. It now
+    /// resolves there, so a protected working directory refuses it.
+    #[test]
+    fn test_restore_target_resolves_bare_name_in_working_directory() {
+        let cwd = std::env::current_dir()
+            .and_then(|dir| dir.canonicalize())
+            .expect("resolve working directory");
+
+        let target = resolve_restore_target(Path::new("restored.bin"))
+            .expect("a bare relative name must resolve");
+        assert_eq!(target, cwd.join("restored.bin"));
+        assert!(is_protected_target(&target, std::slice::from_ref(&cwd)));
+
+        // No file name: these name no entry to restore to.
+        for unresolvable in ["", "/", ".."] {
+            assert_eq!(resolve_restore_target(Path::new(unresolvable)), None);
+        }
+    }
+
+    /// Fail closed: a destination that cannot be resolved cannot be checked,
+    /// so restore refuses it instead of handing it to `rename` unchecked.
+    #[tokio::test]
+    async fn test_restore_refuses_unresolvable_destination() {
+        let src_dir = tempfile::tempdir().unwrap();
+        let src_file = src_dir.path().join("testfile.txt");
+        std::fs::write(&src_file, b"test data").unwrap();
+        let quarantine_id = quarantine_file(src_file.to_str().unwrap())
+            .await
+            .expect("quarantine should succeed");
+
+        // The parent directory does not exist, so it cannot be canonicalized.
+        let missing = src_dir.path().join("gone").join("testfile.txt");
+        write_quarantine_metadata(&quarantine_id, &missing).await;
+
+        let result = restore_quarantined_file(&quarantine_id).await;
+        let err_msg = result
+            .expect_err("restore to an unresolvable destination must be rejected")
+            .to_string();
+        assert!(
+            err_msg.contains("cannot be resolved"),
+            "expected a refusal ahead of the rename, got: {}",
+            err_msg
+        );
+        assert!(
+            super::quarantine_dir().join(&quarantine_id).exists(),
+            "a refused restore must leave the entry in the store"
+        );
     }
 
     // ── block_ip: loopback rejection ────────────────────────────────────

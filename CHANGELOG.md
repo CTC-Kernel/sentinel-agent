@@ -20,6 +20,11 @@ Tous les changements notables apportés au projet **Sentinel GRC Agent** sont co
   est refusé au même titre que ce chemin, à la mise en quarantaine comme à la
   restauration, et tout le dossier de configuration est protégé (plus
   seulement `agent.json`). Un dossier déjà en quarantaine reste restaurable.
+- **Destination de restauration toujours vérifiée** : un chemin d'origine
+  relatif réduit à un nom de fichier échappait au contrôle de la destination,
+  et le fichier était restauré dans le dossier de travail de l'agent — la
+  racine du système pour le service. Il est désormais résolu puis contrôlé
+  comme les autres, et une destination impossible à résoudre est refusée.
 
 ### 🎯 Détection : les règles personnalisées s'appliquent à toute l'activité observée
 
