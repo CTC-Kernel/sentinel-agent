@@ -6,6 +6,10 @@
 use agent_gui::events::{AgentEvent, GuiCommand};
 use tracing::{info, warn};
 
+use std::sync::Arc;
+
+use agent_core::playbook_engine::{ActionResult, ResolvedAction};
+
 use super::{CommandContext, expected};
 
 /// Run one command of this group.
@@ -36,173 +40,186 @@ async fn execute_playbook(ctx: &mut CommandContext, playbook_id: String) {
     let sync_client_clone = ctx.sync_client.clone();
     ctx.tasks
         .spawn_expected("execute playbook", expected::ACTION, async move {
-            // Load playbook from local SQLite
-            let playbook_opt = if let Some(ref db_arc) = db_clone {
-                let repo = agent_storage::repositories::grc::PlaybookRepository::new(db_arc);
-                match repo.get_all().await {
-                    Ok(all) => all.into_iter().find(|s| s.id == pid).map(|stored| {
-                        let actions: Vec<agent_gui::dto::PlaybookAction> =
-                            serde_json::from_str(&stored.steps).unwrap_or_default();
-                        agent_gui::dto::Playbook {
-                            id: stored.id.clone(),
-                            name: stored.name.clone(),
-                            description: stored.description.clone(),
-                            enabled: stored.enabled,
-                            conditions: vec![],
-                            actions,
-                            created_at: chrono::DateTime::parse_from_rfc3339(&stored.created_at)
-                                .map(|dt| dt.with_timezone(&chrono::Utc))
-                                .unwrap_or_else(|_| chrono::Utc::now()),
-                            last_triggered: None,
-                            trigger_count: 0,
-                            is_template: false,
-                        }
-                    }),
-                    Err(e) => {
-                        warn!("Failed to load playbooks from database: {}", e);
-                        None
-                    }
+            match load_playbook(db_clone.as_ref(), &pid).await {
+                Some(playbook) => {
+                    run_playbook_manually(playbook, db_clone, tx, sync_client_clone).await;
                 }
-            } else {
-                None
-            };
-
-            if let Some(playbook) = playbook_opt {
-                // Execute playbook actions directly (manual trigger bypasses condition evaluation)
-                let mut resolved_actions = Vec::new();
-                for action in &playbook.actions {
-                    match action.action_type {
-                        agent_gui::dto::PlaybookActionType::KillProcess => {
-                            // parameters format: "process_name:pid"
-                            let parts: Vec<&str> = action.parameters.splitn(2, ':').collect();
-                            if parts.len() == 2
-                                && let Ok(pid_val) = parts[1].parse::<u32>()
-                            {
-                                resolved_actions.push(
-                                    agent_core::playbook_engine::ResolvedAction::KillProcess {
-                                        name: parts[0].to_string(),
-                                        pid: pid_val,
-                                    },
-                                );
-                            }
-                        }
-                        agent_gui::dto::PlaybookActionType::QuarantineFile => {
-                            resolved_actions.push(
-                                agent_core::playbook_engine::ResolvedAction::QuarantineFile {
-                                    path: action.parameters.clone(),
-                                },
-                            );
-                        }
-                        agent_gui::dto::PlaybookActionType::BlockIp => {
-                            // parameters format: "ip:duration_secs"
-                            let parts: Vec<&str> = action.parameters.splitn(2, ':').collect();
-                            let ip = parts.first().unwrap_or(&"").to_string();
-                            let duration = parts
-                                .get(1)
-                                .and_then(|s| s.parse::<u64>().ok())
-                                .unwrap_or(3600);
-                            resolved_actions.push(
-                                agent_core::playbook_engine::ResolvedAction::BlockIp {
-                                    ip,
-                                    duration_secs: duration,
-                                },
-                            );
-                        }
-                        agent_gui::dto::PlaybookActionType::IsolateHost => {
-                            resolved_actions.push(
-                                agent_core::playbook_engine::ResolvedAction::IsolateHost {
-                                    duration_secs: agent_core::playbook_engine::isolation_duration(
-                                        &action.parameters,
-                                    ),
-                                },
-                            );
-                        }
-                        agent_gui::dto::PlaybookActionType::SendSiemAlert => {
-                            resolved_actions.push(
-                                agent_core::playbook_engine::ResolvedAction::Alert {
-                                    title: format!("Playbook '{}' SIEM alert", playbook.name),
-                                    severity: "medium".to_string(),
-                                    description: action.parameters.clone(),
-                                },
-                            );
-                        }
-                        agent_gui::dto::PlaybookActionType::CreateNotification => {
-                            resolved_actions.push(
-                                agent_core::playbook_engine::ResolvedAction::Notify {
-                                    message: action.parameters.clone(),
-                                },
-                            );
-                        }
-                    }
-                }
-
-                let results = {
-                    let audit_trail =
-                        db_clone
-                            .as_ref()
-                            .map(|db: &std::sync::Arc<agent_storage::Database>| {
-                                std::sync::Arc::new(agent_core::audit_trail::LocalAuditTrail::new(
-                                    db.clone(),
-                                ))
-                            });
-                    agent_core::playbook_engine::execute_playbook_actions_with_delivery(
-                        &playbook.name,
-                        &resolved_actions,
-                        audit_trail.as_ref(),
-                        Some(&tx),
-                        None,
-                    )
-                    .await
-                };
-                let actions_executed: Vec<String> =
-                    results.iter().map(|r| r.action.clone()).collect();
-                let all_success = !results.is_empty() && results.iter().all(|r| r.success);
-                let first_error = if results.is_empty() {
-                    Some("No executable action resolved for the configured playbook".to_string())
-                } else {
-                    results
-                        .iter()
-                        .find(|r| !r.success)
-                        .and_then(|r| r.error.clone())
-                };
-
-                // Build playbook log entry
-                let log_entry = agent_gui::dto::PlaybookLogEntry {
-                    id: uuid::Uuid::new_v4(),
-                    playbook_id: playbook.id,
-                    playbook_name: playbook.name.clone(),
-                    triggered_at: chrono::Utc::now(),
-                    trigger_event: "Manual execution".to_string(),
-                    actions_executed,
-                    success: all_success,
-                    error: first_error,
-                };
-
-                // Sync playbook log to platform
-                if let Some(ref client) = sync_client_clone {
-                    let payload = agent_sync::PlaybookLogPayload {
-                        id: log_entry.id.to_string(),
-                        playbook_id: log_entry.playbook_id.to_string(),
-                        playbook_name: log_entry.playbook_name.clone(),
-                        triggered_at: log_entry.triggered_at,
-                        trigger_event: log_entry.trigger_event.clone(),
-                        actions_executed: log_entry.actions_executed.clone(),
-                        success: log_entry.success,
-                        error: log_entry.error.clone(),
-                    };
-                    if let Err(e) = client.sync_playbook_logs(vec![payload]).await {
-                        tracing::warn!("Failed to sync manual playbook log: {}", e);
-                    }
-                }
-
-                // Emit PlaybookTriggered event to GUI
-                let _ = tx.send(AgentEvent::PlaybookTriggered {
-                    log_entry: Box::new(log_entry),
-                });
-            } else {
-                warn!("Cannot execute playbook '{}': not found in database", pid);
+                None => warn!("Cannot execute playbook '{}': not found in database", pid),
             }
         });
+}
+
+/// Load a playbook from the local database.
+async fn load_playbook(
+    db: Option<&Arc<agent_storage::Database>>,
+    id: &str,
+) -> Option<agent_gui::dto::Playbook> {
+    let repo = agent_storage::repositories::grc::PlaybookRepository::new(db?);
+    match repo.get_all().await {
+        Ok(all) => all.into_iter().find(|s| s.id == id).map(|stored| {
+            let actions: Vec<agent_gui::dto::PlaybookAction> =
+                serde_json::from_str(&stored.steps).unwrap_or_default();
+            agent_gui::dto::Playbook {
+                id: stored.id.clone(),
+                name: stored.name.clone(),
+                description: stored.description.clone(),
+                enabled: stored.enabled,
+                conditions: vec![],
+                actions,
+                created_at: chrono::DateTime::parse_from_rfc3339(&stored.created_at)
+                    .map(|dt| dt.with_timezone(&chrono::Utc))
+                    .unwrap_or_else(|_| chrono::Utc::now()),
+                last_triggered: None,
+                trigger_count: 0,
+                is_template: false,
+            }
+        }),
+        Err(e) => {
+            warn!("Failed to load playbooks from database: {}", e);
+            None
+        }
+    }
+}
+
+/// The actions a playbook runs when the operator starts it by hand: its
+/// conditions are not evaluated, each action takes its target from its own
+/// parameters. A kill without a readable `name:pid` is left out.
+fn resolve_manual_actions(playbook: &agent_gui::dto::Playbook) -> Vec<ResolvedAction> {
+    let mut resolved_actions = Vec::new();
+    for action in &playbook.actions {
+        match action.action_type {
+            agent_gui::dto::PlaybookActionType::KillProcess => {
+                // parameters format: "process_name:pid"
+                let parts: Vec<&str> = action.parameters.splitn(2, ':').collect();
+                if parts.len() == 2
+                    && let Ok(pid_val) = parts[1].parse::<u32>()
+                {
+                    resolved_actions.push(ResolvedAction::KillProcess {
+                        name: parts[0].to_string(),
+                        pid: pid_val,
+                    });
+                }
+            }
+            agent_gui::dto::PlaybookActionType::QuarantineFile => {
+                resolved_actions.push(ResolvedAction::QuarantineFile {
+                    path: action.parameters.clone(),
+                });
+            }
+            agent_gui::dto::PlaybookActionType::BlockIp => {
+                // parameters format: "ip:duration_secs"
+                let parts: Vec<&str> = action.parameters.splitn(2, ':').collect();
+                let ip = parts.first().unwrap_or(&"").to_string();
+                let duration = parts
+                    .get(1)
+                    .and_then(|s| s.parse::<u64>().ok())
+                    .unwrap_or(3600);
+                resolved_actions.push(ResolvedAction::BlockIp {
+                    ip,
+                    duration_secs: duration,
+                });
+            }
+            agent_gui::dto::PlaybookActionType::IsolateHost => {
+                resolved_actions.push(ResolvedAction::IsolateHost {
+                    duration_secs: agent_core::playbook_engine::isolation_duration(
+                        &action.parameters,
+                    ),
+                });
+            }
+            agent_gui::dto::PlaybookActionType::SendSiemAlert => {
+                resolved_actions.push(ResolvedAction::Alert {
+                    title: format!("Playbook '{}' SIEM alert", playbook.name),
+                    severity: "medium".to_string(),
+                    description: action.parameters.clone(),
+                });
+            }
+            agent_gui::dto::PlaybookActionType::CreateNotification => {
+                resolved_actions.push(ResolvedAction::Notify {
+                    message: action.parameters.clone(),
+                });
+            }
+        }
+    }
+    resolved_actions
+}
+
+/// The log entry of a manual execution: a success only when every action
+/// succeeded, and there was at least one to run.
+fn manual_log_entry(
+    playbook: &agent_gui::dto::Playbook,
+    results: &[ActionResult],
+) -> agent_gui::dto::PlaybookLogEntry {
+    let actions_executed: Vec<String> = results.iter().map(|r| r.action.clone()).collect();
+    let all_success = !results.is_empty() && results.iter().all(|r| r.success);
+    let first_error = if results.is_empty() {
+        Some("No executable action resolved for the configured playbook".to_string())
+    } else {
+        results
+            .iter()
+            .find(|r| !r.success)
+            .and_then(|r| r.error.clone())
+    };
+
+    agent_gui::dto::PlaybookLogEntry {
+        id: uuid::Uuid::new_v4(),
+        playbook_id: playbook.id.clone(),
+        playbook_name: playbook.name.clone(),
+        triggered_at: chrono::Utc::now(),
+        trigger_event: "Manual execution".to_string(),
+        actions_executed,
+        success: all_success,
+        error: first_error,
+    }
+}
+
+/// Run the actions of a playbook started by hand, then log the execution
+/// to the platform and to the interface.
+async fn run_playbook_manually(
+    playbook: agent_gui::dto::Playbook,
+    db: Option<Arc<agent_storage::Database>>,
+    tx: std::sync::mpsc::Sender<AgentEvent>,
+    sync_client: Option<Arc<agent_sync::AuthenticatedClient>>,
+) {
+    // Execute playbook actions directly (manual trigger bypasses condition evaluation)
+    let resolved_actions = resolve_manual_actions(&playbook);
+
+    let results = {
+        let audit_trail = db
+            .as_ref()
+            .map(|db| Arc::new(agent_core::audit_trail::LocalAuditTrail::new(db.clone())));
+        agent_core::playbook_engine::execute_playbook_actions_with_delivery(
+            &playbook.name,
+            &resolved_actions,
+            audit_trail.as_ref(),
+            Some(&tx),
+            None,
+        )
+        .await
+    };
+
+    // Build playbook log entry
+    let log_entry = manual_log_entry(&playbook, &results);
+
+    // Sync playbook log to platform
+    if let Some(ref client) = sync_client {
+        let payload = agent_sync::PlaybookLogPayload {
+            id: log_entry.id.to_string(),
+            playbook_id: log_entry.playbook_id.to_string(),
+            playbook_name: log_entry.playbook_name.clone(),
+            triggered_at: log_entry.triggered_at,
+            trigger_event: log_entry.trigger_event.clone(),
+            actions_executed: log_entry.actions_executed.clone(),
+            success: log_entry.success,
+            error: log_entry.error.clone(),
+        };
+        if let Err(e) = client.sync_playbook_logs(vec![payload]).await {
+            tracing::warn!("Failed to sync manual playbook log: {}", e);
+        }
+    }
+
+    // Emit PlaybookTriggered event to GUI
+    let _ = tx.send(AgentEvent::PlaybookTriggered {
+        log_entry: Box::new(log_entry),
+    });
 }
 
 /// Toggle playbook enabled state.
@@ -448,5 +465,119 @@ async fn toggle_detection_rule(ctx: &mut CommandContext, rule_id: String, enable
                     Err(e) => warn!("Failed to load detection rules for toggle: {}", e),
                 }
             });
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use agent_gui::dto::{Playbook, PlaybookAction, PlaybookActionType};
+
+    fn playbook(actions: &[(PlaybookActionType, &str)]) -> Playbook {
+        Playbook {
+            id: "pb-1".to_string(),
+            name: "Contenir le poste".to_string(),
+            description: String::new(),
+            enabled: true,
+            conditions: Vec::new(),
+            actions: actions
+                .iter()
+                .map(|(action_type, parameters)| PlaybookAction {
+                    action_type: *action_type,
+                    parameters: parameters.to_string(),
+                })
+                .collect(),
+            created_at: chrono::Utc::now(),
+            last_triggered: None,
+            trigger_count: 0,
+            is_template: false,
+        }
+    }
+
+    fn result(action: &str, error: Option<&str>) -> ActionResult {
+        ActionResult {
+            action: action.to_string(),
+            success: error.is_none(),
+            error: error.map(str::to_string),
+        }
+    }
+
+    #[test]
+    fn a_manual_run_takes_each_target_from_the_action_parameters() {
+        let resolved = resolve_manual_actions(&playbook(&[
+            (PlaybookActionType::KillProcess, "xmrig:4242"),
+            (PlaybookActionType::QuarantineFile, "/tmp/xmrig"),
+            (PlaybookActionType::BlockIp, "203.0.113.7:600"),
+            (PlaybookActionType::CreateNotification, "Poste contenu"),
+        ]));
+
+        assert!(matches!(
+            resolved.as_slice(),
+            [
+                ResolvedAction::KillProcess { name, pid: 4242 },
+                ResolvedAction::QuarantineFile { path },
+                ResolvedAction::BlockIp { ip, duration_secs: 600 },
+                ResolvedAction::Notify { message },
+            ] if name == "xmrig" && path == "/tmp/xmrig" && ip == "203.0.113.7" && message == "Poste contenu"
+        ));
+    }
+
+    #[test]
+    fn a_block_without_a_duration_lasts_an_hour() {
+        let resolved =
+            resolve_manual_actions(&playbook(&[(PlaybookActionType::BlockIp, "203.0.113.7")]));
+        assert!(matches!(
+            resolved.as_slice(),
+            [ResolvedAction::BlockIp {
+                duration_secs: 3600,
+                ..
+            }]
+        ));
+    }
+
+    #[test]
+    fn a_kill_without_a_readable_pid_is_left_out() {
+        for parameters in ["xmrig", "xmrig:not-a-pid", ""] {
+            let resolved =
+                resolve_manual_actions(&playbook(&[(PlaybookActionType::KillProcess, parameters)]));
+            assert!(resolved.is_empty(), "{parameters:?}");
+        }
+    }
+
+    #[test]
+    fn a_manual_run_succeeds_only_when_every_action_did() {
+        let pb = playbook(&[]);
+
+        let ok = manual_log_entry(&pb, &[result("kill_process", None), result("notify", None)]);
+        assert!(ok.success);
+        assert_eq!(ok.error, None);
+        assert_eq!(ok.actions_executed, ["kill_process", "notify"]);
+        assert_eq!(ok.trigger_event, "Manual execution");
+        assert_eq!(ok.playbook_id, "pb-1");
+
+        let failed = manual_log_entry(
+            &pb,
+            &[
+                result("kill_process", Some("permission denied")),
+                result("notify", None),
+            ],
+        );
+        assert!(!failed.success);
+        assert_eq!(failed.error.as_deref(), Some("permission denied"));
+    }
+
+    #[test]
+    fn a_manual_run_without_any_action_is_a_failure_that_says_so() {
+        let entry = manual_log_entry(&playbook(&[]), &[]);
+        assert!(!entry.success);
+        assert_eq!(
+            entry.error.as_deref(),
+            Some("No executable action resolved for the configured playbook")
+        );
+    }
+
+    #[tokio::test]
+    async fn without_a_database_there_is_no_playbook_to_load() {
+        assert!(load_playbook(None, "pb-1").await.is_none());
     }
 }
