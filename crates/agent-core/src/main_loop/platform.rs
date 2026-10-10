@@ -7,11 +7,40 @@
 use agent_common::error::CommonError;
 #[cfg(feature = "gui")]
 use agent_gui::events::AgentEvent;
+use std::sync::Arc;
 use std::sync::atomic::Ordering;
 use tracing::{debug, error, info, warn};
 
+use super::job::Job;
 use super::{CERT_CHECK_INTERVAL_SECS, LoopState};
 use crate::AgentRuntime;
+
+/// Name of the background task that sends the heartbeat.
+const HEARTBEAT_TASK: &str = "heartbeat";
+
+/// What a heartbeat reads from the loop state, copied when it starts.
+#[derive(Clone, Copy)]
+struct HeartbeatInput {
+    compliance_score: Option<f64>,
+    last_compliance_check_at: Option<chrono::DateTime<chrono::Utc>>,
+    #[cfg(feature = "gui")]
+    last_check_at: Option<chrono::DateTime<chrono::Utc>>,
+    #[cfg(feature = "gui")]
+    policy_summary: Option<agent_gui::dto::GuiPolicySummary>,
+}
+
+impl HeartbeatInput {
+    fn from_state(st: &LoopState) -> Self {
+        Self {
+            compliance_score: st.compliance_score,
+            last_compliance_check_at: st.last_compliance_check_at,
+            #[cfg(feature = "gui")]
+            last_check_at: st.gui.last_check_at,
+            #[cfg(feature = "gui")]
+            policy_summary: st.gui.cached_policy_summary,
+        }
+    }
+}
 
 /// What to do about re-enrollment after an authentication failure.
 #[derive(Debug, PartialEq, Eq)]
@@ -106,20 +135,50 @@ fn siem_sync_request(
 }
 
 impl AgentRuntime {
-    /// Heartbeat, when its interval has passed: on success the forced
-    /// configuration, audit trail, GRC queue and SIEM data are synchronised;
-    /// an authentication failure leads to a re-enrollment attempt.
-    pub(crate) async fn heartbeat_stage(&self, st: &mut LoopState) {
+    /// Heartbeat, when its interval has passed, in a background task: a
+    /// platform slow to answer, or the commands it sends back, do not hold
+    /// the loop. On success the forced configuration, audit trail, GRC queue
+    /// and SIEM data are synchronised; an authentication failure leads to a
+    /// re-enrollment attempt. One heartbeat at a time.
+    pub(crate) async fn heartbeat_stage(self: &Arc<Self>, st: &mut LoopState) {
+        self.collect_heartbeat(st);
         if !self.config.standalone
+            && st.heartbeat_task.is_none()
             && st.last_heartbeat.elapsed().as_secs() >= *self.heartbeat_interval_secs.read().await
         {
             st.last_heartbeat = std::time::Instant::now();
-            match self
-                .send_heartbeat(st.compliance_score, st.last_compliance_check_at)
-                .await
-            {
-                Ok(_) => self.after_heartbeat(st).await,
-                Err(e) => self.handle_heartbeat_failure(&e).await,
+            let runtime = Arc::clone(self);
+            let sent = HeartbeatInput::from_state(st);
+            st.heartbeat_task = Some(Job::start(&mut st.tasks, HEARTBEAT_TASK, async move {
+                runtime.heartbeat(sent).await
+            }));
+        }
+    }
+
+    /// Take note of a heartbeat that ended: the interface shows the number
+    /// of items waiting for synchronisation it counted.
+    #[cfg_attr(not(feature = "gui"), allow(unused_variables))]
+    fn collect_heartbeat(&self, st: &mut LoopState) {
+        if let Some(outcome) = st.heartbeat_task.as_mut().and_then(Job::finished) {
+            st.heartbeat_task = None;
+            #[cfg(feature = "gui")]
+            if let Some(Some(pending_sync)) = outcome {
+                st.gui.cached_pending_sync = pending_sync;
+            }
+        }
+    }
+
+    /// One heartbeat and what follows it. Returns the number of items
+    /// waiting for synchronisation when the platform accepted it.
+    async fn heartbeat(&self, sent: HeartbeatInput) -> Option<u32> {
+        match self
+            .send_heartbeat(sent.compliance_score, sent.last_compliance_check_at)
+            .await
+        {
+            Ok(_) => Some(self.after_heartbeat(&sent).await),
+            Err(e) => {
+                self.handle_heartbeat_failure(&e).await;
+                None
             }
         }
     }
@@ -127,14 +186,18 @@ impl AgentRuntime {
     /// Send the SIEM events recorded since the last heartbeat, with the
     /// forwarder's statistics, to the platform.
     async fn sync_siem_to_platform(&self) {
-        if let Some(ref client) = self.authenticated_client
-            && let Some(ref siem) = *self.siem_forwarder.read().await
-        {
-            let stats = siem.stats().await;
-            let recent = siem.take_recent_events().await;
-            let cfg = siem.config();
-
-            let request = siem_sync_request(&recent, &stats, cfg);
+        if let Some(ref client) = self.authenticated_client {
+            // The forwarder is released before the request leaves: the
+            // loop reconfigures it at every pass and must not wait here.
+            let request = {
+                let forwarder = self.siem_forwarder.read().await;
+                let Some(siem) = forwarder.as_ref() else {
+                    return;
+                };
+                let stats = siem.stats().await;
+                let recent = siem.take_recent_events().await;
+                siem_sync_request(&recent, &stats, siem.config())
+            };
 
             if let Err(e) = client.sync_siem_data(request).await {
                 warn!("Failed to sync SIEM data to platform: {}", e);
@@ -143,9 +206,10 @@ impl AgentRuntime {
     }
 
     /// What follows a heartbeat the platform accepted: forced configuration,
-    /// interface status, audit trail, GRC queue, SIEM data.
+    /// interface status, audit trail, GRC queue, SIEM data. Returns the
+    /// number of items waiting for synchronisation.
     #[cfg_attr(not(feature = "gui"), allow(unused_variables))]
-    async fn after_heartbeat(&self, st: &mut LoopState) {
+    async fn after_heartbeat(&self, sent: &HeartbeatInput) -> u32 {
         debug!("Heartbeat sent successfully");
 
         // Reset auth failure counter on successful heartbeat
@@ -156,9 +220,9 @@ impl AgentRuntime {
         }
 
         #[cfg(feature = "gui")]
-        {
-            st.gui.cached_pending_sync = self.get_pending_sync_count().await as u32;
-        }
+        let pending_sync = self.get_pending_sync_count().await as u32;
+        #[cfg(not(feature = "gui"))]
+        let pending_sync = 0;
 
         if self.state.force_sync.load(Ordering::Acquire) {
             info!("Forced sync requested via heartbeat command");
@@ -170,10 +234,10 @@ impl AgentRuntime {
         #[cfg(feature = "gui")]
         {
             self.emit_status_update(
-                st.gui.last_check_at,
-                st.compliance_score,
-                st.gui.cached_pending_sync,
-                st.gui.cached_policy_summary,
+                sent.last_check_at,
+                sent.compliance_score,
+                pending_sync,
+                sent.policy_summary,
             );
             self.emit_resource_update(None);
         }
@@ -207,6 +271,8 @@ impl AgentRuntime {
 
         // Sync SIEM data to the platform
         self.sync_siem_to_platform().await;
+
+        pending_sync
     }
 
     /// A heartbeat the platform did not accept: tell the interface and, on
@@ -295,7 +361,9 @@ impl AgentRuntime {
     /// Daily check of the client certificate, renewed when it is close to
     /// expiry. A certificate the platform rejects leads to a re-enrollment.
     pub(crate) async fn certificate_renewal_stage(&self, st: &mut LoopState) {
+        // Not next to a heartbeat in flight: both may re-enroll the agent.
         if !self.config.standalone
+            && st.heartbeat_task.is_none()
             && st.last_cert_check.elapsed().as_secs() >= CERT_CHECK_INTERVAL_SECS
         {
             if let Some(ref auth_client) = self.authenticated_client {
@@ -351,7 +419,8 @@ impl AgentRuntime {
         }
 
         // Check for force_sync flag (GUI "Forcer la synchronisation" button)
-        if self.state.force_sync.load(Ordering::Acquire) {
+        // A heartbeat in flight ends first: the sync sends its own.
+        if self.state.force_sync.load(Ordering::Acquire) && st.heartbeat_task.is_none() {
             info!("Force sync triggered");
             #[cfg(feature = "gui")]
             self.emit_gui_event(AgentEvent::SyncStatus {
@@ -435,7 +504,7 @@ impl AgentRuntime {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::main_loop::testing::standalone_runtime;
+    use crate::main_loop::testing::{standalone_runtime, unenrolled_runtime};
     use std::time::{Duration, Instant};
 
     fn siem_event(name: &str) -> agent_siem::SiemEvent {
@@ -648,12 +717,105 @@ mod tests {
     #[tokio::test]
     async fn a_standalone_agent_sends_no_heartbeat() {
         let test = standalone_runtime();
+        let runtime = Arc::new(test.runtime);
         let started = Instant::now() - Duration::from_secs(3600);
         let mut st = LoopState::starting_at(started, 3600, 3600);
 
-        test.runtime.heartbeat_stage(&mut st).await;
+        runtime.heartbeat_stage(&mut st).await;
 
         // The timer is untouched: the stage did not run.
         assert_eq!(st.last_heartbeat, started);
+        assert!(st.heartbeat_task.is_none());
+    }
+
+    /// Let the background tasks of `st` run to their end.
+    async fn settle(st: &mut LoopState) {
+        while !st.tasks.is_empty() {
+            tokio::task::yield_now().await;
+            st.tasks.reap();
+        }
+    }
+
+    #[tokio::test]
+    async fn a_due_heartbeat_runs_in_the_background_one_at_a_time() {
+        let test = unenrolled_runtime();
+        let runtime = Arc::new(test.runtime);
+        let started = Instant::now() - Duration::from_secs(3600);
+        let mut st = LoopState::starting_at(started, 3600, 3600);
+
+        runtime.heartbeat_stage(&mut st).await;
+        assert!(st.heartbeat_task.is_some());
+        assert!(st.last_heartbeat > started);
+        assert!(st.tasks.is_running(HEARTBEAT_TASK));
+
+        // Overdue again, but the first one has not ended: no second one.
+        st.last_heartbeat = started;
+        runtime.heartbeat_stage(&mut st).await;
+        assert_eq!(st.tasks.len(), 1);
+
+        // It ends (refused: the agent was never enrolled) and is taken note
+        // of at the next pass, which may then start the next one.
+        settle(&mut st).await;
+        st.last_heartbeat = Instant::now();
+        runtime.heartbeat_stage(&mut st).await;
+        assert!(st.heartbeat_task.is_none());
+        #[cfg(feature = "gui")]
+        match test.events.try_recv() {
+            Ok(AgentEvent::Notification { notification }) => {
+                assert_eq!(notification.title, "Heartbeat échoué");
+            }
+            other => panic!("expected a notification, got {:?}", other.map(|_| ())),
+        }
+    }
+
+    #[cfg(feature = "gui")]
+    #[tokio::test]
+    async fn an_accepted_heartbeat_updates_the_pending_sync_count() {
+        let test = standalone_runtime();
+        let mut st = LoopState::starting_at(Instant::now(), 3600, 3600);
+        st.heartbeat_task = Some(Job::start(&mut st.tasks, HEARTBEAT_TASK, async { Some(7) }));
+        settle(&mut st).await;
+
+        test.runtime.collect_heartbeat(&mut st);
+
+        assert!(st.heartbeat_task.is_none());
+        assert_eq!(st.gui.cached_pending_sync, 7);
+    }
+
+    #[tokio::test]
+    async fn a_forced_sync_waits_for_the_heartbeat_in_flight() {
+        let test = unenrolled_runtime();
+        let mut st = LoopState::starting_at(Instant::now(), 3600, 3600);
+        let before = st.last_heartbeat;
+        test.runtime.state.force_sync.store(true, Ordering::Release);
+        st.heartbeat_task = Some(Job::start(
+            &mut st.tasks,
+            HEARTBEAT_TASK,
+            std::future::pending(),
+        ));
+
+        test.runtime.forced_sync_stage(&mut st).await;
+
+        // Still requested, nothing sent yet.
+        assert!(test.runtime.state.force_sync.load(Ordering::Acquire));
+        assert_eq!(st.last_heartbeat, before);
+        st.tasks.shutdown().await;
+    }
+
+    #[tokio::test]
+    async fn the_certificate_check_waits_for_the_heartbeat_in_flight() {
+        let test = unenrolled_runtime();
+        let started = Instant::now() - Duration::from_secs(2 * CERT_CHECK_INTERVAL_SECS);
+        let mut st = LoopState::starting_at(started, 3600, 3600);
+        st.heartbeat_task = Some(Job::start(
+            &mut st.tasks,
+            HEARTBEAT_TASK,
+            std::future::pending(),
+        ));
+
+        test.runtime.certificate_renewal_stage(&mut st).await;
+
+        assert_eq!(st.last_cert_check, started);
+        st.tasks.shutdown().await;
     }
 }

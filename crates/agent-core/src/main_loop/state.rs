@@ -6,6 +6,7 @@
 use std::time::{Duration, Instant};
 
 use super::compliance::ComplianceTask;
+use super::job::Job;
 use super::scans::VulnScanTask;
 use crate::supervised_tasks::TaskSet;
 use crate::threat_pipeline::RuleHitMemory;
@@ -24,6 +25,10 @@ fn already_due(now: Instant, interval_secs: u64) -> Instant {
 /// Schedule, running jobs and last results of the main loop.
 pub(crate) struct LoopState {
     pub last_heartbeat: Instant,
+    /// Background heartbeat; `Some` from its start to the pass that takes
+    /// note of its end. It hands back the number of items waiting for
+    /// synchronisation when the platform accepted it.
+    pub heartbeat_task: Option<Job<Option<u32>>>,
     pub last_vuln_scan: Instant,
     /// Background vulnerability scan (see `VulnScanJob`); `Some` from its
     /// start to the pass that collects its outcome.
@@ -84,6 +89,7 @@ impl LoopState {
     ) -> Self {
         Self {
             last_heartbeat: now,
+            heartbeat_task: None,
             last_vuln_scan: already_due(now, vuln_scan_interval_secs),
             vuln_scan_task: None,
             last_compliance_check: already_due(now, check_interval_secs),

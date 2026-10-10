@@ -26,7 +26,7 @@
 //! | 6  | `queue_fim_batch`              | when the batch is not empty          | (queues the batch for upload)                 |
 //! | 7  | `emit_fim_stats` (gui)         | every pass                           | state: daily FIM count                        |
 //! | 8  | `sync_gui_siem_config` (gui)   | every pass                           | SIEM forwarder configuration                  |
-//! | 9  | `heartbeat_stage`              | heartbeat interval, not standalone   | state: heartbeat timer, pending sync count    |
+//! | 9  | `heartbeat_stage`              | heartbeat interval, not standalone   | state: heartbeat task, timer, pending sync    |
 //! | 10 | `collect_vuln_scan`            | when the background scan is finished | state: scan task, scan timer, open findings   |
 //! | 11 | `start_vuln_scan_if_due`       | scan interval, not paused            | state: scan task                              |
 //! | 12 | `security_scan_stage`          | scan interval, not paused            | pass: incidents, observed, active             |
@@ -53,6 +53,7 @@
 //! | `platform uploads`          | start-up     | (none)       | logged, started again, next item |
 //! | `vulnerability scan`        | stage 11, 21 | stage 10     | logged, next scan at its usual time |
 //! | `compliance checks`         | stage 19, 21 | stage 18     | logged, next run at its usual time |
+//! | `heartbeat`                 | stage 9      | stage 9      | logged, next one at its interval |
 //! | `network discovery`         | stage 24     | (interface)  | logged                           |
 //!
 //! # Order that matters
@@ -64,8 +65,12 @@
 //! - Stages 4, 5 and 6 share the FIM batch: drain, scan, then upload.
 //! - Stage 1 gives the network detector its indicators before stage 15.
 //! - The heartbeat (9, and 22 on request) sends the score that stage 18
-//!   collected in an earlier pass. On a forced sync, stage 9 applies the
-//!   configuration and stage 22 finishes the sync and clears the flag.
+//!   collected in an earlier pass. On a forced sync, the heartbeat applies
+//!   the configuration and stage 22 finishes the sync and clears the flag.
+//! - The heartbeat runs in a background task, with the synchronisations
+//!   and the re-enrollment that may follow it. Stages 20 and 22, which talk
+//!   to the platform from the loop, wait for a heartbeat in flight to end:
+//!   two re-enrollments, or two synchronisations, never overlap.
 //! - Stage 10 collects the scan that stage 11 or 21 started, stage 18 the
 //!   checks that stage 19 or 21 started; a new run only starts once the
 //!   previous one was collected. Storing and uploading the results stays

@@ -25,6 +25,12 @@ pub(crate) fn standalone_runtime() -> TestRuntime {
     standalone_runtime_with(|_| {})
 }
 
+/// A runtime that has a platform to talk to, but was never enrolled: every
+/// request fails at once, without touching the network.
+pub(crate) fn unenrolled_runtime() -> TestRuntime {
+    standalone_runtime_with(|config| config.standalone = false)
+}
+
 /// Like [`standalone_runtime`], with the configuration adjusted by `configure`.
 pub(crate) fn standalone_runtime_with(configure: impl FnOnce(&mut AgentConfig)) -> TestRuntime {
     let dir = tempfile::tempdir().expect("temporary directory");
