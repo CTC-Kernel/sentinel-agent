@@ -193,8 +193,15 @@ fn process_event(
             }
         }
 
-        // Skip ignored patterns (checked against the canonical path)
-        if is_ignored_path(&path, ignore_patterns) {
+        // Skip ignored patterns (checked against the canonical path). An
+        // excluded directory is skipped along with its content, so that a
+        // chmod of the agent's own config directory does not alert either.
+        let ignored = if path.is_dir() {
+            is_ignored_dir(&path, ignore_patterns)
+        } else {
+            is_ignored_path(&path, ignore_patterns)
+        };
+        if ignored {
             continue;
         }
 
@@ -279,7 +286,28 @@ fn process_event(
 }
 
 /// Check if a path should be ignored based on patterns.
-fn is_ignored_path(path: &Path, patterns: &[String]) -> bool {
+///
+/// Three pattern forms are understood:
+///
+/// - `*suffix`: the path ends with `suffix` (`*.log`).
+/// - `dir/**`: the path lies inside a directory named `dir`.
+/// - `name`: the path is, or lies inside, a file or directory named `name`.
+///
+/// `dir` and `name` may span several components (`systemprofile/AppData/**`).
+pub(crate) fn is_ignored_path(path: &Path, patterns: &[String]) -> bool {
+    matches_ignore_pattern(path, patterns, false)
+}
+
+/// Check if a directory should be ignored along with everything in it.
+///
+/// Same as [`is_ignored_path`], except that the directory a `dir/**` pattern
+/// names counts as ignored too. Only call this on a path known to be a
+/// directory: a *file* called `dir` is not covered by `dir/**`.
+pub(crate) fn is_ignored_dir(dir: &Path, patterns: &[String]) -> bool {
+    matches_ignore_pattern(dir, patterns, true)
+}
+
+fn matches_ignore_pattern(path: &Path, patterns: &[String], is_dir: bool) -> bool {
     let path_str = path.to_string_lossy();
 
     // Case-insensitive on every platform, and separators normalized.
@@ -289,6 +317,7 @@ fn is_ignored_path(path: &Path, patterns: &[String]) -> bool {
     // lowercase `sentinel/**` pattern never matched and the agent would watch
     // its own config and database if either fell under a watched path.
     let path_norm = path_str.to_lowercase().replace('\\', "/");
+    let components: Vec<&str> = path_norm.split('/').filter(|c| !c.is_empty()).collect();
 
     for pattern in patterns {
         let pattern_norm = pattern.to_lowercase().replace('\\', "/");
@@ -297,15 +326,43 @@ fn is_ignored_path(path: &Path, patterns: &[String]) -> bool {
             if path_norm.ends_with(suffix) {
                 return true;
             }
-        } else if let Some(prefix) = pattern_norm.strip_suffix("/**") {
-            if path_norm.contains(prefix) {
+        } else if let Some(dir) = pattern_norm.strip_suffix("/**") {
+            // Only what lies inside the directory: something must follow
+            // `dir`, otherwise a file that merely shares the directory's name
+            // (`/etc/cron.d/sentinel`) would escape monitoring.
+            if has_component_run(&components, dir, !is_dir) {
                 return true;
             }
-        } else if path_norm.contains(&pattern_norm) {
+        } else if has_component_run(&components, &pattern_norm, false) {
             return true;
         }
     }
     false
+}
+
+/// Whether the names in `wanted` (separated by `/`) appear in `components` as
+/// consecutive, whole path components.
+///
+/// SECURITY: names are compared component by component, never as substrings.
+/// A substring test turned `sentinel/**` into "any path containing `sentinel`",
+/// so `/etc/cron.d/sentinel-update` was silently left unmonitored.
+///
+/// With `needs_child`, at least one more component must follow the run.
+fn has_component_run(components: &[&str], wanted: &str, needs_child: bool) -> bool {
+    let wanted: Vec<&str> = wanted.split('/').filter(|c| !c.is_empty()).collect();
+    // A pattern naming nothing matches nothing (a substring test made the
+    // empty pattern match every path).
+    if wanted.is_empty() {
+        return false;
+    }
+    let searchable = if needs_child {
+        &components[..components.len().saturating_sub(1)]
+    } else {
+        components
+    };
+    searchable
+        .windows(wanted.len())
+        .any(|run| run == wanted.as_slice())
 }
 
 #[cfg(test)]
@@ -407,5 +464,198 @@ mod tests {
         // The exclusion must stay narrow enough to keep watching real targets.
         assert!(!is_ignored_path(&PathBuf::from("/etc/passwd"), &patterns));
         assert!(!is_ignored_path(&PathBuf::from("/usr/bin/sudo"), &patterns));
+    }
+
+    fn self_exclusions() -> Vec<String> {
+        agent_common::types::fim::SELF_EXCLUSION_PATTERNS
+            .iter()
+            .map(|p| (*p).to_string())
+            .collect()
+    }
+
+    /// `sentinel/**` used to be tested as a substring, so any path with
+    /// "sentinel" in it went unmonitored: an attacker only had to name a
+    /// dropper after the agent.
+    #[test]
+    fn self_exclusion_does_not_hide_files_named_after_the_agent() {
+        let patterns = self_exclusions();
+
+        for path in [
+            "/etc/sentinel-update",
+            "/etc/cron.d/sentinel-job",
+            "/etc/cron.d/sentinel-update",
+            "/etc/sentinel-e2e-dropper.conf",
+            "/etc/hosts.sentinel-test",
+            "/etc/sentinel.conf",
+            "/etc/SentinelGRC.conf",
+            "/etc/sentinel.d/job",
+            "/etc/mysentinel/job",
+            // A file bearing the exact name of an agent directory.
+            "/etc/cron.d/sentinel",
+            "/usr/bin/sentinel-grc",
+            // The launchd log names only count under /var/log.
+            "/etc/cron.d/sentinel-agent.log",
+            "/usr/bin/sentinel-agent.err",
+        ] {
+            assert!(
+                !is_ignored_path(&PathBuf::from(path), &patterns),
+                "must stay monitored: {}",
+                path
+            );
+        }
+    }
+
+    #[test]
+    fn file_named_after_the_agent_raises_an_alert_but_agent_files_do_not() {
+        let dir = tempfile::tempdir().unwrap();
+        let root = dir.path().canonicalize().unwrap();
+        std::fs::create_dir(root.join("sentinel")).unwrap();
+        std::fs::create_dir(root.join("cron.d")).unwrap();
+        let own_dir = root.join("sentinel");
+        let own = own_dir.join("agent.json");
+        let dropper = root.join("sentinel-update");
+        // A file, not a directory, bearing the agent directory's exact name.
+        let namesake = root.join("cron.d").join("sentinel");
+        for path in [&own, &dropper, &namesake] {
+            std::fs::write(path, "payload").unwrap();
+        }
+        let baseline = BaselineManager::new();
+        let (tx, mut rx) = mpsc::channel(8);
+        let mut debounce = HashMap::new();
+        for path in [&own_dir, &own, &dropper, &namesake] {
+            process_event(
+                Event::new(EventKind::Create(notify::event::CreateKind::Any))
+                    .add_path(path.clone()),
+                &baseline,
+                &tx,
+                &mut debounce,
+                Duration::from_secs(5),
+                &self_exclusions(),
+            );
+        }
+        for expected in [&dropper, &namesake] {
+            let alert = rx.try_recv().unwrap();
+            assert_eq!(&alert.path, expected);
+            assert_eq!(alert.change, FimChangeType::Created);
+        }
+        assert!(rx.try_recv().is_err());
+    }
+
+    /// Every directory the agent writes to must stay excluded, whatever the
+    /// platform: watching any of them feeds FIM its own alerts.
+    #[test]
+    fn self_exclusion_covers_agent_directories_on_every_platform() {
+        let patterns = self_exclusions();
+
+        for path in [
+            // Linux
+            "/etc/sentinel/agent.json",
+            "/var/lib/sentinel-grc/agent.db",
+            "/var/lib/sentinel-grc/cache/threat-intel/feeds.json",
+            "/var/log/sentinel/agent.log.2026-10-10",
+            "/var/log/sentinel-grc/agent.log.2026-10-10",
+            "/home/x/.local/share/sentinel/logs/agent.log.2026-10-10",
+            "/home/x/.local/share/sentinel-grc/quarantine/0b0e6f0e.meta",
+            "/home/x/.local/share/sentinelagent/app.ron",
+            "/tmp/sentinel-logs/agent.log.2026-10-10",
+            // macOS
+            "/Users/x/Library/Application Support/SentinelGRC/agent.db",
+            "/Users/x/Library/Application Support/SentinelGRC/logs/agent.log.2026-10-10",
+            "/Users/x/Library/Application Support/com.sentinel-grc.Sentinel/logs/agent.log.2026-10-10",
+            "/Users/x/Library/Application Support/sentinel-grc/quarantine/0b0e6f0e.meta",
+            "/Users/x/Library/Application Support/com.CyberThreatConsulting.SentinelAgent/app.ron",
+            "/Applications/SentinelAgent.app/Contents/MacOS/SentinelAgent",
+            "/private/var/log/sentinel/agent.log.2026-10-10",
+            "/private/var/log/sentinel-agent.log",
+            "/private/var/log/sentinel-agent.err",
+            "/private/var/log/sentinel-agent-helper.log",
+            // Windows, with and without the verbatim prefix `canonicalize` adds.
+            r"C:\ProgramData\Sentinel\agent.json",
+            r"C:\ProgramData\Sentinel\data\agent.db",
+            r"\\?\C:\ProgramData\Sentinel\logs\agent.log.2026-10-10",
+            r"C:\Users\x\AppData\Local\Sentinel\agent.json",
+            r"C:\Users\x\AppData\Local\sentinel-grc\quarantine\0b0e6f0e.meta",
+            r"C:\Users\x\AppData\Local\sentinel-grc\Sentinel\data\logs\agent.log.2026-10-10",
+            r"C:\Users\x\AppData\Local\CyberThreatConsulting\SentinelAgent\data\app.ron",
+        ] {
+            assert!(
+                is_ignored_path(&PathBuf::from(path), &patterns),
+                "agent-owned path must be ignored: {}",
+                path
+            );
+        }
+    }
+
+    #[test]
+    fn directory_patterns_match_whole_components_only() {
+        let patterns = vec![
+            ".git/**".to_string(),
+            "systemprofile/AppData/**".to_string(),
+        ];
+
+        for path in [
+            "/repo/.git/config",
+            "/repo/.git/objects/ab/cdef",
+            r"C:\Windows\System32\config\systemprofile\AppData\Local\D3DSCache\x.bin",
+        ] {
+            assert!(is_ignored_path(&PathBuf::from(path), &patterns), "{}", path);
+        }
+
+        for path in [
+            "/repo/.gitignore",
+            "/repo/.github/workflows/ci.yml",
+            "/repo/x.git/config",
+            // The bare name may just as well be a file: not covered unless
+            // the caller knows it is a directory (`is_ignored_dir`).
+            "/repo/.git",
+            r"C:\Windows\System32\config\systemprofile\AppDataBackup\x.bin",
+            r"C:\Windows\System32\config\systemprofile\Local\AppData\x.bin",
+        ] {
+            assert!(
+                !is_ignored_path(&PathBuf::from(path), &patterns),
+                "{}",
+                path
+            );
+        }
+
+        assert!(is_ignored_dir(&PathBuf::from("/repo/.git"), &patterns));
+        assert!(!is_ignored_dir(&PathBuf::from("/repo/.github"), &patterns));
+    }
+
+    #[test]
+    fn plain_patterns_match_whole_components_only() {
+        let patterns = vec!["node_modules".to_string(), "etc/resolv.conf".to_string()];
+
+        for path in [
+            "/srv/app/node_modules",
+            "/srv/app/node_modules/left-pad/index.js",
+            "/etc/resolv.conf",
+            "/private/etc/resolv.conf",
+        ] {
+            assert!(is_ignored_path(&PathBuf::from(path), &patterns), "{}", path);
+        }
+
+        for path in [
+            "/srv/app/node_modules_evil/index.js",
+            "/srv/app/my-node_modules/index.js",
+            "/etc/resolv.conf.bak",
+            "/etc/cron.d/resolv.conf",
+        ] {
+            assert!(
+                !is_ignored_path(&PathBuf::from(path), &patterns),
+                "{}",
+                path
+            );
+        }
+    }
+
+    /// An empty pattern (a blank entry in a pushed config) used to match every
+    /// path and switch monitoring off altogether.
+    #[test]
+    fn patterns_naming_nothing_ignore_nothing() {
+        let patterns = vec![String::new(), "/".to_string(), "/**".to_string()];
+
+        assert!(!is_ignored_path(&PathBuf::from("/etc/passwd"), &patterns));
+        assert!(!is_ignored_dir(&PathBuf::from("/etc"), &patterns));
     }
 }
