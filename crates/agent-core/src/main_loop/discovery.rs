@@ -6,13 +6,66 @@
 
 use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::mpsc::Sender;
 
 use agent_gui::dto::GuiDiscoveredDevice;
 use agent_gui::events::AgentEvent;
-use agent_network::{DiscoveryConfig, NetworkDiscovery};
+use agent_network::{DiscoveredDevice, DiscoveryConfig, DiscoveryResult, NetworkDiscovery};
+use agent_storage::Database;
+use agent_storage::repositories::StoredDevice;
+use agent_sync::AuthenticatedClient;
 use tracing::{info, warn};
 
 use crate::{AgentRuntime, network_ops};
+
+/// A device found by the scan, as the interface shows it.
+fn gui_device(d: &DiscoveredDevice) -> GuiDiscoveredDevice {
+    GuiDiscoveredDevice {
+        ip: d.ip.clone(),
+        mac: d.mac.clone(),
+        hostname: d.hostname.clone(),
+        vendor: d.vendor.clone(),
+        device_type: format!("{}", d.device_type),
+        open_ports: d.open_ports.clone(),
+        first_seen: d.first_seen,
+        last_seen: d.last_seen,
+        is_gateway: d.is_gateway,
+        subnet: d.subnet.clone(),
+    }
+}
+
+/// A discovered device as the database keeps it between two scans.
+fn stored_device(d: &GuiDiscoveredDevice) -> StoredDevice {
+    StoredDevice {
+        ip: d.ip.clone(),
+        mac: d.mac.clone(),
+        hostname: d.hostname.clone(),
+        vendor: d.vendor.clone(),
+        device_type: d.device_type.clone(),
+        open_ports: d.open_ports.clone(),
+        first_seen: d.first_seen,
+        last_seen: d.last_seen,
+        is_gateway: d.is_gateway,
+        subnet: d.subnet.clone(),
+    }
+}
+
+/// A discovered device as the platform receives it.
+fn asset_payload(d: &GuiDiscoveredDevice) -> agent_sync::DiscoveredAssetPayload {
+    agent_sync::DiscoveredAssetPayload {
+        ip: d.ip.clone(),
+        hostname: d.hostname.clone(),
+        mac_address: d.mac.clone(),
+        vendor: d.vendor.clone(),
+        device_type: Some(d.device_type.to_string()),
+        open_ports: d.open_ports.clone(),
+        is_gateway: Some(d.is_gateway),
+        subnet: Some(d.subnet.clone()),
+        first_seen: Some(d.first_seen),
+        last_seen: Some(d.last_seen),
+        source: Some("network_discovery".to_string()),
+    }
+}
 
 impl AgentRuntime {
     /// Start the network discovery the operator asked for: only the subnet
@@ -27,37 +80,7 @@ impl AgentRuntime {
                 let db_clone = self.db.clone();
                 let sync_client = self.authenticated_client.clone();
 
-                // Only the subnet of the primary IPv4 address is scanned:
-                // never a guessed range.
-                let subnet = if self.state.network_monitoring_enabled() {
-                    let network_manager = self.network_manager.read().await;
-                    match network_manager.collect_snapshot().await {
-                        Ok(snapshot) => {
-                            let subnet =
-                                network_ops::discovery_subnet(snapshot.primary_ip.as_deref());
-                            if subnet.is_none() {
-                                warn!(
-                                    "Network discovery aborted: no primary IPv4 address \
-                                     (primary IP: {:?})",
-                                    snapshot.primary_ip
-                                );
-                            }
-                            subnet.ok_or("Aucune adresse IPv4 principale : découverte annulée")
-                        }
-                        Err(e) => {
-                            warn!(
-                                "Network discovery aborted: network information unavailable: {}",
-                                e
-                            );
-                            Err("Informations réseau indisponibles : découverte annulée")
-                        }
-                    }
-                } else {
-                    info!("Network discovery skipped: network monitoring disabled by the platform");
-                    Err("Découverte réseau désactivée par la politique de la plateforme")
-                };
-
-                match subnet {
+                match self.discovery_subnet().await {
                     Err(reason) => {
                         if let Err(e) = tx.send(AgentEvent::DiscoveryProgress {
                             phase: reason.to_string(),
@@ -68,135 +91,283 @@ impl AgentRuntime {
                         }
                     }
                     Ok(subnet) => {
-                        tokio::spawn(async move {
-                            let config = DiscoveryConfig::default();
-                            let discovery = NetworkDiscovery::new(config);
-
-                            let disc_cancel = discovery.cancel_handle();
-                            let cancel_watcher = cancel.clone();
-                            let done = Arc::new(AtomicBool::new(false));
-                            let done_watcher = done.clone();
-                            tokio::spawn(async move {
-                                loop {
-                                    if done_watcher.load(Ordering::Relaxed) {
-                                        break;
-                                    }
-                                    if cancel_watcher.load(Ordering::Relaxed) {
-                                        disc_cancel.store(true, Ordering::Relaxed);
-                                        break;
-                                    }
-                                    tokio::time::sleep(tokio::time::Duration::from_millis(200))
-                                        .await;
-                                }
-                            });
-
-                            if let Err(e) = tx.send(AgentEvent::DiscoveryProgress {
-                                phase: "Scan ARP en cours...".to_string(),
-                                progress: 0.1,
-                                devices_found: 0,
-                            }) {
-                                warn!("Failed to send discovery progress: {}", e);
-                            }
-
-                            let scan_result = discovery.scan(&subnet).await;
-                            done.store(true, Ordering::Relaxed);
-                            match scan_result {
-                                Ok(result) => {
-                                    let devices: Vec<GuiDiscoveredDevice> = result
-                                        .devices
-                                        .iter()
-                                        .map(|d| GuiDiscoveredDevice {
-                                            ip: d.ip.clone(),
-                                            mac: d.mac.clone(),
-                                            hostname: d.hostname.clone(),
-                                            vendor: d.vendor.clone(),
-                                            device_type: format!("{}", d.device_type),
-                                            open_ports: d.open_ports.clone(),
-                                            first_seen: d.first_seen,
-                                            last_seen: d.last_seen,
-                                            is_gateway: d.is_gateway,
-                                            subnet: d.subnet.clone(),
-                                        })
-                                        .collect();
-                                    info!(
-                                        "Discovery complete: {} devices in {}ms",
-                                        devices.len(),
-                                        result.scan_duration_ms
-                                    );
-
-                                    if let Some(ref db) = db_clone {
-                                        let repo = agent_storage::repositories::DiscoveredDevicesRepository::new(db);
-                                        let stored: Vec<agent_storage::repositories::StoredDevice> =
-                                            devices
-                                                .iter()
-                                                .map(|d| {
-                                                    agent_storage::repositories::StoredDevice {
-                                                        ip: d.ip.clone(),
-                                                        mac: d.mac.clone(),
-                                                        hostname: d.hostname.clone(),
-                                                        vendor: d.vendor.clone(),
-                                                        device_type: d.device_type.clone(),
-                                                        open_ports: d.open_ports.clone(),
-                                                        first_seen: d.first_seen,
-                                                        last_seen: d.last_seen,
-                                                        is_gateway: d.is_gateway,
-                                                        subnet: d.subnet.clone(),
-                                                    }
-                                                })
-                                                .collect();
-                                        if let Err(e) = repo.upsert_batch(&stored).await {
-                                            warn!("Failed to persist discovered devices: {}", e);
-                                        } else {
-                                            info!(
-                                                "Persisted {} discovered devices to database",
-                                                stored.len()
-                                            );
-                                        }
-                                    }
-
-                                    // Sync discovered devices to the platform
-                                    if let Some(ref client) = sync_client {
-                                        let payloads: Vec<agent_sync::DiscoveredAssetPayload> =
-                                            devices
-                                                .iter()
-                                                .map(|d| agent_sync::DiscoveredAssetPayload {
-                                                    ip: d.ip.clone(),
-                                                    hostname: d.hostname.clone(),
-                                                    mac_address: d.mac.clone(),
-                                                    vendor: d.vendor.clone(),
-                                                    device_type: Some(d.device_type.to_string()),
-                                                    open_ports: d.open_ports.clone(),
-                                                    is_gateway: Some(d.is_gateway),
-                                                    subnet: Some(d.subnet.clone()),
-                                                    first_seen: Some(d.first_seen),
-                                                    last_seen: Some(d.last_seen),
-                                                    source: Some("network_discovery".to_string()),
-                                                })
-                                                .collect();
-                                        network_ops::upload_discovered_devices(client, &payloads)
-                                            .await;
-                                    }
-
-                                    if let Err(e) = tx.send(AgentEvent::DiscoveryUpdate { devices })
-                                    {
-                                        warn!("Failed to send discovery update: {}", e);
-                                    }
-                                }
-                                Err(e) => {
-                                    warn!("Discovery scan failed: {}", e);
-                                    if let Err(e2) = tx.send(AgentEvent::DiscoveryProgress {
-                                        phase: format!("Erreur: {}", e),
-                                        progress: 0.0,
-                                        devices_found: 0,
-                                    }) {
-                                        warn!("Failed to send discovery error progress: {}", e2);
-                                    }
-                                }
-                            }
-                        });
+                        tokio::spawn(run_discovery(subnet, cancel, tx, db_clone, sync_client));
                     }
                 }
             }
         }
+    }
+
+    /// The subnet to scan, or why nothing is scanned. Only the subnet of
+    /// the primary IPv4 address is scanned: never a guessed range.
+    async fn discovery_subnet(&self) -> Result<String, &'static str> {
+        if self.state.network_monitoring_enabled() {
+            let network_manager = self.network_manager.read().await;
+            match network_manager.collect_snapshot().await {
+                Ok(snapshot) => {
+                    let subnet = network_ops::discovery_subnet(snapshot.primary_ip.as_deref());
+                    if subnet.is_none() {
+                        warn!(
+                            "Network discovery aborted: no primary IPv4 address \
+                             (primary IP: {:?})",
+                            snapshot.primary_ip
+                        );
+                    }
+                    subnet.ok_or("Aucune adresse IPv4 principale : découverte annulée")
+                }
+                Err(e) => {
+                    warn!(
+                        "Network discovery aborted: network information unavailable: {}",
+                        e
+                    );
+                    Err("Informations réseau indisponibles : découverte annulée")
+                }
+            }
+        } else {
+            info!("Network discovery skipped: network monitoring disabled by the platform");
+            Err("Découverte réseau désactivée par la politique de la plateforme")
+        }
+    }
+}
+
+/// Scan `subnet` until done or cancelled by the operator, then keep, upload
+/// and show the devices found.
+async fn run_discovery(
+    subnet: String,
+    cancel: Arc<AtomicBool>,
+    tx: Sender<AgentEvent>,
+    db: Option<Arc<Database>>,
+    sync_client: Option<Arc<AuthenticatedClient>>,
+) {
+    let config = DiscoveryConfig::default();
+    let discovery = NetworkDiscovery::new(config);
+
+    let done = Arc::new(AtomicBool::new(false));
+    tokio::spawn(watch_cancellation(
+        cancel.clone(),
+        discovery.cancel_handle(),
+        done.clone(),
+    ));
+
+    if let Err(e) = tx.send(AgentEvent::DiscoveryProgress {
+        phase: "Scan ARP en cours...".to_string(),
+        progress: 0.1,
+        devices_found: 0,
+    }) {
+        warn!("Failed to send discovery progress: {}", e);
+    }
+
+    let scan_result = discovery.scan(&subnet).await;
+    done.store(true, Ordering::Relaxed);
+    match scan_result {
+        Ok(result) => publish_discovery(&result, &tx, db.as_ref(), sync_client.as_deref()).await,
+        Err(e) => {
+            warn!("Discovery scan failed: {}", e);
+            if let Err(e2) = tx.send(AgentEvent::DiscoveryProgress {
+                phase: format!("Erreur: {}", e),
+                progress: 0.0,
+                devices_found: 0,
+            }) {
+                warn!("Failed to send discovery error progress: {}", e2);
+            }
+        }
+    }
+}
+
+/// Pass the operator's cancellation on to the running scan; stops watching
+/// once the scan is `done`.
+async fn watch_cancellation(
+    cancel: Arc<AtomicBool>,
+    scan_cancel: Arc<AtomicBool>,
+    done: Arc<AtomicBool>,
+) {
+    loop {
+        if done.load(Ordering::Relaxed) {
+            break;
+        }
+        if cancel.load(Ordering::Relaxed) {
+            scan_cancel.store(true, Ordering::Relaxed);
+            break;
+        }
+        tokio::time::sleep(tokio::time::Duration::from_millis(200)).await;
+    }
+}
+
+/// Keep the devices of a finished scan in the database, send them to the
+/// platform and show them.
+async fn publish_discovery(
+    result: &DiscoveryResult,
+    tx: &Sender<AgentEvent>,
+    db: Option<&Arc<Database>>,
+    sync_client: Option<&AuthenticatedClient>,
+) {
+    let devices: Vec<GuiDiscoveredDevice> = result.devices.iter().map(gui_device).collect();
+    info!(
+        "Discovery complete: {} devices in {}ms",
+        devices.len(),
+        result.scan_duration_ms
+    );
+
+    if let Some(db) = db {
+        let repo = agent_storage::repositories::DiscoveredDevicesRepository::new(db);
+        let stored: Vec<StoredDevice> = devices.iter().map(stored_device).collect();
+        if let Err(e) = repo.upsert_batch(&stored).await {
+            warn!("Failed to persist discovered devices: {}", e);
+        } else {
+            info!("Persisted {} discovered devices to database", stored.len());
+        }
+    }
+
+    // Sync discovered devices to the platform
+    if let Some(client) = sync_client {
+        let payloads: Vec<agent_sync::DiscoveredAssetPayload> =
+            devices.iter().map(asset_payload).collect();
+        network_ops::upload_discovered_devices(client, &payloads).await;
+    }
+
+    if let Err(e) = tx.send(AgentEvent::DiscoveryUpdate { devices }) {
+        warn!("Failed to send discovery update: {}", e);
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::main_loop::testing::standalone_runtime;
+    use agent_storage::repositories::DiscoveredDevicesRepository;
+    use std::time::Duration;
+
+    fn printer() -> DiscoveredDevice {
+        let seen = chrono::DateTime::parse_from_rfc3339("2026-10-01T08:30:00Z")
+            .unwrap()
+            .with_timezone(&chrono::Utc);
+        DiscoveredDevice {
+            ip: "192.168.7.20".to_string(),
+            mac: Some("00:11:22:33:44:55".to_string()),
+            hostname: Some("imprimante-accueil".to_string()),
+            vendor: Some("Brother".to_string()),
+            device_type: agent_network::DeviceType::Printer,
+            open_ports: vec![80, 631],
+            first_seen: seen,
+            last_seen: seen,
+            is_gateway: false,
+            subnet: "192.168.7.0/24".to_string(),
+        }
+    }
+
+    #[test]
+    fn a_device_keeps_its_identity_from_scan_to_platform() {
+        let shown = gui_device(&printer());
+        assert_eq!(
+            shown.device_type,
+            format!("{}", agent_network::DeviceType::Printer)
+        );
+        assert_eq!(shown.open_ports, vec![80, 631]);
+
+        let stored = stored_device(&shown);
+        assert_eq!(
+            (stored.ip.as_str(), stored.subnet.as_str()),
+            ("192.168.7.20", "192.168.7.0/24")
+        );
+        assert_eq!(stored.device_type, shown.device_type);
+
+        let payload = asset_payload(&shown);
+        assert_eq!(payload.mac_address.as_deref(), Some("00:11:22:33:44:55"));
+        assert_eq!(payload.is_gateway, Some(false));
+        assert_eq!(payload.source.as_deref(), Some("network_discovery"));
+        assert_eq!(
+            payload.device_type.as_deref(),
+            Some(shown.device_type.as_str())
+        );
+    }
+
+    #[tokio::test]
+    async fn found_devices_are_kept_and_shown() {
+        let test = standalone_runtime();
+        let (tx, rx) = std::sync::mpsc::channel();
+        let result = DiscoveryResult {
+            devices: vec![printer()],
+            scan_duration_ms: 1200,
+            subnet_scanned: "192.168.7.0/24".to_string(),
+            timestamp: chrono::Utc::now(),
+        };
+
+        publish_discovery(&result, &tx, Some(&test.db), None).await;
+
+        let stored = DiscoveredDevicesRepository::new(&test.db)
+            .get_all()
+            .await
+            .unwrap();
+        assert_eq!(stored.len(), 1);
+        assert_eq!(stored[0].hostname.as_deref(), Some("imprimante-accueil"));
+        match rx.try_recv() {
+            Ok(AgentEvent::DiscoveryUpdate { devices }) => assert_eq!(devices.len(), 1),
+            other => panic!("expected the devices, got {:?}", other.map(|_| ())),
+        }
+    }
+
+    #[tokio::test]
+    async fn discovery_is_declined_without_the_platforms_consent() {
+        let test = standalone_runtime();
+        test.runtime
+            .state
+            .network_monitoring
+            .store(false, Ordering::Release);
+        test.runtime
+            .state
+            .force_discovery
+            .store(true, Ordering::Release);
+
+        test.runtime.forced_discovery_stage().await;
+
+        assert!(!test.runtime.state.force_discovery.load(Ordering::Acquire));
+        match test.events.try_recv() {
+            Ok(AgentEvent::DiscoveryProgress {
+                phase, progress, ..
+            }) => {
+                assert_eq!(
+                    phase,
+                    "Découverte réseau désactivée par la politique de la plateforme"
+                );
+                assert_eq!(progress, 0.0);
+            }
+            other => panic!("expected a refusal, got {:?}", other.map(|_| ())),
+        }
+    }
+
+    #[tokio::test]
+    async fn nothing_is_scanned_unless_the_operator_asked() {
+        let test = standalone_runtime();
+        test.runtime.forced_discovery_stage().await;
+        assert!(test.events.try_recv().is_err());
+    }
+
+    #[tokio::test]
+    async fn the_operators_cancellation_reaches_the_scan() {
+        let cancel = Arc::new(AtomicBool::new(false));
+        let scan_cancel = Arc::new(AtomicBool::new(false));
+        let done = Arc::new(AtomicBool::new(false));
+        let watcher = tokio::spawn(watch_cancellation(
+            cancel.clone(),
+            scan_cancel.clone(),
+            done.clone(),
+        ));
+
+        tokio::time::sleep(Duration::from_millis(250)).await;
+        assert!(!scan_cancel.load(Ordering::Relaxed));
+        cancel.store(true, Ordering::Relaxed);
+        watcher.await.unwrap();
+
+        assert!(scan_cancel.load(Ordering::Relaxed));
+    }
+
+    #[tokio::test]
+    async fn the_watcher_stops_with_the_scan() {
+        let scan_cancel = Arc::new(AtomicBool::new(false));
+        let done = Arc::new(AtomicBool::new(true));
+
+        watch_cancellation(Arc::new(AtomicBool::new(false)), scan_cancel.clone(), done).await;
+
+        assert!(!scan_cancel.load(Ordering::Relaxed));
     }
 }
