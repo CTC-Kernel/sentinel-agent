@@ -4,6 +4,7 @@
 //! Scan stages of the main loop: the background vulnerability scan and the
 //! periodic security scan.
 
+use agent_common::error::CommonError;
 use agent_common::types::UsbEvent;
 #[cfg(feature = "gui")]
 use agent_gui::dto::{
@@ -16,12 +17,57 @@ use agent_scanner::SecurityIncident;
 use agent_scanner::SecurityScanResult;
 #[cfg(feature = "gui")]
 use agent_scanner::VulnerabilityScanResult;
+use std::future::Future;
 #[cfg(feature = "gui")]
 use std::sync::atomic::Ordering;
+use tokio::sync::oneshot;
 use tracing::{debug, error, info, warn};
 
 use super::{LoopPass, LoopState};
 use crate::AgentRuntime;
+use crate::supervised_tasks::TaskSet;
+
+/// Name of the background task that scans for vulnerabilities.
+const VULN_SCAN_TASK: &str = "vulnerability scan";
+
+/// The background vulnerability scan (see `VulnScanJob`), from its start to
+/// the pass that collects its outcome.
+pub(crate) struct VulnScanTask {
+    outcome: oneshot::Receiver<VulnScanOutcome>,
+    abort: tokio::task::AbortHandle,
+}
+
+type VulnScanOutcome = Result<agent_scanner::VulnerabilityScanResult, CommonError>;
+
+impl VulnScanTask {
+    /// Run `scan` in a task of `tasks`.
+    pub(crate) fn start(
+        tasks: &mut TaskSet,
+        scan: impl Future<Output = VulnScanOutcome> + Send + 'static,
+    ) -> Self {
+        let (done, outcome) = oneshot::channel();
+        let abort = tasks.spawn(VULN_SCAN_TASK, async move {
+            // Nobody is waiting any more when the loop has stopped.
+            let _ = done.send(scan.await);
+        });
+        Self { outcome, abort }
+    }
+
+    /// `None` while the scan is running; then its outcome, itself `None`
+    /// when the task ended without one (it panicked or was aborted).
+    fn finished(&mut self) -> Option<Option<VulnScanOutcome>> {
+        match self.outcome.try_recv() {
+            Ok(outcome) => Some(Some(outcome)),
+            Err(oneshot::error::TryRecvError::Empty) => None,
+            Err(oneshot::error::TryRecvError::Closed) => Some(None),
+        }
+    }
+
+    /// Stop the scan.
+    pub(crate) fn abort(&self) {
+        self.abort.abort();
+    }
+}
 #[cfg(feature = "gui")]
 use crate::triage_allowlist;
 
@@ -189,12 +235,11 @@ impl AgentRuntime {
     /// (inventory, OSV lookups, AI analysis, uploads) never delays the loop;
     /// a new one only starts after the previous handle was collected here.
     pub(crate) async fn collect_vuln_scan(&self, st: &mut LoopState) {
-        if st.vuln_scan_task.as_ref().is_some_and(|t| t.is_finished())
-            && let Some(task) = st.vuln_scan_task.take()
-        {
+        if let Some(outcome) = st.vuln_scan_task.as_mut().and_then(VulnScanTask::finished) {
+            st.vuln_scan_task = None;
             st.last_vuln_scan = std::time::Instant::now();
-            match task.await {
-                Ok(Ok(result)) => {
+            match outcome {
+                Some(Ok(result)) => {
                     let count = result.vulnerabilities.len();
                     if count > 0 {
                         info!("Vulnerability scan found {} issues", count);
@@ -202,7 +247,7 @@ impl AgentRuntime {
                     #[cfg(feature = "gui")]
                     self.publish_vuln_scan(st, &result).await;
                 }
-                Ok(Err(e)) => {
+                Some(Err(e)) => {
                     warn!("Vulnerability scan failed: {}", e);
                     #[cfg(feature = "gui")]
                     self.emit_notification(
@@ -211,8 +256,10 @@ impl AgentRuntime {
                         "error",
                     );
                 }
-                Err(join_error) => {
-                    error!("Vulnerability scan task aborted: {}", join_error);
+                // The panic itself is logged by the task set, under the
+                // task's name.
+                None => {
+                    error!("Vulnerability scan task aborted");
                 }
             }
             #[cfg(feature = "gui")]
@@ -245,8 +292,16 @@ impl AgentRuntime {
                     st.gui.cached_policy_summary,
                 );
             }
-            st.vuln_scan_task = Some(tokio::spawn(self.vuln_scan_job().run()));
+            self.start_vuln_scan(st);
         }
+    }
+
+    /// Start the vulnerability scan in a background task of the loop.
+    pub(crate) fn start_vuln_scan(&self, st: &mut LoopState) {
+        st.vuln_scan_task = Some(VulnScanTask::start(
+            &mut st.tasks,
+            self.vuln_scan_job().run(),
+        ));
     }
 
     /// Periodic security scan (skipped when paused): its incidents go to
@@ -594,15 +649,16 @@ mod tests {
         }
     }
 
-    /// A scan task that has already finished with `outcome`.
+    /// Give `st` a scan task that has already ended as `scan` does.
     async fn finished_scan(
-        outcome: Result<VulnerabilityScanResult, CommonError>,
-    ) -> tokio::task::JoinHandle<Result<VulnerabilityScanResult, CommonError>> {
-        let task = tokio::spawn(async move { outcome });
-        while !task.is_finished() {
+        st: &mut LoopState,
+        scan: impl Future<Output = VulnScanOutcome> + Send + 'static,
+    ) {
+        let task = VulnScanTask::start(&mut st.tasks, scan);
+        while !task.abort.is_finished() {
             tokio::task::yield_now().await;
         }
-        task
+        st.vuln_scan_task = Some(task);
     }
 
     #[cfg(feature = "gui")]
@@ -652,8 +708,8 @@ mod tests {
         let test = standalone_runtime();
         let started = Instant::now();
         let mut st = LoopState::starting_at(started, 6 * 3600, 3600);
-        st.vuln_scan_task =
-            Some(finished_scan(Ok(scan_result(&[Severity::High, Severity::Medium]))).await);
+        let found = scan_result(&[Severity::High, Severity::Medium]);
+        finished_scan(&mut st, async move { Ok(found) }).await;
 
         test.runtime.collect_vuln_scan(&mut st).await;
 
@@ -682,7 +738,7 @@ mod tests {
     async fn a_failed_scan_is_collected_without_results() {
         let test = standalone_runtime();
         let mut st = LoopState::starting_at(Instant::now(), 6 * 3600, 3600);
-        st.vuln_scan_task = Some(finished_scan(Err(CommonError::internal("no scanner"))).await);
+        finished_scan(&mut st, async { Err(CommonError::internal("no scanner")) }).await;
 
         test.runtime.collect_vuln_scan(&mut st).await;
 
@@ -730,12 +786,31 @@ mod tests {
             ));
         }
         // A second pass does not start another scan next to the first.
-        let first = task.id();
         test.runtime
             .start_vuln_scan_if_due(&mut st, &LoopPass::new(false));
+        assert_eq!(st.tasks.len(), 1);
+    }
+
+    #[tokio::test]
+    async fn a_scan_that_panics_is_collected_as_aborted_and_reported() {
+        use crate::supervised_tasks::TaskEvent;
+        let test = standalone_runtime();
+        let started = Instant::now();
+        let mut st = LoopState::starting_at(started, 6 * 3600, 3600);
+        finished_scan(&mut st, async { panic!("scanner bug") }).await;
+
+        test.runtime.collect_vuln_scan(&mut st).await;
+
+        // The loop can start the next scan at its usual time.
+        assert!(st.vuln_scan_task.is_none());
+        assert!(st.last_vuln_scan >= started);
         assert_eq!(
-            st.vuln_scan_task.as_ref().map(|task| task.id()),
-            Some(first)
+            st.tasks.reap(),
+            vec![TaskEvent::Panicked {
+                name: VULN_SCAN_TASK.to_string(),
+                message: "scanner bug".to_string(),
+                restarted: false,
+            }]
         );
     }
 
@@ -762,7 +837,7 @@ mod tests {
         let started = Instant::now() - std::time::Duration::from_secs(60);
         let mut st = LoopState::starting_at(started, 6 * 3600, 3600);
         let scheduled = st.last_vuln_scan;
-        st.vuln_scan_task = Some(tokio::spawn(std::future::pending()));
+        st.vuln_scan_task = Some(VulnScanTask::start(&mut st.tasks, std::future::pending()));
 
         test.runtime.collect_vuln_scan(&mut st).await;
 

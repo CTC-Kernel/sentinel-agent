@@ -140,14 +140,14 @@ mod tests {
     async fn shutdown_stops_the_background_scan() {
         let test = standalone_runtime();
         let mut st = LoopState::starting_at(Instant::now(), 6 * 3600, 3600);
-        let scan = tokio::spawn(std::future::pending());
-        let abort = scan.abort_handle();
-        st.vuln_scan_task = Some(scan);
+        st.vuln_scan_task = Some(crate::main_loop::scans::VulnScanTask::start(
+            &mut st.tasks,
+            std::future::pending(),
+        ));
 
         test.runtime.shutdown_sequence(&mut st).await;
 
         assert!(st.vuln_scan_task.is_none());
-        tokio::task::yield_now().await;
-        assert!(abort.is_finished());
+        assert!(st.tasks.is_empty());
     }
 }

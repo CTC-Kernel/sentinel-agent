@@ -5,9 +5,7 @@
 
 use std::time::{Duration, Instant};
 
-use agent_common::error::CommonError;
-use agent_scanner::VulnerabilityScanResult;
-
+use super::scans::VulnScanTask;
 use crate::supervised_tasks::TaskSet;
 use crate::threat_pipeline::RuleHitMemory;
 use crate::{FIRST_UPDATE_CHECK_DELAY_SECS, UPDATE_CHECK_INTERVAL_SECS};
@@ -26,9 +24,9 @@ fn already_due(now: Instant, interval_secs: u64) -> Instant {
 pub(crate) struct LoopState {
     pub last_heartbeat: Instant,
     pub last_vuln_scan: Instant,
-    /// Background vulnerability scan (see `VulnScanJob`); `Some` while running.
-    pub vuln_scan_task:
-        Option<tokio::task::JoinHandle<Result<VulnerabilityScanResult, CommonError>>>,
+    /// Background vulnerability scan (see `VulnScanJob`); `Some` from its
+    /// start to the pass that collects its outcome.
+    pub vuln_scan_task: Option<VulnScanTask>,
     pub last_compliance_check: Instant,
     pub last_cert_check: Instant,
     pub last_update_check: Instant,

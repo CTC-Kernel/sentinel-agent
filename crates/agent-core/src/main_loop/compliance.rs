@@ -110,7 +110,7 @@ impl AgentRuntime {
             // The vulnerability scan runs in the background task; its
             // results are published when the task is collected by the loop.
             if st.vuln_scan_task.is_none() {
-                st.vuln_scan_task = Some(tokio::spawn(self.vuln_scan_job().run()));
+                self.start_vuln_scan(st);
             } else {
                 info!("Vulnerability scan already running, not starting another one");
             }
