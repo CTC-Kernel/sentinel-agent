@@ -1425,119 +1425,15 @@ async fn gui_background(
     command_rx: std::sync::mpsc::Receiver<agent_gui::events::GuiCommand>,
     enrollment_rx: std::sync::mpsc::Receiver<agent_gui::enrollment::EnrollmentCommand>,
 ) {
-    use agent_gui::enrollment::EnrollmentCommand;
-    use agent_gui::events::AgentEvent;
-    use std::sync::mpsc;
-
     let mut config = config;
 
     // ── Handle enrollment from GUI if not yet enrolled ──
-    if !enrolled {
-        loop {
-            // Poll for enrollment commands (non-blocking in async)
-            let cmd = loop {
-                match enrollment_rx.try_recv() {
-                    Ok(cmd) => break Some(cmd),
-                    Err(mpsc::TryRecvError::Empty) => {
-                        tokio::time::sleep(std::time::Duration::from_millis(50)).await;
-                    }
-                    Err(mpsc::TryRecvError::Disconnected) => break None,
-                }
-            };
-
-            match cmd {
-                Some(
-                    cmd @ (EnrollmentCommand::SubmitEnrollment { .. }
-                    | EnrollmentCommand::SubmitQr(_)),
-                ) => {
-                    if process_enrollment_submission(cmd, &mut config, &bg_event_tx).await {
-                        // Wait for Finish before starting runtime
-                        wait_for_finish(&enrollment_rx).await;
-                        break;
-                    }
-                }
-                Some(EnrollmentCommand::SetupStandalone { admin_password }) => {
-                    info!("GUI setup: standalone mode chosen");
-                    if let Some(ref pw) = admin_password {
-                        // Argon2id with a random per-install salt.
-                        match agent_gui::admin_auth::hash_password(pw) {
-                            Ok(hash) => {
-                                let _ = bg_event_tx.send(AgentEvent::AdminPasswordSet { hash });
-                            }
-                            Err(e) => warn!("Admin password not stored: {}", e),
-                        }
-                    }
-                    match AgentConfig::persist_standalone(true) {
-                        Ok(path) => {
-                            info!("Standalone mode saved to {}", path.display());
-                            config.standalone = true;
-                            if let Err(e) = bg_event_tx.send(AgentEvent::EnrollmentResult {
-                                success: true,
-                                message: "Mode autonome activé. Ce poste est protégé \
-                                          localement, sans plateforme."
-                                    .to_string(),
-                                agent_id: None,
-                            }) {
-                                error!("Failed to send standalone setup event: {}", e);
-                            }
-                            wait_for_finish(&enrollment_rx).await;
-                            break;
-                        }
-                        Err(e) => {
-                            warn!("Standalone setup failed: {}", e);
-                            if let Err(e2) = bg_event_tx.send(AgentEvent::EnrollmentResult {
-                                success: false,
-                                message: format!(
-                                    "Impossible d'enregistrer le mode autonome : {}",
-                                    e
-                                ),
-                                agent_id: None,
-                            }) {
-                                error!("Failed to send standalone failure event: {}", e2);
-                            }
-                        }
-                    }
-                }
-                Some(EnrollmentCommand::Cancel) | None => {
-                    info!("Enrollment cancelled or channel closed");
-                    return;
-                }
-                Some(EnrollmentCommand::Finish) => {
-                    // User clicked finish on a retry -- just break
-                    break;
-                }
-            }
-        }
+    if !enrolled && !gui_enrollment(&mut config, &bg_event_tx, &enrollment_rx).await {
+        return;
     }
 
     // ── Run the agent runtime ──
-    // Open database for sync services
-    let db_arc = {
-        use agent_storage::{Database, DatabaseConfig, KeyManager};
-        let db_config = DatabaseConfig::default();
-        match KeyManager::new().and_then(|km| Database::open(db_config, &km)) {
-            Ok(db) => Some(std::sync::Arc::new(db)),
-            Err(e) => {
-                tracing::warn!("Failed to open database for sync services: {}", e);
-                None
-            }
-        }
-    };
-
-    // Run v2 persistence migrations (GUI tables: events, notifications, policy_snapshots)
-    #[cfg(feature = "gui")]
-    if let Some(ref db) = db_arc {
-        match db
-            .with_connection_mut(|conn| {
-                agent_persistence::run_v2_migrations(conn)
-                    .map_err(|e| agent_storage::StorageError::Migration(e.to_string()))
-            })
-            .await
-        {
-            Ok(()) => info!("Persistence v2 migrations applied"),
-            Err(e) => warn!("Failed to apply v2 migrations (non-fatal): {}", e),
-        }
-    }
+    let db_arc = open_gui_database().await;
 
     // ── Standalone: keep listening for a "connect later" enrollment ──
     // The wizard reopened from the settings sends its token on the
@@ -1559,57 +1455,11 @@ async fn gui_background(
     let sync_client = runtime.sync_client();
     let handle = runtime.handle();
 
-    let mut remote_ai = agent_core::remote_ai::RemoteAi::default();
-    if let Some(db) = db_for_commands.as_ref() {
-        match agent_core::remote_ai::RemoteAi::load(db).await {
-            Ok(saved) => remote_ai = saved,
-            Err(message) => agent_core::remote_ai::feedback(&bg_event_tx, message),
-        }
-    }
-    let _ = bg_event_tx.send(remote_ai.event());
+    let remote_ai = load_remote_ai(db_for_commands.as_ref(), &bg_event_tx).await;
 
     // Initialize LLM service for AI-powered analysis
     #[cfg(feature = "llm")]
-    let llm_service = {
-        let svc = agent_core::llm_service::LLMService::new(None).await;
-        match svc {
-            Ok(s) => {
-                let arc_svc = std::sync::Arc::new(s);
-                // Emit initial LLM status to GUI
-                let status = arc_svc.get_status().await;
-                let (model_name, status_str, mem) = match &status {
-                    agent_core::llm_service::LLMServiceStatus::Ready {
-                        model_name,
-                        memory_usage_mb,
-                        ..
-                    } => (model_name.clone(), "ready".to_string(), *memory_usage_mb),
-                    agent_core::llm_service::LLMServiceStatus::Error(reason) => {
-                        ("N/A".to_string(), format!("error: {}", reason), 0)
-                    }
-                    _ => ("N/A".to_string(), "not_configured".to_string(), 0),
-                };
-                let _ = bg_event_tx.send(AgentEvent::LlmStatusUpdate {
-                    model_name,
-                    status: status_str,
-                    inference_count: 0,
-                    memory_mb: mem,
-                });
-                info!("LLM service initialized for command processing");
-                runtime.set_llm_loaded(true);
-                Some(arc_svc)
-            }
-            Err(e) => {
-                warn!("Failed to init LLM service: {}", e);
-                let _ = bg_event_tx.send(AgentEvent::LlmStatusUpdate {
-                    model_name: "N/A".to_string(),
-                    status: format!("error: {}", e),
-                    inference_count: 0,
-                    memory_mb: 0,
-                });
-                None
-            }
-        }
-    };
+    let llm_service = init_gui_llm(&runtime, &bg_event_tx).await;
     #[cfg(not(feature = "llm"))]
     let llm_service: Option<std::sync::Arc<()>> = None;
 
@@ -1652,66 +1502,265 @@ async fn gui_background(
         gui_commands::run(ctx, command_rx),
     );
 
-    // On Windows, check whether the background service is already
-    // running.  If it is, skip the full agent runtime to avoid
-    // duplicate scans, heartbeats, and sync.  The service handles
-    // all of that; the GUI just provides the user interface.
-    //
-    // Two-layer detection:
-    // 1. Try a named mutex (Global\SentinelAgentRuntime) — if the
-    //    service holds it, we know immediately.
-    // 2. Fall back to SCM query with retries (handles boot-time
-    //    race where the service is still in StartPending).
-    #[cfg(windows)]
-    let service_is_running = {
-        // Layer 1: Named mutex — fast, non-racy check.
-        let mutex_held = is_runtime_mutex_held();
-
-        // Layer 2: SCM query with retries to handle StartPending.
-        let scm_running = if !mutex_held {
-            let mut running = false;
-            for attempt in 0..5 {
-                match crate::service::get_service_state() {
-                    Ok(crate::service::ServiceState::Running) => {
-                        running = true;
-                        break;
-                    }
-                    Ok(crate::service::ServiceState::Starting) => {
-                        // Service is starting — wait and retry.
-                        info!(
-                            "Service is starting (attempt {}/5), waiting...",
-                            attempt + 1
-                        );
-                        tokio::time::sleep(std::time::Duration::from_secs(2)).await;
-                    }
-                    _ => break, // Not installed or stopped — no point retrying.
-                }
-            }
-            running
-        } else {
-            true
-        };
-
-        mutex_held || scm_running
-    };
-    #[cfg(not(windows))]
-    let service_is_running = false;
+    let service_is_running = background_service_is_running().await;
 
     if service_is_running {
         info!(
             "SentinelGRCAgent service is running — GUI entering companion mode (no duplicate runtime)"
         );
-        // Wait until the GUI requests shutdown.
-        loop {
-            if handle.is_shutdown_requested() {
-                break;
-            }
-            tokio::time::sleep(std::time::Duration::from_secs(1)).await;
-        }
+        wait_for_shutdown_request(&handle).await;
     } else {
         // No service running — run the full agent runtime.
         if let Err(e) = runtime.run().await {
             error!("Agent runtime error: {}", e);
+        }
+    }
+}
+
+/// Companion mode: wait until the GUI requests shutdown.
+#[cfg(feature = "gui")]
+async fn wait_for_shutdown_request(handle: &agent_core::RuntimeHandle) {
+    loop {
+        if handle.is_shutdown_requested() {
+            break;
+        }
+        tokio::time::sleep(std::time::Duration::from_secs(1)).await;
+    }
+}
+
+/// Whether the background service already runs the agent. If it does, the
+/// desktop app skips the full agent runtime to avoid duplicate scans,
+/// heartbeats and sync: the service handles all of that and the app is
+/// only the user interface.
+///
+/// Two-layer detection:
+/// 1. Try a named mutex (`Global\SentinelAgentRuntime`) — if the service
+///    holds it, we know immediately.
+/// 2. Fall back to SCM query with retries (handles boot-time race where
+///    the service is still in StartPending).
+#[cfg(all(feature = "gui", windows))]
+async fn background_service_is_running() -> bool {
+    // Layer 1: Named mutex — fast, non-racy check.
+    let mutex_held = is_runtime_mutex_held();
+
+    // Layer 2: SCM query with retries to handle StartPending.
+    let scm_running = if !mutex_held {
+        let mut running = false;
+        for attempt in 0..5 {
+            match crate::service::get_service_state() {
+                Ok(crate::service::ServiceState::Running) => {
+                    running = true;
+                    break;
+                }
+                Ok(crate::service::ServiceState::Starting) => {
+                    // Service is starting — wait and retry.
+                    info!(
+                        "Service is starting (attempt {}/5), waiting...",
+                        attempt + 1
+                    );
+                    tokio::time::sleep(std::time::Duration::from_secs(2)).await;
+                }
+                _ => break, // Not installed or stopped — no point retrying.
+            }
+        }
+        running
+    } else {
+        true
+    };
+
+    mutex_held || scm_running
+}
+
+/// Whether the background service already runs the agent: only Windows
+/// installs one next to the desktop app.
+#[cfg(all(feature = "gui", not(windows)))]
+async fn background_service_is_running() -> bool {
+    false
+}
+
+/// Start the local AI model service for the interface and tell it the
+/// state of the model.
+#[cfg(all(feature = "gui", feature = "llm"))]
+async fn init_gui_llm(
+    runtime: &AgentRuntime,
+    bg_event_tx: &std::sync::mpsc::Sender<agent_gui::events::AgentEvent>,
+) -> Option<std::sync::Arc<agent_core::llm_service::LLMService>> {
+    use agent_gui::events::AgentEvent;
+
+    let svc = agent_core::llm_service::LLMService::new(None).await;
+    match svc {
+        Ok(s) => {
+            let arc_svc = std::sync::Arc::new(s);
+            // Emit initial LLM status to GUI
+            let status = arc_svc.get_status().await;
+            let (model_name, status_str, mem) = match &status {
+                agent_core::llm_service::LLMServiceStatus::Ready {
+                    model_name,
+                    memory_usage_mb,
+                    ..
+                } => (model_name.clone(), "ready".to_string(), *memory_usage_mb),
+                agent_core::llm_service::LLMServiceStatus::Error(reason) => {
+                    ("N/A".to_string(), format!("error: {}", reason), 0)
+                }
+                _ => ("N/A".to_string(), "not_configured".to_string(), 0),
+            };
+            let _ = bg_event_tx.send(AgentEvent::LlmStatusUpdate {
+                model_name,
+                status: status_str,
+                inference_count: 0,
+                memory_mb: mem,
+            });
+            info!("LLM service initialized for command processing");
+            runtime.set_llm_loaded(true);
+            Some(arc_svc)
+        }
+        Err(e) => {
+            warn!("Failed to init LLM service: {}", e);
+            let _ = bg_event_tx.send(AgentEvent::LlmStatusUpdate {
+                model_name: "N/A".to_string(),
+                status: format!("error: {}", e),
+                inference_count: 0,
+                memory_mb: 0,
+            });
+            None
+        }
+    }
+}
+
+/// The AI provider saved in the settings, shown to the interface.
+#[cfg(feature = "gui")]
+async fn load_remote_ai(
+    db: Option<&std::sync::Arc<agent_storage::Database>>,
+    bg_event_tx: &std::sync::mpsc::Sender<agent_gui::events::AgentEvent>,
+) -> agent_core::remote_ai::RemoteAi {
+    let mut remote_ai = agent_core::remote_ai::RemoteAi::default();
+    if let Some(db) = db {
+        match agent_core::remote_ai::RemoteAi::load(db).await {
+            Ok(saved) => remote_ai = saved,
+            Err(message) => agent_core::remote_ai::feedback(bg_event_tx, message),
+        }
+    }
+    let _ = bg_event_tx.send(remote_ai.event());
+    remote_ai
+}
+
+/// Open the encrypted database for the desktop app and bring its tables
+/// up to date. `None` when it cannot be opened: the agent then runs
+/// without sync services.
+#[cfg(feature = "gui")]
+async fn open_gui_database() -> Option<std::sync::Arc<agent_storage::Database>> {
+    // Open database for sync services
+    let db_arc = {
+        use agent_storage::{Database, DatabaseConfig, KeyManager};
+        let db_config = DatabaseConfig::default();
+        match KeyManager::new().and_then(|km| Database::open(db_config, &km)) {
+            Ok(db) => Some(std::sync::Arc::new(db)),
+            Err(e) => {
+                tracing::warn!("Failed to open database for sync services: {}", e);
+                None
+            }
+        }
+    };
+
+    // Run v2 persistence migrations (GUI tables: events, notifications, policy_snapshots)
+    if let Some(ref db) = db_arc {
+        match db
+            .with_connection_mut(|conn| {
+                agent_persistence::run_v2_migrations(conn)
+                    .map_err(|e| agent_storage::StorageError::Migration(e.to_string()))
+            })
+            .await
+        {
+            Ok(()) => info!("Persistence v2 migrations applied"),
+            Err(e) => warn!("Failed to apply v2 migrations (non-fatal): {}", e),
+        }
+    }
+
+    db_arc
+}
+
+/// The enrollment asked for from the interface of an agent that is not
+/// enrolled yet: a platform token, or the standalone mode. Returns `false`
+/// when the operator cancelled or the interface is gone.
+#[cfg(feature = "gui")]
+async fn gui_enrollment(
+    config: &mut AgentConfig,
+    bg_event_tx: &std::sync::mpsc::Sender<agent_gui::events::AgentEvent>,
+    enrollment_rx: &std::sync::mpsc::Receiver<agent_gui::enrollment::EnrollmentCommand>,
+) -> bool {
+    use agent_gui::enrollment::EnrollmentCommand;
+    use agent_gui::events::AgentEvent;
+    use std::sync::mpsc;
+
+    loop {
+        // Poll for enrollment commands (non-blocking in async)
+        let cmd = loop {
+            match enrollment_rx.try_recv() {
+                Ok(cmd) => break Some(cmd),
+                Err(mpsc::TryRecvError::Empty) => {
+                    tokio::time::sleep(std::time::Duration::from_millis(50)).await;
+                }
+                Err(mpsc::TryRecvError::Disconnected) => break None,
+            }
+        };
+
+        match cmd {
+            Some(
+                cmd @ (EnrollmentCommand::SubmitEnrollment { .. } | EnrollmentCommand::SubmitQr(_)),
+            ) => {
+                if process_enrollment_submission(cmd, config, bg_event_tx).await {
+                    // Wait for Finish before starting runtime
+                    wait_for_finish(enrollment_rx).await;
+                    return true;
+                }
+            }
+            Some(EnrollmentCommand::SetupStandalone { admin_password }) => {
+                info!("GUI setup: standalone mode chosen");
+                if let Some(ref pw) = admin_password {
+                    // Argon2id with a random per-install salt.
+                    match agent_gui::admin_auth::hash_password(pw) {
+                        Ok(hash) => {
+                            let _ = bg_event_tx.send(AgentEvent::AdminPasswordSet { hash });
+                        }
+                        Err(e) => warn!("Admin password not stored: {}", e),
+                    }
+                }
+                match AgentConfig::persist_standalone(true) {
+                    Ok(path) => {
+                        info!("Standalone mode saved to {}", path.display());
+                        config.standalone = true;
+                        if let Err(e) = bg_event_tx.send(AgentEvent::EnrollmentResult {
+                            success: true,
+                            message: "Mode autonome activé. Ce poste est protégé \
+                                      localement, sans plateforme."
+                                .to_string(),
+                            agent_id: None,
+                        }) {
+                            error!("Failed to send standalone setup event: {}", e);
+                        }
+                        wait_for_finish(enrollment_rx).await;
+                        return true;
+                    }
+                    Err(e) => {
+                        warn!("Standalone setup failed: {}", e);
+                        if let Err(e2) = bg_event_tx.send(AgentEvent::EnrollmentResult {
+                            success: false,
+                            message: format!("Impossible d'enregistrer le mode autonome : {}", e),
+                            agent_id: None,
+                        }) {
+                            error!("Failed to send standalone failure event: {}", e2);
+                        }
+                    }
+                }
+            }
+            Some(EnrollmentCommand::Cancel) | None => {
+                info!("Enrollment cancelled or channel closed");
+                return false;
+            }
+            Some(EnrollmentCommand::Finish) => {
+                // User clicked finish on a retry -- just break
+                return true;
+            }
         }
     }
 }
