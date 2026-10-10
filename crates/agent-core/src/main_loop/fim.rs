@@ -300,6 +300,20 @@ impl AgentRuntime {
             }
         }
     }
+
+    /// Tell the interface how many files are watched and how many changed
+    /// today.
+    #[cfg(feature = "gui")]
+    pub(crate) async fn emit_fim_stats(&self, st: &mut LoopState) {
+        let fim_engine = self.fim_engine.read().await;
+        if let Some(engine) = fim_engine.as_ref() {
+            st.gui.roll_fim_day(today());
+            self.emit_gui_event(AgentEvent::FimStats {
+                monitored_count: u32::try_from(engine.baseline_count()).unwrap_or(u32::MAX),
+                changes_today: st.gui.fim_changes_today,
+            });
+        }
+    }
 }
 
 #[cfg(test)]
@@ -499,6 +513,45 @@ mod tests {
             .await;
 
         assert!(!pass.has_flagged_activity());
+    }
+
+    #[cfg(feature = "gui")]
+    #[tokio::test]
+    async fn fim_stats_count_the_changes_of_the_current_day_only() {
+        let test = standalone_runtime();
+        let (tx, _rx) = tokio::sync::mpsc::channel(1);
+        *test.runtime.fim_engine.write().await = Some(agent_fim::FimEngine::with_defaults(tx));
+        let mut st = LoopState::starting_at(Instant::now(), 3600, 3600);
+        st.gui.fim_changes_today = 3;
+
+        test.runtime.emit_fim_stats(&mut st).await;
+        assert!(matches!(
+            test.events.try_recv(),
+            Ok(AgentEvent::FimStats {
+                changes_today: 3,
+                ..
+            })
+        ));
+
+        // Yesterday's count is not carried over.
+        st.gui.fim_last_day -= 1;
+        test.runtime.emit_fim_stats(&mut st).await;
+        assert!(matches!(
+            test.events.try_recv(),
+            Ok(AgentEvent::FimStats {
+                changes_today: 0,
+                ..
+            })
+        ));
+    }
+
+    #[cfg(feature = "gui")]
+    #[tokio::test]
+    async fn no_fim_stats_without_an_engine() {
+        let test = standalone_runtime();
+        let mut st = LoopState::starting_at(Instant::now(), 3600, 3600);
+        test.runtime.emit_fim_stats(&mut st).await;
+        assert!(test.events.try_recv().is_err());
     }
 
     #[tokio::test]

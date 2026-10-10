@@ -1046,21 +1046,7 @@ impl AgentRuntime {
 
             // 1b. Emit FIM stats to GUI periodically
             #[cfg(feature = "gui")]
-            {
-                let fim_engine = self.fim_engine.read().await;
-                if let Some(engine) = fim_engine.as_ref() {
-                    let today = chrono::Utc::now().timestamp().max(0) as u64
-                        / agent_common::constants::SECS_PER_DAY;
-                    if today != st.gui.fim_last_day {
-                        st.gui.fim_changes_today = 0;
-                        st.gui.fim_last_day = today;
-                    }
-                    self.emit_gui_event(AgentEvent::FimStats {
-                        monitored_count: u32::try_from(engine.baseline_count()).unwrap_or(u32::MAX),
-                        changes_today: st.gui.fim_changes_today,
-                    });
-                }
-            }
+            self.emit_fim_stats(&mut st).await;
 
             // 1b. Sync GUI SIEM config changes to the actual forwarder
             // Only enable external SIEM transport if a real destination is configured.
