@@ -1072,57 +1072,8 @@ impl AgentRuntime {
                 .await;
 
             // Run network connection scan if interval has passed (skip when paused)
-            if !pass.is_paused
-                && network_allowed
-                && st.last_network_connections.elapsed() >= st.network_connection_interval
-            {
-                pass.is_active = true;
-                match self.run_network_collection().await {
-                    Ok(snapshot) => {
-                        #[cfg(feature = "gui")]
-                        {
-                            self.emit_gui_event(AgentEvent::NetworkUpdate {
-                                interfaces_count: u32::try_from(snapshot.interfaces.len())
-                                    .unwrap_or(u32::MAX),
-                                connections_count: u32::try_from(snapshot.connections.len())
-                                    .unwrap_or(u32::MAX),
-                                alerts_count: st.gui.last_network_alert_count,
-                                primary_ip: snapshot.primary_ip.clone(),
-                                primary_mac: snapshot.primary_mac.clone(),
-                            });
-                            let (interfaces, connections) =
-                                Self::snapshot_to_gui_network(&snapshot);
-                            self.emit_gui_event(AgentEvent::NetworkDetailUpdate {
-                                interfaces,
-                                connections,
-                            });
-                        }
-                        if let Err(e) = self.upload_network_snapshot(&snapshot).await {
-                            warn!("Failed to upload network connections: {}", e);
-                            #[cfg(feature = "gui")]
-                            self.emit_gui_event(AgentEvent::SyncStatus {
-                                syncing: false,
-                                pending_count: 0,
-                                last_sync_at: None,
-                                error: Some(format!("Network upload failed: {}", e)),
-                            });
-                        }
-                    }
-                    Err(e) => {
-                        warn!("Network connection collection failed: {}", e);
-                        #[cfg(feature = "gui")]
-                        self.emit_gui_event(AgentEvent::SyncStatus {
-                            syncing: false,
-                            pending_count: 0,
-                            last_sync_at: None,
-                            error: Some(format!("Network connection collection error: {}", e)),
-                        });
-                    }
-                }
-                st.last_network_connections = std::time::Instant::now();
-                let mut network_manager = self.network_manager.write().await;
-                st.network_connection_interval = network_manager.next_connection_interval();
-            }
+            self.network_connections_stage(&mut st, &mut pass, network_allowed)
+                .await;
 
             // Run network security detection if interval has passed (skip when paused)
             if !pass.is_paused
