@@ -17,6 +17,7 @@ use tracing::error;
 
 pub(crate) mod grc;
 pub(crate) mod playbooks;
+pub(crate) mod reports;
 pub(crate) mod response;
 
 /// The local AI model service, when the agent is built with it.
