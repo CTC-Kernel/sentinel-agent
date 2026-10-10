@@ -10,6 +10,45 @@ use tracing::{debug, error, info, warn};
 use super::LoopState;
 use crate::AgentRuntime;
 
+/// What the platform receives about the SIEM: the events recorded since the
+/// last synchronisation and the state of the forwarder.
+fn siem_sync_request(
+    recent: &[agent_siem::SiemEvent],
+    stats: &agent_siem::SiemStats,
+    cfg: &agent_siem::SiemConfig,
+) -> agent_sync::SiemSyncRequest {
+    let events: Vec<agent_sync::SiemEventPayload> = recent
+        .iter()
+        .map(|e| agent_sync::SiemEventPayload {
+            timestamp: e.timestamp,
+            severity: e.severity,
+            category: format!("{}", e.category),
+            name: e.name.clone(),
+            description: e.description.clone(),
+            source_host: e.source_host.clone(),
+            source_ip: e.source_ip.clone(),
+            destination_ip: e.destination_ip.clone(),
+            event_id: e.event_id.clone(),
+        })
+        .collect();
+
+    agent_sync::SiemSyncRequest {
+        events,
+        stats: agent_sync::SiemStatsPayload {
+            enabled: cfg.enabled,
+            format: format!("{}", cfg.format),
+            transport: format!("{}", cfg.transport),
+            destination: cfg.destination_label(),
+            events_sent: stats.events_sent,
+            events_dropped: stats.events_dropped,
+            bytes_sent: stats.bytes_sent,
+            is_connected: stats.is_connected,
+            last_error: stats.last_error.clone(),
+            reported_at: chrono::Utc::now(),
+        },
+    }
+}
+
 impl AgentRuntime {
     /// Heartbeat, when its interval has passed: on success the forced
     /// configuration, audit trail, GRC queue and SIEM data are synchronised;
@@ -23,110 +62,7 @@ impl AgentRuntime {
                 .send_heartbeat(st.compliance_score, st.last_compliance_check_at)
                 .await
             {
-                Ok(_) => {
-                    debug!("Heartbeat sent successfully");
-
-                    // Reset auth failure counter on successful heartbeat
-                    if self.auth_failure_count.load(Ordering::Acquire) > 0 {
-                        info!("Connection restored, resetting authentication failure counter");
-                        self.auth_failure_count.store(0, Ordering::Release);
-                        self.re_enrollment_attempts.store(0, Ordering::Release);
-                    }
-
-                    #[cfg(feature = "gui")]
-                    {
-                        st.gui.cached_pending_sync = self.get_pending_sync_count().await as u32;
-                    }
-
-                    if self.state.force_sync.load(Ordering::Acquire) {
-                        info!("Forced sync requested via heartbeat command");
-                        self.apply_config_changes().await;
-                        // Do NOT clear force_sync here — the dedicated force_sync
-                        // block later in the loop handles the full sync cycle
-                        // (upload results, heartbeat, notifications) and clears it.
-                    }
-                    #[cfg(feature = "gui")]
-                    {
-                        self.emit_status_update(
-                            st.gui.last_check_at,
-                            st.compliance_score,
-                            st.gui.cached_pending_sync,
-                            st.gui.cached_policy_summary,
-                        );
-                        self.emit_resource_update(None);
-                    }
-                    if let Some(audit_sync) = self.audit_sync.read().await.as_ref() {
-                        match audit_sync.sync().await {
-                            Ok(count) => {
-                                if count > 0 {
-                                    debug!("Synced {} audit trail entries", count);
-                                }
-                            }
-                            Err(e) => warn!("Audit trail sync failed: {}", e),
-                        }
-                    }
-                    // Drain GRC sync queue: upload locally-created playbooks, risks, assets, etc.
-                    if let Some(ref client) = self.authenticated_client
-                        && let Some(orchestrator) = self.sync_orchestrator.read().await.as_ref()
-                    {
-                        match orchestrator.drain_grc_queues(client).await {
-                            Ok(count) => {
-                                if count > 0 {
-                                    info!("GRC sync: {} items synced", count);
-                                }
-                            }
-                            Err(e) => warn!("GRC sync queue drain failed: {}", e),
-                        }
-                    }
-
-                    // Push assets from SQLite to GUI after GRC sync
-                    #[cfg(feature = "gui")]
-                    self.sync_assets_to_gui().await;
-
-                    // Sync SIEM data to the platform
-                    if let Some(ref client) = self.authenticated_client
-                        && let Some(ref siem) = *self.siem_forwarder.read().await
-                    {
-                        let stats = siem.stats().await;
-                        let recent = siem.take_recent_events().await;
-                        let cfg = siem.config();
-
-                        let events: Vec<agent_sync::SiemEventPayload> = recent
-                            .iter()
-                            .map(|e| agent_sync::SiemEventPayload {
-                                timestamp: e.timestamp,
-                                severity: e.severity,
-                                category: format!("{}", e.category),
-                                name: e.name.clone(),
-                                description: e.description.clone(),
-                                source_host: e.source_host.clone(),
-                                source_ip: e.source_ip.clone(),
-                                destination_ip: e.destination_ip.clone(),
-                                event_id: e.event_id.clone(),
-                            })
-                            .collect();
-
-                        let request = agent_sync::SiemSyncRequest {
-                            events,
-                            stats: agent_sync::SiemStatsPayload {
-                                enabled: cfg.enabled,
-                                format: format!("{}", cfg.format),
-                                transport: format!("{}", cfg.transport),
-                                destination: cfg.destination_label(),
-                                events_sent: stats.events_sent,
-                                events_dropped: stats.events_dropped,
-                                bytes_sent: stats.bytes_sent,
-                                is_connected: stats.is_connected,
-                                last_error: stats.last_error.clone(),
-                                reported_at: chrono::Utc::now(),
-                            },
-                        };
-
-                        if let Err(e) = client.sync_siem_data(request).await {
-                            warn!("Failed to sync SIEM data to platform: {}", e);
-                        }
-                    }
-                }
+                Ok(_) => self.after_heartbeat(st).await,
                 Err(e) => {
                     warn!("Heartbeat failed: {}", e);
                     #[cfg(feature = "gui")]
@@ -223,5 +159,166 @@ impl AgentRuntime {
                 }
             }
         }
+    }
+
+    /// Send the SIEM events recorded since the last heartbeat, with the
+    /// forwarder's statistics, to the platform.
+    async fn sync_siem_to_platform(&self) {
+        if let Some(ref client) = self.authenticated_client
+            && let Some(ref siem) = *self.siem_forwarder.read().await
+        {
+            let stats = siem.stats().await;
+            let recent = siem.take_recent_events().await;
+            let cfg = siem.config();
+
+            let request = siem_sync_request(&recent, &stats, cfg);
+
+            if let Err(e) = client.sync_siem_data(request).await {
+                warn!("Failed to sync SIEM data to platform: {}", e);
+            }
+        }
+    }
+
+    /// What follows a heartbeat the platform accepted: forced configuration,
+    /// interface status, audit trail, GRC queue, SIEM data.
+    #[cfg_attr(not(feature = "gui"), allow(unused_variables))]
+    async fn after_heartbeat(&self, st: &mut LoopState) {
+        debug!("Heartbeat sent successfully");
+
+        // Reset auth failure counter on successful heartbeat
+        if self.auth_failure_count.load(Ordering::Acquire) > 0 {
+            info!("Connection restored, resetting authentication failure counter");
+            self.auth_failure_count.store(0, Ordering::Release);
+            self.re_enrollment_attempts.store(0, Ordering::Release);
+        }
+
+        #[cfg(feature = "gui")]
+        {
+            st.gui.cached_pending_sync = self.get_pending_sync_count().await as u32;
+        }
+
+        if self.state.force_sync.load(Ordering::Acquire) {
+            info!("Forced sync requested via heartbeat command");
+            self.apply_config_changes().await;
+            // Do NOT clear force_sync here — the dedicated force_sync
+            // block later in the loop handles the full sync cycle
+            // (upload results, heartbeat, notifications) and clears it.
+        }
+        #[cfg(feature = "gui")]
+        {
+            self.emit_status_update(
+                st.gui.last_check_at,
+                st.compliance_score,
+                st.gui.cached_pending_sync,
+                st.gui.cached_policy_summary,
+            );
+            self.emit_resource_update(None);
+        }
+        if let Some(audit_sync) = self.audit_sync.read().await.as_ref() {
+            match audit_sync.sync().await {
+                Ok(count) => {
+                    if count > 0 {
+                        debug!("Synced {} audit trail entries", count);
+                    }
+                }
+                Err(e) => warn!("Audit trail sync failed: {}", e),
+            }
+        }
+        // Drain GRC sync queue: upload locally-created playbooks, risks, assets, etc.
+        if let Some(ref client) = self.authenticated_client
+            && let Some(orchestrator) = self.sync_orchestrator.read().await.as_ref()
+        {
+            match orchestrator.drain_grc_queues(client).await {
+                Ok(count) => {
+                    if count > 0 {
+                        info!("GRC sync: {} items synced", count);
+                    }
+                }
+                Err(e) => warn!("GRC sync queue drain failed: {}", e),
+            }
+        }
+
+        // Push assets from SQLite to GUI after GRC sync
+        #[cfg(feature = "gui")]
+        self.sync_assets_to_gui().await;
+
+        // Sync SIEM data to the platform
+        self.sync_siem_to_platform().await;
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::main_loop::testing::standalone_runtime;
+    use std::time::{Duration, Instant};
+
+    fn siem_event(name: &str) -> agent_siem::SiemEvent {
+        agent_siem::SiemEvent {
+            timestamp: chrono::Utc::now(),
+            severity: 7,
+            category: agent_siem::EventCategory::Network,
+            name: name.to_string(),
+            description: "Connexion vers une adresse malveillante".to_string(),
+            source_host: "poste-compta-01".to_string(),
+            source_ip: Some("10.0.0.12".to_string()),
+            destination_ip: Some("203.0.113.7".to_string()),
+            destination_port: Some(443),
+            user: None,
+            process_name: None,
+            process_id: None,
+            file_path: None,
+            custom_fields: serde_json::Value::Null,
+            event_id: "evt-1".to_string(),
+            agent_version: "test".to_string(),
+        }
+    }
+
+    #[test]
+    fn the_siem_sync_carries_events_and_forwarder_state() {
+        let cfg = agent_siem::SiemConfig::default();
+        let stats = agent_siem::SiemStats {
+            events_sent: 12,
+            events_dropped: 1,
+            bytes_sent: 4096,
+            last_error: Some("connection reset".to_string()),
+            is_connected: true,
+            ..Default::default()
+        };
+
+        let request = siem_sync_request(&[siem_event("C2 beacon")], &stats, &cfg);
+
+        assert_eq!(request.events.len(), 1);
+        let event = &request.events[0];
+        assert_eq!(event.name, "C2 beacon");
+        assert_eq!(event.severity, 7);
+        assert_eq!(
+            event.category,
+            format!("{}", agent_siem::EventCategory::Network)
+        );
+        assert_eq!(event.destination_ip.as_deref(), Some("203.0.113.7"));
+        assert_eq!(event.event_id, "evt-1");
+        assert_eq!(request.stats.enabled, cfg.enabled);
+        assert_eq!(request.stats.destination, cfg.destination_label());
+        assert_eq!(request.stats.events_sent, 12);
+        assert_eq!(request.stats.events_dropped, 1);
+        assert_eq!(request.stats.bytes_sent, 4096);
+        assert!(request.stats.is_connected);
+        assert_eq!(
+            request.stats.last_error.as_deref(),
+            Some("connection reset")
+        );
+    }
+
+    #[tokio::test]
+    async fn a_standalone_agent_sends_no_heartbeat() {
+        let test = standalone_runtime();
+        let started = Instant::now() - Duration::from_secs(3600);
+        let mut st = LoopState::starting_at(started, 3600, 3600);
+
+        test.runtime.heartbeat_stage(&mut st).await;
+
+        // The timer is untouched: the stage did not run.
+        assert_eq!(st.last_heartbeat, started);
     }
 }
