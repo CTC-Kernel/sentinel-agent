@@ -1089,39 +1089,7 @@ impl AgentRuntime {
             self.compliance_stage(&mut st, &mut pass).await;
 
             // Certificate renewal check (daily)
-            if !self.config.standalone
-                && st.last_cert_check.elapsed().as_secs() >= main_loop::CERT_CHECK_INTERVAL_SECS
-            {
-                if let Some(ref auth_client) = self.authenticated_client {
-                    match auth_client.check_and_renew_if_needed().await {
-                        Ok(()) => {
-                            debug!("Certificate renewal check complete");
-                        }
-                        Err(e) => {
-                            warn!("Certificate renewal check failed: {}", e);
-                            // If renewal failed due to auth/cert error, try re-enrollment
-                            if e.is_auth_error() {
-                                warn!("Certificate expired or rejected, triggering re-enrollment");
-                                match self.attempt_re_enrollment().await {
-                                    Ok(true) => {
-                                        info!("Re-enrollment after certificate expiry succeeded");
-                                        self.auth_failure_count.store(0, Ordering::Release);
-                                        self.re_enrollment_attempts.store(0, Ordering::Release);
-                                    }
-                                    Ok(false) => {
-                                        warn!("Cannot re-enroll: no enrollment token configured")
-                                    }
-                                    Err(re_err) => error!(
-                                        "Re-enrollment after certificate expiry failed: {}",
-                                        re_err
-                                    ),
-                                }
-                            }
-                        }
-                    }
-                }
-                st.last_cert_check = std::time::Instant::now();
-            }
+            self.certificate_renewal_stage(&mut st).await;
 
             // Check for force_check flag (GUI "Vérifier maintenant" button)
             if self.state.force_check.load(Ordering::Acquire) {

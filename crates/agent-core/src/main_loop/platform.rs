@@ -8,7 +8,7 @@ use agent_common::error::CommonError;
 use std::sync::atomic::Ordering;
 use tracing::{debug, error, info, warn};
 
-use super::LoopState;
+use super::{CERT_CHECK_INTERVAL_SECS, LoopState};
 use crate::AgentRuntime;
 
 /// What to do about re-enrollment after an authentication failure.
@@ -289,6 +289,44 @@ impl AgentRuntime {
             }
         }
     }
+
+    /// Daily check of the client certificate, renewed when it is close to
+    /// expiry. A certificate the platform rejects leads to a re-enrollment.
+    pub(crate) async fn certificate_renewal_stage(&self, st: &mut LoopState) {
+        if !self.config.standalone
+            && st.last_cert_check.elapsed().as_secs() >= CERT_CHECK_INTERVAL_SECS
+        {
+            if let Some(ref auth_client) = self.authenticated_client {
+                match auth_client.check_and_renew_if_needed().await {
+                    Ok(()) => {
+                        debug!("Certificate renewal check complete");
+                    }
+                    Err(e) => {
+                        warn!("Certificate renewal check failed: {}", e);
+                        // If renewal failed due to auth/cert error, try re-enrollment
+                        if e.is_auth_error() {
+                            warn!("Certificate expired or rejected, triggering re-enrollment");
+                            match self.attempt_re_enrollment().await {
+                                Ok(true) => {
+                                    info!("Re-enrollment after certificate expiry succeeded");
+                                    self.auth_failure_count.store(0, Ordering::Release);
+                                    self.re_enrollment_attempts.store(0, Ordering::Release);
+                                }
+                                Ok(false) => {
+                                    warn!("Cannot re-enroll: no enrollment token configured")
+                                }
+                                Err(re_err) => error!(
+                                    "Re-enrollment after certificate expiry failed: {}",
+                                    re_err
+                                ),
+                            }
+                        }
+                    }
+                }
+            }
+            st.last_cert_check = std::time::Instant::now();
+        }
+    }
 }
 
 #[cfg(test)]
@@ -464,6 +502,17 @@ mod tests {
                 .load(Ordering::Acquire),
             0
         );
+    }
+
+    #[tokio::test]
+    async fn a_standalone_agent_has_no_certificate_to_renew() {
+        let test = standalone_runtime();
+        let started = Instant::now() - Duration::from_secs(2 * CERT_CHECK_INTERVAL_SECS);
+        let mut st = LoopState::starting_at(started, 3600, 3600);
+
+        test.runtime.certificate_renewal_stage(&mut st).await;
+
+        assert_eq!(st.last_cert_check, started);
     }
 
     #[tokio::test]
