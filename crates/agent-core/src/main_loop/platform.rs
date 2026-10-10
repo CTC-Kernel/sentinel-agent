@@ -5,6 +5,8 @@
 //! synchronisations that follow it. A standalone agent runs none of them.
 
 use agent_common::error::CommonError;
+#[cfg(feature = "gui")]
+use agent_gui::events::AgentEvent;
 use std::sync::atomic::Ordering;
 use tracing::{debug, error, info, warn};
 
@@ -327,6 +329,107 @@ impl AgentRuntime {
             st.last_cert_check = std::time::Instant::now();
         }
     }
+
+    /// The synchronisation the operator asked for ("Forcer la
+    /// synchronisation"): results, GRC queue, then a heartbeat, with the
+    /// outcome shown in the interface. In standalone mode it is declined.
+    pub(crate) async fn forced_sync_stage(&self, st: &mut LoopState) {
+        // A sync request in standalone mode has nothing to sync: say so
+        // once in the interface instead of spinning against no server.
+        if self.config.standalone && self.state.force_sync.swap(false, Ordering::AcqRel) {
+            info!("Sync requested in standalone mode: no platform, nothing to send");
+            #[cfg(feature = "gui")]
+            self.emit_gui_event(AgentEvent::SyncStatus {
+                syncing: false,
+                pending_count: 0,
+                last_sync_at: None,
+                error: Some(
+                    "Mode autonome : aucune plateforme à synchroniser. Les données restent sur ce poste."
+                        .to_string(),
+                ),
+            });
+        }
+
+        // Check for force_sync flag (GUI "Forcer la synchronisation" button)
+        if self.state.force_sync.load(Ordering::Acquire) {
+            info!("Force sync triggered");
+            #[cfg(feature = "gui")]
+            self.emit_gui_event(AgentEvent::SyncStatus {
+                syncing: true,
+                pending_count: 0,
+                last_sync_at: None,
+                error: None,
+            });
+
+            self.upload_check_results().await;
+
+            // Drain GRC sync queue during force sync
+            if let Some(ref client) = self.authenticated_client
+                && let Some(orchestrator) = self.sync_orchestrator.read().await.as_ref()
+            {
+                match orchestrator.drain_grc_queues(client).await {
+                    Ok(count) => {
+                        if count > 0 {
+                            info!("Force sync: {} GRC items synced", count);
+                        }
+                    }
+                    Err(e) => warn!("Force sync GRC queue drain failed: {}", e),
+                }
+            }
+
+            match self
+                .send_heartbeat(st.compliance_score, st.last_compliance_check_at)
+                .await
+            {
+                Ok(()) => {
+                    info!("Force sync heartbeat sent");
+                    #[cfg(feature = "gui")]
+                    {
+                        self.emit_notification(
+                            "Synchronisation",
+                            "Données synchronisées avec succès",
+                            "info",
+                        );
+                        self.emit_gui_event(AgentEvent::SyncStatus {
+                            syncing: false,
+                            pending_count: 0,
+                            last_sync_at: Some(chrono::Utc::now()),
+                            error: None,
+                        });
+                    }
+                }
+                Err(e) => {
+                    warn!("Force sync heartbeat failed: {}", e);
+                    #[cfg(feature = "gui")]
+                    {
+                        self.emit_notification(
+                            "Synchronisation échouée",
+                            &format!("{}", e),
+                            "error",
+                        );
+                        self.emit_gui_event(AgentEvent::SyncStatus {
+                            syncing: false,
+                            pending_count: 0,
+                            last_sync_at: None,
+                            error: Some(format!("{}", e)),
+                        });
+                    }
+                }
+            }
+            st.last_heartbeat = std::time::Instant::now();
+            #[cfg(feature = "gui")]
+            {
+                self.emit_status_update(
+                    st.gui.last_check_at,
+                    st.compliance_score,
+                    st.gui.cached_pending_sync,
+                    st.gui.cached_policy_summary,
+                );
+                self.emit_resource_update(None);
+            }
+            self.state.force_sync.store(false, Ordering::Release);
+        }
+    }
 }
 
 #[cfg(test)]
@@ -513,6 +616,33 @@ mod tests {
         test.runtime.certificate_renewal_stage(&mut st).await;
 
         assert_eq!(st.last_cert_check, started);
+    }
+
+    #[tokio::test]
+    async fn a_standalone_agent_declines_a_forced_sync_once() {
+        let test = standalone_runtime();
+        let started = Instant::now() - Duration::from_secs(10);
+        let mut st = LoopState::starting_at(started, 3600, 3600);
+        test.runtime.state.force_sync.store(true, Ordering::Release);
+
+        test.runtime.forced_sync_stage(&mut st).await;
+
+        assert!(!test.runtime.state.force_sync.load(Ordering::Acquire));
+        // Nothing was sent: the heartbeat timer did not move.
+        assert_eq!(st.last_heartbeat, started);
+        #[cfg(feature = "gui")]
+        {
+            match test.events.try_recv() {
+                Ok(AgentEvent::SyncStatus { syncing, error, .. }) => {
+                    assert!(!syncing);
+                    assert!(error.is_some_and(|message| message.starts_with("Mode autonome")));
+                }
+                other => panic!("expected the sync status, got {:?}", other.map(|_| ())),
+            }
+            // Said once: the next pass has nothing to add.
+            test.runtime.forced_sync_stage(&mut st).await;
+            assert!(test.events.try_recv().is_err());
+        }
     }
 
     #[tokio::test]
