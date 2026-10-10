@@ -8,6 +8,7 @@ mod detection;
 mod fim;
 mod network;
 mod pass;
+mod platform;
 mod siem;
 mod startup;
 mod state;
