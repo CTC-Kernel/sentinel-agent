@@ -1897,7 +1897,7 @@ pub fn seed(state: &mut AppState) {
         trigger_event: "curl.exe \u{2192} 185.220.101.4:9001".into(),
         actions_executed: vec!["BlockIp".into()],
         success: false,
-        error: Some("Pare-feu : r\u{00e8}gle refus\u{00e9}e (profil Public inactif)".into()),
+        error: Some("internal error: Elevated privileges required to modify firewall rules; Configuration error: SIEM destination is not enabled/configured".into()),
     });
     state.threats.playbook_log.push_back(PlaybookLogEntry {
         id: id(741),
