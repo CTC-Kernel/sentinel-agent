@@ -1505,7 +1505,7 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
             if config.standalone {
                 let listener_config = config.clone();
                 let listener_events = bg_event_tx.clone();
-                tokio::spawn(async move {
+                agent_core::supervised_tasks::spawn_logged("platform connection listener", async move {
                     listen_for_platform_connection(
                         enrollment_rx,
                         listener_config,
@@ -1603,7 +1603,10 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                 remote_ai,
                 tasks: agent_core::supervised_tasks::TaskSet::new("interface commands"),
             };
-            tokio::spawn(gui_commands::run(ctx, command_rx));
+            agent_core::supervised_tasks::spawn_logged(
+                "interface commands",
+                gui_commands::run(ctx, command_rx),
+            );
 
             // On Windows, check whether the background service is already
             // running.  If it is, skip the full agent runtime to avoid

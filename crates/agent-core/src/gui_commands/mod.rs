@@ -4,6 +4,8 @@
 //! Commands sent by the desktop interface to the agent, and what handles
 //! them.
 
+use std::future::Future;
+use std::panic::AssertUnwindSafe;
 use std::sync::atomic::AtomicBool;
 use std::sync::mpsc::TryRecvError;
 use std::sync::{Arc, Mutex};
@@ -15,6 +17,7 @@ use agent_core::supervised_tasks::TaskSet;
 use agent_gui::events::{AgentEvent, GuiCommand};
 use agent_storage::Database;
 use agent_sync::AuthenticatedClient;
+use futures_util::FutureExt;
 use tracing::error;
 
 pub(crate) mod ai;
@@ -192,6 +195,33 @@ async fn dispatch(ctx: &mut CommandContext, command: GuiCommand) -> Flow {
     Flow::Continue
 }
 
+/// The name of a command, without what it carries (prompts, settings).
+fn command_name(command: &GuiCommand) -> String {
+    let debug = format!("{command:?}");
+    debug
+        .split(|c: char| !c.is_ascii_alphanumeric())
+        .next()
+        .unwrap_or_default()
+        .to_string()
+}
+
+/// Run the handling of one command; if it panics, log it under the name of
+/// the command and go on with the next one. A panic used to end the
+/// dispatcher for good, leaving the interface without an answer.
+async fn guarded(name: &str, handling: impl Future<Output = Flow>) -> Flow {
+    match AssertUnwindSafe(handling).catch_unwind().await {
+        Ok(flow) => flow,
+        Err(payload) => {
+            error!(
+                "GUI command {} panicked: {}",
+                name,
+                agent_core::supervised_tasks::panic_message(payload.as_ref())
+            );
+            Flow::Continue
+        }
+    }
+}
+
 /// Read the commands of the interface and handle them one at a time, until
 /// the interface is gone or the agent was asked to shut down.
 pub(crate) async fn run(mut ctx: CommandContext, commands: std::sync::mpsc::Receiver<GuiCommand>) {
@@ -200,7 +230,8 @@ pub(crate) async fn run(mut ctx: CommandContext, commands: std::sync::mpsc::Rece
         ctx.tasks.reap();
         match commands.try_recv() {
             Ok(command) => {
-                if dispatch(&mut ctx, command).await == Flow::Stop {
+                let name = command_name(&command);
+                if guarded(&name, dispatch(&mut ctx, command)).await == Flow::Stop {
                     break;
                 }
             }
@@ -219,8 +250,9 @@ pub(crate) async fn run(mut ctx: CommandContext, commands: std::sync::mpsc::Rece
 /// dispatcher and the group disagree on who handles it. Nothing is done.
 fn misrouted(group: &str, command: &GuiCommand) {
     error!(
-        "GUI command {:?} was handed to the {} handlers, which do not know it",
-        command, group
+        "GUI command {} was handed to the {} handlers, which do not know it",
+        command_name(command),
+        group
     );
 }
 
@@ -344,6 +376,28 @@ mod tests {
             }
             other => panic!("expected a notification, got {:?}", other.map(|_| ())),
         }
+    }
+
+    #[test]
+    fn a_command_is_named_without_what_it_carries() {
+        assert_eq!(command_name(&GuiCommand::Pause), "Pause");
+        assert_eq!(
+            command_name(&GuiCommand::LlmPrompt {
+                prompt: "mot de passe du serveur ?".to_string(),
+                context: None,
+                speak_response: false,
+            }),
+            "LlmPrompt"
+        );
+    }
+
+    #[tokio::test]
+    async fn a_handler_that_panics_does_not_stop_the_dispatcher() {
+        assert_eq!(
+            guarded("Pause", async { panic!("handler bug") }).await,
+            Flow::Continue
+        );
+        assert_eq!(guarded("Shutdown", async { Flow::Stop }).await, Flow::Stop);
     }
 
     #[tokio::test]

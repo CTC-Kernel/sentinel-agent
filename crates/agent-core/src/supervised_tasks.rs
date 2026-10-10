@@ -267,6 +267,22 @@ impl TaskSet {
     }
 }
 
+/// Start a task that nobody will join, and log its panic if it has one.
+/// For the few tasks that have no owner to reap them. The handle returned
+/// resolves to the panic message, `None` when the task ended normally.
+pub fn spawn_logged<F>(name: &'static str, future: F) -> tokio::task::JoinHandle<Option<String>>
+where
+    F: Future<Output = ()> + Send + 'static,
+{
+    let task = tokio::spawn(future);
+    tokio::spawn(async move {
+        let payload = task.await.err()?.try_into_panic().ok()?;
+        let message = panic_message(payload.as_ref());
+        error!("background task '{}' panicked: {}", name, message);
+        Some(message)
+    })
+}
+
 /// Pause before the start that follows panic number `panics` in a row.
 fn restart_delay(base: Duration, panics: u32) -> Duration {
     let doublings = panics.saturating_sub(1).min(16);
@@ -275,7 +291,7 @@ fn restart_delay(base: Duration, panics: u32) -> Duration {
 }
 
 /// The text of a panic, when it carries one.
-fn panic_message(payload: &(dyn std::any::Any + Send)) -> String {
+pub fn panic_message(payload: &(dyn std::any::Any + Send)) -> String {
     if let Some(text) = payload.downcast_ref::<&str>() {
         (*text).to_string()
     } else if let Some(text) = payload.downcast_ref::<String>() {
@@ -476,6 +492,17 @@ mod tests {
 
         tokio::time::sleep(Duration::from_millis(120)).await;
         assert_eq!(done.load(Ordering::SeqCst), 1);
+    }
+
+    #[tokio::test]
+    async fn a_task_without_an_owner_still_has_its_panic_logged() {
+        let watcher = spawn_logged("dispatcher", async {
+            panic!("handler bug");
+        });
+        assert_eq!(watcher.await.unwrap().as_deref(), Some("handler bug"));
+
+        let watcher = spawn_logged("listener", async {});
+        assert_eq!(watcher.await.unwrap(), None);
     }
 
     #[test]
