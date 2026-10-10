@@ -1590,7 +1590,7 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
 
 
             // Spawn command processor
-            let mut ctx = gui_commands::CommandContext {
+            let ctx = gui_commands::CommandContext {
                 handle: handle.clone(),
                 events: bg_event_tx,
                 db: db_for_commands,
@@ -1602,134 +1602,7 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                 llm_cancel,
                 remote_ai,
             };
-            tokio::spawn(async move {
-                loop {
-                    match command_rx.try_recv() {
-                        Ok(command @ (GuiCommand::Pause
-                            | GuiCommand::Resume
-                            | GuiCommand::Shutdown
-                            | GuiCommand::Restart
-                            | GuiCommand::RunCheck
-                            | GuiCommand::ForceSync
-                            | GuiCommand::RunSync
-                            | GuiCommand::StartDiscovery
-                            | GuiCommand::StopDiscovery
-                            | GuiCommand::CheckUpdate
-                            | GuiCommand::ProposeAsset { .. }
-                            | GuiCommand::Remediate { .. }
-                            | GuiCommand::RemediatePreview { .. }
-                            | GuiCommand::ApplyAiRemediation { .. }
-                            | GuiCommand::ConnectToPlatform
-                            | GuiCommand::GetSummary
-                            | GuiCommand::GetCheckResults
-                            | GuiCommand::MarkNotificationRead { .. }
-                            | GuiCommand::MarkAllNotificationsRead
-                            | GuiCommand::DeleteNotification { .. })) => {
-                            if gui_commands::control::handle(&mut ctx, command).await
-                                == gui_commands::Flow::Stop
-                            {
-                                break;
-                            }
-                        }
-                        Ok(command @ (GuiCommand::UpdateCheckInterval { .. }
-                            | GuiCommand::UpdateAllowlist { .. }
-                            | GuiCommand::SetLogLevel { .. }
-                            | GuiCommand::SetRansomwareCanaries { .. }
-                            | GuiCommand::UpdateSiemConfig { .. }
-                            | GuiCommand::UpdateLogCollectorConfig { .. })) => {
-                            gui_commands::settings::handle(&mut ctx, command).await;
-                        }
-                        Ok(command @ (GuiCommand::AcknowledgeFimAlert { .. }
-                            | GuiCommand::KillProcess { .. }
-                            | GuiCommand::QuarantineFile { .. }
-                            | GuiCommand::RestoreQuarantinedFile { .. }
-                            | GuiCommand::BlockIp { .. }
-                            | GuiCommand::UnblockIp { .. }
-                            | GuiCommand::IsolateHost { .. }
-                            | GuiCommand::ReleaseHost)) => {
-                            gui_commands::response::handle(&mut ctx, command).await;
-                        }
-                        Ok(command @ (GuiCommand::ExportSbom
-                            | GuiCommand::GenerateReport { .. }
-                            | GuiCommand::ExportReportHtml { .. }
-                            | GuiCommand::ExportCsvAuditTrail)) => {
-                            gui_commands::reports::handle(&mut ctx, command).await;
-                        }
-                        Ok(command @ (GuiCommand::ExecutePlaybook { .. }
-                            | GuiCommand::TogglePlaybook { .. }
-                            | GuiCommand::SavePlaybook { .. }
-                            | GuiCommand::DeletePlaybook { .. }
-                            | GuiCommand::SaveDetectionRule { .. }
-                            | GuiCommand::DeleteDetectionRule { .. }
-                            | GuiCommand::ToggleDetectionRule { .. })) => {
-                            gui_commands::playbooks::handle(&mut ctx, command).await;
-                        }
-
-
-
-                        Ok(command @ (GuiCommand::SaveRisk { .. }
-                            | GuiCommand::DeleteRisk { .. }
-                            | GuiCommand::SaveAsset { .. }
-                            | GuiCommand::UpdateAssetLifecycle { .. }
-                            | GuiCommand::SaveAlertRule { .. }
-                            | GuiCommand::DeleteAlertRule { .. }
-                            | GuiCommand::SaveWebhook { .. }
-                            | GuiCommand::DeleteWebhook { .. }
-                            | GuiCommand::TestWebhook { .. })) => {
-                            gui_commands::grc::handle(&mut ctx, command).await;
-                        }
-
-                        Ok(command @ (GuiCommand::ConfigureAiProvider { .. }
-                            | GuiCommand::TestAiProvider { .. }
-                            | GuiCommand::LlmPrompt { .. }
-                            | GuiCommand::LlmCancel
-                            | GuiCommand::LlmWarmUp { .. }
-                            | GuiCommand::LlmGetStatus
-                            | GuiCommand::LlmReloadModel
-                            | GuiCommand::LlmStartDownload
-                            | GuiCommand::LlmPauseDownload
-                            | GuiCommand::LlmResumeDownload
-                            | GuiCommand::LlmCancelDownload
-                            | GuiCommand::LlmAnalyzeVulnerability { .. }
-                            | GuiCommand::LlmSelectModel { .. }
-                            | GuiCommand::LlmClassifyThreat { .. }
-                            | GuiCommand::LlmAnalyzeRisk { .. })) => {
-                            gui_commands::ai::handle(&mut ctx, command).await;
-                        }
-
-                        // ── LLM commands ──────────────────────────────────────
-
-
-
-
-
-
-
-
-                        Ok(command @ (GuiCommand::StopVoice
-                            | GuiCommand::ConfigureVoice { .. }
-                            | GuiCommand::VoiceRefreshStatus
-                            | GuiCommand::VoiceInstallModel { .. }
-                            | GuiCommand::VoiceCancelModelInstall
-                            | GuiCommand::SetVoiceListening { .. }
-                            | GuiCommand::SpeakNotification { .. }
-                            | GuiCommand::LlmToggleVoice)) => {
-                            gui_commands::voice::handle(&mut ctx, command).await;
-                        }
-
-
-
-
-
-
-
-                        Err(mpsc::TryRecvError::Empty) => {
-                            tokio::time::sleep(std::time::Duration::from_millis(100)).await;
-                        }
-                        Err(mpsc::TryRecvError::Disconnected) => break,
-                    }
-                }
-            });
+            tokio::spawn(gui_commands::run(ctx, command_rx));
 
             // On Windows, check whether the background service is already
             // running.  If it is, skip the full agent runtime to avoid
