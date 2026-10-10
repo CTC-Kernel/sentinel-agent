@@ -1049,68 +1049,8 @@ impl AgentRuntime {
             self.emit_fim_stats(&mut st).await;
 
             // 1b. Sync GUI SIEM config changes to the actual forwarder
-            // Only enable external SIEM transport if a real destination is configured.
             #[cfg(feature = "gui")]
-            {
-                let gui_enabled = self.state.siem_enabled.load(Ordering::Acquire);
-                let has_destination = self
-                    .state
-                    .siem_destination
-                    .lock()
-                    .map(|d| !d.is_empty())
-                    .unwrap_or(false);
-                // Don't activate external transport without a configured destination
-                let effective_enabled = gui_enabled && has_destination;
-                let mut siem_guard = self.siem_forwarder.write().await;
-                if let Some(ref mut siem) = *siem_guard
-                    && siem.is_enabled() != effective_enabled
-                {
-                    let mut new_config = siem.config().clone();
-                    new_config.enabled = effective_enabled;
-                    if let Ok(fmt) = self.state.siem_format.lock() {
-                        new_config.format = match fmt.as_str() {
-                            "CEF" => agent_siem::SiemFormat::Cef,
-                            "LEEF" => agent_siem::SiemFormat::Leef,
-                            _ => agent_siem::SiemFormat::Json,
-                        };
-                    }
-                    if has_destination
-                        && let Ok(dest) = self.state.siem_destination.lock()
-                        && let Ok(tr) = self.state.siem_transport.lock()
-                    {
-                        match tr.as_str() {
-                            "HTTP" => {
-                                new_config.transport = agent_siem::SiemTransport::Http {
-                                    url: dest.clone(),
-                                    auth_token: None,
-                                    auth_header: None,
-                                    verify_tls: true,
-                                    client_cert: None,
-                                    client_key: None,
-                                };
-                            }
-                            _ => {
-                                let parts: Vec<&str> = dest.splitn(2, ':').collect();
-                                let host = parts.first().unwrap_or(&"localhost").to_string();
-                                let port = parts.get(1).and_then(|p| p.parse().ok()).unwrap_or(514);
-                                new_config.transport = agent_siem::SiemTransport::Syslog {
-                                    host,
-                                    port,
-                                    protocol: agent_siem::SyslogProtocol::Tcp,
-                                    tls: false,
-                                    client_cert: None,
-                                    client_key: None,
-                                };
-                            }
-                        }
-                    }
-                    if let Err(e) = siem.update_config(new_config) {
-                        warn!("Failed to apply GUI SIEM config: {}", e);
-                    } else if effective_enabled {
-                        info!("SIEM forwarder config synced from GUI (enabled=true)");
-                    }
-                }
-            }
+            self.sync_gui_siem_config().await;
 
             // 2. Heartbeat & Config Sync (a standalone agent has nobody to report to)
             if !self.config.standalone

@@ -5,9 +5,53 @@
 //! correlation engine.
 
 use agent_siem::SiemForwarder;
+#[cfg(feature = "gui")]
+use std::sync::atomic::Ordering;
+#[cfg(feature = "gui")]
+use tracing::warn;
 use tracing::{error, info};
 
 use crate::AgentRuntime;
+
+/// The output format behind the label shown in the interface (JSON unless
+/// CEF or LEEF).
+#[cfg(feature = "gui")]
+fn siem_format_from_label(label: &str) -> agent_siem::SiemFormat {
+    match label {
+        "CEF" => agent_siem::SiemFormat::Cef,
+        "LEEF" => agent_siem::SiemFormat::Leef,
+        _ => agent_siem::SiemFormat::Json,
+    }
+}
+
+/// The transport behind the interface's choice: an HTTP collector at
+/// `destination`, or syslog over TCP to `host[:port]` (port 514 by default).
+#[cfg(feature = "gui")]
+fn siem_transport_from_gui(transport: &str, destination: &str) -> agent_siem::SiemTransport {
+    match transport {
+        "HTTP" => agent_siem::SiemTransport::Http {
+            url: destination.to_string(),
+            auth_token: None,
+            auth_header: None,
+            verify_tls: true,
+            client_cert: None,
+            client_key: None,
+        },
+        _ => {
+            let parts: Vec<&str> = destination.splitn(2, ':').collect();
+            let host = parts.first().unwrap_or(&"localhost").to_string();
+            let port = parts.get(1).and_then(|p| p.parse().ok()).unwrap_or(514);
+            agent_siem::SiemTransport::Syslog {
+                host,
+                port,
+                protocol: agent_siem::SyslogProtocol::Tcp,
+                tls: false,
+                client_cert: None,
+                client_key: None,
+            }
+        }
+    }
+}
 
 impl AgentRuntime {
     /// Create the SIEM forwarder, disabled by default. Events always reach
@@ -92,6 +136,42 @@ impl AgentRuntime {
         *guard = Some(engine);
         info!("Correlation engine initialized");
     }
+
+    /// Apply the SIEM settings chosen in the interface to the forwarder.
+    /// The external transport is only enabled with a real destination.
+    #[cfg(feature = "gui")]
+    pub(crate) async fn sync_gui_siem_config(&self) {
+        let gui_enabled = self.state.siem_enabled.load(Ordering::Acquire);
+        let has_destination = self
+            .state
+            .siem_destination
+            .lock()
+            .map(|d| !d.is_empty())
+            .unwrap_or(false);
+        // Don't activate external transport without a configured destination
+        let effective_enabled = gui_enabled && has_destination;
+        let mut siem_guard = self.siem_forwarder.write().await;
+        if let Some(ref mut siem) = *siem_guard
+            && siem.is_enabled() != effective_enabled
+        {
+            let mut new_config = siem.config().clone();
+            new_config.enabled = effective_enabled;
+            if let Ok(fmt) = self.state.siem_format.lock() {
+                new_config.format = siem_format_from_label(fmt.as_str());
+            }
+            if has_destination
+                && let Ok(dest) = self.state.siem_destination.lock()
+                && let Ok(tr) = self.state.siem_transport.lock()
+            {
+                new_config.transport = siem_transport_from_gui(tr.as_str(), &dest);
+            }
+            if let Err(e) = siem.update_config(new_config) {
+                warn!("Failed to apply GUI SIEM config: {}", e);
+            } else if effective_enabled {
+                info!("SIEM forwarder config synced from GUI (enabled=true)");
+            }
+        }
+    }
 }
 
 #[cfg(test)]
@@ -115,6 +195,97 @@ mod tests {
             let collector = test.runtime.log_collector.read().await;
             assert_eq!(collector.as_ref().map(|c| c.is_enabled()), Some(enabled));
         }
+    }
+
+    #[cfg(feature = "gui")]
+    #[test]
+    fn interface_labels_map_to_formats() {
+        use super::siem_format_from_label;
+        use agent_siem::SiemFormat;
+        assert_eq!(siem_format_from_label("CEF"), SiemFormat::Cef);
+        assert_eq!(siem_format_from_label("LEEF"), SiemFormat::Leef);
+        assert_eq!(siem_format_from_label("JSON"), SiemFormat::Json);
+        assert_eq!(siem_format_from_label("anything else"), SiemFormat::Json);
+    }
+
+    #[cfg(feature = "gui")]
+    #[test]
+    fn a_syslog_destination_is_split_into_host_and_port() {
+        use super::siem_transport_from_gui;
+        use agent_siem::SiemTransport;
+        match siem_transport_from_gui("Syslog", "siem.example.org:6514") {
+            SiemTransport::Syslog {
+                host, port, tls, ..
+            } => {
+                assert_eq!(
+                    (host.as_str(), port, tls),
+                    ("siem.example.org", 6514, false)
+                );
+            }
+            SiemTransport::Http { .. } => panic!("expected syslog"),
+        }
+        // No port, or an unreadable one: the syslog default.
+        for destination in ["siem.example.org", "siem.example.org:syslog"] {
+            match siem_transport_from_gui("Syslog", destination) {
+                SiemTransport::Syslog { host, port, .. } => {
+                    assert_eq!((host.as_str(), port), ("siem.example.org", 514));
+                }
+                SiemTransport::Http { .. } => panic!("expected syslog"),
+            }
+        }
+    }
+
+    #[cfg(feature = "gui")]
+    #[test]
+    fn an_http_destination_is_kept_whole_and_verified() {
+        use super::siem_transport_from_gui;
+        use agent_siem::SiemTransport;
+        match siem_transport_from_gui("HTTP", "https://hec.example.org:8088/services/collector") {
+            SiemTransport::Http {
+                url,
+                verify_tls,
+                auth_token,
+                ..
+            } => {
+                assert_eq!(url, "https://hec.example.org:8088/services/collector");
+                assert!(verify_tls);
+                assert!(auth_token.is_none());
+            }
+            SiemTransport::Syslog { .. } => panic!("expected http"),
+        }
+    }
+
+    #[cfg(feature = "gui")]
+    #[tokio::test]
+    async fn the_forwarder_is_enabled_only_with_a_destination() {
+        let test = standalone_runtime();
+        test.runtime.init_siem_forwarder().await;
+        let state = &test.runtime.state;
+        state.siem_enabled.store(true, Ordering::Release);
+
+        // Enabled in the interface, but nowhere to send to.
+        state.siem_destination.lock().unwrap().clear();
+        test.runtime.sync_gui_siem_config().await;
+        assert!(
+            !test
+                .runtime
+                .siem_forwarder
+                .read()
+                .await
+                .as_ref()
+                .unwrap()
+                .is_enabled()
+        );
+
+        *state.siem_destination.lock().unwrap() = "siem.example.org:6514".to_string();
+        *state.siem_transport.lock().unwrap() = "Syslog".to_string();
+        *state.siem_format.lock().unwrap() = "CEF".to_string();
+        test.runtime.sync_gui_siem_config().await;
+        let forwarder = test.runtime.siem_forwarder.read().await;
+        let siem = forwarder.as_ref().unwrap();
+        assert!(siem.is_enabled());
+        assert_eq!(siem.config().format, agent_siem::SiemFormat::Cef);
+        assert_eq!(siem.config().destination_label(), "siem.example.org:6514");
     }
 
     #[tokio::test]
