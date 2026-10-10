@@ -15,6 +15,7 @@ use agent_storage::Database;
 use agent_sync::AuthenticatedClient;
 use tracing::error;
 
+pub(crate) mod ai;
 pub(crate) mod grc;
 pub(crate) mod playbooks;
 pub(crate) mod reports;
