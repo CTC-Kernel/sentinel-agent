@@ -102,7 +102,10 @@ pub struct FimPolicy {
     /// Paths to monitor for changes.
     pub watched_paths: Vec<PathBuf>,
 
-    /// Glob patterns to exclude from monitoring.
+    /// Patterns to exclude from monitoring, matched case-insensitively:
+    /// `*suffix` (path ends with `suffix`), `dir/**` (inside a directory named
+    /// `dir`) or `name` (a file or directory named `name`, and its content).
+    /// `dir` and `name` are whole path components, not substrings.
     #[serde(default)]
     pub ignore_patterns: Vec<String>,
 
@@ -133,15 +136,37 @@ fn default_debounce_ms() -> u64 {
 /// loop -- FIM alerts on `agent.db` writes, which are themselves written to
 /// `agent.db`.
 ///
-/// Both casings of the macOS data directory (`SentinelGRC`) and the
-/// lowercase Unix form are listed: pattern matching is case-sensitive on
-/// non-Windows platforms.
+/// Every entry names a directory (or a log file) the agent itself writes to on
+/// one of the supported platforms. Entries are matched case-insensitively
+/// against whole path components: `sentinel/**` covers
+/// `/etc/sentinel/agent.json` but neither `/etc/sentinel-update` nor a file
+/// called `sentinel`. Anything broader is a way to evade monitoring by naming
+/// a file after the agent, so a directory the agent starts writing to must be
+/// listed here by its exact name.
 pub const SELF_EXCLUSION_PATTERNS: &[&str] = &[
+    // Linux: /etc/sentinel (config), /var/log/sentinel and
+    // ~/.local/share/sentinel (logs). Windows: %ProgramData%\Sentinel and
+    // %LOCALAPPDATA%\Sentinel (config, data, logs).
     "sentinel/**",
+    // Linux: /var/lib/sentinel-grc (data), /var/log/sentinel-grc (logs),
+    // /opt/sentinel-grc (install). Every platform: the quarantine store,
+    // <local data dir>/sentinel-grc/quarantine.
     "sentinel-grc/**",
-    "Sentinel/**",
+    // macOS: ~/Library/Application Support/SentinelGRC (config, data, logs).
     "SentinelGRC/**",
     "SentinelAgent.app/**",
+    // Log directories used when the system-wide one is not writable: the
+    // macOS per-user one, and the last-resort one under the temp directory.
+    "com.sentinel-grc.Sentinel/**",
+    "sentinel-logs/**",
+    // GUI preferences (Linux and Windows, then macOS).
+    "SentinelAgent/**",
+    "com.CyberThreatConsulting.SentinelAgent/**",
+    // macOS: launchd redirects the agent's and its helper's output, which
+    // carries every log line, to these files.
+    "var/log/sentinel-agent.log",
+    "var/log/sentinel-agent.err",
+    "var/log/sentinel-agent-helper.log",
 ];
 
 impl FimPolicy {
