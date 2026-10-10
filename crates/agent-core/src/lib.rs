@@ -34,6 +34,7 @@ pub mod siem_enrichment;
 #[cfg(feature = "voice")]
 pub mod sounds;
 pub mod state;
+pub mod supervised_tasks;
 #[cfg(feature = "gui")]
 pub mod sync_converters;
 pub mod system_utils;
