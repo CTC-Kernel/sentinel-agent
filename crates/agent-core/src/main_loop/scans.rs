@@ -20,25 +20,25 @@ use agent_scanner::VulnerabilityScanResult;
 use std::future::Future;
 #[cfg(feature = "gui")]
 use std::sync::atomic::Ordering;
-use tokio::sync::oneshot;
 use tracing::{debug, error, info, warn};
 
+use super::job::Job;
 use super::outbox::Outbound;
 use super::{LoopPass, LoopState};
 use crate::AgentRuntime;
 use crate::supervised_tasks::TaskSet;
+#[cfg(feature = "gui")]
+use crate::triage_allowlist;
 
 /// Name of the background task that scans for vulnerabilities.
 const VULN_SCAN_TASK: &str = "vulnerability scan";
 
+/// What a vulnerability scan ends with.
+type VulnScanOutcome = Result<agent_scanner::VulnerabilityScanResult, CommonError>;
+
 /// The background vulnerability scan (see `VulnScanJob`), from its start to
 /// the pass that collects its outcome.
-pub(crate) struct VulnScanTask {
-    outcome: oneshot::Receiver<VulnScanOutcome>,
-    abort: tokio::task::AbortHandle,
-}
-
-type VulnScanOutcome = Result<agent_scanner::VulnerabilityScanResult, CommonError>;
+pub(crate) struct VulnScanTask(Job<VulnScanOutcome>);
 
 impl VulnScanTask {
     /// Run `scan` in a task of `tasks`.
@@ -46,31 +46,20 @@ impl VulnScanTask {
         tasks: &mut TaskSet,
         scan: impl Future<Output = VulnScanOutcome> + Send + 'static,
     ) -> Self {
-        let (done, outcome) = oneshot::channel();
-        let abort = tasks.spawn(VULN_SCAN_TASK, async move {
-            // Nobody is waiting any more when the loop has stopped.
-            let _ = done.send(scan.await);
-        });
-        Self { outcome, abort }
+        Self(Job::start(tasks, VULN_SCAN_TASK, scan))
     }
 
     /// `None` while the scan is running; then its outcome, itself `None`
     /// when the task ended without one (it panicked or was aborted).
     fn finished(&mut self) -> Option<Option<VulnScanOutcome>> {
-        match self.outcome.try_recv() {
-            Ok(outcome) => Some(Some(outcome)),
-            Err(oneshot::error::TryRecvError::Empty) => None,
-            Err(oneshot::error::TryRecvError::Closed) => Some(None),
-        }
+        self.0.finished()
     }
 
     /// Stop the scan.
     pub(crate) fn abort(&self) {
-        self.abort.abort();
+        self.0.abort();
     }
 }
-#[cfg(feature = "gui")]
-use crate::triage_allowlist;
 
 /// What identifies an incident from one security scan to the next.
 #[cfg(feature = "gui")]
@@ -663,7 +652,7 @@ mod tests {
         scan: impl Future<Output = VulnScanOutcome> + Send + 'static,
     ) {
         let task = VulnScanTask::start(&mut st.tasks, scan);
-        while !task.abort.is_finished() {
+        while !task.0.is_over() {
             tokio::task::yield_now().await;
         }
         st.vuln_scan_task = Some(task);

@@ -80,6 +80,7 @@ mod detection;
 mod discovery;
 mod fim;
 mod idle;
+mod job;
 mod maintenance;
 mod network;
 mod outbox;

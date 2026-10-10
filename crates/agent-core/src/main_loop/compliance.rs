@@ -12,9 +12,9 @@ use agent_scanner::{CheckExecutionResult, ComplianceScore};
 use std::future::Future;
 use std::sync::Arc;
 use std::sync::atomic::Ordering;
-use tokio::sync::oneshot;
 use tracing::{error, info};
 
+use super::job::Job;
 use super::{LoopPass, LoopState};
 use crate::AgentRuntime;
 use crate::supervised_tasks::TaskSet;
@@ -28,7 +28,7 @@ type ComplianceOutcome = (Vec<CheckExecutionResult>, ComplianceScore);
 /// The compliance checks running in the background, from their start to the
 /// pass that collects their results.
 pub(crate) struct ComplianceTask {
-    outcome: oneshot::Receiver<ComplianceOutcome>,
+    checks: Job<ComplianceOutcome>,
     /// Asked for by the operator: it generates no risks, and the forced
     /// check ends with it.
     forced: bool,
@@ -41,22 +41,16 @@ impl ComplianceTask {
         forced: bool,
         checks: impl Future<Output = ComplianceOutcome> + Send + 'static,
     ) -> Self {
-        let (done, outcome) = oneshot::channel();
-        tasks.spawn(COMPLIANCE_TASK, async move {
-            // Nobody is waiting any more when the loop has stopped.
-            let _ = done.send(checks.await);
-        });
-        Self { outcome, forced }
+        Self {
+            checks: Job::start(tasks, COMPLIANCE_TASK, checks),
+            forced,
+        }
     }
 
     /// `None` while the checks are running; then their outcome, itself
     /// `None` when the task ended without one (it panicked or was aborted).
     fn finished(&mut self) -> Option<Option<ComplianceOutcome>> {
-        match self.outcome.try_recv() {
-            Ok(outcome) => Some(Some(outcome)),
-            Err(oneshot::error::TryRecvError::Empty) => None,
-            Err(oneshot::error::TryRecvError::Closed) => Some(None),
-        }
+        self.checks.finished()
     }
 }
 
