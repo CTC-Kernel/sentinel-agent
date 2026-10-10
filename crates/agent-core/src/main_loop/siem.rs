@@ -7,10 +7,9 @@
 use agent_siem::SiemForwarder;
 #[cfg(feature = "gui")]
 use std::sync::atomic::Ordering;
-#[cfg(feature = "gui")]
-use tracing::warn;
-use tracing::{error, info};
+use tracing::{debug, error, info, warn};
 
+use super::LoopState;
 use crate::AgentRuntime;
 
 /// The output format behind the label shown in the interface (JSON unless
@@ -170,6 +169,166 @@ impl AgentRuntime {
             } else if effective_enabled {
                 info!("SIEM forwarder config synced from GUI (enabled=true)");
             }
+        }
+    }
+
+    /// Collect the OS event logs when the collector is enabled and its poll
+    /// interval has passed: interface, SIEM, then the correlation engine,
+    /// whose alerts are recorded and reported as incidents.
+    pub(crate) async fn collect_os_logs(&self, st: &mut LoopState) {
+        let poll_secs = self
+            .state
+            .log_collector_poll_secs
+            .load(std::sync::atomic::Ordering::Acquire);
+        let collector_enabled = self
+            .state
+            .log_collector_enabled
+            .load(std::sync::atomic::Ordering::Acquire);
+
+        if collector_enabled && st.last_log_collection.elapsed().as_secs() >= poll_secs {
+            let collector_guard = self.log_collector.read().await;
+            if let Some(ref collector) = *collector_guard {
+                let siem_events = collector.collect().await;
+                if !siem_events.is_empty() {
+                    debug!(
+                        "Log collector gathered {} events from OS logs",
+                        siem_events.len()
+                    );
+
+                    // Push collected events to the desktop GUI
+                    #[cfg(feature = "gui")]
+                    {
+                        self.emit_siem_log_batch(siem_events.clone());
+
+                        // Build category counts for stats
+                        let mut cat_map: std::collections::HashMap<String, u32> =
+                            std::collections::HashMap::new();
+                        for ev in &siem_events {
+                            *cat_map.entry(format!("{:?}", ev.category)).or_insert(0) += 1;
+                        }
+                        let siem_connected = self
+                            .state
+                            .siem_enabled
+                            .load(std::sync::atomic::Ordering::Acquire);
+                        self.emit_siem_stats(
+                            siem_events.len() as u64,
+                            siem_connected,
+                            siem_events.len() as f32 / (poll_secs.max(1) as f32 / 60.0),
+                            cat_map.into_iter().collect(),
+                        );
+                    }
+
+                    // Record all events for platform sync, then optionally forward to external SIEM
+                    let siem_guard = self.siem_forwarder.read().await;
+                    if let Some(siem) = siem_guard.as_ref() {
+                        for event in &siem_events {
+                            // Always record for platform (SIEM tab in SaaS)
+                            siem.record_event(event.clone()).await;
+
+                            // Additionally forward to external SIEM if configured
+                            if siem.is_enabled()
+                                && let Err(e) = siem.send_event(event).await
+                            {
+                                warn!("Failed to forward log event to external SIEM: {}", e);
+                            }
+                        }
+                    }
+                    drop(siem_guard);
+
+                    // Run events through correlation engine
+                    let corr_guard = self.correlation_engine.read().await;
+                    if let Some(ref engine) = *corr_guard {
+                        let alerts = engine.process_events(&siem_events).await;
+                        if !alerts.is_empty() {
+                            warn!("Correlation engine triggered {} alert(s)", alerts.len());
+
+                            // Forward correlation alerts to SIEM (record for platform + optional external)
+                            let siem_guard = self.siem_forwarder.read().await;
+                            if let Some(siem) = siem_guard.as_ref() {
+                                let host = hostname::get()
+                                    .map(|h| h.to_string_lossy().to_string())
+                                    .unwrap_or_default();
+                                for alert in &alerts {
+                                    let event = engine.alert_to_event(alert, &host);
+                                    siem.record_event(event.clone()).await;
+                                    if siem.is_enabled()
+                                        && let Err(e) = siem.send_event(&event).await
+                                    {
+                                        warn!(
+                                            "Failed to forward correlation alert to external SIEM: {}",
+                                            e
+                                        );
+                                    }
+                                }
+                            }
+                            drop(siem_guard);
+
+                            // Upload correlation alerts as security incidents
+                            for alert in &alerts {
+                                if let Some(ref client) = self.authenticated_client {
+                                    use agent_sync::types::{
+                                        IncidentType as SyncIncidentType, Severity as SyncSeverity,
+                                    };
+                                    let incident_type = match alert.rule_id.as_str() {
+                                        "brute_force" | "windows_logon_failure_burst" => {
+                                            SyncIncidentType::CredentialTheft
+                                        }
+                                        "privilege_escalation" => {
+                                            SyncIncidentType::PrivilegeEscalation
+                                        }
+                                        "file_integrity_burst"
+                                        | "windows_audit_log_cleared"
+                                        | "windows_account_changes" => {
+                                            SyncIncidentType::UnauthorizedChange
+                                        }
+                                        "windows_service_install_burst" => {
+                                            SyncIncidentType::Malware
+                                        }
+                                        "windows_firewall_changes" => {
+                                            SyncIncidentType::FirewallDisabled
+                                        }
+                                        "network_scan" | "critical_errors" => {
+                                            SyncIncidentType::SuspiciousProcess
+                                        }
+                                        _ => SyncIncidentType::SuspiciousProcess,
+                                    };
+                                    let severity = if alert.severity >= 8 {
+                                        SyncSeverity::Critical
+                                    } else if alert.severity >= 6 {
+                                        SyncSeverity::High
+                                    } else {
+                                        SyncSeverity::Medium
+                                    };
+                                    let report = agent_sync::types::SecurityIncidentReport {
+                                        incident_type,
+                                        severity,
+                                        title: alert.rule_name.clone(),
+                                        description: format!(
+                                            "{} ({} events in {}s)",
+                                            alert.description,
+                                            alert.event_count,
+                                            (alert.last_event - alert.first_event).num_seconds()
+                                        ),
+                                        evidence: serde_json::json!({
+                                            "rule_id": alert.rule_id,
+                                            "event_count": alert.event_count,
+                                            "sample_event_ids": alert.sample_event_ids,
+                                        }),
+                                        confidence: 80,
+                                        detected_at: alert.generated_at,
+                                    };
+                                    if let Err(e) = client.report_incident(report).await {
+                                        warn!("Failed to upload correlation alert: {}", e);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    drop(corr_guard);
+                }
+            }
+            drop(collector_guard);
+            st.last_log_collection = std::time::Instant::now();
         }
     }
 }
