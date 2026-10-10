@@ -1223,21 +1223,8 @@ impl AgentRuntime {
                 break;
             }
 
-            let mut is_active = false;
-            let is_paused = self.is_paused();
-
-            // Per-iteration KPI incident counter — reset each iteration so each
-            // snapshot reflects only the current cycle, not a cumulative total.
-            #[cfg(feature = "gui")]
-            let mut kpi_incident_count: u32 = 0;
-
-            // Threat pipeline accumulators (populated during this iteration)
-            let mut pipeline_incidents: Vec<agent_scanner::SecurityIncident> = Vec::new();
-            let mut pipeline_network_alerts: Vec<agent_network::NetworkSecurityAlert> = Vec::new();
-            let mut pipeline_fim_alerts: Vec<(String, String)> = Vec::new();
-            // Every process and connection seen in this iteration, flagged or
-            // not: the custom detection rules apply to all of them.
-            let mut observed_activity = threat_pipeline::ObservedActivity::default();
+            // What this pass gathers on its way to the threat pipeline.
+            let mut pass = main_loop::LoopPass::new(self.is_paused());
 
             // Indicator feeds refreshed in the background
             let fresh_feed_intel = self
@@ -1252,7 +1239,8 @@ impl AgentRuntime {
 
             // Processes started since the last pass, evaluated as they start
             let (process_starts, process_start_incidents) = self.take_process_starts();
-            observed_activity.add_processes(process_starts.iter().map(|start| &start.process));
+            pass.observed
+                .add_processes(process_starts.iter().map(|start| &start.process));
             for incident in process_start_incidents {
                 warn!("{}", incident.title);
                 if let Err(e) = self.upload_incident(&incident).await {
@@ -1266,9 +1254,9 @@ impl AgentRuntime {
                         &incident.title,
                         "error",
                     );
-                    kpi_incident_count = kpi_incident_count.saturating_add(1);
+                    pass.kpi_incident_count = pass.kpi_incident_count.saturating_add(1);
                 }
-                pipeline_incidents.push(incident);
+                pass.incidents.push(incident);
             }
 
             // 0. Ransomware canaries (always — security-critical even when paused)
@@ -1290,15 +1278,15 @@ impl AgentRuntime {
                 {
                     self.emit_system_incident(&incident);
                     self.emit_notification(&incident.title, &incident.description, "error");
-                    kpi_incident_count = kpi_incident_count.saturating_add(1);
+                    pass.kpi_incident_count = pass.kpi_incident_count.saturating_add(1);
                 }
                 if ransomware_canary::triggers_response(&canary) {
-                    pipeline_fim_alerts.push((
+                    pass.fim_alerts.push((
                         canary.folder.to_string_lossy().to_string(),
                         ransomware_canary::PLAYBOOK_CHANGE_TYPE.to_string(),
                     ));
                 }
-                pipeline_incidents.push(incident);
+                pass.incidents.push(incident);
             }
 
             // 1. Process FIM alerts (always — security-critical even when paused)
@@ -1373,7 +1361,7 @@ impl AgentRuntime {
                             st.gui.fim_changes_today = st.gui.fim_changes_today.saturating_add(1);
                         }
 
-                        pipeline_fim_alerts.push((
+                        pass.fim_alerts.push((
                             alert.path.to_string_lossy().to_string(),
                             format!("{}", alert.change),
                         ));
@@ -1459,10 +1447,11 @@ impl AgentRuntime {
                             &incident.description,
                             "error",
                         );
-                        kpi_incident_count = kpi_incident_count.saturating_add(1);
+                        pass.kpi_incident_count = pass.kpi_incident_count.saturating_add(1);
                     }
-                    pipeline_fim_alerts.push((path, yara_scan::PLAYBOOK_CHANGE_TYPE.to_string()));
-                    pipeline_incidents.push(incident);
+                    pass.fim_alerts
+                        .push((path, yara_scan::PLAYBOOK_CHANGE_TYPE.to_string()));
+                    pass.incidents.push(incident);
                 }
             }
 
@@ -1913,7 +1902,7 @@ impl AgentRuntime {
                 }
             }
 
-            if !is_paused
+            if !pass.is_paused
                 && st.vuln_scan_task.is_none()
                 && st.last_vuln_scan.elapsed().as_secs() >= self.vuln_scan_interval_secs
             {
@@ -1931,10 +1920,10 @@ impl AgentRuntime {
             }
 
             // Run security scan if interval has passed (skip when paused)
-            if !is_paused
+            if !pass.is_paused
                 && st.last_security_scan.elapsed().as_secs() >= self.security_scan_interval_secs
             {
-                is_active = true;
+                pass.is_active = true;
                 match self.run_security_scan().await {
                     Ok(result) => {
                         let count = result.incidents.len();
@@ -2026,10 +2015,11 @@ impl AgentRuntime {
                         // Accumulate incidents for threat pipeline
                         #[cfg(feature = "gui")]
                         {
-                            kpi_incident_count = kpi_incident_count.saturating_add(count as u32);
+                            pass.kpi_incident_count =
+                                pass.kpi_incident_count.saturating_add(count as u32);
                         }
-                        pipeline_incidents.extend(result.incidents.iter().cloned());
-                        observed_activity.add_processes(&result.processes);
+                        pass.incidents.extend(result.incidents.iter().cloned());
+                        pass.observed.add_processes(&result.processes);
 
                         if count == 0 {
                             // A clean periodic scan is not news: logging it avoids a
@@ -2103,11 +2093,11 @@ impl AgentRuntime {
             let network_allowed = self.state.network_monitoring_enabled();
 
             // Run network static info collection if interval has passed (skip when paused)
-            if !is_paused
+            if !pass.is_paused
                 && network_allowed
                 && st.last_network_static.elapsed() >= st.network_static_interval
             {
-                is_active = true;
+                pass.is_active = true;
                 match self.run_network_collection().await {
                     Ok(snapshot) => {
                         #[cfg(feature = "gui")]
@@ -2156,11 +2146,11 @@ impl AgentRuntime {
             }
 
             // Run network connection scan if interval has passed (skip when paused)
-            if !is_paused
+            if !pass.is_paused
                 && network_allowed
                 && st.last_network_connections.elapsed() >= st.network_connection_interval
             {
-                is_active = true;
+                pass.is_active = true;
                 match self.run_network_collection().await {
                     Ok(snapshot) => {
                         #[cfg(feature = "gui")]
@@ -2209,14 +2199,14 @@ impl AgentRuntime {
             }
 
             // Run network security detection if interval has passed (skip when paused)
-            if !is_paused
+            if !pass.is_paused
                 && network_allowed
                 && st.last_network_security.elapsed() >= st.network_security_interval
             {
-                is_active = true;
+                pass.is_active = true;
                 match self.run_network_collection().await {
                     Ok(snapshot) => {
-                        observed_activity.add_connections(&snapshot.connections);
+                        pass.observed.add_connections(&snapshot.connections);
                         #[cfg(feature = "gui")]
                         let mut alert_count: u32 = 0;
                         match self.run_network_security_detection(&snapshot).await {
@@ -2232,7 +2222,7 @@ impl AgentRuntime {
                                 self.upload_network_alerts(&alerts).await;
 
                                 // Accumulate network alerts for threat pipeline
-                                pipeline_network_alerts.extend(alerts.iter().cloned());
+                                pass.network_alerts.extend(alerts.iter().cloned());
                             }
                             Err(e) => {
                                 warn!("Network security detection failed: {}", e);
@@ -2444,22 +2434,22 @@ impl AgentRuntime {
             // iteration (security scan incidents, network alerts, FIM alerts)
             // and against the activity observed, flagged or not. Playbooks act
             // on the host: they only run on what an engine flagged.
-            let flagged_activity = !pipeline_incidents.is_empty()
-                || !pipeline_network_alerts.is_empty()
-                || !pipeline_fim_alerts.is_empty();
-            if flagged_activity || !observed_activity.is_empty() {
+            let flagged_activity = pass.has_flagged_activity();
+            if flagged_activity || !pass.observed.is_empty() {
                 // Authorized events still reach the SIEM below (audit trail) but
                 // never match detection rules nor trigger playbooks.
                 let allowlist = self.state.allowlist_snapshot();
                 let (triaged_incidents, triaged_network, triaged_fim) =
                     triage_allowlist::unauthorized_pipeline_inputs(
                         &allowlist,
-                        &pipeline_incidents,
-                        &pipeline_network_alerts,
-                        &pipeline_fim_alerts,
+                        &pass.incidents,
+                        &pass.network_alerts,
+                        &pass.fim_alerts,
                     );
-                let observed_activity =
-                    triage_allowlist::unauthorized_observed(&allowlist, observed_activity);
+                let unauthorized_activity = triage_allowlist::unauthorized_observed(
+                    &allowlist,
+                    std::mem::take(&mut pass.observed),
+                );
                 let threat_context = threat_pipeline::build_threat_context(
                     &triaged_incidents,
                     &triaged_network,
@@ -2502,7 +2492,7 @@ impl AgentRuntime {
                         &detection_rules,
                         &playbooks,
                         &threat_context,
-                        &observed_activity,
+                        &unauthorized_activity,
                         &mut st.rule_hit_memory,
                         #[cfg(feature = "gui")]
                         &self.gui_event_tx,
@@ -2575,7 +2565,7 @@ impl AgentRuntime {
                         .unwrap_or_default();
 
                     // Security incidents → SIEM
-                    for inc in &pipeline_incidents {
+                    for inc in &pass.incidents {
                         let severity = match inc.severity {
                             agent_scanner::IncidentSeverity::Critical => 9,
                             agent_scanner::IncidentSeverity::High => 7,
@@ -2630,7 +2620,7 @@ impl AgentRuntime {
                     }
 
                     // Network alerts → SIEM
-                    for alert in &pipeline_network_alerts {
+                    for alert in &pass.network_alerts {
                         let severity = match alert.severity {
                             agent_network::AlertSeverity::Critical => 9,
                             agent_network::AlertSeverity::High => 7,
@@ -2686,11 +2676,11 @@ impl AgentRuntime {
                         }
                     }
 
-                    if !pipeline_incidents.is_empty() || !pipeline_network_alerts.is_empty() {
+                    if !pass.incidents.is_empty() || !pass.network_alerts.is_empty() {
                         info!(
                             "Forwarded {} security incidents and {} network alerts to SIEM",
-                            pipeline_incidents.len(),
-                            pipeline_network_alerts.len(),
+                            pass.incidents.len(),
+                            pass.network_alerts.len(),
                         );
                     }
                 }
@@ -2698,10 +2688,10 @@ impl AgentRuntime {
             }
 
             // Run compliance checks if interval has passed (skip when paused)
-            if !is_paused
+            if !pass.is_paused
                 && st.last_compliance_check.elapsed().as_secs() >= self.state.get_check_interval()
             {
-                is_active = true;
+                pass.is_active = true;
                 #[cfg(feature = "gui")]
                 {
                     self.state.scanning.store(true, Ordering::Release);
@@ -2767,7 +2757,7 @@ impl AgentRuntime {
                     );
                     self.emit_kpi_snapshot(
                         st.compliance_score,
-                        kpi_incident_count,
+                        pass.kpi_incident_count,
                         st.gui.kpi_open_vulns,
                         0,
                     );
@@ -2814,7 +2804,7 @@ impl AgentRuntime {
             // Check for force_check flag (GUI "Vérifier maintenant" button)
             if self.state.force_check.load(Ordering::Acquire) {
                 info!("Force check triggered");
-                is_active = true;
+                pass.is_active = true;
                 #[cfg(feature = "gui")]
                 {
                     self.state.scanning.store(true, Ordering::Release);
@@ -2887,7 +2877,7 @@ impl AgentRuntime {
                     );
                     self.emit_kpi_snapshot(
                         st.compliance_score,
-                        kpi_incident_count,
+                        pass.kpi_incident_count,
                         st.gui.kpi_open_vulns,
                         0,
                     );
@@ -3232,9 +3222,9 @@ impl AgentRuntime {
             self.resource_monitor
                 .set_llm_loaded(self.state.llm_loaded.load(Ordering::Acquire));
 
-            if is_active {
+            if pass.is_active {
                 self.resource_monitor
-                    .check_limits_with_usage(&usage, is_active);
+                    .check_limits_with_usage(&usage, pass.is_active);
             }
 
             // Periodically push resource usage to the GUI (every 1 second)
