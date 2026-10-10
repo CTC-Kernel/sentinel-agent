@@ -11,6 +11,9 @@
 //! - Install: `sentinel-agent install` (requires admin/root)
 //! - Uninstall: `sentinel-agent uninstall` (requires admin/root)
 
+#[cfg(feature = "gui")]
+mod gui_commands;
+
 use agent_common::config::AgentConfig;
 #[cfg(feature = "tray")]
 use agent_core::tray;
@@ -1587,33 +1590,44 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
 
 
             // Spawn command processor
-            let handle_for_commands = handle.clone();
+            let mut ctx = gui_commands::CommandContext {
+                handle: handle.clone(),
+                events: bg_event_tx,
+                db: db_for_commands,
+                sync_client,
+                llm_service,
+                audit_trail: audit_trail_for_commands,
+                #[cfg(feature = "voice")]
+                voice_service,
+                llm_cancel,
+                remote_ai,
+            };
             tokio::spawn(async move {
                 loop {
                     match command_rx.try_recv() {
                         Ok(GuiCommand::Pause) => {
                             info!("[AUDIT] GUI user requested agent pause");
-                            handle_for_commands.pause();
+                            ctx.handle.pause();
                         }
                         Ok(GuiCommand::Resume) => {
                             info!("[AUDIT] GUI user requested agent resume");
-                            handle_for_commands.resume();
+                            ctx.handle.resume();
                         }
                         Ok(GuiCommand::Shutdown) => {
                             info!("[AUDIT] GUI user requested agent shutdown");
-                            handle_for_commands.request_shutdown();
+                            ctx.handle.request_shutdown();
                             break;
                         }
                         Ok(GuiCommand::Restart) => {
                             info!("[AUDIT] GUI user requested agent restart");
                             match spawn_relaunch() {
                                 Ok(()) => {
-                                    handle_for_commands.request_shutdown();
+                                    ctx.handle.request_shutdown();
                                     break;
                                 }
                                 Err(e) => {
                                     error!("Failed to relaunch the agent: {}", e);
-                                    let _ = bg_event_tx.send(AgentEvent::Notification {
+                                    let _ = ctx.events.send(AgentEvent::Notification {
                                         notification: agent_gui::dto::GuiNotification::error(
                                             "Redémarrage impossible",
                                             format!(
@@ -1629,23 +1643,23 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                         }
                         Ok(GuiCommand::RunCheck) => {
                             info!("[AUDIT] GUI user requested manual check run");
-                            handle_for_commands.trigger_check();
+                            ctx.handle.trigger_check();
                         }
                         Ok(GuiCommand::ForceSync) => {
                             info!("GUI requested force sync");
-                            handle_for_commands.trigger_sync();
+                            ctx.handle.trigger_sync();
                         }
                         Ok(GuiCommand::StartDiscovery) => {
                             info!("GUI requested network discovery");
-                            handle_for_commands.trigger_discovery();
+                            ctx.handle.trigger_discovery();
                         }
                         Ok(GuiCommand::StopDiscovery) => {
                             info!("GUI requested discovery cancellation");
-                            handle_for_commands.cancel_discovery();
+                            ctx.handle.cancel_discovery();
                         }
                         Ok(GuiCommand::CheckUpdate) => {
                             info!("[AUDIT] GUI user requested manual update check");
-                            handle_for_commands.trigger_update();
+                            ctx.handle.trigger_update();
                         }
                         Ok(GuiCommand::ProposeAsset {
                             ip,
@@ -1653,11 +1667,11 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                             device_type,
                         }) => {
                             info!("[AUDIT] GUI user proposed asset: {}", ip);
-                            handle_for_commands.propose_asset(ip, hostname, device_type);
+                            ctx.handle.propose_asset(ip, hostname, device_type);
                         }
                         Ok(GuiCommand::UpdateCheckInterval { interval_secs }) => {
                             info!("[AUDIT] GUI user updated check interval to {} seconds", interval_secs);
-                            handle_for_commands.set_check_interval(interval_secs);
+                            ctx.handle.set_check_interval(interval_secs);
                         }
                         Ok(GuiCommand::UpdateAllowlist { rules }) => {
                             info!(
@@ -1669,10 +1683,10 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                                     .collect::<Vec<_>>()
                                     .join(", ")
                             );
-                            handle_for_commands.set_allowlist_rules(rules);
+                            ctx.handle.set_allowlist_rules(rules);
                         }
                         Ok(GuiCommand::SetLogLevel { level }) => {
-                            handle_for_commands.set_log_level(level);
+                            ctx.handle.set_log_level(level);
                         }
                         Ok(GuiCommand::SetRansomwareCanaries { enabled }) => {
                             info!("[AUDIT] GUI user set ransomware canary files to {}", enabled);
@@ -1687,23 +1701,23 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                                     e
                                 );
                             }
-                            handle_for_commands.state.set_ransomware_canaries(enabled);
+                            ctx.handle.state.set_ransomware_canaries(enabled);
                         }
                         Ok(GuiCommand::Remediate { check_id }) => {
                             info!("[AUDIT] GUI user requested remediation for check: {}", check_id);
-                            handle_for_commands.remediate(check_id);
+                            ctx.handle.remediate(check_id);
                         }
                         Ok(GuiCommand::RemediatePreview { check_id }) => {
                             info!("[AUDIT] GUI user previewed remediation for check: {}", check_id);
-                            handle_for_commands.remediate_preview(check_id);
+                            ctx.handle.remediate_preview(check_id);
                         }
                         Ok(GuiCommand::ApplyAiRemediation { action }) => {
                             info!("[AUDIT] GUI user applying AI remediation for check: {}", action.check_id);
-                            handle_for_commands.apply_ai_remediation(action);
+                            ctx.handle.apply_ai_remediation(action);
                         }
                         Ok(GuiCommand::RunSync) => {
                             info!("[AUDIT] GUI user requested sync");
-                            handle_for_commands.trigger_sync();
+                            ctx.handle.trigger_sync();
                         }
                         Ok(GuiCommand::ConnectToPlatform) => {
                             // Handled by the shell (it opens the wizard); the
@@ -1736,7 +1750,7 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                             // Report acknowledgment to the platform. `alert_id` is
                             // local to the desktop app: the platform derives its
                             // document id from (agent, path, upload timestamp).
-                            let client_clone = sync_client.clone();
+                            let client_clone = ctx.sync_client.clone();
                             let aid = alert_id.clone();
                             tokio::spawn(async move {
                                 if let Some(ref client) = client_clone {
@@ -1768,7 +1782,7 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                         }
                         Ok(GuiCommand::KillProcess { process_name, pid }) => {
                             info!("[AUDIT] GUI requested process kill: {} (PID {})", process_name, pid);
-                            let tx = bg_event_tx.clone();
+                            let tx = ctx.events.clone();
                             let pname = process_name.clone();
                             tokio::spawn(async move {
                                 let action_id = uuid::Uuid::new_v4();
@@ -1806,7 +1820,7 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                         }
                         Ok(GuiCommand::QuarantineFile { path }) => {
                             info!("[AUDIT] GUI requested file quarantine: {}", path);
-                            let tx = bg_event_tx.clone();
+                            let tx = ctx.events.clone();
                             let file_path = path.clone();
                             tokio::spawn(async move {
                                 let action_id = uuid::Uuid::new_v4();
@@ -1858,7 +1872,7 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                         }
                         Ok(GuiCommand::RestoreQuarantinedFile { quarantine_id }) => {
                             info!("[AUDIT] GUI requested quarantine restore: {}", quarantine_id);
-                            let tx = bg_event_tx.clone();
+                            let tx = ctx.events.clone();
                             let qid = quarantine_id.clone();
                             // Emit pending action before spawning async work
                             let action_id = uuid::Uuid::new_v4();
@@ -1896,7 +1910,7 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                         }
                         Ok(GuiCommand::BlockIp { ip, duration_secs }) => {
                             info!("[AUDIT] GUI requested IP block: {} ({}s)", ip, duration_secs);
-                            let tx = bg_event_tx.clone();
+                            let tx = ctx.events.clone();
                             let ip_addr = ip.clone();
                             tokio::spawn(async move {
                                 let action_id = uuid::Uuid::new_v4();
@@ -1934,8 +1948,8 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                         }
                         Ok(GuiCommand::ExportSbom) => {
                             info!("[AUDIT] GUI requested the SBOM export");
-                            let tx = bg_event_tx.clone();
-                            let cache = handle_for_commands.state.last_vuln_findings.clone();
+                            let tx = ctx.events.clone();
+                            let cache = ctx.handle.state.last_vuln_findings.clone();
                             tokio::spawn(async move {
                                 let scan = cache.read().await.clone();
                                 let notification = match scan {
@@ -1967,7 +1981,7 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                         }
                         Ok(GuiCommand::IsolateHost { duration_secs }) => {
                             info!("[AUDIT] GUI requested host isolation for {}s (0: until released)", duration_secs);
-                            let tx = bg_event_tx.clone();
+                            let tx = ctx.events.clone();
                             tokio::spawn(async move {
                                 let action_id = uuid::Uuid::new_v4();
                                 let _ = tx.send(AgentEvent::ResponseActionSubmitted {
@@ -2003,7 +2017,7 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                         }
                         Ok(GuiCommand::ReleaseHost) => {
                             info!("[AUDIT] GUI requested the host isolation to be lifted");
-                            let tx = bg_event_tx.clone();
+                            let tx = ctx.events.clone();
                             tokio::spawn(async move {
                                 let action_id = uuid::Uuid::new_v4();
                                 let _ = tx.send(AgentEvent::ResponseActionSubmitted {
@@ -2031,7 +2045,7 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                         }
                         Ok(GuiCommand::UnblockIp { ip }) => {
                             info!("[AUDIT] GUI requested IP unblock: {}", ip);
-                            let tx = bg_event_tx.clone();
+                            let tx = ctx.events.clone();
                             let ip_addr = ip.clone();
                             tokio::spawn(async move {
                                 let action_id = uuid::Uuid::new_v4();
@@ -2069,8 +2083,8 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                         }
                         Ok(GuiCommand::GenerateReport { report_type, framework }) => {
                             info!("[AUDIT] GUI requested report: {:?} framework={:?}", report_type, framework);
-                            let tx = bg_event_tx.clone();
-                            let svc = llm_service.clone();
+                            let tx = ctx.events.clone();
+                            let svc = ctx.llm_service.clone();
                             let fw = framework.clone();
                             tokio::spawn(async move {
                                 let report_id = uuid::Uuid::new_v4();
@@ -2158,10 +2172,10 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                         }
                         Ok(GuiCommand::ExecutePlaybook { playbook_id }) => {
                             info!("[AUDIT] GUI requested playbook execution: {}", playbook_id);
-                            let tx = bg_event_tx.clone();
+                            let tx = ctx.events.clone();
                             let pid = playbook_id.clone();
-                            let db_clone = db_for_commands.clone();
-                            let sync_client_clone = sync_client.clone();
+                            let db_clone = ctx.db.clone();
+                            let sync_client_clone = ctx.sync_client.clone();
                             tokio::spawn(async move {
                                 // Load playbook from local SQLite
                                 let playbook_opt = if let Some(ref db_arc) = db_clone {
@@ -2317,7 +2331,7 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                         Ok(GuiCommand::TogglePlaybook { playbook_id, enabled }) => {
                             info!("[AUDIT] GUI toggled playbook {}: enabled={}", playbook_id, enabled);
                             // Persist toggle to SQLite so it survives restarts
-                            if let Some(ref db_arc) = db_for_commands {
+                            if let Some(ref db_arc) = ctx.db {
                                 let db_clone = std::sync::Arc::clone(db_arc);
                                 let pid = playbook_id.clone();
                                 tokio::spawn(async move {
@@ -2339,7 +2353,7 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                                 });
                             }
                             // Remote sync
-                            if let Some(ref c) = sync_client {
+                            if let Some(ref c) = ctx.sync_client {
                                 let c = std::sync::Arc::clone(c);
                                 let pid = playbook_id.clone();
                                 tokio::spawn(async move {
@@ -2351,7 +2365,7 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                         }
                         Ok(GuiCommand::SavePlaybook { playbook }) => {
                             info!("[AUDIT] GUI saved playbook: {}", playbook.name);
-                            if let Some(ref trail) = audit_trail_for_commands {
+                            if let Some(ref trail) = ctx.audit_trail {
                                 let trail: std::sync::Arc<agent_core::audit_trail::LocalAuditTrail> = std::sync::Arc::clone(trail);
                                 let pb_name = playbook.name.clone();
                                 tokio::spawn(async move {
@@ -2368,7 +2382,7 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                             }
                             let payload = agent_core::sync_converters::playbook_to_payload(&playbook);
                             // Persist to dedicated SQLite table for offline resilience
-                            if let Some(ref db_arc) = db_for_commands {
+                            if let Some(ref db_arc) = ctx.db {
                                 let db_clone = std::sync::Arc::clone(db_arc);
                                 let pb_clone = playbook.clone();
                                 let payload_clone = payload.clone();
@@ -2405,7 +2419,7 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                         }
                         Ok(GuiCommand::DeletePlaybook { playbook_id }) => {
                             info!("[AUDIT] GUI requested durable playbook deletion: {}", playbook_id);
-                            if let Some(ref db_arc) = db_for_commands {
+                            if let Some(ref db_arc) = ctx.db {
                                 let db = std::sync::Arc::clone(db_arc);
                                 tokio::spawn(async move {
                                     let queue = agent_storage::SyncQueueRepository::new(&db);
@@ -2419,7 +2433,7 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                         Ok(GuiCommand::SaveDetectionRule { rule }) => {
                             info!("[AUDIT] GUI saved detection rule: {}", rule.name);
                             let payload = agent_core::sync_converters::detection_rule_to_payload(&rule);
-                            if let Some(ref db_arc) = db_for_commands {
+                            if let Some(ref db_arc) = ctx.db {
                                 let db_clone = std::sync::Arc::clone(db_arc);
                                 let rule_clone = rule.clone();
                                 let payload_clone = payload.clone();
@@ -2455,7 +2469,7 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                         }
                         Ok(GuiCommand::DeleteDetectionRule { rule_id }) => {
                             info!("[AUDIT] GUI requested durable detection rule deletion: {}", rule_id);
-                            if let Some(ref db_arc) = db_for_commands {
+                            if let Some(ref db_arc) = ctx.db {
                                 let db = std::sync::Arc::clone(db_arc);
                                 tokio::spawn(async move {
                                     let queue = agent_storage::SyncQueueRepository::new(&db);
@@ -2469,7 +2483,7 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                         Ok(GuiCommand::ToggleDetectionRule { rule_id, enabled }) => {
                             info!("[AUDIT] GUI toggled detection rule {}: enabled={}", rule_id, enabled);
                             // Persist toggle to SQLite so it survives restarts
-                            if let Some(ref db_arc) = db_for_commands {
+                            if let Some(ref db_arc) = ctx.db {
                                 let db_clone = std::sync::Arc::clone(db_arc);
                                 let rid = rule_id.clone();
                                 tokio::spawn(async move {
@@ -2520,7 +2534,7 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                             info!("[AUDIT] GUI saved risk entry: {}", risk.title);
                             let payload = agent_core::sync_converters::risk_to_payload(&risk);
                             // Persist to dedicated SQLite table for offline resilience
-                            if let Some(ref db_arc) = db_for_commands {
+                            if let Some(ref db_arc) = ctx.db {
                                 let db_clone = std::sync::Arc::clone(db_arc);
                                 let risk_clone = risk.clone();
                                 let payload_clone = payload.clone();
@@ -2559,7 +2573,7 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                         }
                         Ok(GuiCommand::DeleteRisk { risk_id }) => {
                             info!("[AUDIT] GUI deleted risk entry: {}", risk_id);
-                            if let Some(ref db_arc) = db_for_commands {
+                            if let Some(ref db_arc) = ctx.db {
                                 let db_clone = std::sync::Arc::clone(db_arc);
                                 let rid = risk_id.clone();
                                 tokio::spawn(async move {
@@ -2573,7 +2587,7 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                         Ok(GuiCommand::SaveAsset { asset }) => {
                             info!("[AUDIT] GUI saved asset: {} ({})", asset.hostname.as_deref().unwrap_or("?"), asset.ip);
                             let payload = agent_core::sync_converters::asset_to_payload(&asset);
-                            if let Some(ref db_arc) = db_for_commands {
+                            if let Some(ref db_arc) = ctx.db {
                                 let db_clone = std::sync::Arc::clone(db_arc);
                                 let asset_clone = asset.clone();
                                 let payload_clone = payload.clone();
@@ -2614,7 +2628,7 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                         }
                         Ok(GuiCommand::UpdateAssetLifecycle { asset_id, lifecycle }) => {
                             info!("[AUDIT] GUI updated asset lifecycle {}: {:?}", asset_id, lifecycle);
-                            if let Some(ref db_arc) = db_for_commands {
+                            if let Some(ref db_arc) = ctx.db {
                                 let db_clone = std::sync::Arc::clone(db_arc);
                                 let aid = asset_id.clone();
                                 let status = format!("{}", lifecycle);
@@ -2672,11 +2686,11 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                         Ok(GuiCommand::SaveAlertRule { rule }) => {
                             info!("[AUDIT] GUI saved alert rule: {}", rule.name);
                             let payload = agent_core::sync_converters::alert_rule_to_payload(&rule);
-                            if let Some(ref db_arc) = db_for_commands {
+                            if let Some(ref db_arc) = ctx.db {
                                 let db_clone = std::sync::Arc::clone(db_arc);
                                 let rule_clone = rule.clone();
                                 let payload_clone = payload.clone();
-                                let tx = bg_event_tx.clone();
+                                let tx = ctx.events.clone();
                                 tokio::spawn(async move {
                                     let stored = agent_storage::repositories::grc::StoredAlertRule {
                                         id: rule_clone.id.to_string(),
@@ -2709,10 +2723,10 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                         }
                         Ok(GuiCommand::DeleteAlertRule { rule_id }) => {
                             info!("[AUDIT] GUI deleted alert rule: {}", rule_id);
-                            if let Some(ref db_arc) = db_for_commands {
+                            if let Some(ref db_arc) = ctx.db {
                                 let db_clone = std::sync::Arc::clone(db_arc);
                                 let rid = rule_id.clone();
-                                let tx = bg_event_tx.clone();
+                                let tx = ctx.events.clone();
                                 tokio::spawn(async move {
                                     let repo = agent_storage::SyncQueueRepository::new(&db_clone);
                                     if let Err(e) = repo.delete_grc(agent_storage::SyncEntityType::AlertRule, &rid).await {
@@ -2729,7 +2743,7 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                             // loopback / link-local / metadata target.
                             if let Err(e) = agent_common::webhook::validate_webhook_url(&webhook.url) {
                                 warn!("[AUDIT] Webhook '{}' refused: {}", webhook.name, e);
-                                let _ = bg_event_tx.send(AgentEvent::Notification {
+                                let _ = ctx.events.send(AgentEvent::Notification {
                                     notification: agent_gui::dto::GuiNotification::error(
                                         "Webhook refusé",
                                         format!("Le webhook « {} » n'a pas été enregistré. {}", webhook.name, e),
@@ -2738,10 +2752,10 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                                 continue;
                             }
                             info!("[AUDIT] GUI saved webhook: {}", webhook.name);
-                            if let Some(ref db_arc) = db_for_commands {
+                            if let Some(ref db_arc) = ctx.db {
                                 let db_clone = std::sync::Arc::clone(db_arc);
                                 let wh_clone = webhook.clone();
-                                let tx = bg_event_tx.clone();
+                                let tx = ctx.events.clone();
                                 tokio::spawn(async move {
                                     let now = chrono::Utc::now().to_rfc3339();
                                     let stored = agent_storage::repositories::grc::StoredWebhook {
@@ -2776,10 +2790,10 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                         }
                         Ok(GuiCommand::DeleteWebhook { webhook_id }) => {
                             info!("[AUDIT] GUI deleted webhook: {}", webhook_id);
-                            if let Some(ref db_arc) = db_for_commands {
+                            if let Some(ref db_arc) = ctx.db {
                                 let db_clone = std::sync::Arc::clone(db_arc);
                                 let wid = webhook_id.clone();
-                                let tx = bg_event_tx.clone();
+                                let tx = ctx.events.clone();
                                 tokio::spawn(async move {
                                     let repo = agent_storage::SyncQueueRepository::new(&db_clone);
                                     if let Err(e) = repo.delete_grc(agent_storage::SyncEntityType::Webhook, &wid).await {
@@ -2792,8 +2806,8 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                         }
                         Ok(GuiCommand::TestWebhook { webhook_id }) => {
                             info!("[AUDIT] GUI requested webhook test: {}", webhook_id);
-                            let tx = bg_event_tx.clone();
-                            let db_clone = db_for_commands.clone();
+                            let tx = ctx.events.clone();
+                            let db_clone = ctx.db.clone();
                             let wid = webhook_id.clone();
                             tokio::spawn(async move {
                                 // Load webhook from SQLite
@@ -2870,27 +2884,27 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                         }
 
                         Ok(GuiCommand::ConfigureAiProvider { settings, api_key, forget_key }) => {
-                            match remote_ai.configured(settings, api_key, forget_key) {
+                            match ctx.remote_ai.configured(settings, api_key, forget_key) {
                                 Ok(candidate) => {
-                                    let result = match db_for_commands.as_ref() {
+                                    let result = match ctx.db.as_ref() {
                                         Some(db) => candidate.save(db).await,
                                         None => Err("Base chiffrée indisponible : paramètres non enregistrés.".into()),
                                     };
                                     match result {
                                         Ok(()) => {
-                                            remote_ai = candidate;
-                                            let _ = bg_event_tx.send(remote_ai.event());
-                                            agent_core::remote_ai::feedback(&bg_event_tx, "Paramètres IA enregistrés.");
+                                            ctx.remote_ai = candidate;
+                                            let _ = ctx.events.send(ctx.remote_ai.event());
+                                            agent_core::remote_ai::feedback(&ctx.events, "Paramètres IA enregistrés.");
                                         }
-                                        Err(message) => agent_core::remote_ai::feedback(&bg_event_tx, message),
+                                        Err(message) => agent_core::remote_ai::feedback(&ctx.events, message),
                                     }
                                 }
-                                Err(message) => agent_core::remote_ai::feedback(&bg_event_tx, message),
+                                Err(message) => agent_core::remote_ai::feedback(&ctx.events, message),
                             }
                         }
                         Ok(GuiCommand::TestAiProvider { settings, api_key }) => {
-                            let candidate = remote_ai.configured(settings, api_key, false);
-                            let tx = bg_event_tx.clone();
+                            let candidate = ctx.remote_ai.configured(settings, api_key, false);
+                            let tx = ctx.events.clone();
                             tokio::spawn(async move {
                                 let result = match candidate {
                                     Ok(candidate) => candidate.infer(
@@ -2914,7 +2928,7 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                             speak_response,
                         }) => {
                             info!("[AUDIT] GUI sent LLM prompt ({} chars)", prompt.len());
-                            if let Some(ref trail) = audit_trail_for_commands {
+                            if let Some(ref trail) = ctx.audit_trail {
                                 let trail: std::sync::Arc<agent_core::audit_trail::LocalAuditTrail> = std::sync::Arc::clone(trail);
                                 // Audit previews must truncate on Unicode scalar boundaries:
                                 // French prompts routinely contain multi-byte characters.
@@ -2933,17 +2947,17 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                                     ).await;
                                 });
                             }
-                            let tx = bg_event_tx.clone();
-                            let remote = remote_ai.clone();
-                            let svc = llm_service.clone();
+                            let tx = ctx.events.clone();
+                            let remote = ctx.remote_ai.clone();
+                            let svc = ctx.llm_service.clone();
                             #[cfg(feature = "voice")]
-                            let voice: Option<std::sync::Arc<agent_core::voice::VoiceService>> = voice_service.clone();
+                            let voice: Option<std::sync::Arc<agent_core::voice::VoiceService>> = ctx.voice_service.clone();
                             #[cfg(feature = "voice")]
                             let voice_epoch = voice.as_ref().map_or(0, |v| v.speech_generation());
                             #[cfg(not(feature = "voice"))]
                             let _ = speak_response;
                             let cancel = std::sync::Arc::new(std::sync::atomic::AtomicBool::new(false));
-                            if let Ok(mut slot) = llm_cancel.lock()
+                            if let Ok(mut slot) = ctx.llm_cancel.lock()
                                 && let Some(previous) = slot.replace(cancel.clone())
                             {
                                 previous.store(true, std::sync::atomic::Ordering::SeqCst);
@@ -3068,23 +3082,23 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
 
                         Ok(GuiCommand::LlmCancel) => {
                             info!("[AUDIT] GUI stopped the assistant answer");
-                            if let Ok(slot) = llm_cancel.lock()
+                            if let Ok(slot) = ctx.llm_cancel.lock()
                                 && let Some(flag) = slot.as_ref()
                             {
                                 flag.store(true, std::sync::atomic::Ordering::SeqCst);
                             }
                             #[cfg(feature = "voice")]
-                            if let Some(ref voice) = voice_service {
+                            if let Some(ref voice) = ctx.voice_service {
                                 voice.stop_speaking();
                             }
                         }
                         Ok(GuiCommand::LlmWarmUp { context }) => {
-                            if remote_ai.settings.provider != agent_gui::ai_provider::AiProvider::Local { continue; }
+                            if ctx.remote_ai.settings.provider != agent_gui::ai_provider::AiProvider::Local { continue; }
 
                             #[cfg(feature = "llm")]
                             {
-                                let svc = llm_service.clone();
-                                let tx = bg_event_tx.clone();
+                                let svc = ctx.llm_service.clone();
+                                let tx = ctx.events.clone();
                                 tokio::spawn(async move {
                                     if let Some(ref svc) = svc
                                         && let Some(manager) = svc.get_manager().await
@@ -3120,10 +3134,10 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                         }
                         Ok(GuiCommand::LlmGetStatus) => {
                             info!("[AUDIT] GUI requested LLM status");
-                            let tx = bg_event_tx.clone();
+                            let tx = ctx.events.clone();
                             #[cfg(feature = "llm")]
                             {
-                                let svc = llm_service.clone();
+                                let svc = ctx.llm_service.clone();
                                 tokio::spawn(async move {
                                     if let Some(ref svc) = svc {
                                         match svc.get_status().await {
@@ -3203,11 +3217,11 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
 
                         Ok(GuiCommand::LlmReloadModel) => {
                             info!("[AUDIT] GUI requested LLM model reload");
-                            let tx = bg_event_tx.clone();
+                            let tx = ctx.events.clone();
                             #[cfg(feature = "llm")]
                             {
-                                let svc = llm_service.clone();
-                                let llm_handle = handle_for_commands.clone();
+                                let svc = ctx.llm_service.clone();
+                                let llm_handle = ctx.handle.clone();
                                 tokio::spawn(async move {
                                     if let Some(ref svc) = svc {
                                         if let Err(e) = svc.reload().await {
@@ -3267,10 +3281,10 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
 
                         Ok(GuiCommand::LlmStartDownload) => {
                             info!("[AUDIT] GUI requested LLM model download");
-                            let tx = bg_event_tx.clone();
+                            let tx = ctx.events.clone();
                             #[cfg(feature = "llm")]
                             {
-                                let svc = llm_service.clone();
+                                let svc = ctx.llm_service.clone();
                                 tokio::spawn(async move {
                                     if let Some(ref svc) = svc {
                                         let config = match svc.get_config().await {
@@ -3351,7 +3365,7 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                             info!("[AUDIT] GUI requested download pause");
                             #[cfg(feature = "llm")]
                             {
-                                let svc = llm_service.clone();
+                                let svc = ctx.llm_service.clone();
                                 tokio::spawn(async move {
                                     if let Some(ref svc) = svc {
                                         svc.pause_download().await;
@@ -3364,7 +3378,7 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                             info!("[AUDIT] GUI requested download resume");
                             #[cfg(feature = "llm")]
                             {
-                                let svc = llm_service.clone();
+                                let svc = ctx.llm_service.clone();
                                 tokio::spawn(async move {
                                     if let Some(ref svc) = svc {
                                         svc.resume_download().await;
@@ -3377,7 +3391,7 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                             info!("[AUDIT] GUI requested download cancel");
                             #[cfg(feature = "llm")]
                             {
-                                let svc = llm_service.clone();
+                                let svc = ctx.llm_service.clone();
                                 tokio::spawn(async move {
                                     if let Some(ref svc) = svc {
                                         svc.cancel_download().await;
@@ -3388,7 +3402,7 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
 
                         Ok(GuiCommand::LlmAnalyzeVulnerability { finding_index, target_id }) => {
                             info!("[AUDIT] GUI requested LLM vulnerability analysis for finding #{}", finding_index);
-                            if let Some(ref trail) = audit_trail_for_commands {
+                            if let Some(ref trail) = ctx.audit_trail {
                                 let trail = std::sync::Arc::clone(trail);
                                 tokio::spawn(async move {
                                     trail.log(
@@ -3400,9 +3414,9 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                                     ).await;
                                 });
                             }
-                            let tx = bg_event_tx.clone();
-                            let svc = llm_service.clone();
-                            let handle = handle_for_commands.clone();
+                            let tx = ctx.events.clone();
+                            let svc = ctx.llm_service.clone();
+                            let handle = ctx.handle.clone();
                             tokio::spawn(async move {
                                 let target = target_id;
                                 #[cfg(feature = "llm")]
@@ -3464,16 +3478,16 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
 
                         Ok(GuiCommand::StopVoice) => {
                             #[cfg(feature = "voice")]
-                            if let Some(ref voice) = voice_service {
+                            if let Some(ref voice) = ctx.voice_service {
                                 voice.stop_listening();
                                 voice.stop_speaking();
                             }
-                            let _ = bg_event_tx.send(AgentEvent::LlmVoiceState { active: false });
-                            let _ = bg_event_tx.send(AgentEvent::VoiceStatus { speaking: false });
+                            let _ = ctx.events.send(AgentEvent::LlmVoiceState { active: false });
+                            let _ = ctx.events.send(AgentEvent::VoiceStatus { speaking: false });
                         }
                         Ok(GuiCommand::ConfigureVoice { settings }) => {
                             #[cfg(feature = "voice")]
-                            if let Some(ref voice) = voice_service {
+                            if let Some(ref voice) = ctx.voice_service {
                                 voice.configure(settings);
                             }
                             #[cfg(not(feature = "voice"))]
@@ -3481,24 +3495,24 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                         }
                         Ok(GuiCommand::VoiceRefreshStatus) => {
                             #[cfg(feature = "voice")]
-                            if let Some(ref voice) = voice_service {
+                            if let Some(ref voice) = ctx.voice_service {
                                 voice.publish_status();
                             }
                             #[cfg(not(feature = "voice"))]
-                            let _ = bg_event_tx.send(AgentEvent::VoiceEngineStatus {
+                            let _ = ctx.events.send(AgentEvent::VoiceEngineStatus {
                                 info: Box::default(),
                             });
                         }
                         Ok(GuiCommand::VoiceInstallModel { model_key }) => {
                             info!("[AUDIT] GUI requested Whisper model installation: {}", model_key);
                             #[cfg(feature = "voice")]
-                            if let Some(voice) = voice_service.clone() {
+                            if let Some(voice) = ctx.voice_service.clone() {
                                 tokio::spawn(async move {
                                     voice.install_model(&model_key).await;
                                 });
                             }
                             #[cfg(not(feature = "voice"))]
-                            let _ = bg_event_tx.send(AgentEvent::VoiceModelInstall {
+                            let _ = ctx.events.send(AgentEvent::VoiceModelInstall {
                                 progress: agent_gui::dto::VoiceInstallProgress {
                                     model_key,
                                     phase: agent_gui::dto::VoiceInstallPhase::Failed,
@@ -3510,7 +3524,7 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                         }
                         Ok(GuiCommand::VoiceCancelModelInstall) => {
                             #[cfg(feature = "voice")]
-                            if let Some(ref voice) = voice_service {
+                            if let Some(ref voice) = ctx.voice_service {
                                 voice.cancel_install();
                             }
                         }
@@ -3518,8 +3532,8 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                             info!("[AUDIT] GUI requested voice listening: {}", enabled);
                             #[cfg(feature = "voice")]
                             {
-                                let voice: Option<std::sync::Arc<agent_core::voice::VoiceService>> = voice_service.clone();
-                                let tx = bg_event_tx.clone();
+                                let voice: Option<std::sync::Arc<agent_core::voice::VoiceService>> = ctx.voice_service.clone();
+                                let tx = ctx.events.clone();
                                 {
                                     if let Some(ref voice) = voice {
                                         if enabled {
@@ -3540,7 +3554,7 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                             }
                             #[cfg(not(feature = "voice"))]
                             {
-                                let tx = bg_event_tx.clone();
+                                let tx = ctx.events.clone();
                                 tokio::spawn(async move {
                                     if enabled {
                                         tokio::time::sleep(std::time::Duration::from_millis(500)).await;
@@ -3556,7 +3570,7 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                             let speech_started = {
                                 #[cfg(feature = "voice")]
                                 {
-                                    if let Some(ref voice) = voice_service {
+                                    if let Some(ref voice) = ctx.voice_service {
                                         voice.speak(&text);
                                         true
                                     } else {
@@ -3570,10 +3584,10 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                             };
                             if !speech_started {
                                 let _ = text;
-                                let _ = bg_event_tx.send(AgentEvent::VoiceError { message: "Synthèse vocale indisponible dans cette version.".to_string() });
+                                let _ = ctx.events.send(AgentEvent::VoiceError { message: "Synthèse vocale indisponible dans cette version.".to_string() });
                                 // Match the service's completion event even in
                                 // voice-less builds or when initialization failed.
-                                let _ = bg_event_tx.send(AgentEvent::VoiceStatus {
+                                let _ = ctx.events.send(AgentEvent::VoiceStatus {
                                     speaking: false,
                                 });
                             }
@@ -3584,7 +3598,7 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                             info!("[AUDIT] GUI toggled voice recognition");
                             #[cfg(feature = "voice")]
                             {
-                                let voice: Option<std::sync::Arc<agent_core::voice::VoiceService>> = voice_service.clone();
+                                let voice: Option<std::sync::Arc<agent_core::voice::VoiceService>> = ctx.voice_service.clone();
                                 tokio::spawn(async move {
                                     if let Some(ref voice) = voice {
                                         voice.start_listening().await;
@@ -3595,8 +3609,8 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
 
                         Ok(GuiCommand::LlmSelectModel { model_key, model_name, download_url, gguf_filename }) => {
                             info!("[AUDIT] GUI requested model switch to '{}'", model_key);
-                            let tx = bg_event_tx.clone();
-                            let svc = llm_service.clone();
+                            let tx = ctx.events.clone();
+                            let svc = ctx.llm_service.clone();
                             let model_key_clone = model_key.clone();
                             let model_name_clone = model_name.clone();
                             tokio::spawn(async move {
@@ -3806,7 +3820,7 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                                 .take(80)
                                 .collect::<String>();
                             info!("[AUDIT] GUI requested LLM threat classification: {}", description_preview);
-                            if let Some(ref trail) = audit_trail_for_commands {
+                            if let Some(ref trail) = ctx.audit_trail {
                                 let trail = std::sync::Arc::clone(trail);
                                 let desc_cut = if event_description.chars().count() > 100 {
                                     format!(
@@ -3826,8 +3840,8 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                                     ).await;
                                 });
                             }
-                            let tx = bg_event_tx.clone();
-                            let svc = llm_service.clone();
+                            let tx = ctx.events.clone();
+                            let svc = ctx.llm_service.clone();
                             tokio::spawn(async move {
                                 let start = std::time::Instant::now();
                                 #[cfg(feature = "llm")]
@@ -3907,7 +3921,7 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                                 "[AUDIT] GUI requested AI risk analysis for: {} (prob={}, impact={})",
                                 risk_title, current_probability, current_impact
                             );
-                            if let Some(ref trail) = audit_trail_for_commands {
+                            if let Some(ref trail) = ctx.audit_trail {
                                 let trail = std::sync::Arc::clone(trail);
                                 let title_copy = risk_title.clone();
                                 tokio::spawn(async move {
@@ -3921,8 +3935,8 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                                 });
                             }
                             let _ = &risk_description; // used inside #[cfg(feature = "llm")] below
-                            let tx = bg_event_tx.clone();
-                            let svc = llm_service.clone();
+                            let tx = ctx.events.clone();
+                            let svc = ctx.llm_service.clone();
                             let rid = risk_id.clone();
                             tokio::spawn(async move {
                                 #[cfg(feature = "llm")]
@@ -3999,13 +4013,13 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                                 enabled, format, transport, destination
                             );
                             // Update the runtime SIEM config and notify the GUI
-                            handle_for_commands.update_siem_config(
+                            ctx.handle.update_siem_config(
                                 enabled,
                                 format.clone(),
                                 transport.clone(),
                                 destination.clone(),
                             );
-                            let _ = bg_event_tx.send(AgentEvent::SiemConfigUpdate {
+                            let _ = ctx.events.send(AgentEvent::SiemConfigUpdate {
                                 enabled,
                                 format,
                                 transport,
@@ -4023,7 +4037,7 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                                 enabled, sources, poll_interval_secs
                             );
                             // Update runtime log collector config
-                            handle_for_commands.update_log_collector_config(
+                            ctx.handle.update_log_collector_config(
                                 enabled,
                                 &sources,
                                 poll_interval_secs,
