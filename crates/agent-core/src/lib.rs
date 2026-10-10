@@ -92,7 +92,7 @@ pub use logging::init_logging_with_terminal;
 pub use logging::{init_logging, set_tracing_level};
 
 use agent_common::config::{AgentConfig, SecureConfig};
-use agent_common::constants::{AGENT_VERSION, DEFAULT_HEARTBEAT_INTERVAL_SECS};
+use agent_common::constants::DEFAULT_HEARTBEAT_INTERVAL_SECS;
 use agent_common::error::CommonError;
 use agent_network::NetworkManager;
 #[cfg(feature = "gui")]
@@ -120,7 +120,7 @@ use resources::ResourceMonitor;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex};
 use tokio::sync::{RwLock, mpsc};
-use tracing::{debug, error, info, warn};
+use tracing::{error, info, warn};
 
 // Import orphaned modules
 use agent_fim::FimEngine;
@@ -888,121 +888,11 @@ impl AgentRuntime {
         Ok(())
     }
 
+    /// Run the agent until shutdown is requested: start-up, then one pass of
+    /// the main loop about every second (see [`main_loop`]), then the
+    /// shutdown sequence.
     pub async fn run(&self) -> Result<(), CommonError> {
-        // Reset startup timer so it measures from run() start, not from
-        // AgentRuntime construction (which may include a failed GUI attempt).
-        self.resource_monitor.reset_startup_time();
-
-        info!("Starting Sentinel GRC Agent v{}", AGENT_VERSION);
-        info!("Server URL: https://cyber-threat-consulting.com [redacted]");
-        info!(
-            "Check interval: {} seconds",
-            self.config.check_interval_secs
-        );
-        info!(
-            "Vulnerability scan interval: {} seconds",
-            self.vuln_scan_interval_secs
-        );
-        info!(
-            "Security scan interval: {} seconds",
-            self.security_scan_interval_secs
-        );
-
-        // Check startup time is within limits
-        self.resource_monitor.check_startup_time();
-
-        // Honor timed IP unblocks whose in-memory timers died with the previous
-        // process: expired blocks are lifted now, the rest are rescheduled.
-        crate::edr_actions::reconcile_pending_blocks().await;
-        // Same for a host isolation: lifted if it expired, applied again if not.
-        crate::host_isolation::reconcile_host_isolation().await;
-
-        if self.config.standalone {
-            // ── Standalone: no platform, local protection only ──
-            info!(
-                "Standalone mode: no enrollment, heartbeat, upload or remote command; \
-                 detection, file integrity, compliance and scanning run locally"
-            );
-            // The bundled check rules back the results table's foreign key;
-            // the platform normally seeds them through the sync services.
-            self.seed_builtin_check_rules().await;
-        } else {
-            self.run_platform_startup().await?;
-        }
-
-        // Last network monitoring consent received from the platform: must be
-        // known before the first network collection.
-        self.load_persisted_network_consent().await;
-
-        // Log initial resource usage
-        let usage = self.resource_monitor.get_usage();
-        debug!(
-            "Initial resource usage: CPU={:.2}%, MEM={}MB",
-            usage.cpu_percent,
-            usage.memory_bytes / (1024 * 1024)
-        );
-
-        // Emit initial GUI state
-        #[cfg(feature = "gui")]
-        {
-            self.emit_status_update(None, None, 0, None);
-            self.emit_resource_update(None);
-        }
-
-        #[cfg(feature = "gui")]
-        self.load_cached_discovery().await;
-
-        // Load persisted GRC data (playbooks, detection rules, assets, alert rules) into GUI
-        #[cfg(feature = "gui")]
-        self.sync_assets_to_gui().await;
-
-        // Schedule and last results of the loop: vulnerability scan and
-        // compliance check on the first pass, update check shortly after.
-        let mut st = main_loop::LoopState::starting_at(
-            std::time::Instant::now(),
-            self.vuln_scan_interval_secs,
-            self.state.get_check_interval(),
-        );
-
-        // Run initial security scan on startup (quick check)
-        info!("Running initial security scan...");
-        if let Err(e) = self.run_security_scan().await {
-            warn!("Initial security scan failed: {}", e);
-        }
-        st.last_security_scan = std::time::Instant::now();
-
-        // Initialize network collection with staggered start
-        self.start_network_schedule(&mut st).await;
-
-        // Log collector timer — polls OS event logs at the configured interval
-        st.last_log_collection = std::time::Instant::now();
-
-        // Run initial network collection (with 30s timeout to avoid blocking the main loop)
-        self.run_initial_network_collection().await;
-
-        // Initialize FIM engine
-        self.start_fim_engine().await;
-
-        // Ransomware canary files (or their removal when the option is off)
-        self.start_ransomware_canaries().await;
-
-        // Process starts reported by the operating system, when the option is on
-        self.start_process_telemetry();
-
-        // YARA rules, when the helper is installed and rules are present
-        self.start_yara();
-
-        // Indicator feeds (block lists, STIX, TAXII), when any is configured
-        self.start_threat_intel_feeds();
-
-        // Initialize SIEM forwarder (disabled by default).
-        self.init_siem_forwarder().await;
-
-        // Initialize log collector for OS event log ingestion
-        self.init_log_collector().await;
-
-        // Initialize correlation engine with default rules
-        self.init_correlation_engine().await;
+        let mut st = self.start_up().await?;
 
         info!("Agent main loop started");
         loop {
