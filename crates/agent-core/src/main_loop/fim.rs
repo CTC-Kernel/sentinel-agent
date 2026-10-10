@@ -52,6 +52,28 @@ fn fim_incident_report(alert: &FimAlert) -> api_client::SecurityIncidentReport {
     }
 }
 
+/// One incident for the whole batch: the report of the change when it is
+/// alone, a count of the changes otherwise.
+fn fim_summary_report(
+    reports: Vec<api_client::SecurityIncidentReport>,
+) -> Option<api_client::SecurityIncidentReport> {
+    match reports.len() {
+        0 => None,
+        1 => reports.into_iter().next(),
+        count => Some(api_client::SecurityIncidentReport {
+            incident_type: api_client::IncidentType::UnauthorizedChange,
+            severity: api_client::Severity::Medium,
+            title: format!("File Integrity Alert: {} files changed", count),
+            description: format!("{} file integrity changes detected in this cycle.", count),
+            evidence: serde_json::json!({
+                "change_count": count,
+            }),
+            confidence: 100,
+            detected_at: chrono::Utc::now().to_rfc3339(),
+        }),
+    }
+}
+
 /// Whether the change left content on disk that the YARA rules can scan.
 fn is_yara_candidate(change: &FimChangeType) -> bool {
     matches!(
@@ -255,6 +277,29 @@ impl AgentRuntime {
             self.report_yara_matches(pass, matched).await;
         }
     }
+
+    /// Upload the file changes of the pass in one request, and report one
+    /// summary incident instead of one per change.
+    pub(crate) async fn upload_fim_batch(&self, batch: FimBatch) {
+        if !batch.payloads.is_empty() {
+            let count = batch.payloads.len();
+
+            // Upload structured FIM alerts (batched)
+            if let Some(ref auth_client) = self.authenticated_client
+                && let Err(e) = auth_client.upload_fim_alerts(batch.payloads).await
+            {
+                warn!("Failed to upload {} FIM alert(s) to SaaS: {}", count, e);
+            }
+
+            // Report a single summary incident instead of one per file change
+            if let Some(client) = self.api_client.read().await.as_ref()
+                && let Some(summary) = fim_summary_report(batch.reports)
+                && let Err(e) = client.report_incident(summary).await
+            {
+                error!("Failed to report FIM incident summary to SaaS: {}", e);
+            }
+        }
+    }
 }
 
 #[cfg(test)]
@@ -287,6 +332,40 @@ mod tests {
         assert_eq!(report.confidence, 100);
         assert_eq!(report.evidence["old_hash"], "aa11");
         assert_eq!(report.evidence["new_hash"], "bb22");
+    }
+
+    #[test]
+    fn a_single_change_is_reported_as_itself() {
+        let report = fim_incident_report(&alert("/etc/hosts", FimChangeType::Modified));
+        let summary = fim_summary_report(vec![report]).unwrap();
+        assert_eq!(summary.title, "File Integrity Alert: /etc/hosts");
+    }
+
+    #[test]
+    fn several_changes_are_reported_as_one_count() {
+        let reports = ["/etc/hosts", "/etc/passwd", "/etc/shadow"]
+            .iter()
+            .map(|path| fim_incident_report(&alert(path, FimChangeType::Modified)))
+            .collect();
+        let summary = fim_summary_report(reports).unwrap();
+        assert_eq!(summary.title, "File Integrity Alert: 3 files changed");
+        assert_eq!(
+            summary.description,
+            "3 file integrity changes detected in this cycle."
+        );
+        assert_eq!(summary.evidence["change_count"], 3);
+    }
+
+    #[test]
+    fn no_change_means_no_summary() {
+        assert!(fim_summary_report(Vec::new()).is_none());
+    }
+
+    #[tokio::test]
+    async fn an_empty_batch_is_not_uploaded() {
+        let test = standalone_runtime();
+        // Standalone: no client at all, the call must simply return.
+        test.runtime.upload_fim_batch(FimBatch::default()).await;
     }
 
     #[test]

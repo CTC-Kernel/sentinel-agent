@@ -1042,41 +1042,7 @@ impl AgentRuntime {
                 .await;
 
             // Batch-upload collected FIM alerts and report summary incident
-            if !fim_batch.payloads.is_empty() {
-                let count = fim_batch.payloads.len();
-
-                // Upload structured FIM alerts (batched)
-                if let Some(ref auth_client) = self.authenticated_client
-                    && let Err(e) = auth_client.upload_fim_alerts(fim_batch.payloads).await
-                {
-                    warn!("Failed to upload {} FIM alert(s) to SaaS: {}", count, e);
-                }
-
-                // Report a single summary incident instead of one per file change
-                if let Some(client) = self.api_client.read().await.as_ref() {
-                    let summary = if count == 1 {
-                        fim_batch.reports.into_iter().next().unwrap()
-                    } else {
-                        api_client::SecurityIncidentReport {
-                            incident_type: api_client::IncidentType::UnauthorizedChange,
-                            severity: api_client::Severity::Medium,
-                            title: format!("File Integrity Alert: {} files changed", count),
-                            description: format!(
-                                "{} file integrity changes detected in this cycle.",
-                                count
-                            ),
-                            evidence: serde_json::json!({
-                                "change_count": count,
-                            }),
-                            confidence: 100,
-                            detected_at: chrono::Utc::now().to_rfc3339(),
-                        }
-                    };
-                    if let Err(e) = client.report_incident(summary).await {
-                        error!("Failed to report FIM incident summary to SaaS: {}", e);
-                    }
-                }
-            }
+            self.upload_fim_batch(fim_batch).await;
 
             // 1b. Emit FIM stats to GUI periodically
             #[cfg(feature = "gui")]
