@@ -22,6 +22,11 @@ pub(crate) struct TestRuntime {
 }
 
 pub(crate) fn standalone_runtime() -> TestRuntime {
+    standalone_runtime_with(|_| {})
+}
+
+/// Like [`standalone_runtime`], with the configuration adjusted by `configure`.
+pub(crate) fn standalone_runtime_with(configure: impl FnOnce(&mut AgentConfig)) -> TestRuntime {
     let dir = tempfile::tempdir().expect("temporary directory");
     let db = Arc::new(
         Database::open(
@@ -30,10 +35,11 @@ pub(crate) fn standalone_runtime() -> TestRuntime {
         )
         .expect("test database"),
     );
-    let config = AgentConfig {
+    let mut config = AgentConfig {
         standalone: true,
         ..AgentConfig::default()
     };
+    configure(&mut config);
     #[cfg(not(feature = "gui"))]
     let runtime = AgentRuntime::new(config).with_database(Arc::clone(&db));
     #[cfg(feature = "gui")]

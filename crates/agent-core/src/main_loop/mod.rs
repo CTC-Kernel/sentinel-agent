@@ -9,6 +9,11 @@
 //! pass to the next; `LoopPass` is what the detection stages of a pass hand
 //! to the threat pipeline of that same pass.
 //!
+//! Work that must not hold a pass back runs in background tasks kept in
+//! `LoopState::tasks`, a [`TaskSet`](crate::supervised_tasks::TaskSet): each
+//! pass starts by reaping them, which logs a panic and starts again a task
+//! meant to live as long as the agent (the indicator feeds).
+//!
 //! # Stages of a pass
 //!
 //! | #  | Stage                          | Runs                                 | Shared state written                          |
@@ -83,6 +88,10 @@ impl AgentRuntime {
     /// One pass of the main loop: every stage in the order of the table
     /// above.
     pub(crate) async fn run_pass(&self, st: &mut LoopState) {
+        // Background tasks that ended since the last pass: a panic is logged,
+        // a task meant to keep running is started again.
+        st.tasks.reap();
+
         // What this pass gathers on its way to the threat pipeline.
         let mut pass = LoopPass::new(self.is_paused());
 

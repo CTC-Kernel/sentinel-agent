@@ -65,6 +65,7 @@ impl AgentRuntime {
         if let Some(task) = st.vuln_scan_task.take() {
             task.abort();
         }
+        st.tasks.shutdown().await;
 
         // 1. Flush pending check results
         if !self.config.standalone {

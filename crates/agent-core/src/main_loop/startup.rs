@@ -17,7 +17,11 @@ use tokio::sync::mpsc;
 use tracing::{debug, error, info, warn};
 
 use super::LoopState;
+use crate::supervised_tasks::TaskSet;
 use crate::{AgentRuntime, threat_intel_feeds};
+
+/// Name of the background task that keeps the indicator feeds up to date.
+const FEEDS_TASK: &str = "threat intelligence feeds";
 
 /// A device of the last network discovery, as the interface shows it.
 #[cfg(feature = "gui")]
@@ -81,16 +85,17 @@ impl AgentRuntime {
     }
 
     /// Follow the configured indicator feeds (block lists, STIX, TAXII) in
-    /// the background; the main loop applies what they bring.
-    pub(crate) fn start_threat_intel_feeds(&self) {
+    /// a background task of `tasks`, started again if it panics; the main
+    /// loop applies what the feeds bring.
+    pub(crate) fn start_threat_intel_feeds(&self, tasks: &mut TaskSet) {
         let feeds = threat_intel_feeds::usable_feeds(&self.config.threat_intel_feeds);
         if !feeds.is_empty() {
             info!("Following {} threat intelligence feed(s)", feeds.len());
-            tokio::spawn(threat_intel_feeds::run(
-                feeds,
-                Arc::clone(&self.pending_feed_intel),
-                Arc::clone(&self.state.shutdown),
-            ));
+            let pending = Arc::clone(&self.pending_feed_intel);
+            let shutdown = Arc::clone(&self.state.shutdown);
+            tasks.spawn_restartable(FEEDS_TASK, move || {
+                threat_intel_feeds::run(feeds.clone(), Arc::clone(&pending), Arc::clone(&shutdown))
+            });
         }
     }
 
@@ -169,7 +174,7 @@ impl AgentRuntime {
         // Run initial network collection (with 30s timeout to avoid blocking the main loop)
         self.run_initial_network_collection().await;
 
-        self.start_engines().await;
+        self.start_engines(&mut st.tasks).await;
 
         Ok(st)
     }
@@ -203,7 +208,7 @@ impl AgentRuntime {
     /// Start what the loop reads from: file integrity, ransomware canaries,
     /// process telemetry, YARA, indicator feeds, SIEM forwarder, log
     /// collector and correlation engine.
-    async fn start_engines(&self) {
+    async fn start_engines(&self, tasks: &mut TaskSet) {
         // Initialize FIM engine
         self.start_fim_engine().await;
 
@@ -217,7 +222,7 @@ impl AgentRuntime {
         self.start_yara();
 
         // Indicator feeds (block lists, STIX, TAXII), when any is configured
-        self.start_threat_intel_feeds();
+        self.start_threat_intel_feeds(tasks);
 
         // Initialize SIEM forwarder (disabled by default).
         self.init_siem_forwarder().await;
@@ -230,12 +235,44 @@ impl AgentRuntime {
     }
 }
 
-#[cfg(all(test, feature = "gui"))]
+#[cfg(test)]
 mod tests {
     use super::*;
-    use crate::main_loop::testing::standalone_runtime;
+    use crate::main_loop::testing::{standalone_runtime, standalone_runtime_with};
+    #[cfg(feature = "gui")]
     use agent_storage::repositories::DiscoveredDevicesRepository;
 
+    #[tokio::test]
+    async fn configured_feeds_are_followed_by_a_watched_task() {
+        let test = standalone_runtime_with(|config| {
+            config.threat_intel_feeds = vec![agent_common::config::ThreatIntelFeed {
+                name: "blocklist".to_string(),
+                url: "https://feeds.example/blocklist".to_string(),
+                format: Default::default(),
+                authorization: None,
+                refresh_hours: 12,
+            }];
+        });
+        let mut tasks = TaskSet::new("test");
+
+        test.runtime.start_threat_intel_feeds(&mut tasks);
+
+        assert!(tasks.is_running(FEEDS_TASK));
+        // Stopped before it is ever polled: nothing is downloaded by this test.
+        tasks.shutdown().await;
+    }
+
+    #[tokio::test]
+    async fn without_feeds_no_task_is_started() {
+        let test = standalone_runtime();
+        let mut tasks = TaskSet::new("test");
+
+        test.runtime.start_threat_intel_feeds(&mut tasks);
+
+        assert!(tasks.is_empty());
+    }
+
+    #[cfg(feature = "gui")]
     fn printer() -> StoredDevice {
         let seen = chrono::DateTime::parse_from_rfc3339("2026-10-01T08:30:00Z")
             .unwrap()
@@ -254,6 +291,7 @@ mod tests {
         }
     }
 
+    #[cfg(feature = "gui")]
     #[tokio::test]
     async fn cached_devices_are_shown_at_start_up() {
         let test = standalone_runtime();
@@ -276,6 +314,7 @@ mod tests {
         }
     }
 
+    #[cfg(feature = "gui")]
     #[tokio::test]
     async fn an_empty_cache_sends_nothing() {
         let test = standalone_runtime();
