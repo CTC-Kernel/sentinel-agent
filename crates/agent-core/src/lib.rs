@@ -1025,15 +1025,7 @@ impl AgentRuntime {
             let mut pass = main_loop::LoopPass::new(self.is_paused());
 
             // Indicator feeds refreshed in the background
-            let fresh_feed_intel = self
-                .pending_feed_intel
-                .lock()
-                .unwrap_or_else(|e| e.into_inner())
-                .take();
-            if let Some(intel) = fresh_feed_intel {
-                *self.feed_threat_intel.write().await = Some(intel);
-                self.apply_threat_intel().await;
-            }
+            self.apply_fresh_feed_intel().await;
 
             // Processes started since the last pass, evaluated as they start
             let (process_starts, process_start_incidents) = self.take_process_starts();
