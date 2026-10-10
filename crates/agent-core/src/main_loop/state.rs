@@ -5,6 +5,7 @@
 
 use std::time::{Duration, Instant};
 
+use super::compliance::ComplianceTask;
 use super::scans::VulnScanTask;
 use crate::supervised_tasks::TaskSet;
 use crate::threat_pipeline::RuleHitMemory;
@@ -28,6 +29,9 @@ pub(crate) struct LoopState {
     /// start to the pass that collects its outcome.
     pub vuln_scan_task: Option<VulnScanTask>,
     pub last_compliance_check: Instant,
+    /// Background compliance checks; `Some` from their start to the pass
+    /// that collects their results.
+    pub compliance_task: Option<ComplianceTask>,
     pub last_cert_check: Instant,
     pub last_update_check: Instant,
     pub last_security_scan: Instant,
@@ -83,6 +87,7 @@ impl LoopState {
             last_vuln_scan: already_due(now, vuln_scan_interval_secs),
             vuln_scan_task: None,
             last_compliance_check: already_due(now, check_interval_secs),
+            compliance_task: None,
             last_cert_check: now,
             last_update_check: already_due(
                 now,

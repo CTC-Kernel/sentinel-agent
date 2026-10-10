@@ -35,14 +35,24 @@
 //! | 15 | `network_security_stage`       | its interval, not paused, consent    | pass: network alerts, observed, active        |
 //! | 16 | `collect_os_logs`              | poll interval, collector enabled     | SIEM events; state: timer                     |
 //! | 17 | `threat_pipeline_stage`        | when the pass gathered something     | state: rule memory (consumes the pass)        |
-//! | 18 | `compliance_stage`             | check interval, not paused           | state: score, check time, policy summary      |
-//! | 19 | `certificate_renewal_stage`    | daily, not standalone                | state: timer                                  |
-//! | 20 | `forced_check_stage`           | operator request                     | state: scan task, score, timers               |
-//! | 21 | `forced_sync_stage`            | operator request                     | state: heartbeat timer                        |
-//! | 22 | `update_stage`                 | operator request, or every 6 hours   | state: timer                                  |
-//! | 23 | `forced_discovery_stage` (gui) | operator request                     | (spawns the discovery task)                   |
-//! | 24 | `upload_asset_proposals`       | every pass                           | (drains the proposal queue)                   |
-//! | 25 | `resource_stage`               | every pass                           | resource monitor                              |
+//! | 18 | `collect_compliance`           | when the background checks are done  | state: score, check time, policy summary      |
+//! | 19 | `compliance_stage`             | check interval, not paused           | state: compliance task                        |
+//! | 20 | `certificate_renewal_stage`    | daily, not standalone                | state: timer                                  |
+//! | 21 | `forced_check_stage`           | operator request                     | state: scan task, compliance task             |
+//! | 22 | `forced_sync_stage`            | operator request                     | state: heartbeat timer                        |
+//! | 23 | `update_stage`                 | operator request, or every 6 hours   | state: timer                                  |
+//! | 24 | `forced_discovery_stage` (gui) | operator request                     | (starts the discovery task)                   |
+//! | 25 | `upload_asset_proposals`       | every pass                           | (drains the proposal queue)                   |
+//! | 26 | `resource_stage`               | every pass                           | resource monitor                              |
+//!
+//! # Background tasks
+//!
+//! | Task                        | Started by   | Collected by | After a panic                    |
+//! |-----------------------------|--------------|--------------|----------------------------------|
+//! | `threat intelligence feeds` | start-up     | stage 1      | logged, started again            |
+//! | `vulnerability scan`        | stage 11, 21 | stage 10     | logged, next scan at its usual time |
+//! | `compliance checks`         | stage 19, 21 | stage 18     | logged, next run at its usual time |
+//! | `network discovery`         | stage 24     | (interface)  | logged                           |
 //!
 //! # Order that matters
 //!
@@ -51,12 +61,14 @@
 //!   stage awaits before 17 (uploads included) delays the response.
 //! - Stages 4, 5 and 6 share the FIM batch: drain, scan, then upload.
 //! - Stage 1 gives the network detector its indicators before stage 15.
-//! - The heartbeat (9, and 21 on request) sends the score that stages 18
-//!   and 20 computed in an earlier pass. On a forced sync, stage 9 applies
-//!   the configuration and stage 21 finishes the sync and clears the flag.
-//! - Stage 10 collects the scan that stage 11 or 20 started; a new scan
-//!   only starts once the previous one was collected.
-//! - Stages 12 to 15, 18 and 20 mark the pass active, which stage 25 reads.
+//! - The heartbeat (9, and 22 on request) sends the score that stage 18
+//!   collected in an earlier pass. On a forced sync, stage 9 applies the
+//!   configuration and stage 22 finishes the sync and clears the flag.
+//! - Stage 10 collects the scan that stage 11 or 21 started, stage 18 the
+//!   checks that stage 19 or 21 started; a new run only starts once the
+//!   previous one was collected. Storing and uploading the results stays
+//!   in the loop, in stage 18, so that it never overlaps a forced sync.
+//! - Stages 12 to 15 and 18 mark the pass active, which stage 26 reads.
 //! - Stages 2 to 6 run even when the agent is paused: they are the
 //!   security-critical ones.
 
@@ -161,14 +173,16 @@ impl AgentRuntime {
         // ── Autonomous threat pipeline ──
         self.threat_pipeline_stage(st, &mut pass).await;
 
-        // Run compliance checks if interval has passed (skip when paused)
-        self.compliance_stage(st, &mut pass).await;
+        // Compliance checks run in a background task: collect them once
+        // done, start them if their interval has passed (skip when paused)
+        self.collect_compliance(st, &mut pass).await;
+        self.compliance_stage(st, &pass);
 
         // Certificate renewal check (daily)
         self.certificate_renewal_stage(st).await;
 
         // Check for force_check flag (GUI "Vérifier maintenant" button)
-        self.forced_check_stage(st, &mut pass).await;
+        self.forced_check_stage(st);
 
         // Check for force_sync flag (GUI "Forcer la synchronisation" button)
         self.forced_sync_stage(st).await;
