@@ -6,6 +6,7 @@
 
 mod network;
 mod pass;
+mod siem;
 mod startup;
 mod state;
 #[cfg(all(test, feature = "gui"))]
