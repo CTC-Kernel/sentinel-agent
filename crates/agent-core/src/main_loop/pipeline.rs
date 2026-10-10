@@ -183,8 +183,16 @@ impl AgentRuntime {
                 }
             }
 
-            self.forward_findings_to_siem(&pass.incidents, &pass.network_alerts)
-                .await;
+            // Recorded in the SIEM by the upload task: each event is first
+            // classified by the AI model, which the next pass must not wait for.
+            if !pass.incidents.is_empty() || !pass.network_alerts.is_empty() {
+                self.outbox
+                    .push(Outbound::SiemFindings {
+                        incidents: pass.incidents.clone(),
+                        network_alerts: pass.network_alerts.clone(),
+                    })
+                    .await;
+            }
         }
     }
 
@@ -260,7 +268,7 @@ impl AgentRuntime {
     /// Forward security incidents and network alerts to SIEM (record for
     /// platform + optional external). Authorized events are included: the
     /// SIEM is the audit trail.
-    async fn forward_findings_to_siem(
+    pub(crate) async fn forward_findings_to_siem(
         &self,
         incidents: &[SecurityIncident],
         network_alerts: &[NetworkSecurityAlert],
@@ -456,6 +464,12 @@ mod tests {
 
         test.runtime.threat_pipeline_stage(&mut st, &mut pass).await;
 
+        // Queued by the stage, recorded once the queue is sent.
+        let queued = test.runtime.outbox.take_queued().await;
+        assert!(matches!(queued.as_slice(), [Outbound::SiemFindings { .. }]));
+        for item in queued {
+            test.runtime.send_outbound(item).await;
+        }
         let forwarder = test.runtime.siem_forwarder.read().await;
         let recorded = forwarder.as_ref().unwrap().take_recent_events().await;
         let names: Vec<&str> = recorded.iter().map(|event| event.name.as_str()).collect();
@@ -478,6 +492,7 @@ mod tests {
             .threat_pipeline_stage(&mut st, &mut LoopPass::new(false))
             .await;
 
+        assert_eq!(test.runtime.outbox.unsent(), 0);
         let forwarder = test.runtime.siem_forwarder.read().await;
         assert!(
             forwarder

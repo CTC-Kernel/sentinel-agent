@@ -7,13 +7,16 @@
 //! background task, one item at a time and in the order it was queued. A
 //! slow or unreachable platform then delays the uploads, not the detection
 //! stages nor the playbooks that follow them in the pass.
+//!
+//! The same goes for what is recorded in the SIEM: each event is first
+//! classified by the AI model when there is one, which takes seconds.
 
 use std::future::Future;
 use std::sync::Arc;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::time::{Duration, Instant};
 
-use agent_common::types::UsbEvent;
+use agent_common::types::{FimAlert, UsbEvent};
 use agent_network::{NetworkSecurityAlert, NetworkSnapshot};
 use agent_scanner::SecurityIncident;
 use agent_siem::correlation::CorrelationAlert;
@@ -59,6 +62,17 @@ pub(crate) enum Outbound {
     CorrelationAlerts(Vec<CorrelationAlert>),
     /// Detection rule matches and playbook executions of one pass.
     PipelineResult(PipelineResult),
+    /// A file change to record in the SIEM, after its AI classification.
+    SiemFileChange {
+        alert: Box<FimAlert>,
+        description: String,
+    },
+    /// The incidents and network alerts of one pass to record in the SIEM,
+    /// after their AI classification.
+    SiemFindings {
+        incidents: Vec<SecurityIncident>,
+        network_alerts: Vec<NetworkSecurityAlert>,
+    },
 }
 
 impl Outbound {
@@ -72,6 +86,8 @@ impl Outbound {
             Self::NetworkAlerts(_) => "network alerts",
             Self::CorrelationAlerts(_) => "correlation alerts",
             Self::PipelineResult(_) => "detection matches and playbook logs",
+            Self::SiemFileChange { .. } => "SIEM file change",
+            Self::SiemFindings { .. } => "SIEM findings",
         }
     }
 }
@@ -181,8 +197,8 @@ impl AgentRuntime {
         });
     }
 
-    /// Send one queued item to the platform.
-    async fn send_outbound(&self, item: Outbound) {
+    /// Send one queued item to the platform, or to the SIEM.
+    pub(crate) async fn send_outbound(&self, item: Outbound) {
         match item {
             Outbound::Incident { incident, what } => {
                 if let Err(e) = self.upload_incident(&incident).await {
@@ -206,6 +222,16 @@ impl AgentRuntime {
             Outbound::NetworkAlerts(alerts) => self.upload_network_alerts(&alerts).await,
             Outbound::CorrelationAlerts(alerts) => self.report_correlation_alerts(&alerts).await,
             Outbound::PipelineResult(result) => self.upload_pipeline_result(&result).await,
+            Outbound::SiemFileChange { alert, description } => {
+                self.record_fim_alert_in_siem(&alert, description).await
+            }
+            Outbound::SiemFindings {
+                incidents,
+                network_alerts,
+            } => {
+                self.forward_findings_to_siem(&incidents, &network_alerts)
+                    .await
+            }
         }
     }
 

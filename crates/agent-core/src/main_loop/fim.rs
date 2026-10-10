@@ -201,16 +201,21 @@ impl AgentRuntime {
             .payloads
             .push(agent_sync::types::FimAlertPayload::from(alert.clone()));
 
-        // Forward to SIEM (always record for platform, optionally send to external)
+        // Forward to SIEM (always record for platform, optionally send to
+        // external): queued, the AI classification of each event is slow
         let siem_description = report.description.clone();
         batch.reports.push(report);
-        self.record_fim_alert_in_siem(&alert, siem_description)
+        self.outbox
+            .push(Outbound::SiemFileChange {
+                alert: Box::new(alert),
+                description: siem_description,
+            })
             .await;
     }
 
     /// Record the file change for the platform's SIEM tab and, when an
     /// external SIEM is configured, forward it there.
-    async fn record_fim_alert_in_siem(&self, alert: &FimAlert, description: String) {
+    pub(crate) async fn record_fim_alert_in_siem(&self, alert: &FimAlert, description: String) {
         let siem_guard = self.siem_forwarder.read().await;
         if let Some(siem) = siem_guard.as_ref() {
             let mut event = fim_siem_event(alert, description);
@@ -471,11 +476,24 @@ mod tests {
         assert_eq!(batch.yara_candidates, vec!["/etc/hosts".to_string()]);
         assert_eq!(batch.payloads.len(), 2);
         assert_eq!(batch.reports.len(), 2);
-        // Both changes are kept for the platform's SIEM tab.
+        // Both changes are queued for the SIEM, and kept for the platform's
+        // SIEM tab once the queue is sent.
+        let queued = test.runtime.outbox.take_queued().await;
+        assert!(matches!(
+            queued.as_slice(),
+            [
+                Outbound::SiemFileChange { .. },
+                Outbound::SiemFileChange { .. }
+            ]
+        ));
+        for item in queued {
+            test.runtime.send_outbound(item).await;
+        }
         let siem = test.runtime.siem_forwarder.read().await;
         let recorded = siem.as_ref().unwrap().take_recent_events().await;
         assert_eq!(recorded.len(), 2);
         assert_eq!(recorded[0].file_path.as_deref(), Some("/etc/hosts"));
+        drop(siem);
         #[cfg(feature = "gui")]
         assert_eq!(st.gui.fim_changes_today, 2);
         // Nothing is left for the next pass.

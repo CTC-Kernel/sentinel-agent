@@ -21,7 +21,7 @@
 //! | 1  | `apply_fresh_feed_intel`       | every pass                           | feed intelligence, network detector           |
 //! | 2  | `report_started_processes`     | every pass                           | pass: incidents, observed                     |
 //! | 3  | `check_ransomware_canaries`    | every pass                           | pass: incidents, file changes                 |
-//! | 4  | `drain_fim_alerts`             | every pass                           | pass: file changes; FIM batch; SIEM events    |
+//! | 4  | `drain_fim_alerts`             | every pass                           | pass: file changes; FIM batch                 |
 //! | 5  | `scan_changed_files_with_yara` | when the batch has candidates        | pass: incidents, file changes                 |
 //! | 6  | `queue_fim_batch`              | when the batch is not empty          | (queues the batch for upload)                 |
 //! | 7  | `emit_fim_stats` (gui)         | every pass                           | state: daily FIM count                        |
@@ -62,7 +62,8 @@
 //! - The response, stage 17, acts on what stages 2 to 5, 12 and 15 put in
 //!   the pass: they must run before it, in the same pass. Everything a
 //!   stage awaits before 17 delays the response, which is why the stages
-//!   queue their uploads in the `Outbox` instead of sending them.
+//!   queue in the `Outbox` what they upload and what they record in the
+//!   SIEM (classified by the AI model first) instead of doing it.
 //! - Stages 4, 5 and 6 share the FIM batch: drain, scan, then upload.
 //! - Stage 1 gives the network detector its indicators before stage 15.
 //! - The heartbeat (9, and 22 on request) sends the score that stage 18
