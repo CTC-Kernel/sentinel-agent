@@ -10,9 +10,12 @@ use std::sync::{Arc, Mutex};
 use agent_core::RuntimeHandle;
 use agent_core::audit_trail::LocalAuditTrail;
 use agent_core::remote_ai::RemoteAi;
-use agent_gui::events::AgentEvent;
+use agent_gui::events::{AgentEvent, GuiCommand};
 use agent_storage::Database;
 use agent_sync::AuthenticatedClient;
+use tracing::error;
+
+pub(crate) mod response;
 
 /// The local AI model service, when the agent is built with it.
 #[cfg(feature = "llm")]
@@ -39,4 +42,13 @@ pub(crate) struct CommandContext {
     pub llm_cancel: Arc<Mutex<Option<Arc<AtomicBool>>>>,
     /// The AI provider chosen in the settings.
     pub remote_ai: RemoteAi,
+}
+
+/// A command reached a group of handlers it does not belong to: the
+/// dispatcher and the group disagree on who handles it. Nothing is done.
+fn misrouted(group: &str, command: &GuiCommand) {
+    error!(
+        "GUI command {:?} was handed to the {} handlers, which do not know it",
+        command, group
+    );
 }
