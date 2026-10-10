@@ -5,6 +5,7 @@
 //! one stage at a time.
 
 mod detection;
+mod fim;
 mod network;
 mod pass;
 mod siem;
