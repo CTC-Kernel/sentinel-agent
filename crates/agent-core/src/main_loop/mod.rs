@@ -5,7 +5,10 @@
 //! one stage at a time.
 
 mod pass;
+mod startup;
 mod state;
+#[cfg(all(test, feature = "gui"))]
+pub(crate) mod testing;
 
 pub(crate) use pass::LoopPass;
 pub(crate) use state::{CERT_CHECK_INTERVAL_SECS, LoopState};

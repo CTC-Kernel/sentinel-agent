@@ -956,41 +956,8 @@ impl AgentRuntime {
             self.emit_resource_update(None);
         }
 
-        // Load cached discovery results from database
         #[cfg(feature = "gui")]
-        if let Some(ref db) = self.db {
-            let repo = agent_storage::repositories::DiscoveredDevicesRepository::new(db);
-            match repo.get_all().await {
-                Ok(stored) if !stored.is_empty() => {
-                    let devices: Vec<GuiDiscoveredDevice> = stored
-                        .into_iter()
-                        .map(|d| GuiDiscoveredDevice {
-                            ip: d.ip,
-                            mac: d.mac,
-                            hostname: d.hostname,
-                            vendor: d.vendor,
-                            device_type: d.device_type,
-                            open_ports: d.open_ports,
-                            first_seen: d.first_seen,
-                            last_seen: d.last_seen,
-                            is_gateway: d.is_gateway,
-                            subnet: d.subnet,
-                        })
-                        .collect();
-                    info!(
-                        "Loaded {} cached discovered devices from database",
-                        devices.len()
-                    );
-                    self.emit_gui_event(AgentEvent::DiscoveryUpdate { devices });
-                }
-                Ok(_) => {
-                    debug!("No cached discovery results in database");
-                }
-                Err(e) => {
-                    warn!("Failed to load cached discovery results: {}", e);
-                }
-            }
-        }
+        self.load_cached_discovery().await;
 
         // Load persisted GRC data (playbooks, detection rules, assets, alert rules) into GUI
         #[cfg(feature = "gui")]
