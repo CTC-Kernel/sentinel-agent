@@ -11,6 +11,7 @@ use std::sync::{Arc, Mutex};
 use agent_core::RuntimeHandle;
 use agent_core::audit_trail::LocalAuditTrail;
 use agent_core::remote_ai::RemoteAi;
+use agent_core::supervised_tasks::TaskSet;
 use agent_gui::events::{AgentEvent, GuiCommand};
 use agent_storage::Database;
 use agent_sync::AuthenticatedClient;
@@ -59,6 +60,24 @@ pub(crate) struct CommandContext {
     pub llm_cancel: Arc<Mutex<Option<Arc<AtomicBool>>>>,
     /// The AI provider chosen in the settings.
     pub remote_ai: RemoteAi,
+    /// The tasks the handlers start: reaped by the dispatcher, so one that
+    /// panics is logged and one that overruns is reported.
+    pub tasks: TaskSet,
+}
+
+/// How long a task started by a command may run before it is reported as
+/// slow. Nothing is stopped: the operator reads it in the log.
+pub(crate) mod expected {
+    use std::time::Duration;
+
+    /// A local write, or one request to the platform.
+    pub(crate) const SHORT: Duration = Duration::from_secs(60);
+    /// A response action on the host, or a playbook.
+    pub(crate) const ACTION: Duration = Duration::from_secs(5 * 60);
+    /// An answer or an analysis of the AI model.
+    pub(crate) const ANALYSIS: Duration = Duration::from_secs(10 * 60);
+    /// The download or the load of a model.
+    pub(crate) const DOWNLOAD: Duration = Duration::from_secs(2 * 3600);
 }
 
 /// The group of handlers a command belongs to.
@@ -177,6 +196,8 @@ async fn dispatch(ctx: &mut CommandContext, command: GuiCommand) -> Flow {
 /// the interface is gone or the agent was asked to shut down.
 pub(crate) async fn run(mut ctx: CommandContext, commands: std::sync::mpsc::Receiver<GuiCommand>) {
     loop {
+        // What the handlers started and has ended, panicked or overrun.
+        ctx.tasks.reap();
         match commands.try_recv() {
             Ok(command) => {
                 if dispatch(&mut ctx, command).await == Flow::Stop {
@@ -189,6 +210,9 @@ pub(crate) async fn run(mut ctx: CommandContext, commands: std::sync::mpsc::Rece
             Err(TryRecvError::Disconnected) => break,
         }
     }
+    // What is still running goes on to its end, as it always did: a
+    // response action is not cut short because the window was closed.
+    ctx.tasks.detach();
 }
 
 /// A command reached a group of handlers it does not belong to: the
@@ -220,6 +244,7 @@ pub(crate) mod testing {
             voice_service: None,
             llm_cancel: Arc::new(Mutex::new(None)),
             remote_ai: RemoteAi::default(),
+            tasks: TaskSet::new("interface commands"),
         };
         (ctx, received)
     }
@@ -291,6 +316,34 @@ mod tests {
                 .load(std::sync::atomic::Ordering::Acquire)
         );
         assert!(!handle.is_shutdown_requested());
+    }
+
+    #[tokio::test]
+    async fn what_a_handler_starts_is_watched_under_its_name() {
+        use agent_core::supervised_tasks::TaskEvent;
+        let (mut ctx, events) = testing::context();
+
+        // No inventory yet: the export ends at once, with a message.
+        reports::handle(&mut ctx, GuiCommand::ExportSbom).await;
+        assert!(ctx.tasks.is_running("export sbom"));
+
+        let mut ended = Vec::new();
+        while ended.is_empty() {
+            tokio::task::yield_now().await;
+            ended = ctx.tasks.reap();
+        }
+        assert_eq!(
+            ended,
+            vec![TaskEvent::Finished {
+                name: "export sbom".to_string()
+            }]
+        );
+        match events.try_recv() {
+            Ok(AgentEvent::Notification { notification }) => {
+                assert_eq!(notification.title, "Export SBOM impossible");
+            }
+            other => panic!("expected a notification, got {:?}", other.map(|_| ())),
+        }
     }
 
     #[tokio::test]

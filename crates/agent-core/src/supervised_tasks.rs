@@ -254,6 +254,12 @@ impl TaskSet {
         self.track(name, None, Some(restart), delayed);
     }
 
+    /// Stop watching the tasks and let them run to their end, on their own.
+    pub fn detach(&mut self) {
+        self.tracked.clear();
+        self.tasks.detach_all();
+    }
+
     /// Abort every task and wait for them to be gone.
     pub async fn shutdown(&mut self) {
         self.tracked.clear();
@@ -452,6 +458,24 @@ mod tests {
 
         assert!(set.is_empty());
         assert!(set.reap().is_empty());
+    }
+
+    #[tokio::test]
+    async fn detached_tasks_run_to_their_end_without_the_set() {
+        let mut set = TaskSet::new("test");
+        let done = Arc::new(AtomicU32::new(0));
+        let flag = Arc::clone(&done);
+        set.spawn("isolate host", async move {
+            tokio::time::sleep(Duration::from_millis(30)).await;
+            flag.store(1, Ordering::SeqCst);
+        });
+
+        set.detach();
+        assert!(set.is_empty());
+        drop(set);
+
+        tokio::time::sleep(Duration::from_millis(120)).await;
+        assert_eq!(done.load(Ordering::SeqCst), 1);
     }
 
     #[test]

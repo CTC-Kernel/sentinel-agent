@@ -1601,6 +1601,7 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                 voice_service,
                 llm_cancel,
                 remote_ai,
+                tasks: agent_core::supervised_tasks::TaskSet::new("interface commands"),
             };
             tokio::spawn(gui_commands::run(ctx, command_rx));
 

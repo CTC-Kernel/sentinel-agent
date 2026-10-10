@@ -7,7 +7,7 @@
 use agent_gui::events::{AgentEvent, GuiCommand};
 use tracing::{debug, info, warn};
 
-use super::CommandContext;
+use super::{CommandContext, expected};
 
 /// Run one command of this group.
 pub(crate) async fn handle(ctx: &mut CommandContext, command: GuiCommand) {
@@ -102,7 +102,7 @@ async fn test_ai_provider(
 ) {
     let candidate = ctx.remote_ai.configured(settings, api_key, false);
     let tx = ctx.events.clone();
-    tokio::spawn(async move {
+    ctx.tasks.spawn_expected("test ai provider", expected::ANALYSIS, async move {
         let result = match candidate {
             Ok(candidate) => candidate
                 .infer(
@@ -140,17 +140,18 @@ async fn llm_prompt(
         } else {
             prompt.clone()
         };
-        tokio::spawn(async move {
-            trail
-                .log(
-                    agent_core::audit_trail::AuditAction::AIInteraction {
-                        prompt_preview: prompt_cut,
-                    },
-                    "user",
-                    None,
-                )
-                .await;
-        });
+        ctx.tasks
+            .spawn_expected("llm prompt: audit trail", expected::SHORT, async move {
+                trail
+                    .log(
+                        agent_core::audit_trail::AuditAction::AIInteraction {
+                            prompt_preview: prompt_cut,
+                        },
+                        "user",
+                        None,
+                    )
+                    .await;
+            });
     }
     let tx = ctx.events.clone();
     let remote = ctx.remote_ai.clone();
@@ -167,7 +168,7 @@ async fn llm_prompt(
     {
         previous.store(true, std::sync::atomic::Ordering::SeqCst);
     }
-    tokio::spawn(async move {
+    ctx.tasks.spawn_expected("llm prompt", expected::ANALYSIS, async move {
         let start = std::time::Instant::now();
         if remote.settings.provider != agent_gui::ai_provider::AiProvider::Local {
             let context_label = context.map(|value| value.label_fr()).unwrap_or("Général");
@@ -337,38 +338,39 @@ async fn llm_warm_up(ctx: &mut CommandContext, context: Option<String>) {
     {
         let svc = ctx.llm_service.clone();
         let tx = ctx.events.clone();
-        tokio::spawn(async move {
-            if let Some(ref svc) = svc
-                && let Some(manager) = svc.get_manager().await
-            {
-                let started = std::time::Instant::now();
-                if let Err(e) = manager.engine().warm_up().await {
-                    warn!("LLM warm-up failed: {}", e);
-                    return;
-                }
-                info!("LLM model ready in {:.1}s", started.elapsed().as_secs_f64());
-                if let Some(label) = manager.engine().acceleration().await {
-                    let _ = tx.send(AgentEvent::LlmAcceleration { label });
-                }
-                // Pre-process the grounded context (background
-                // priority: a question pre-empts it). The prefix
-                // cache then serves the first question.
-                if let Some(context) = context.filter(|c| !c.trim().is_empty()) {
-                    let request = agent_llm::engine::InferenceRequest::new(context)
-                        .with_system_prompt(agent_core::llm_stream::assistant_system_prompt())
-                        .with_max_tokens(1)
-                        .with_temperature(0.0)
-                        .background();
-                    match manager.engine().infer(request).await {
-                        Ok(_) => info!(
-                            "LLM context pre-processed in {:.1}s",
-                            started.elapsed().as_secs_f64()
-                        ),
-                        Err(e) => debug!("LLM context pre-processing skipped: {}", e),
+        ctx.tasks
+            .spawn_expected("llm warm up", expected::ANALYSIS, async move {
+                if let Some(ref svc) = svc
+                    && let Some(manager) = svc.get_manager().await
+                {
+                    let started = std::time::Instant::now();
+                    if let Err(e) = manager.engine().warm_up().await {
+                        warn!("LLM warm-up failed: {}", e);
+                        return;
+                    }
+                    info!("LLM model ready in {:.1}s", started.elapsed().as_secs_f64());
+                    if let Some(label) = manager.engine().acceleration().await {
+                        let _ = tx.send(AgentEvent::LlmAcceleration { label });
+                    }
+                    // Pre-process the grounded context (background
+                    // priority: a question pre-empts it). The prefix
+                    // cache then serves the first question.
+                    if let Some(context) = context.filter(|c| !c.trim().is_empty()) {
+                        let request = agent_llm::engine::InferenceRequest::new(context)
+                            .with_system_prompt(agent_core::llm_stream::assistant_system_prompt())
+                            .with_max_tokens(1)
+                            .with_temperature(0.0)
+                            .background();
+                        match manager.engine().infer(request).await {
+                            Ok(_) => info!(
+                                "LLM context pre-processed in {:.1}s",
+                                started.elapsed().as_secs_f64()
+                            ),
+                            Err(e) => debug!("LLM context pre-processing skipped: {}", e),
+                        }
                     }
                 }
-            }
-        });
+            });
     }
     #[cfg(not(feature = "llm"))]
     let _ = context;
@@ -381,71 +383,72 @@ async fn llm_get_status(ctx: &mut CommandContext) {
     #[cfg(feature = "llm")]
     {
         let svc = ctx.llm_service.clone();
-        tokio::spawn(async move {
-            if let Some(ref svc) = svc {
-                match svc.get_status().await {
-                    agent_core::llm_service::LLMServiceStatus::Ready {
-                        model_name,
-                        inference_count,
-                        memory_usage_mb,
-                    } => {
-                        let _ = tx.send(AgentEvent::LlmStatusUpdate {
+        ctx.tasks
+            .spawn_expected("llm get status", expected::SHORT, async move {
+                if let Some(ref svc) = svc {
+                    match svc.get_status().await {
+                        agent_core::llm_service::LLMServiceStatus::Ready {
                             model_name,
-                            status: "ready".to_string(),
                             inference_count,
-                            memory_mb: memory_usage_mb,
-                        });
-                    }
-                    agent_core::llm_service::LLMServiceStatus::NotConfigured => {
-                        let _ = tx.send(AgentEvent::LlmStatusUpdate {
-                            model_name: "N/A".to_string(),
-                            status: "not_configured".to_string(),
-                            inference_count: 0,
-                            memory_mb: 0,
-                        });
-                    }
-                    agent_core::llm_service::LLMServiceStatus::NotAvailable => {
-                        let _ = tx.send(AgentEvent::LlmStatusUpdate {
-                            model_name: "N/A".to_string(),
-                            status: "not_available".to_string(),
-                            inference_count: 0,
-                            memory_mb: 0,
-                        });
-                    }
-                    agent_core::llm_service::LLMServiceStatus::Error(err) => {
-                        let _ = tx.send(AgentEvent::LlmStatusUpdate {
-                            model_name: "N/A".to_string(),
-                            status: format!("error: {}", err),
-                            inference_count: 0,
-                            memory_mb: 0,
-                        });
-                    }
-                    agent_core::llm_service::LLMServiceStatus::Downloading {
-                        model_name,
-                        progress_percent,
-                        downloaded_mb,
-                        total_mb,
-                    } => {
-                        let _ = tx.send(AgentEvent::LlmStatusUpdate {
+                            memory_usage_mb,
+                        } => {
+                            let _ = tx.send(AgentEvent::LlmStatusUpdate {
+                                model_name,
+                                status: "ready".to_string(),
+                                inference_count,
+                                memory_mb: memory_usage_mb,
+                            });
+                        }
+                        agent_core::llm_service::LLMServiceStatus::NotConfigured => {
+                            let _ = tx.send(AgentEvent::LlmStatusUpdate {
+                                model_name: "N/A".to_string(),
+                                status: "not_configured".to_string(),
+                                inference_count: 0,
+                                memory_mb: 0,
+                            });
+                        }
+                        agent_core::llm_service::LLMServiceStatus::NotAvailable => {
+                            let _ = tx.send(AgentEvent::LlmStatusUpdate {
+                                model_name: "N/A".to_string(),
+                                status: "not_available".to_string(),
+                                inference_count: 0,
+                                memory_mb: 0,
+                            });
+                        }
+                        agent_core::llm_service::LLMServiceStatus::Error(err) => {
+                            let _ = tx.send(AgentEvent::LlmStatusUpdate {
+                                model_name: "N/A".to_string(),
+                                status: format!("error: {}", err),
+                                inference_count: 0,
+                                memory_mb: 0,
+                            });
+                        }
+                        agent_core::llm_service::LLMServiceStatus::Downloading {
                             model_name,
-                            status: format!(
-                                "downloading: {}% ({}/{} MB)",
-                                progress_percent, downloaded_mb, total_mb
-                            ),
-                            inference_count: 0,
-                            memory_mb: 0,
-                        });
+                            progress_percent,
+                            downloaded_mb,
+                            total_mb,
+                        } => {
+                            let _ = tx.send(AgentEvent::LlmStatusUpdate {
+                                model_name,
+                                status: format!(
+                                    "downloading: {}% ({}/{} MB)",
+                                    progress_percent, downloaded_mb, total_mb
+                                ),
+                                inference_count: 0,
+                                memory_mb: 0,
+                            });
+                        }
                     }
+                } else {
+                    let _ = tx.send(AgentEvent::LlmStatusUpdate {
+                        model_name: "N/A".to_string(),
+                        status: "not_available".to_string(),
+                        inference_count: 0,
+                        memory_mb: 0,
+                    });
                 }
-            } else {
-                let _ = tx.send(AgentEvent::LlmStatusUpdate {
-                    model_name: "N/A".to_string(),
-                    status: "not_available".to_string(),
-                    inference_count: 0,
-                    memory_mb: 0,
-                });
-            }
-        });
+            });
     }
     #[cfg(not(feature = "llm"))]
     {
@@ -466,51 +469,52 @@ async fn llm_reload_model(ctx: &mut CommandContext) {
     {
         let svc = ctx.llm_service.clone();
         let llm_handle = ctx.handle.clone();
-        tokio::spawn(async move {
-            if let Some(ref svc) = svc {
-                if let Err(e) = svc.reload().await {
-                    warn!("Failed to reload LLM model: {}", e);
-                    llm_handle.set_llm_loaded(false);
-                    let _ = tx.send(AgentEvent::LlmStatusUpdate {
-                        model_name: "N/A".to_string(),
-                        status: format!("reload_error: {}", e),
-                        inference_count: 0,
-                        memory_mb: 0,
-                    });
-                    return;
-                }
-                llm_handle.set_llm_loaded(true);
-                match svc.get_status().await {
-                    agent_core::llm_service::LLMServiceStatus::Ready {
-                        model_name,
-                        inference_count,
-                        memory_usage_mb,
-                    } => {
-                        let _ = tx.send(AgentEvent::LlmStatusUpdate {
-                            model_name,
-                            status: "ready".to_string(),
-                            inference_count,
-                            memory_mb: memory_usage_mb,
-                        });
-                    }
-                    other => {
+        ctx.tasks
+            .spawn_expected("llm reload model", expected::DOWNLOAD, async move {
+                if let Some(ref svc) = svc {
+                    if let Err(e) = svc.reload().await {
+                        warn!("Failed to reload LLM model: {}", e);
+                        llm_handle.set_llm_loaded(false);
                         let _ = tx.send(AgentEvent::LlmStatusUpdate {
                             model_name: "N/A".to_string(),
-                            status: format!("{}", other),
+                            status: format!("reload_error: {}", e),
                             inference_count: 0,
                             memory_mb: 0,
                         });
+                        return;
                     }
+                    llm_handle.set_llm_loaded(true);
+                    match svc.get_status().await {
+                        agent_core::llm_service::LLMServiceStatus::Ready {
+                            model_name,
+                            inference_count,
+                            memory_usage_mb,
+                        } => {
+                            let _ = tx.send(AgentEvent::LlmStatusUpdate {
+                                model_name,
+                                status: "ready".to_string(),
+                                inference_count,
+                                memory_mb: memory_usage_mb,
+                            });
+                        }
+                        other => {
+                            let _ = tx.send(AgentEvent::LlmStatusUpdate {
+                                model_name: "N/A".to_string(),
+                                status: format!("{}", other),
+                                inference_count: 0,
+                                memory_mb: 0,
+                            });
+                        }
+                    }
+                } else {
+                    let _ = tx.send(AgentEvent::LlmStatusUpdate {
+                        model_name: "N/A".to_string(),
+                        status: "not_available".to_string(),
+                        inference_count: 0,
+                        memory_mb: 0,
+                    });
                 }
-            } else {
-                let _ = tx.send(AgentEvent::LlmStatusUpdate {
-                    model_name: "N/A".to_string(),
-                    status: "not_available".to_string(),
-                    inference_count: 0,
-                    memory_mb: 0,
-                });
-            }
-        });
+            });
     }
     #[cfg(not(feature = "llm"))]
     {
@@ -530,75 +534,76 @@ async fn llm_start_download(ctx: &mut CommandContext) {
     #[cfg(feature = "llm")]
     {
         let svc = ctx.llm_service.clone();
-        tokio::spawn(async move {
-            if let Some(ref svc) = svc {
-                let config = match svc.get_config().await {
-                    Ok(c) => c,
-                    Err(e) => {
-                        let _ = tx.send(AgentEvent::LlmDownloadFailed {
-                            model_name: "N/A".to_string(),
-                            error: format!("Configuration invalide: {}", e),
-                        });
-                        return;
-                    }
-                };
-                let model_name = config.model.name.clone();
-                let tx2 = tx.clone();
-                let name2 = model_name.clone();
-                let progress_fn: agent_core::llm_service::DownloadProgressFn =
-                    Box::new(move |percent, downloaded, total, speed| {
-                        let _ = tx2.send(AgentEvent::LlmDownloadProgress {
-                            model_name: name2.clone(),
-                            progress_percent: percent,
-                            downloaded_bytes: downloaded,
-                            total_bytes: total,
-                            speed_bps: speed,
-                        });
-                    });
-                match svc
-                    .download_model_with_progress(&config, Some(progress_fn))
-                    .await
-                {
-                    Ok(()) => {
-                        info!("LLM model download completed");
-                        let total = config.model.path.metadata().map(|m| m.len()).unwrap_or(0);
-                        let _ = tx.send(AgentEvent::LlmDownloadComplete {
-                            model_name: model_name.clone(),
-                            total_bytes: total,
-                        });
-                        // Auto-initialize after download
-                        if let Err(e) = svc.reload().await {
-                            warn!("Failed to initialize model after download: {}", e);
-                            let _ = tx.send(AgentEvent::LlmStatusUpdate {
-                                model_name,
-                                status: format!("init_error: {}", e),
-                                inference_count: 0,
-                                memory_mb: 0,
+        ctx.tasks
+            .spawn_expected("llm start download", expected::DOWNLOAD, async move {
+                if let Some(ref svc) = svc {
+                    let config = match svc.get_config().await {
+                        Ok(c) => c,
+                        Err(e) => {
+                            let _ = tx.send(AgentEvent::LlmDownloadFailed {
+                                model_name: "N/A".to_string(),
+                                error: format!("Configuration invalide: {}", e),
                             });
-                        } else if let agent_core::llm_service::LLMServiceStatus::Ready {
-                            model_name: name,
-                            inference_count,
-                            memory_usage_mb,
-                        } = svc.get_status().await
-                        {
-                            let _ = tx.send(AgentEvent::LlmStatusUpdate {
+                            return;
+                        }
+                    };
+                    let model_name = config.model.name.clone();
+                    let tx2 = tx.clone();
+                    let name2 = model_name.clone();
+                    let progress_fn: agent_core::llm_service::DownloadProgressFn =
+                        Box::new(move |percent, downloaded, total, speed| {
+                            let _ = tx2.send(AgentEvent::LlmDownloadProgress {
+                                model_name: name2.clone(),
+                                progress_percent: percent,
+                                downloaded_bytes: downloaded,
+                                total_bytes: total,
+                                speed_bps: speed,
+                            });
+                        });
+                    match svc
+                        .download_model_with_progress(&config, Some(progress_fn))
+                        .await
+                    {
+                        Ok(()) => {
+                            info!("LLM model download completed");
+                            let total = config.model.path.metadata().map(|m| m.len()).unwrap_or(0);
+                            let _ = tx.send(AgentEvent::LlmDownloadComplete {
+                                model_name: model_name.clone(),
+                                total_bytes: total,
+                            });
+                            // Auto-initialize after download
+                            if let Err(e) = svc.reload().await {
+                                warn!("Failed to initialize model after download: {}", e);
+                                let _ = tx.send(AgentEvent::LlmStatusUpdate {
+                                    model_name,
+                                    status: format!("init_error: {}", e),
+                                    inference_count: 0,
+                                    memory_mb: 0,
+                                });
+                            } else if let agent_core::llm_service::LLMServiceStatus::Ready {
                                 model_name: name,
-                                status: "ready".to_string(),
                                 inference_count,
-                                memory_mb: memory_usage_mb,
+                                memory_usage_mb,
+                            } = svc.get_status().await
+                            {
+                                let _ = tx.send(AgentEvent::LlmStatusUpdate {
+                                    model_name: name,
+                                    status: "ready".to_string(),
+                                    inference_count,
+                                    memory_mb: memory_usage_mb,
+                                });
+                            }
+                        }
+                        Err(e) => {
+                            warn!("LLM model download failed: {}", e);
+                            let _ = tx.send(AgentEvent::LlmDownloadFailed {
+                                model_name,
+                                error: e.to_string(),
                             });
                         }
                     }
-                    Err(e) => {
-                        warn!("LLM model download failed: {}", e);
-                        let _ = tx.send(AgentEvent::LlmDownloadFailed {
-                            model_name,
-                            error: e.to_string(),
-                        });
-                    }
                 }
-            }
-        });
+            });
     }
     #[cfg(not(feature = "llm"))]
     {
@@ -615,11 +620,12 @@ async fn llm_pause_download(ctx: &mut CommandContext) {
     #[cfg(feature = "llm")]
     {
         let svc = ctx.llm_service.clone();
-        tokio::spawn(async move {
-            if let Some(ref svc) = svc {
-                svc.pause_download().await;
-            }
-        });
+        ctx.tasks
+            .spawn_expected("llm pause download", expected::SHORT, async move {
+                if let Some(ref svc) = svc {
+                    svc.pause_download().await;
+                }
+            });
     }
 }
 
@@ -629,11 +635,12 @@ async fn llm_resume_download(ctx: &mut CommandContext) {
     #[cfg(feature = "llm")]
     {
         let svc = ctx.llm_service.clone();
-        tokio::spawn(async move {
-            if let Some(ref svc) = svc {
-                svc.resume_download().await;
-            }
-        });
+        ctx.tasks
+            .spawn_expected("llm resume download", expected::SHORT, async move {
+                if let Some(ref svc) = svc {
+                    svc.resume_download().await;
+                }
+            });
     }
 }
 
@@ -643,11 +650,12 @@ async fn llm_cancel_download(ctx: &mut CommandContext) {
     #[cfg(feature = "llm")]
     {
         let svc = ctx.llm_service.clone();
-        tokio::spawn(async move {
-            if let Some(ref svc) = svc {
-                svc.cancel_download().await;
-            }
-        });
+        ctx.tasks
+            .spawn_expected("llm cancel download", expected::SHORT, async move {
+                if let Some(ref svc) = svc {
+                    svc.cancel_download().await;
+                }
+            });
     }
 }
 
@@ -663,105 +671,116 @@ async fn llm_analyze_vulnerability(
     );
     if let Some(ref trail) = ctx.audit_trail {
         let trail = std::sync::Arc::clone(trail);
-        tokio::spawn(async move {
-            trail
-                .log(
-                    agent_core::audit_trail::AuditAction::AIInteraction {
-                        prompt_preview: format!("Vulnerability analysis index: #{}", finding_index),
-                    },
-                    "user",
-                    None,
-                )
-                .await;
-        });
+        ctx.tasks.spawn_expected(
+            "llm analyze vulnerability: audit trail",
+            expected::SHORT,
+            async move {
+                trail
+                    .log(
+                        agent_core::audit_trail::AuditAction::AIInteraction {
+                            prompt_preview: format!(
+                                "Vulnerability analysis index: #{}",
+                                finding_index
+                            ),
+                        },
+                        "user",
+                        None,
+                    )
+                    .await;
+            },
+        );
     }
     let tx = ctx.events.clone();
     let svc = ctx.llm_service.clone();
     let handle = ctx.handle.clone();
-    tokio::spawn(async move {
-        let target = target_id;
-        #[cfg(feature = "llm")]
-        {
-            if let Some(ref svc) = svc {
-                // Retrieve finding from cache
-                let finding = {
-                    let cache = handle.state.last_vuln_findings.read().await;
-                    cache.as_ref().and_then(|res| {
-                        res.vulnerabilities
-                            .iter()
-                            .find(|v| {
-                                let id = v
-                                    .cve_id
-                                    .clone()
-                                    .or_else(|| v.advisory_id.clone())
-                                    .unwrap_or_else(|| {
-                                        format!(
-                                            "{}-{}",
-                                            v.source.to_uppercase(),
-                                            v.package_name.to_uppercase()
-                                        )
-                                    });
-                                agent_gui::state::event_identity(
-                                    "finding",
-                                    &(
-                                        &id,
-                                        &v.package_name,
-                                        &v.installed_version,
-                                        &v.source,
-                                        Some(v.detected_at),
-                                    ),
-                                ) == target
-                            })
-                            .cloned()
-                    })
-                };
+    ctx.tasks.spawn_expected(
+        "llm analyze vulnerability",
+        expected::ANALYSIS,
+        async move {
+            let target = target_id;
+            #[cfg(feature = "llm")]
+            {
+                if let Some(ref svc) = svc {
+                    // Retrieve finding from cache
+                    let finding = {
+                        let cache = handle.state.last_vuln_findings.read().await;
+                        cache.as_ref().and_then(|res| {
+                            res.vulnerabilities
+                                .iter()
+                                .find(|v| {
+                                    let id = v
+                                        .cve_id
+                                        .clone()
+                                        .or_else(|| v.advisory_id.clone())
+                                        .unwrap_or_else(|| {
+                                            format!(
+                                                "{}-{}",
+                                                v.source.to_uppercase(),
+                                                v.package_name.to_uppercase()
+                                            )
+                                        });
+                                    agent_gui::state::event_identity(
+                                        "finding",
+                                        &(
+                                            &id,
+                                            &v.package_name,
+                                            &v.installed_version,
+                                            &v.source,
+                                            Some(v.detected_at),
+                                        ),
+                                    ) == target
+                                })
+                                .cloned()
+                        })
+                    };
 
-                if let Some(finding) = finding {
-                    match svc.analyze_vulnerability(&finding).await {
-                        Ok(analysis) => {
-                            let _ = tx.send(AgentEvent::LlmAnalysisComplete {
-                                target: target.clone(),
-                                analysis,
-                                severity_override: None,
-                                is_false_positive: None,
-                                confidence: None,
-                                ai_remediation_script: None,
-                                ai_remediation_explanation: None,
-                            });
+                    if let Some(finding) = finding {
+                        match svc.analyze_vulnerability(&finding).await {
+                            Ok(analysis) => {
+                                let _ = tx.send(AgentEvent::LlmAnalysisComplete {
+                                    target: target.clone(),
+                                    analysis,
+                                    severity_override: None,
+                                    is_false_positive: None,
+                                    confidence: None,
+                                    ai_remediation_script: None,
+                                    ai_remediation_explanation: None,
+                                });
+                            }
+                            Err(e) => {
+                                warn!("LLM vulnerability analysis error: {}", e);
+                                let _ = tx.send(AgentEvent::LlmAnalysisComplete {
+                                    target,
+                                    analysis: format!("Erreur d'analyse : {}", e),
+                                    severity_override: None,
+                                    is_false_positive: None,
+                                    confidence: None,
+                                    ai_remediation_script: None,
+                                    ai_remediation_explanation: None,
+                                });
+                            }
                         }
-                        Err(e) => {
-                            warn!("LLM vulnerability analysis error: {}", e);
-                            let _ = tx.send(AgentEvent::LlmAnalysisComplete {
-                                target,
-                                analysis: format!("Erreur d'analyse : {}", e),
-                                severity_override: None,
-                                is_false_positive: None,
-                                confidence: None,
-                                ai_remediation_script: None,
-                                ai_remediation_explanation: None,
-                            });
-                        }
+                        return;
+                    } else {
+                        warn!(
+                            "LlmAnalyzeVulnerability: finding #{} not found in cache",
+                            finding_index
+                        );
                     }
-                    return;
-                } else {
-                    warn!(
-                        "LlmAnalyzeVulnerability: finding #{} not found in cache",
-                        finding_index
-                    );
                 }
             }
-        }
-        let _ = svc;
-        let _ = tx.send(AgentEvent::LlmAnalysisComplete {
-            target,
-            analysis: "Module IA non disponible ou finding introuvable.".to_string(),
-            severity_override: None,
-            is_false_positive: None,
-            confidence: None,
-            ai_remediation_script: None,
-            ai_remediation_explanation: None,
-        });
-    });
+            let _ = svc;
+            let _ = tx.send(AgentEvent::LlmAnalysisComplete {
+                target,
+                analysis: "Module IA non disponible ou finding introuvable.".to_string(),
+                severity_override: None,
+                is_false_positive: None,
+                confidence: None,
+                ai_remediation_script: None,
+                ai_remediation_explanation: None,
+            });
+        },
+    );
 }
 
 /// Select a specific LLM model (by registry key, e.g. "llama-4-8b").
@@ -778,119 +797,175 @@ async fn llm_select_model(
     let svc = ctx.llm_service.clone();
     let model_key_clone = model_key.clone();
     let model_name_clone = model_name.clone();
-    tokio::spawn(async move {
-        // Determine the config path
-        let config_path = agent_common::config::AgentConfig::platform_data_dir()
-            .join("config")
-            .join("llm.json");
-        let previous_config = std::fs::read(&config_path).ok();
+    ctx.tasks
+        .spawn_expected("llm select model", expected::DOWNLOAD, async move {
+            // Determine the config path
+            let config_path = agent_common::config::AgentConfig::platform_data_dir()
+                .join("config")
+                .join("llm.json");
+            let previous_config = std::fs::read(&config_path).ok();
 
-        // Load or create base config
-        let mut llm_cfg = if config_path.exists() {
-            agent_llm::LLMConfig::from_file(&config_path).unwrap_or_default()
-        } else {
-            agent_llm::LLMConfig::default()
-        };
+            // Load or create base config
+            let mut llm_cfg = if config_path.exists() {
+                agent_llm::LLMConfig::from_file(&config_path).unwrap_or_default()
+            } else {
+                agent_llm::LLMConfig::default()
+            };
 
-        // Update model fields
-        llm_cfg.model.name = model_key_clone.clone();
-        if let Some(ref fname) = gguf_filename {
-            let candidate = std::path::Path::new(fname);
-            if candidate.file_name().and_then(|value| value.to_str()) != Some(fname.as_str())
-                || candidate.extension().and_then(|value| value.to_str()) != Some("gguf")
-            {
+            // Update model fields
+            llm_cfg.model.name = model_key_clone.clone();
+            if let Some(ref fname) = gguf_filename {
+                let candidate = std::path::Path::new(fname);
+                if candidate.file_name().and_then(|value| value.to_str()) != Some(fname.as_str())
+                    || candidate.extension().and_then(|value| value.to_str()) != Some("gguf")
+                {
+                    let _ = tx.send(AgentEvent::LlmDownloadFailed {
+                        model_name: model_name_clone,
+                        error: "Nom de fichier GGUF non valide".to_string(),
+                    });
+                    return;
+                }
+                llm_cfg.model.path = agent_common::config::AgentConfig::platform_data_dir()
+                    .join("models")
+                    .join(fname);
+            }
+            // Never inherit the previous model's URL. When absent,
+            // the download service resolves the selected registry key.
+            llm_cfg.model.download_url = download_url.clone();
+
+            // Save updated config
+            if let Some(parent) = config_path.parent() {
+                let _ = std::fs::create_dir_all(parent);
+            }
+            if let Err(e) = llm_cfg.save_to_file(&config_path) {
+                warn!("Failed to save updated LLM config: {}", e);
                 let _ = tx.send(AgentEvent::LlmDownloadFailed {
                     model_name: model_name_clone,
-                    error: "Nom de fichier GGUF non valide".to_string(),
+                    error: format!("Erreur de configuration: {}", e),
                 });
                 return;
             }
-            llm_cfg.model.path = agent_common::config::AgentConfig::platform_data_dir()
-                .join("models")
-                .join(fname);
-        }
-        // Never inherit the previous model's URL. When absent,
-        // the download service resolves the selected registry key.
-        llm_cfg.model.download_url = download_url.clone();
 
-        // Save updated config
-        if let Some(parent) = config_path.parent() {
-            let _ = std::fs::create_dir_all(parent);
-        }
-        if let Err(e) = llm_cfg.save_to_file(&config_path) {
-            warn!("Failed to save updated LLM config: {}", e);
-            let _ = tx.send(AgentEvent::LlmDownloadFailed {
-                model_name: model_name_clone,
-                error: format!("Erreur de configuration: {}", e),
-            });
-            return;
-        }
+            // A model switch is transactional: failed downloads or
+            // initialization must not leave the next application start
+            // pinned to an unusable model configuration.
+            let restore_previous_config = || match &previous_config {
+                Some(contents) => std::fs::write(&config_path, contents),
+                None => match std::fs::remove_file(&config_path) {
+                    Ok(()) => Ok(()),
+                    Err(error) if error.kind() == std::io::ErrorKind::NotFound => Ok(()),
+                    Err(error) => Err(error),
+                },
+            };
 
-        // A model switch is transactional: failed downloads or
-        // initialization must not leave the next application start
-        // pinned to an unusable model configuration.
-        let restore_previous_config = || match &previous_config {
-            Some(contents) => std::fs::write(&config_path, contents),
-            None => match std::fs::remove_file(&config_path) {
-                Ok(()) => Ok(()),
-                Err(error) if error.kind() == std::io::ErrorKind::NotFound => Ok(()),
-                Err(error) => Err(error),
-            },
-        };
+            info!(
+                "LLM config updated for model '{}', starting download/reload",
+                model_key_clone
+            );
 
-        info!(
-            "LLM config updated for model '{}', starting download/reload",
-            model_key_clone
-        );
-
-        // If model file doesn't exist → trigger download
-        if !llm_cfg.model.path.exists() {
-            if let Some(ref llm_svc) = svc {
-                let tx2 = tx.clone();
-                let name_c = model_name_clone.clone();
-                let name_c2 = model_name_clone.clone();
-                let progress_tx = tx.clone();
-                let progress_name = model_name_clone.clone();
-                let progress_cb: agent_core::llm_service::DownloadProgressFn =
-                    Box::new(move |pct, dl, total, speed| {
-                        let _ = progress_tx.send(AgentEvent::LlmDownloadProgress {
-                            model_name: progress_name.clone(),
-                            progress_percent: pct,
-                            downloaded_bytes: dl,
-                            total_bytes: total,
-                            speed_bps: speed,
+            // If model file doesn't exist → trigger download
+            if !llm_cfg.model.path.exists() {
+                if let Some(ref llm_svc) = svc {
+                    let tx2 = tx.clone();
+                    let name_c = model_name_clone.clone();
+                    let name_c2 = model_name_clone.clone();
+                    let progress_tx = tx.clone();
+                    let progress_name = model_name_clone.clone();
+                    let progress_cb: agent_core::llm_service::DownloadProgressFn =
+                        Box::new(move |pct, dl, total, speed| {
+                            let _ = progress_tx.send(AgentEvent::LlmDownloadProgress {
+                                model_name: progress_name.clone(),
+                                progress_percent: pct,
+                                downloaded_bytes: dl,
+                                total_bytes: total,
+                                speed_bps: speed,
+                            });
                         });
-                    });
-                match llm_svc
-                    .download_model_with_progress(&llm_cfg, Some(progress_cb))
-                    .await
-                {
-                    Ok(()) => {
-                        // Auto-reload after download
-                        if let Err(e) = llm_svc.reload().await {
-                            warn!("Auto-reload after download failed: {}", e);
+                    match llm_svc
+                        .download_model_with_progress(&llm_cfg, Some(progress_cb))
+                        .await
+                    {
+                        Ok(()) => {
+                            // Auto-reload after download
+                            if let Err(e) = llm_svc.reload().await {
+                                warn!("Auto-reload after download failed: {}", e);
+                                if let Err(restore_error) = restore_previous_config() {
+                                    warn!(
+                                        "Failed to restore previous LLM config: {}",
+                                        restore_error
+                                    );
+                                } else if previous_config.is_some()
+                                    && let Err(restore_error) = llm_svc.reload().await
+                                {
+                                    warn!(
+                                        "Failed to reactivate previous LLM model: {}",
+                                        restore_error
+                                    );
+                                }
+                                let _ = tx2.send(AgentEvent::LlmDownloadFailed {
+                                    model_name: name_c,
+                                    error: format!(
+                                        "Modèle téléchargé mais impossible à charger: {}",
+                                        e
+                                    ),
+                                });
+                            } else {
+                                let _ = tx2.send(AgentEvent::LlmDownloadComplete {
+                                    model_name: name_c,
+                                    total_bytes: llm_cfg
+                                        .model
+                                        .path
+                                        .metadata()
+                                        .map(|m| m.len())
+                                        .unwrap_or(0),
+                                });
+                                if let agent_core::llm_service::LLMServiceStatus::Ready {
+                                    model_name,
+                                    inference_count,
+                                    memory_usage_mb,
+                                } = llm_svc.get_status().await
+                                {
+                                    let _ = tx2.send(AgentEvent::LlmStatusUpdate {
+                                        model_name,
+                                        status: "ready".to_string(),
+                                        inference_count,
+                                        memory_mb: memory_usage_mb,
+                                    });
+                                }
+                            }
+                        }
+                        Err(e) => {
+                            warn!("Download failed for '{}': {}", name_c2, e);
                             if let Err(restore_error) = restore_previous_config() {
                                 warn!("Failed to restore previous LLM config: {}", restore_error);
-                            } else if previous_config.is_some()
-                                && let Err(restore_error) = llm_svc.reload().await
-                            {
-                                warn!("Failed to reactivate previous LLM model: {}", restore_error);
                             }
-                            let _ = tx2.send(AgentEvent::LlmDownloadFailed {
-                                model_name: name_c,
-                                error: format!(
-                                    "Modèle téléchargé mais impossible à charger: {}",
-                                    e
-                                ),
+                            let _ = tx.send(AgentEvent::LlmDownloadFailed {
+                                model_name: name_c2,
+                                error: e.to_string(),
                             });
-                        } else {
-                            let _ = tx2.send(AgentEvent::LlmDownloadComplete {
-                                model_name: name_c,
+                        }
+                    }
+                } else {
+                    if let Err(restore_error) = restore_previous_config() {
+                        warn!("Failed to restore previous LLM config: {}", restore_error);
+                    }
+                    let _ = tx.send(AgentEvent::LlmDownloadFailed {
+                        model_name: model_name_clone,
+                        error: "Service IA indisponible dans cette installation".to_string(),
+                    });
+                }
+            } else {
+                // Model already exists locally → just reload
+                if let Some(ref llm_svc) = svc {
+                    match llm_svc.reload().await {
+                        Ok(()) => {
+                            let _ = tx.send(AgentEvent::LlmDownloadComplete {
+                                model_name: model_name_clone,
                                 total_bytes: llm_cfg
                                     .model
                                     .path
                                     .metadata()
-                                    .map(|m| m.len())
+                                    .map(|metadata| metadata.len())
                                     .unwrap_or(0),
                             });
                             if let agent_core::llm_service::LLMServiceStatus::Ready {
@@ -899,7 +974,7 @@ async fn llm_select_model(
                                 memory_usage_mb,
                             } = llm_svc.get_status().await
                             {
-                                let _ = tx2.send(AgentEvent::LlmStatusUpdate {
+                                let _ = tx.send(AgentEvent::LlmStatusUpdate {
                                     model_name,
                                     status: "ready".to_string(),
                                     inference_count,
@@ -907,84 +982,35 @@ async fn llm_select_model(
                                 });
                             }
                         }
-                    }
-                    Err(e) => {
-                        warn!("Download failed for '{}': {}", name_c2, e);
-                        if let Err(restore_error) = restore_previous_config() {
-                            warn!("Failed to restore previous LLM config: {}", restore_error);
-                        }
-                        let _ = tx.send(AgentEvent::LlmDownloadFailed {
-                            model_name: name_c2,
-                            error: e.to_string(),
-                        });
-                    }
-                }
-            } else {
-                if let Err(restore_error) = restore_previous_config() {
-                    warn!("Failed to restore previous LLM config: {}", restore_error);
-                }
-                let _ = tx.send(AgentEvent::LlmDownloadFailed {
-                    model_name: model_name_clone,
-                    error: "Service IA indisponible dans cette installation".to_string(),
-                });
-            }
-        } else {
-            // Model already exists locally → just reload
-            if let Some(ref llm_svc) = svc {
-                match llm_svc.reload().await {
-                    Ok(()) => {
-                        let _ = tx.send(AgentEvent::LlmDownloadComplete {
-                            model_name: model_name_clone,
-                            total_bytes: llm_cfg
-                                .model
-                                .path
-                                .metadata()
-                                .map(|metadata| metadata.len())
-                                .unwrap_or(0),
-                        });
-                        if let agent_core::llm_service::LLMServiceStatus::Ready {
-                            model_name,
-                            inference_count,
-                            memory_usage_mb,
-                        } = llm_svc.get_status().await
-                        {
-                            let _ = tx.send(AgentEvent::LlmStatusUpdate {
-                                model_name,
-                                status: "ready".to_string(),
-                                inference_count,
-                                memory_mb: memory_usage_mb,
+                        Err(e) => {
+                            warn!("Reload after model switch failed: {}", e);
+                            if let Err(restore_error) = restore_previous_config() {
+                                warn!("Failed to restore previous LLM config: {}", restore_error);
+                            } else if previous_config.is_some()
+                                && let Err(restore_error) = llm_svc.reload().await
+                            {
+                                warn!("Failed to reactivate previous LLM model: {}", restore_error);
+                            }
+                            let _ = tx.send(AgentEvent::LlmDownloadFailed {
+                                model_name: model_name_clone,
+                                error: format!(
+                                    "Le fichier GGUF existe mais son chargement a échoué: {}",
+                                    e
+                                ),
                             });
                         }
                     }
-                    Err(e) => {
-                        warn!("Reload after model switch failed: {}", e);
-                        if let Err(restore_error) = restore_previous_config() {
-                            warn!("Failed to restore previous LLM config: {}", restore_error);
-                        } else if previous_config.is_some()
-                            && let Err(restore_error) = llm_svc.reload().await
-                        {
-                            warn!("Failed to reactivate previous LLM model: {}", restore_error);
-                        }
-                        let _ = tx.send(AgentEvent::LlmDownloadFailed {
-                            model_name: model_name_clone,
-                            error: format!(
-                                "Le fichier GGUF existe mais son chargement a échoué: {}",
-                                e
-                            ),
-                        });
+                } else {
+                    if let Err(restore_error) = restore_previous_config() {
+                        warn!("Failed to restore previous LLM config: {}", restore_error);
                     }
+                    let _ = tx.send(AgentEvent::LlmDownloadFailed {
+                        model_name: model_name_clone,
+                        error: "Service IA indisponible dans cette installation".to_string(),
+                    });
                 }
-            } else {
-                if let Err(restore_error) = restore_previous_config() {
-                    warn!("Failed to restore previous LLM config: {}", restore_error);
-                }
-                let _ = tx.send(AgentEvent::LlmDownloadFailed {
-                    model_name: model_name_clone,
-                    error: "Service IA indisponible dans cette installation".to_string(),
-                });
             }
-        }
-    });
+        });
 }
 
 /// Classify a threat event with AI.
@@ -1008,21 +1034,25 @@ async fn llm_classify_threat(
         } else {
             event_description.clone()
         };
-        tokio::spawn(async move {
-            trail
-                .log(
-                    agent_core::audit_trail::AuditAction::AIInteraction {
-                        prompt_preview: format!("Threat classification: {}", desc_cut),
-                    },
-                    "user",
-                    None,
-                )
-                .await;
-        });
+        ctx.tasks.spawn_expected(
+            "llm classify threat: audit trail",
+            expected::SHORT,
+            async move {
+                trail
+                    .log(
+                        agent_core::audit_trail::AuditAction::AIInteraction {
+                            prompt_preview: format!("Threat classification: {}", desc_cut),
+                        },
+                        "user",
+                        None,
+                    )
+                    .await;
+            },
+        );
     }
     let tx = ctx.events.clone();
     let svc = ctx.llm_service.clone();
-    tokio::spawn(async move {
+    ctx.tasks.spawn_expected("llm classify threat", expected::ANALYSIS, async move {
         let start = std::time::Instant::now();
         #[cfg(feature = "llm")]
         {
@@ -1106,23 +1136,27 @@ async fn llm_analyze_risk(
     if let Some(ref trail) = ctx.audit_trail {
         let trail = std::sync::Arc::clone(trail);
         let title_copy = risk_title.clone();
-        tokio::spawn(async move {
-            trail
-                .log(
-                    agent_core::audit_trail::AuditAction::AIInteraction {
-                        prompt_preview: format!("Risk analysis: {}", title_copy),
-                    },
-                    "user",
-                    None,
-                )
-                .await;
-        });
+        ctx.tasks.spawn_expected(
+            "llm analyze risk: audit trail",
+            expected::SHORT,
+            async move {
+                trail
+                    .log(
+                        agent_core::audit_trail::AuditAction::AIInteraction {
+                            prompt_preview: format!("Risk analysis: {}", title_copy),
+                        },
+                        "user",
+                        None,
+                    )
+                    .await;
+            },
+        );
     }
     let _ = &risk_description; // used inside #[cfg(feature = "llm")] below
     let tx = ctx.events.clone();
     let svc = ctx.llm_service.clone();
     let rid = risk_id.clone();
-    tokio::spawn(async move {
+    ctx.tasks.spawn_expected("llm analyze risk", expected::ANALYSIS, async move {
         #[cfg(feature = "llm")]
         {
             if let Some(ref svc) = svc

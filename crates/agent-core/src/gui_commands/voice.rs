@@ -6,7 +6,7 @@
 use agent_gui::events::{AgentEvent, GuiCommand};
 use tracing::info;
 
-use super::CommandContext;
+use super::{CommandContext, expected};
 
 /// Run one command of this group.
 pub(crate) async fn handle(ctx: &mut CommandContext, command: GuiCommand) {
@@ -65,9 +65,10 @@ async fn voice_install_model(ctx: &mut CommandContext, model_key: String) {
     );
     #[cfg(feature = "voice")]
     if let Some(voice) = ctx.voice_service.clone() {
-        tokio::spawn(async move {
-            voice.install_model(&model_key).await;
-        });
+        ctx.tasks
+            .spawn_expected("voice install model", expected::DOWNLOAD, async move {
+                voice.install_model(&model_key).await;
+            });
     }
     #[cfg(not(feature = "voice"))]
     let _ = ctx.events.send(AgentEvent::VoiceModelInstall {
@@ -123,14 +124,16 @@ async fn set_voice_listening(ctx: &mut CommandContext, enabled: bool) {
     #[cfg(not(feature = "voice"))]
     {
         let tx = ctx.events.clone();
-        tokio::spawn(async move {
-            if enabled {
-                tokio::time::sleep(std::time::Duration::from_millis(500)).await;
-                let _ = tx.send(AgentEvent::VoiceError {
-                    message: "Reconnaissance vocale indisponible dans cette version.".to_string(),
-                });
-            }
-        });
+        ctx.tasks
+            .spawn_expected("set voice listening", expected::SHORT, async move {
+                if enabled {
+                    tokio::time::sleep(std::time::Duration::from_millis(500)).await;
+                    let _ = tx.send(AgentEvent::VoiceError {
+                        message: "Reconnaissance vocale indisponible dans cette version."
+                            .to_string(),
+                    });
+                }
+            });
     }
 }
 
@@ -171,10 +174,11 @@ async fn llm_toggle_voice(ctx: &mut CommandContext) {
     {
         let voice: Option<std::sync::Arc<agent_core::voice::VoiceService>> =
             ctx.voice_service.clone();
-        tokio::spawn(async move {
-            if let Some(ref voice) = voice {
-                voice.start_listening().await;
-            }
-        });
+        ctx.tasks
+            .spawn_expected("llm toggle voice", expected::SHORT, async move {
+                if let Some(ref voice) = voice {
+                    voice.start_listening().await;
+                }
+            });
     }
 }
