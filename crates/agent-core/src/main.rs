@@ -1605,69 +1605,31 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
             tokio::spawn(async move {
                 loop {
                     match command_rx.try_recv() {
-                        Ok(GuiCommand::Pause) => {
-                            info!("[AUDIT] GUI user requested agent pause");
-                            ctx.handle.pause();
-                        }
-                        Ok(GuiCommand::Resume) => {
-                            info!("[AUDIT] GUI user requested agent resume");
-                            ctx.handle.resume();
-                        }
-                        Ok(GuiCommand::Shutdown) => {
-                            info!("[AUDIT] GUI user requested agent shutdown");
-                            ctx.handle.request_shutdown();
-                            break;
-                        }
-                        Ok(GuiCommand::Restart) => {
-                            info!("[AUDIT] GUI user requested agent restart");
-                            match spawn_relaunch() {
-                                Ok(()) => {
-                                    ctx.handle.request_shutdown();
-                                    break;
-                                }
-                                Err(e) => {
-                                    error!("Failed to relaunch the agent: {}", e);
-                                    let _ = ctx.events.send(AgentEvent::Notification {
-                                        notification: agent_gui::dto::GuiNotification::error(
-                                            "Redémarrage impossible",
-                                            format!(
-                                                "L'agent n'a pas pu se relancer ({}). \
-                                                 Fermez-le et rouvrez-le pour activer la \
-                                                 connexion à la plateforme.",
-                                                e
-                                            ),
-                                        ),
-                                    });
-                                }
+                        Ok(command @ (GuiCommand::Pause
+                            | GuiCommand::Resume
+                            | GuiCommand::Shutdown
+                            | GuiCommand::Restart
+                            | GuiCommand::RunCheck
+                            | GuiCommand::ForceSync
+                            | GuiCommand::RunSync
+                            | GuiCommand::StartDiscovery
+                            | GuiCommand::StopDiscovery
+                            | GuiCommand::CheckUpdate
+                            | GuiCommand::ProposeAsset { .. }
+                            | GuiCommand::Remediate { .. }
+                            | GuiCommand::RemediatePreview { .. }
+                            | GuiCommand::ApplyAiRemediation { .. }
+                            | GuiCommand::ConnectToPlatform
+                            | GuiCommand::GetSummary
+                            | GuiCommand::GetCheckResults
+                            | GuiCommand::MarkNotificationRead { .. }
+                            | GuiCommand::MarkAllNotificationsRead
+                            | GuiCommand::DeleteNotification { .. })) => {
+                            if gui_commands::control::handle(&mut ctx, command).await
+                                == gui_commands::Flow::Stop
+                            {
+                                break;
                             }
-                        }
-                        Ok(GuiCommand::RunCheck) => {
-                            info!("[AUDIT] GUI user requested manual check run");
-                            ctx.handle.trigger_check();
-                        }
-                        Ok(GuiCommand::ForceSync) => {
-                            info!("GUI requested force sync");
-                            ctx.handle.trigger_sync();
-                        }
-                        Ok(GuiCommand::StartDiscovery) => {
-                            info!("GUI requested network discovery");
-                            ctx.handle.trigger_discovery();
-                        }
-                        Ok(GuiCommand::StopDiscovery) => {
-                            info!("GUI requested discovery cancellation");
-                            ctx.handle.cancel_discovery();
-                        }
-                        Ok(GuiCommand::CheckUpdate) => {
-                            info!("[AUDIT] GUI user requested manual update check");
-                            ctx.handle.trigger_update();
-                        }
-                        Ok(GuiCommand::ProposeAsset {
-                            ip,
-                            hostname,
-                            device_type,
-                        }) => {
-                            info!("[AUDIT] GUI user proposed asset: {}", ip);
-                            ctx.handle.propose_asset(ip, hostname, device_type);
                         }
                         Ok(command @ (GuiCommand::UpdateCheckInterval { .. }
                             | GuiCommand::UpdateAllowlist { .. }
@@ -1676,48 +1638,6 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                             | GuiCommand::UpdateSiemConfig { .. }
                             | GuiCommand::UpdateLogCollectorConfig { .. })) => {
                             gui_commands::settings::handle(&mut ctx, command).await;
-                        }
-                        Ok(GuiCommand::Remediate { check_id }) => {
-                            info!("[AUDIT] GUI user requested remediation for check: {}", check_id);
-                            ctx.handle.remediate(check_id);
-                        }
-                        Ok(GuiCommand::RemediatePreview { check_id }) => {
-                            info!("[AUDIT] GUI user previewed remediation for check: {}", check_id);
-                            ctx.handle.remediate_preview(check_id);
-                        }
-                        Ok(GuiCommand::ApplyAiRemediation { action }) => {
-                            info!("[AUDIT] GUI user applying AI remediation for check: {}", action.check_id);
-                            ctx.handle.apply_ai_remediation(action);
-                        }
-                        Ok(GuiCommand::RunSync) => {
-                            info!("[AUDIT] GUI user requested sync");
-                            ctx.handle.trigger_sync();
-                        }
-                        Ok(GuiCommand::ConnectToPlatform) => {
-                            // Handled by the shell (it opens the wizard); the
-                            // runtime hears the enrollment that follows.
-                            debug!("ConnectToPlatform reached the runtime; nothing to do here");
-                        }
-                        Ok(GuiCommand::GetSummary) => {
-                            // Summary is emitted continuously via status updates; this is a no-op
-                            debug!("GUI requested summary (already sent via periodic updates)");
-                        }
-                        Ok(GuiCommand::GetCheckResults) => {
-                            // Check results are emitted via CheckCompleted events; this is a no-op
-                            debug!("GUI requested check results (already sent via events)");
-                        }
-                        Ok(GuiCommand::MarkNotificationRead { notification_id }) => {
-                            info!("[AUDIT] GUI marked notification {} as read", notification_id);
-                            // Notification read state is managed in GUI state
-                        }
-                        Ok(GuiCommand::MarkAllNotificationsRead) => {
-                            info!("[AUDIT] GUI marked all notifications as read");
-                            // Notification read state is managed in GUI state
-                        }
-                        Ok(GuiCommand::DeleteNotification { notification_id }) => {
-                            // Notifications are local to the desktop app (the GUI
-                            // already removed it): the platform has no such resource.
-                            info!("[AUDIT] GUI deleted notification: {}", notification_id);
                         }
                         Ok(command @ (GuiCommand::AcknowledgeFimAlert { .. }
                             | GuiCommand::KillProcess { .. }

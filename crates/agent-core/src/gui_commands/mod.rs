@@ -16,6 +16,7 @@ use agent_sync::AuthenticatedClient;
 use tracing::error;
 
 pub(crate) mod ai;
+pub(crate) mod control;
 pub(crate) mod grc;
 pub(crate) mod playbooks;
 pub(crate) mod reports;
@@ -28,6 +29,15 @@ pub(crate) mod voice;
 pub(crate) type LlmService = agent_core::llm_service::LLMService;
 #[cfg(not(feature = "llm"))]
 pub(crate) type LlmService = ();
+
+/// What the dispatcher does once a command was handled.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) enum Flow {
+    /// Go on with the next command.
+    Continue,
+    /// The agent is shutting down: stop reading commands.
+    Stop,
+}
 
 /// What the command handlers share: the running agent, the channel back to
 /// the interface, and the services a command may need.
