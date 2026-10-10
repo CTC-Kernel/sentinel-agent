@@ -4,6 +4,7 @@
 //! The agent's main loop: [`AgentRuntime::run`](crate::AgentRuntime::run),
 //! one stage at a time.
 
+mod compliance;
 mod detection;
 mod fim;
 mod network;
