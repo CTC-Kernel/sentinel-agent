@@ -373,7 +373,7 @@ async fn auto_analyze_vulnerabilities(
 }
 
 impl AgentRuntime {
-    /// Run a security scan and upload incidents.
+    /// Run a security scan and queue its incidents for upload.
     pub(crate) async fn run_security_scan(&self) -> Result<SecurityScanResult, CommonError> {
         debug!("Running security scan...");
 
@@ -390,9 +390,7 @@ impl AgentRuntime {
             );
 
             for incident in &result.incidents {
-                if let Err(e) = self.upload_incident(incident).await {
-                    error!("Failed to upload security incident: {}", e);
-                }
+                self.queue_incident(incident, "security incident").await;
             }
         } else {
             debug!("Security scan clean: no incidents detected");

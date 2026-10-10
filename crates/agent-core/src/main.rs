@@ -11,6 +11,9 @@
 //! - Install: `sentinel-agent install` (requires admin/root)
 //! - Uninstall: `sentinel-agent uninstall` (requires admin/root)
 
+#[cfg(feature = "gui")]
+mod gui_commands;
+
 use agent_common::config::AgentConfig;
 #[cfg(feature = "tray")]
 use agent_core::tray;
@@ -1390,2715 +1393,13 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
                 return;
             }
         };
-        rt.block_on(async move {
-            let mut config = config;
-
-            // ── Handle enrollment from GUI if not yet enrolled ──
-            if !enrolled {
-                loop {
-                    // Poll for enrollment commands (non-blocking in async)
-                    let cmd = loop {
-                        match enrollment_rx.try_recv() {
-                            Ok(cmd) => break Some(cmd),
-                            Err(mpsc::TryRecvError::Empty) => {
-                                tokio::time::sleep(std::time::Duration::from_millis(50)).await;
-                            }
-                            Err(mpsc::TryRecvError::Disconnected) => break None,
-                        }
-                    };
-
-                    match cmd {
-                        Some(cmd @ (EnrollmentCommand::SubmitEnrollment { .. }
-                        | EnrollmentCommand::SubmitQr(_))) => {
-                            if process_enrollment_submission(cmd, &mut config, &bg_event_tx).await {
-                                // Wait for Finish before starting runtime
-                                wait_for_finish(&enrollment_rx).await;
-                                break;
-                            }
-                        }
-                        Some(EnrollmentCommand::SetupStandalone { admin_password }) => {
-                            info!("GUI setup: standalone mode chosen");
-                            if let Some(ref pw) = admin_password {
-                                // Argon2id with a random per-install salt.
-                                match agent_gui::admin_auth::hash_password(pw) {
-                                    Ok(hash) => {
-                                        let _ = bg_event_tx.send(AgentEvent::AdminPasswordSet { hash });
-                                    }
-                                    Err(e) => warn!("Admin password not stored: {}", e),
-                                }
-                            }
-                            match AgentConfig::persist_standalone(true) {
-                                Ok(path) => {
-                                    info!("Standalone mode saved to {}", path.display());
-                                    config.standalone = true;
-                                    if let Err(e) = bg_event_tx.send(AgentEvent::EnrollmentResult {
-                                        success: true,
-                                        message: "Mode autonome activé. Ce poste est protégé \
-                                                  localement, sans plateforme."
-                                            .to_string(),
-                                        agent_id: None,
-                                    }) {
-                                        error!("Failed to send standalone setup event: {}", e);
-                                    }
-                                    wait_for_finish(&enrollment_rx).await;
-                                    break;
-                                }
-                                Err(e) => {
-                                    warn!("Standalone setup failed: {}", e);
-                                    if let Err(e2) = bg_event_tx.send(AgentEvent::EnrollmentResult {
-                                        success: false,
-                                        message: format!(
-                                            "Impossible d'enregistrer le mode autonome : {}",
-                                            e
-                                        ),
-                                        agent_id: None,
-                                    }) {
-                                        error!("Failed to send standalone failure event: {}", e2);
-                                    }
-                                }
-                            }
-                        }
-                        Some(EnrollmentCommand::Cancel) | None => {
-                            info!("Enrollment cancelled or channel closed");
-                            return;
-                        }
-                        Some(EnrollmentCommand::Finish) => {
-                            // User clicked finish on a retry -- just break
-                            break;
-                        }
-                    }
-                }
-            }
-
-            // ── Run the agent runtime ──
-            // Open database for sync services
-            let db_arc = {
-                use agent_storage::{Database, DatabaseConfig, KeyManager};
-                let db_config = DatabaseConfig::default();
-                match KeyManager::new().and_then(|km| Database::open(db_config, &km)) {
-                    Ok(db) => Some(std::sync::Arc::new(db)),
-                    Err(e) => {
-                        tracing::warn!("Failed to open database for sync services: {}", e);
-                        None
-                    }
-                }
-            };
-
-            // Run v2 persistence migrations (GUI tables: events, notifications, policy_snapshots)
-            #[cfg(feature = "gui")]
-            if let Some(ref db) = db_arc {
-                match db.with_connection_mut(|conn| {
-                    agent_persistence::run_v2_migrations(conn)
-                        .map_err(|e| agent_storage::StorageError::Migration(e.to_string()))
-                }).await {
-                    Ok(()) => info!("Persistence v2 migrations applied"),
-                    Err(e) => warn!("Failed to apply v2 migrations (non-fatal): {}", e),
-                }
-            }
-
-            // ── Standalone: keep listening for a "connect later" enrollment ──
-            // The wizard reopened from the settings sends its token on the
-            // enrollment channel; nobody else reads it once the runtime runs.
-            if config.standalone {
-                let listener_config = config.clone();
-                let listener_events = bg_event_tx.clone();
-                tokio::spawn(async move {
-                    listen_for_platform_connection(
-                        enrollment_rx,
-                        listener_config,
-                        listener_events,
-                    )
-                    .await;
-                });
-            }
-
-            let db_for_commands = db_arc.clone();
-            let mut runtime = AgentRuntime::new(config);
-            if let Some(ref db) = db_arc {
-                runtime = runtime.with_database(db.clone());
-            }
-            runtime.set_gui_event_tx(bg_event_tx.clone());
-            let sync_client = runtime.sync_client();
-            let handle = runtime.handle();
-
-            let mut remote_ai = agent_core::remote_ai::RemoteAi::default();
-            if let Some(db) = db_for_commands.as_ref() {
-                match agent_core::remote_ai::RemoteAi::load(db).await {
-                    Ok(saved) => remote_ai = saved,
-                    Err(message) => agent_core::remote_ai::feedback(&bg_event_tx, message),
-                }
-            }
-            let _ = bg_event_tx.send(remote_ai.event());
-
-            // Initialize LLM service for AI-powered analysis
-            #[cfg(feature = "llm")]
-            let llm_service = {
-                let svc = agent_core::llm_service::LLMService::new(None).await;
-                match svc {
-                    Ok(s) => {
-                        let arc_svc = std::sync::Arc::new(s);
-                        // Emit initial LLM status to GUI
-                        let status = arc_svc.get_status().await;
-                        let (model_name, status_str, mem) = match &status {
-                            agent_core::llm_service::LLMServiceStatus::Ready { model_name, memory_usage_mb, .. } => {
-                                (model_name.clone(), "ready".to_string(), *memory_usage_mb)
-                            }
-                            agent_core::llm_service::LLMServiceStatus::Error(reason) => {
-                                ("N/A".to_string(), format!("error: {}", reason), 0)
-                            }
-                            _ => ("N/A".to_string(), "not_configured".to_string(), 0),
-                        };
-                        let _ = bg_event_tx.send(AgentEvent::LlmStatusUpdate {
-                            model_name,
-                            status: status_str,
-                            inference_count: 0,
-                            memory_mb: mem,
-                        });
-                        info!("LLM service initialized for command processing");
-                        runtime.set_llm_loaded(true);
-                        Some(arc_svc)
-                    }
-                    Err(e) => {
-                        warn!("Failed to init LLM service: {}", e);
-                        let _ = bg_event_tx.send(AgentEvent::LlmStatusUpdate {
-                            model_name: "N/A".to_string(),
-                            status: format!("error: {}", e),
-                            inference_count: 0,
-                            memory_mb: 0,
-                        });
-                        None
-                    }
-                }
-            };
-            #[cfg(not(feature = "llm"))]
-            let llm_service: Option<std::sync::Arc<()>> = None;
-
-            let audit_trail_for_commands = db_arc.as_ref().map(|db_ptr: &std::sync::Arc<agent_storage::Database>| {
-                std::sync::Arc::new(agent_core::audit_trail::LocalAuditTrail::new(db_ptr.clone()))
-            });
-
-            #[cfg(feature = "voice")]
-            let voice_service = Some(std::sync::Arc::new(agent_core::voice::VoiceService::new(bg_event_tx.clone())));
-            // Cancellation flag of the assistant answer being generated.
-            let llm_cancel: std::sync::Arc<std::sync::Mutex<Option<std::sync::Arc<std::sync::atomic::AtomicBool>>>> =
-                std::sync::Arc::new(std::sync::Mutex::new(None));
-            #[cfg(not(feature = "voice"))]
-            let _voice_service: Option<std::sync::Arc<agent_core::voice::VoiceService>> = None;
-
-
-            // Spawn command processor
-            let handle_for_commands = handle.clone();
-            tokio::spawn(async move {
-                loop {
-                    match command_rx.try_recv() {
-                        Ok(GuiCommand::Pause) => {
-                            info!("[AUDIT] GUI user requested agent pause");
-                            handle_for_commands.pause();
-                        }
-                        Ok(GuiCommand::Resume) => {
-                            info!("[AUDIT] GUI user requested agent resume");
-                            handle_for_commands.resume();
-                        }
-                        Ok(GuiCommand::Shutdown) => {
-                            info!("[AUDIT] GUI user requested agent shutdown");
-                            handle_for_commands.request_shutdown();
-                            break;
-                        }
-                        Ok(GuiCommand::Restart) => {
-                            info!("[AUDIT] GUI user requested agent restart");
-                            match spawn_relaunch() {
-                                Ok(()) => {
-                                    handle_for_commands.request_shutdown();
-                                    break;
-                                }
-                                Err(e) => {
-                                    error!("Failed to relaunch the agent: {}", e);
-                                    let _ = bg_event_tx.send(AgentEvent::Notification {
-                                        notification: agent_gui::dto::GuiNotification::error(
-                                            "Redémarrage impossible",
-                                            format!(
-                                                "L'agent n'a pas pu se relancer ({}). \
-                                                 Fermez-le et rouvrez-le pour activer la \
-                                                 connexion à la plateforme.",
-                                                e
-                                            ),
-                                        ),
-                                    });
-                                }
-                            }
-                        }
-                        Ok(GuiCommand::RunCheck) => {
-                            info!("[AUDIT] GUI user requested manual check run");
-                            handle_for_commands.trigger_check();
-                        }
-                        Ok(GuiCommand::ForceSync) => {
-                            info!("GUI requested force sync");
-                            handle_for_commands.trigger_sync();
-                        }
-                        Ok(GuiCommand::StartDiscovery) => {
-                            info!("GUI requested network discovery");
-                            handle_for_commands.trigger_discovery();
-                        }
-                        Ok(GuiCommand::StopDiscovery) => {
-                            info!("GUI requested discovery cancellation");
-                            handle_for_commands.cancel_discovery();
-                        }
-                        Ok(GuiCommand::CheckUpdate) => {
-                            info!("[AUDIT] GUI user requested manual update check");
-                            handle_for_commands.trigger_update();
-                        }
-                        Ok(GuiCommand::ProposeAsset {
-                            ip,
-                            hostname,
-                            device_type,
-                        }) => {
-                            info!("[AUDIT] GUI user proposed asset: {}", ip);
-                            handle_for_commands.propose_asset(ip, hostname, device_type);
-                        }
-                        Ok(GuiCommand::UpdateCheckInterval { interval_secs }) => {
-                            info!("[AUDIT] GUI user updated check interval to {} seconds", interval_secs);
-                            handle_for_commands.set_check_interval(interval_secs);
-                        }
-                        Ok(GuiCommand::UpdateAllowlist { rules }) => {
-                            info!(
-                                "[AUDIT] GUI updated triage authorizations: {} rule(s) [{}]",
-                                rules.len(),
-                                rules
-                                    .iter()
-                                    .map(|r| format!("{:?}={} by {}", r.rule_type, r.pattern, r.created_by))
-                                    .collect::<Vec<_>>()
-                                    .join(", ")
-                            );
-                            handle_for_commands.set_allowlist_rules(rules);
-                        }
-                        Ok(GuiCommand::SetLogLevel { level }) => {
-                            handle_for_commands.set_log_level(level);
-                        }
-                        Ok(GuiCommand::SetRansomwareCanaries { enabled }) => {
-                            info!("[AUDIT] GUI user set ransomware canary files to {}", enabled);
-                            // Applied now; persisted so it survives a restart.
-                            if let Err(e) = AgentConfig::persist_value_to(
-                                &AgentConfig::platform_config_path(),
-                                "ransomware_canaries",
-                                serde_json::Value::Bool(enabled),
-                            ) {
-                                warn!(
-                                    "Ransomware canary setting applied but not saved to the config file: {}",
-                                    e
-                                );
-                            }
-                            handle_for_commands.state.set_ransomware_canaries(enabled);
-                        }
-                        Ok(GuiCommand::Remediate { check_id }) => {
-                            info!("[AUDIT] GUI user requested remediation for check: {}", check_id);
-                            handle_for_commands.remediate(check_id);
-                        }
-                        Ok(GuiCommand::RemediatePreview { check_id }) => {
-                            info!("[AUDIT] GUI user previewed remediation for check: {}", check_id);
-                            handle_for_commands.remediate_preview(check_id);
-                        }
-                        Ok(GuiCommand::ApplyAiRemediation { action }) => {
-                            info!("[AUDIT] GUI user applying AI remediation for check: {}", action.check_id);
-                            handle_for_commands.apply_ai_remediation(action);
-                        }
-                        Ok(GuiCommand::RunSync) => {
-                            info!("[AUDIT] GUI user requested sync");
-                            handle_for_commands.trigger_sync();
-                        }
-                        Ok(GuiCommand::ConnectToPlatform) => {
-                            // Handled by the shell (it opens the wizard); the
-                            // runtime hears the enrollment that follows.
-                            debug!("ConnectToPlatform reached the runtime; nothing to do here");
-                        }
-                        Ok(GuiCommand::GetSummary) => {
-                            // Summary is emitted continuously via status updates; this is a no-op
-                            debug!("GUI requested summary (already sent via periodic updates)");
-                        }
-                        Ok(GuiCommand::GetCheckResults) => {
-                            // Check results are emitted via CheckCompleted events; this is a no-op
-                            debug!("GUI requested check results (already sent via events)");
-                        }
-                        Ok(GuiCommand::MarkNotificationRead { notification_id }) => {
-                            info!("[AUDIT] GUI marked notification {} as read", notification_id);
-                            // Notification read state is managed in GUI state
-                        }
-                        Ok(GuiCommand::MarkAllNotificationsRead) => {
-                            info!("[AUDIT] GUI marked all notifications as read");
-                            // Notification read state is managed in GUI state
-                        }
-                        Ok(GuiCommand::DeleteNotification { notification_id }) => {
-                            // Notifications are local to the desktop app (the GUI
-                            // already removed it): the platform has no such resource.
-                            info!("[AUDIT] GUI deleted notification: {}", notification_id);
-                        }
-                        Ok(GuiCommand::AcknowledgeFimAlert { alert_id, path, timestamp }) => {
-                            info!("[AUDIT] GUI acknowledged FIM alert: {}", alert_id);
-                            // Report acknowledgment to the platform. `alert_id` is
-                            // local to the desktop app: the platform derives its
-                            // document id from (agent, path, upload timestamp).
-                            let client_clone = sync_client.clone();
-                            let aid = alert_id.clone();
-                            tokio::spawn(async move {
-                                if let Some(ref client) = client_clone {
-                                    match client.agent_id().await {
-                                        Ok(agent_id) => {
-                                            let body =
-                                                agent_sync::types::fim_acknowledge_body(&path, &timestamp);
-                                            let result: Result<serde_json::Value, _> = client
-                                                .post_json(
-                                                    &format!(
-                                                        "/v1/agents/{}/fim-alerts/{}/acknowledge",
-                                                        agent_id, aid
-                                                    ),
-                                                    &body,
-                                                )
-                                                .await;
-                                            if let Err(e) = result {
-                                                warn!("Failed to acknowledge FIM alert on platform: {}", e);
-                                            }
-                                        }
-                                        Err(e) => warn!("Failed to get agent_id for FIM ack: {}", e),
-                                    }
-                                }
-                            });
-                        }
-                        Ok(GuiCommand::ExportCsvAuditTrail) => {
-                            info!("[AUDIT] GUI requested audit trail CSV export");
-                            // CSV export is handled client-side in the GUI
-                        }
-                        Ok(GuiCommand::KillProcess { process_name, pid }) => {
-                            info!("[AUDIT] GUI requested process kill: {} (PID {})", process_name, pid);
-                            let tx = bg_event_tx.clone();
-                            let pname = process_name.clone();
-                            tokio::spawn(async move {
-                                let action_id = uuid::Uuid::new_v4();
-                                // Emit pending action before executing
-                                let _ = tx.send(AgentEvent::ResponseActionSubmitted {
-                                    action: agent_gui::dto::ResponseAction {
-                                        id: action_id,
-                                        action_type: agent_gui::dto::ResponseActionType::KillProcess,
-                                        target: pname.clone(),
-                                        target_detail: format!("PID {}", pid),
-                                        status: agent_gui::dto::ResponseStatus::Pending,
-                                        created_at: chrono::Utc::now(),
-                                        completed_at: None,
-                                        error: None,
-                                    },
-                                });
-                                match agent_core::edr_actions::kill_process(&pname, pid).await {
-                                    Ok(()) => {
-                                        let _ = tx.send(AgentEvent::ResponseActionResult {
-                                            action_id,
-                                            success: true,
-                                            error: None,
-                                        });
-                                    }
-                                    Err(e) => {
-                                        warn!("Kill process failed: {}", e);
-                                        let _ = tx.send(AgentEvent::ResponseActionResult {
-                                            action_id,
-                                            success: false,
-                                            error: Some(e.to_string()),
-                                        });
-                                    }
-                                }
-                            });
-                        }
-                        Ok(GuiCommand::QuarantineFile { path }) => {
-                            info!("[AUDIT] GUI requested file quarantine: {}", path);
-                            let tx = bg_event_tx.clone();
-                            let file_path = path.clone();
-                            tokio::spawn(async move {
-                                let action_id = uuid::Uuid::new_v4();
-                                // Emit pending action before executing
-                                let _ = tx.send(AgentEvent::ResponseActionSubmitted {
-                                    action: agent_gui::dto::ResponseAction {
-                                        id: action_id,
-                                        action_type: agent_gui::dto::ResponseActionType::QuarantineFile,
-                                        target: file_path.clone(),
-                                        target_detail: String::new(),
-                                        status: agent_gui::dto::ResponseStatus::Pending,
-                                        created_at: chrono::Utc::now(),
-                                        completed_at: None,
-                                        error: None,
-                                    },
-                                });
-                                match agent_core::edr_actions::quarantine_file(&file_path).await {
-                                    Ok(quarantine_id) => {
-                                        info!("File quarantined successfully: {}", quarantine_id);
-                                        // Emit quarantine entry
-                                        let _ = tx.send(AgentEvent::FileQuarantined {
-                                            entry: agent_gui::dto::QuarantinedFile {
-                                                id: uuid::Uuid::parse_str(&quarantine_id)
-                                                    .unwrap_or_else(|_| uuid::Uuid::new_v4()),
-                                                original_path: file_path.clone(),
-                                                sha256: String::new(),
-                                                size_bytes: 0,
-                                                quarantined_at: chrono::Utc::now(),
-                                                reason: "User-initiated quarantine".to_string(),
-                                                restored: false,
-                                            },
-                                        });
-                                        let _ = tx.send(AgentEvent::ResponseActionResult {
-                                            action_id,
-                                            success: true,
-                                            error: None,
-                                        });
-                                    }
-                                    Err(e) => {
-                                        warn!("Quarantine file failed: {}", e);
-                                        let _ = tx.send(AgentEvent::ResponseActionResult {
-                                            action_id,
-                                            success: false,
-                                            error: Some(e.to_string()),
-                                        });
-                                    }
-                                }
-                            });
-                        }
-                        Ok(GuiCommand::RestoreQuarantinedFile { quarantine_id }) => {
-                            info!("[AUDIT] GUI requested quarantine restore: {}", quarantine_id);
-                            let tx = bg_event_tx.clone();
-                            let qid = quarantine_id.clone();
-                            // Emit pending action before spawning async work
-                            let action_id = uuid::Uuid::new_v4();
-                            let _ = tx.send(AgentEvent::ResponseActionSubmitted {
-                                action: agent_gui::dto::ResponseAction {
-                                    id: action_id,
-                                    action_type: agent_gui::dto::ResponseActionType::RestoreFile,
-                                    target: quarantine_id.clone(),
-                                    target_detail: String::new(),
-                                    status: agent_gui::dto::ResponseStatus::Pending,
-                                    created_at: chrono::Utc::now(),
-                                    completed_at: None,
-                                    error: None,
-                                },
-                            });
-                            tokio::spawn(async move {
-                                match agent_core::edr_actions::restore_quarantined_file(&qid).await {
-                                    Ok(()) => {
-                                        let _ = tx.send(AgentEvent::ResponseActionResult {
-                                            action_id,
-                                            success: true,
-                                            error: None,
-                                        });
-                                    }
-                                    Err(e) => {
-                                        warn!("Restore quarantined file failed: {}", e);
-                                        let _ = tx.send(AgentEvent::ResponseActionResult {
-                                            action_id,
-                                            success: false,
-                                            error: Some(e.to_string()),
-                                        });
-                                    }
-                                }
-                            });
-                        }
-                        Ok(GuiCommand::BlockIp { ip, duration_secs }) => {
-                            info!("[AUDIT] GUI requested IP block: {} ({}s)", ip, duration_secs);
-                            let tx = bg_event_tx.clone();
-                            let ip_addr = ip.clone();
-                            tokio::spawn(async move {
-                                let action_id = uuid::Uuid::new_v4();
-                                // Emit pending action before executing
-                                let _ = tx.send(AgentEvent::ResponseActionSubmitted {
-                                    action: agent_gui::dto::ResponseAction {
-                                        id: action_id,
-                                        action_type: agent_gui::dto::ResponseActionType::BlockIp,
-                                        target: ip_addr.clone(),
-                                        target_detail: format!("{}s", duration_secs),
-                                        status: agent_gui::dto::ResponseStatus::Pending,
-                                        created_at: chrono::Utc::now(),
-                                        completed_at: None,
-                                        error: None,
-                                    },
-                                });
-                                match agent_core::edr_actions::block_ip(&ip_addr, duration_secs).await {
-                                    Ok(()) => {
-                                        let _ = tx.send(AgentEvent::ResponseActionResult {
-                                            action_id,
-                                            success: true,
-                                            error: None,
-                                        });
-                                    }
-                                    Err(e) => {
-                                        warn!("Block IP failed: {}", e);
-                                        let _ = tx.send(AgentEvent::ResponseActionResult {
-                                            action_id,
-                                            success: false,
-                                            error: Some(e.to_string()),
-                                        });
-                                    }
-                                }
-                            });
-                        }
-                        Ok(GuiCommand::ExportSbom) => {
-                            info!("[AUDIT] GUI requested the SBOM export");
-                            let tx = bg_event_tx.clone();
-                            let cache = handle_for_commands.state.last_vuln_findings.clone();
-                            tokio::spawn(async move {
-                                let scan = cache.read().await.clone();
-                                let notification = match scan {
-                                    None => agent_gui::dto::GuiNotification::error(
-                                        "Export SBOM impossible",
-                                        "Aucun inventaire disponible : lancez d'abord une analyse des vulnérabilités.",
-                                    ),
-                                    Some(scan) => match agent_core::export_sbom(&scan).await {
-                                        Ok(path) => agent_gui::dto::GuiNotification::info(
-                                            "SBOM exporté",
-                                            format!(
-                                                "{} composants, {} vulnérabilités : {}",
-                                                scan.packages.len(),
-                                                scan.vulnerabilities.len(),
-                                                path.display()
-                                            ),
-                                        ),
-                                        Err(e) => {
-                                            warn!("SBOM export failed: {}", e);
-                                            agent_gui::dto::GuiNotification::error(
-                                                "Export SBOM impossible",
-                                                e.to_string(),
-                                            )
-                                        }
-                                    },
-                                };
-                                let _ = tx.send(AgentEvent::Notification { notification });
-                            });
-                        }
-                        Ok(GuiCommand::IsolateHost { duration_secs }) => {
-                            info!("[AUDIT] GUI requested host isolation for {}s (0: until released)", duration_secs);
-                            let tx = bg_event_tx.clone();
-                            tokio::spawn(async move {
-                                let action_id = uuid::Uuid::new_v4();
-                                let _ = tx.send(AgentEvent::ResponseActionSubmitted {
-                                    action: agent_gui::dto::ResponseAction {
-                                        id: action_id,
-                                        action_type: agent_gui::dto::ResponseActionType::IsolateHost,
-                                        target: "Ce poste".to_string(),
-                                        target_detail: if duration_secs == 0 {
-                                            "jusqu'à levée manuelle".to_string()
-                                        } else {
-                                            format!("{} min", duration_secs / 60)
-                                        },
-                                        status: agent_gui::dto::ResponseStatus::Pending,
-                                        created_at: chrono::Utc::now(),
-                                        completed_at: None,
-                                        error: None,
-                                    },
-                                });
-                                let result = agent_core::host_isolation::isolate_host(
-                                    "Action manuelle depuis l'interface",
-                                    duration_secs,
-                                )
-                                .await;
-                                if let Err(e) = &result {
-                                    warn!("Host isolation failed: {}", e);
-                                }
-                                let _ = tx.send(AgentEvent::ResponseActionResult {
-                                    action_id,
-                                    success: result.is_ok(),
-                                    error: result.err().map(|e| e.to_string()),
-                                });
-                            });
-                        }
-                        Ok(GuiCommand::ReleaseHost) => {
-                            info!("[AUDIT] GUI requested the host isolation to be lifted");
-                            let tx = bg_event_tx.clone();
-                            tokio::spawn(async move {
-                                let action_id = uuid::Uuid::new_v4();
-                                let _ = tx.send(AgentEvent::ResponseActionSubmitted {
-                                    action: agent_gui::dto::ResponseAction {
-                                        id: action_id,
-                                        action_type: agent_gui::dto::ResponseActionType::ReleaseHost,
-                                        target: "Ce poste".to_string(),
-                                        target_detail: "levée de l'isolation".to_string(),
-                                        status: agent_gui::dto::ResponseStatus::Pending,
-                                        created_at: chrono::Utc::now(),
-                                        completed_at: None,
-                                        error: None,
-                                    },
-                                });
-                                let result = agent_core::host_isolation::release_host().await;
-                                if let Err(e) = &result {
-                                    warn!("Lifting the host isolation failed: {}", e);
-                                }
-                                let _ = tx.send(AgentEvent::ResponseActionResult {
-                                    action_id,
-                                    success: result.is_ok(),
-                                    error: result.err().map(|e| e.to_string()),
-                                });
-                            });
-                        }
-                        Ok(GuiCommand::UnblockIp { ip }) => {
-                            info!("[AUDIT] GUI requested IP unblock: {}", ip);
-                            let tx = bg_event_tx.clone();
-                            let ip_addr = ip.clone();
-                            tokio::spawn(async move {
-                                let action_id = uuid::Uuid::new_v4();
-                                // Emit pending action before executing
-                                let _ = tx.send(AgentEvent::ResponseActionSubmitted {
-                                    action: agent_gui::dto::ResponseAction {
-                                        id: action_id,
-                                        action_type: agent_gui::dto::ResponseActionType::UnblockIp,
-                                        target: ip_addr.clone(),
-                                        target_detail: "unblock".to_string(),
-                                        status: agent_gui::dto::ResponseStatus::Pending,
-                                        created_at: chrono::Utc::now(),
-                                        completed_at: None,
-                                        error: None,
-                                    },
-                                });
-                                match agent_core::edr_actions::unblock_ip(&ip_addr).await {
-                                    Ok(()) => {
-                                        let _ = tx.send(AgentEvent::ResponseActionResult {
-                                            action_id,
-                                            success: true,
-                                            error: None,
-                                        });
-                                    }
-                                    Err(e) => {
-                                        warn!("Unblock IP failed: {}", e);
-                                        let _ = tx.send(AgentEvent::ResponseActionResult {
-                                            action_id,
-                                            success: false,
-                                            error: Some(e.to_string()),
-                                        });
-                                    }
-                                }
-                            });
-                        }
-                        Ok(GuiCommand::GenerateReport { report_type, framework }) => {
-                            info!("[AUDIT] GUI requested report: {:?} framework={:?}", report_type, framework);
-                            let tx = bg_event_tx.clone();
-                            let svc = llm_service.clone();
-                            let fw = framework.clone();
-                            tokio::spawn(async move {
-                                let report_id = uuid::Uuid::new_v4();
-                                let title = match report_type {
-                                    agent_gui::dto::ReportType::Executive => {
-                                        format!("Rapport exécutif — {}", chrono::Utc::now().format("%d/%m/%Y"))
-                                    }
-                                    agent_gui::dto::ReportType::ComplianceAudit => {
-                                        format!(
-                                            "Audit de conformité{} — {}",
-                                            fw.as_deref().map(|f| format!(" ({})", f)).unwrap_or_default(),
-                                            chrono::Utc::now().format("%d/%m/%Y")
-                                        )
-                                    }
-                                    agent_gui::dto::ReportType::Incident => {
-                                        format!("Rapport d'incidents — {}", chrono::Utc::now().format("%d/%m/%Y"))
-                                    }
-                                };
-
-                                // Build a base summary (static template)
-                                let base_summary = format!(
-                                    "Rapport {} généré le {}.",
-                                    report_type.label_fr(),
-                                    chrono::Utc::now().format("%d/%m/%Y à %H:%M UTC")
-                                );
-
-                                // Attempt LLM-generated executive summary
-                                #[allow(unused_mut)]
-                                let mut summary = base_summary.clone();
-                                #[cfg(feature = "llm")]
-                                {
-                                    if let Some(ref svc) = svc
-                                        && let Some(manager) = svc.get_manager().await
-                                    {
-                                        let prompt = format!(
-                                            "Tu es un analyste GRC. Génère un résumé exécutif professionnel \
-                                             en français (3-5 phrases) pour un rapport de type « {} »{}. \
-                                             Le rapport est daté du {}. Sois concis et orienté décision.",
-                                            report_type.label_fr(),
-                                            fw.as_deref().map(|f| format!(", référentiel {}", f)).unwrap_or_default(),
-                                            chrono::Utc::now().format("%d/%m/%Y")
-                                        );
-                                        let req = agent_llm::engine::InferenceRequest::new(&prompt)
-                                            .with_max_tokens(512)
-                                            .with_temperature(0.5);
-                                        match manager.engine().infer(req).await {
-                                            Ok(resp) if !resp.text.trim().is_empty() => {
-                                                summary = resp.text.trim().to_string();
-                                                debug!("Report summary generated by LLM ({} chars)", summary.len());
-                                            }
-                                            Ok(_) => {
-                                                debug!("LLM returned empty summary, using static template");
-                                            }
-                                            Err(e) => {
-                                                warn!("LLM report summary generation failed: {}", e);
-                                            }
-                                        }
-                                    }
-                                }
-                                let _ = &svc; // suppress unused-variable warning when llm feature is off
-
-                                let html_content = format!(
-                                    "<h1>{}</h1><p>{}</p><footer>Généré par Sentinel GRC Agent</footer>",
-                                    title, summary
-                                );
-
-                                let report = agent_gui::dto::GeneratedReport {
-                                    id: report_id,
-                                    report_type,
-                                    title,
-                                    generated_at: chrono::Utc::now(),
-                                    html_content,
-                                    summary,
-                                    compliance_score: None,
-                                    framework: fw,
-                                };
-
-                                let _ = tx.send(AgentEvent::ReportGenerated {
-                                    report: Box::new(report),
-                                });
-                            });
-                        }
-                        Ok(GuiCommand::ExportReportHtml { report_id }) => {
-                            info!("[AUDIT] GUI requested HTML export for report: {}", report_id);
-                        }
-                        Ok(GuiCommand::ExecutePlaybook { playbook_id }) => {
-                            info!("[AUDIT] GUI requested playbook execution: {}", playbook_id);
-                            let tx = bg_event_tx.clone();
-                            let pid = playbook_id.clone();
-                            let db_clone = db_for_commands.clone();
-                            let sync_client_clone = sync_client.clone();
-                            tokio::spawn(async move {
-                                // Load playbook from local SQLite
-                                let playbook_opt = if let Some(ref db_arc) = db_clone {
-                                    let repo = agent_storage::repositories::grc::PlaybookRepository::new(db_arc);
-                                    match repo.get_all().await {
-                                        Ok(all) => {
-                                            all.into_iter().find(|s| s.id == pid).map(|stored| {
-                                                let actions: Vec<agent_gui::dto::PlaybookAction> =
-                                                    serde_json::from_str(&stored.steps).unwrap_or_default();
-                                                agent_gui::dto::Playbook {
-                                                    id: stored.id.clone(),
-                                                    name: stored.name.clone(),
-                                                    description: stored.description.clone(),
-                                                    enabled: stored.enabled,
-                                                    conditions: vec![],
-                                                    actions,
-                                                    created_at: chrono::DateTime::parse_from_rfc3339(&stored.created_at)
-                                                        .map(|dt| dt.with_timezone(&chrono::Utc))
-                                                        .unwrap_or_else(|_| chrono::Utc::now()),
-                                                    last_triggered: None,
-                                                    trigger_count: 0,
-                                                    is_template: false,
-                                                }
-                                            })
-                                        }
-                                        Err(e) => {
-                                            warn!("Failed to load playbooks from database: {}", e);
-                                            None
-                                        }
-                                    }
-                                } else {
-                                    None
-                                };
-
-                                if let Some(playbook) = playbook_opt {
-                                    // Execute playbook actions directly (manual trigger bypasses condition evaluation)
-                                    let mut resolved_actions = Vec::new();
-                                    for action in &playbook.actions {
-                                        match action.action_type {
-                                            agent_gui::dto::PlaybookActionType::KillProcess => {
-                                                // parameters format: "process_name:pid"
-                                                let parts: Vec<&str> = action.parameters.splitn(2, ':').collect();
-                                                if parts.len() == 2
-                                                    && let Ok(pid_val) = parts[1].parse::<u32>()
-                                                {
-                                                    resolved_actions.push(
-                                                        agent_core::playbook_engine::ResolvedAction::KillProcess {
-                                                            name: parts[0].to_string(),
-                                                            pid: pid_val,
-                                                        },
-                                                    );
-                                                }
-                                            }
-                                            agent_gui::dto::PlaybookActionType::QuarantineFile => {
-                                                resolved_actions.push(
-                                                    agent_core::playbook_engine::ResolvedAction::QuarantineFile {
-                                                        path: action.parameters.clone(),
-                                                    },
-                                                );
-                                            }
-                                            agent_gui::dto::PlaybookActionType::BlockIp => {
-                                                // parameters format: "ip:duration_secs"
-                                                let parts: Vec<&str> = action.parameters.splitn(2, ':').collect();
-                                                let ip = parts.first().unwrap_or(&"").to_string();
-                                                let duration = parts.get(1).and_then(|s| s.parse::<u64>().ok()).unwrap_or(3600);
-                                                resolved_actions.push(
-                                                    agent_core::playbook_engine::ResolvedAction::BlockIp {
-                                                        ip,
-                                                        duration_secs: duration,
-                                                    },
-                                                );
-                                            }
-                                            agent_gui::dto::PlaybookActionType::IsolateHost => {
-                                                resolved_actions.push(
-                                                    agent_core::playbook_engine::ResolvedAction::IsolateHost {
-                                                        duration_secs: agent_core::playbook_engine::isolation_duration(&action.parameters),
-                                                    },
-                                                );
-                                            }
-                                            agent_gui::dto::PlaybookActionType::SendSiemAlert => {
-                                                resolved_actions.push(
-                                                    agent_core::playbook_engine::ResolvedAction::Alert {
-                                                        title: format!("Playbook '{}' SIEM alert", playbook.name),
-                                                        severity: "medium".to_string(),
-                                                        description: action.parameters.clone(),
-                                                    },
-                                                );
-                                            }
-                                            agent_gui::dto::PlaybookActionType::CreateNotification => {
-                                                resolved_actions.push(
-                                                    agent_core::playbook_engine::ResolvedAction::Notify {
-                                                        message: action.parameters.clone(),
-                                                    },
-                                                );
-                                            }
-                                        }
-                                    }
-
-                                    let results = {
-                                        let audit_trail = db_clone.as_ref().map(|db: &std::sync::Arc<agent_storage::Database>| {
-                                            std::sync::Arc::new(agent_core::audit_trail::LocalAuditTrail::new(db.clone()))
-                                        });
-                                        agent_core::playbook_engine::execute_playbook_actions_with_delivery(
-                                            &playbook.name,
-                                            &resolved_actions,
-                                            audit_trail.as_ref(),
-                                            Some(&tx),
-                                            None,
-                                        ).await
-                                    };
-                                    let actions_executed: Vec<String> = results.iter().map(|r| r.action.clone()).collect();
-                                    let all_success = !results.is_empty() && results.iter().all(|r| r.success);
-                                    let first_error = if results.is_empty() { Some("No executable action resolved for the configured playbook".to_string()) } else { results.iter().find(|r| !r.success).and_then(|r| r.error.clone()) };
-
-                                    // Build playbook log entry
-                                    let log_entry = agent_gui::dto::PlaybookLogEntry {
-                                        id: uuid::Uuid::new_v4(),
-                                        playbook_id: playbook.id,
-                                        playbook_name: playbook.name.clone(),
-                                        triggered_at: chrono::Utc::now(),
-                                        trigger_event: "Manual execution".to_string(),
-                                        actions_executed,
-                                        success: all_success,
-                                        error: first_error,
-                                    };
-
-                                    // Sync playbook log to platform
-                                    if let Some(ref client) = sync_client_clone {
-                                        let payload = agent_sync::PlaybookLogPayload {
-                                            id: log_entry.id.to_string(),
-                                            playbook_id: log_entry.playbook_id.to_string(),
-                                            playbook_name: log_entry.playbook_name.clone(),
-                                            triggered_at: log_entry.triggered_at,
-                                            trigger_event: log_entry.trigger_event.clone(),
-                                            actions_executed: log_entry.actions_executed.clone(),
-                                            success: log_entry.success,
-                                            error: log_entry.error.clone(),
-                                        };
-                                        if let Err(e) = client.sync_playbook_logs(vec![payload]).await {
-                                            tracing::warn!("Failed to sync manual playbook log: {}", e);
-                                        }
-                                    }
-
-                                    // Emit PlaybookTriggered event to GUI
-                                    let _ = tx.send(AgentEvent::PlaybookTriggered {
-                                        log_entry: Box::new(log_entry),
-                                    });
-                                } else {
-                                    warn!("Cannot execute playbook '{}': not found in database", pid);
-                                }
-                            });
-                        }
-                        Ok(GuiCommand::TogglePlaybook { playbook_id, enabled }) => {
-                            info!("[AUDIT] GUI toggled playbook {}: enabled={}", playbook_id, enabled);
-                            // Persist toggle to SQLite so it survives restarts
-                            if let Some(ref db_arc) = db_for_commands {
-                                let db_clone = std::sync::Arc::clone(db_arc);
-                                let pid = playbook_id.clone();
-                                tokio::spawn(async move {
-                                    let repo = agent_storage::repositories::grc::PlaybookRepository::new(&db_clone);
-                                    match repo.get_all().await {
-                                        Ok(playbooks) => {
-                                            if let Some(mut pb) = playbooks.into_iter().find(|p| p.id == pid) {
-                                                pb.enabled = enabled;
-                                                pb.synced = false;
-                                                if let Err(e) = repo.upsert(&pb).await {
-                                                    warn!("Failed to persist playbook toggle: {}", e);
-                                                }
-                                            }
-                                        }
-                                        Err(e) => {
-                                            warn!("Failed to load playbooks for toggle: {}", e);
-                                        }
-                                    }
-                                });
-                            }
-                            // Remote sync
-                            if let Some(ref c) = sync_client {
-                                let c = std::sync::Arc::clone(c);
-                                let pid = playbook_id.clone();
-                                tokio::spawn(async move {
-                                    if let Err(e) = c.toggle_playbook(&pid, enabled).await {
-                                        warn!("Failed to sync playbook toggle: {}", e);
-                                    }
-                                });
-                            }
-                        }
-                        Ok(GuiCommand::SavePlaybook { playbook }) => {
-                            info!("[AUDIT] GUI saved playbook: {}", playbook.name);
-                            if let Some(ref trail) = audit_trail_for_commands {
-                                let trail: std::sync::Arc<agent_core::audit_trail::LocalAuditTrail> = std::sync::Arc::clone(trail);
-                                let pb_name = playbook.name.clone();
-                                tokio::spawn(async move {
-                                    trail.log(
-                                        agent_core::audit_trail::AuditAction::PlaybookActionExecuted {
-                                            playbook_name: pb_name,
-                                            action: "SAVE".to_string(),
-                                            success: true,
-                                        },
-                                        "user",
-                                        None,
-                                    ).await;
-                                });
-                            }
-                            let payload = agent_core::sync_converters::playbook_to_payload(&playbook);
-                            // Persist to dedicated SQLite table for offline resilience
-                            if let Some(ref db_arc) = db_for_commands {
-                                let db_clone = std::sync::Arc::clone(db_arc);
-                                let pb_clone = playbook.clone();
-                                let payload_clone = payload.clone();
-                                tokio::spawn(async move {
-                                    let now = chrono::Utc::now().to_rfc3339();
-                                    let stored = agent_storage::repositories::grc::StoredPlaybook {
-                                        id: pb_clone.id.to_string(),
-                                        name: pb_clone.name.clone(),
-                                        description: pb_clone.description.clone(),
-                                        trigger_type: "general".to_string(),
-                                        severity: "medium".to_string(),
-                                        steps: serde_json::to_string(&pb_clone.actions).unwrap_or_default(),
-                                        enabled: pb_clone.enabled,
-                                        created_at: pb_clone.created_at.to_rfc3339(),
-                                        updated_at: now,
-                                        synced: false,
-                                        conditions: serde_json::to_string(&pb_clone.conditions).unwrap_or_else(|_| "[]".to_string()),
-                                    };
-                                    let repo = agent_storage::repositories::grc::PlaybookRepository::new(&db_clone);
-                                    if let Err(e) = repo.upsert(&stored).await {
-                                        warn!("Failed to persist playbook to SQLite: {}", e);
-                                    }
-                                    if let Ok(json) = serde_json::to_string(&payload_clone) {
-                                        let repo2 = agent_storage::SyncQueueRepository::new(&db_clone);
-                                        let entry = agent_storage::SyncQueueEntry::new(
-                                            agent_storage::SyncEntityType::Playbook,
-                                            pb_clone.id.to_string(),
-                                            json,
-                                        );
-                                        let _ = repo2.enqueue(&entry).await;
-                                    }
-                                });
-                            }
-                        }
-                        Ok(GuiCommand::DeletePlaybook { playbook_id }) => {
-                            info!("[AUDIT] GUI requested durable playbook deletion: {}", playbook_id);
-                            if let Some(ref db_arc) = db_for_commands {
-                                let db = std::sync::Arc::clone(db_arc);
-                                tokio::spawn(async move {
-                                    let queue = agent_storage::SyncQueueRepository::new(&db);
-                                    if let Err(e) = queue.delete_grc(agent_storage::SyncEntityType::Playbook, &playbook_id).await {
-                                        warn!("Failed to persist EDR deletion: {}", e);
-                                    }
-                                });
-                            }
-                        }
-
-                        Ok(GuiCommand::SaveDetectionRule { rule }) => {
-                            info!("[AUDIT] GUI saved detection rule: {}", rule.name);
-                            let payload = agent_core::sync_converters::detection_rule_to_payload(&rule);
-                            if let Some(ref db_arc) = db_for_commands {
-                                let db_clone = std::sync::Arc::clone(db_arc);
-                                let rule_clone = rule.clone();
-                                let payload_clone = payload.clone();
-                                tokio::spawn(async move {
-                                    let stored = agent_storage::repositories::grc::StoredDetectionRule {
-                                        id: rule_clone.id.to_string(),
-                                        name: rule_clone.name.clone(),
-                                        description: rule_clone.description.clone(),
-                                        severity: rule_clone.severity.as_str().to_string(),
-                                        conditions: serde_json::to_string(&rule_clone.conditions).unwrap_or_default(),
-                                        actions: serde_json::to_string(&rule_clone.actions).unwrap_or_default(),
-                                        enabled: rule_clone.enabled,
-                                        created_at: rule_clone.created_at.to_rfc3339(),
-                                        last_match: rule_clone.last_match.map(|d| d.to_rfc3339()),
-                                        match_count: rule_clone.match_count as i32,
-                                        synced: false,
-                                    };
-                                    let repo = agent_storage::repositories::grc::DetectionRuleRepository::new(&db_clone);
-                                    if let Err(e) = repo.upsert(&stored).await {
-                                        warn!("Failed to persist detection rule to SQLite: {}", e);
-                                    }
-                                    if let Ok(json) = serde_json::to_string(&payload_clone) {
-                                        let repo2 = agent_storage::SyncQueueRepository::new(&db_clone);
-                                        let entry = agent_storage::SyncQueueEntry::new(
-                                            agent_storage::SyncEntityType::DetectionRule,
-                                            rule_clone.id.to_string(),
-                                            json,
-                                        );
-                                        let _ = repo2.enqueue(&entry).await;
-                                    }
-                                });
-                            }
-                        }
-                        Ok(GuiCommand::DeleteDetectionRule { rule_id }) => {
-                            info!("[AUDIT] GUI requested durable detection rule deletion: {}", rule_id);
-                            if let Some(ref db_arc) = db_for_commands {
-                                let db = std::sync::Arc::clone(db_arc);
-                                tokio::spawn(async move {
-                                    let queue = agent_storage::SyncQueueRepository::new(&db);
-                                    if let Err(e) = queue.delete_grc(agent_storage::SyncEntityType::DetectionRule, &rule_id).await {
-                                        warn!("Failed to persist EDR deletion: {}", e);
-                                    }
-                                });
-                            }
-                        }
-
-                        Ok(GuiCommand::ToggleDetectionRule { rule_id, enabled }) => {
-                            info!("[AUDIT] GUI toggled detection rule {}: enabled={}", rule_id, enabled);
-                            // Persist toggle to SQLite so it survives restarts
-                            if let Some(ref db_arc) = db_for_commands {
-                                let db_clone = std::sync::Arc::clone(db_arc);
-                                let rid = rule_id.clone();
-                                tokio::spawn(async move {
-                                    let repo = agent_storage::repositories::grc::DetectionRuleRepository::new(&db_clone);
-                                    match repo.get_all().await {
-                                        Ok(rules) => {
-                                            if let Some(mut rule) = rules.into_iter().find(|r| r.id == rid) {
-                                                rule.enabled = enabled;
-                                                rule.synced = false;
-                                                if let Err(e) = repo.upsert(&rule).await {
-                                                    warn!("Failed to persist detection rule toggle: {}", e);
-                                                }
-                                                // Queue for remote sync
-                                                let payload = agent_sync::types::DetectionRulePayload {
-                                                    id: rule.id.clone(),
-                                                    name: rule.name.clone(),
-                                                    description: rule.description.clone(),
-                                                    severity: rule.severity.clone(),
-                                                    conditions: serde_json::from_str(&rule.conditions).unwrap_or_default(),
-                                                    actions: serde_json::from_str(&rule.actions).unwrap_or_default(),
-                                                    enabled: rule.enabled,
-                                                    created_at: chrono::DateTime::parse_from_rfc3339(&rule.created_at)
-                                                        .map(|dt| dt.with_timezone(&chrono::Utc))
-                                                        .unwrap_or_else(|_| chrono::Utc::now()),
-                                                    last_match: rule.last_match.as_ref().and_then(|s| {
-                                                        chrono::DateTime::parse_from_rfc3339(s).ok().map(|dt| dt.with_timezone(&chrono::Utc))
-                                                    }),
-                                                    match_count: rule.match_count as u32,
-                                                };
-                                                if let Ok(json) = serde_json::to_string(&payload) {
-                                                    let repo2 = agent_storage::SyncQueueRepository::new(&db_clone);
-                                                    let entry = agent_storage::SyncQueueEntry::new(
-                                                        agent_storage::SyncEntityType::DetectionRule,
-                                                        rule.id.clone(),
-                                                        json,
-                                                    );
-                                                    let _ = repo2.enqueue(&entry).await;
-                                                }
-                                            }
-                                        }
-                                        Err(e) => warn!("Failed to load detection rules for toggle: {}", e),
-                                    }
-                                });
-                            }
-                        }
-
-                        Ok(GuiCommand::SaveRisk { risk }) => {
-                            info!("[AUDIT] GUI saved risk entry: {}", risk.title);
-                            let payload = agent_core::sync_converters::risk_to_payload(&risk);
-                            // Persist to dedicated SQLite table for offline resilience
-                            if let Some(ref db_arc) = db_for_commands {
-                                let db_clone = std::sync::Arc::clone(db_arc);
-                                let risk_clone = risk.clone();
-                                let payload_clone = payload.clone();
-                                tokio::spawn(async move {
-                                    let stored = agent_storage::repositories::grc::StoredRisk {
-                                        id: risk_clone.id.to_string(),
-                                        title: risk_clone.title.clone(),
-                                        description: risk_clone.description.clone(),
-                                        probability: risk_clone.probability as i32,
-                                        impact: risk_clone.impact as i32,
-                                        owner: risk_clone.owner.clone(),
-                                        status: format!("{}", risk_clone.status),
-                                        mitigation: risk_clone.mitigation.clone(),
-                                        source: risk_clone.source.clone(),
-                                        created_at: risk_clone.created_at.to_rfc3339(),
-                                        updated_at: risk_clone.updated_at.to_rfc3339(),
-                                        sla_target_days: risk_clone.sla_target_days.map(|v| v as i32),
-                                        synced: false,
-                                    };
-                                    let repo = agent_storage::repositories::grc::RiskRepository::new(&db_clone);
-                                    if let Err(e) = repo.upsert(&stored).await {
-                                        warn!("Failed to persist risk to SQLite: {}", e);
-                                    }
-                                    // Also queue for remote sync
-                                    if let Ok(json) = serde_json::to_string(&payload_clone) {
-                                        let repo2 = agent_storage::SyncQueueRepository::new(&db_clone);
-                                        let entry = agent_storage::SyncQueueEntry::new(
-                                            agent_storage::SyncEntityType::Risk,
-                                            risk_clone.id.to_string(),
-                                            json,
-                                        );
-                                        let _ = repo2.enqueue(&entry).await;
-                                    }
-                                });
-                            }
-                        }
-                        Ok(GuiCommand::DeleteRisk { risk_id }) => {
-                            info!("[AUDIT] GUI deleted risk entry: {}", risk_id);
-                            if let Some(ref db_arc) = db_for_commands {
-                                let db_clone = std::sync::Arc::clone(db_arc);
-                                let rid = risk_id.clone();
-                                tokio::spawn(async move {
-                                    let repo = agent_storage::SyncQueueRepository::new(&db_clone);
-                                    if let Err(e) = repo.delete_grc(agent_storage::SyncEntityType::Risk, &rid).await {
-                                        warn!("Failed to durably delete risk: {}", e);
-                                    }
-                                });
-                            }
-                        }
-                        Ok(GuiCommand::SaveAsset { asset }) => {
-                            info!("[AUDIT] GUI saved asset: {} ({})", asset.hostname.as_deref().unwrap_or("?"), asset.ip);
-                            let payload = agent_core::sync_converters::asset_to_payload(&asset);
-                            if let Some(ref db_arc) = db_for_commands {
-                                let db_clone = std::sync::Arc::clone(db_arc);
-                                let asset_clone = asset.clone();
-                                let payload_clone = payload.clone();
-                                tokio::spawn(async move {
-                                    let stored = agent_storage::repositories::grc::StoredManagedAsset {
-                                        id: asset_clone.id.to_string(),
-                                        ip: asset_clone.ip.clone(),
-                                        hostname: asset_clone.hostname.clone(),
-                                        mac: asset_clone.mac.clone(),
-                                        vendor: asset_clone.vendor.clone(),
-                                        device_type: asset_clone.device_type.clone(),
-                                        criticality: format!("{}", asset_clone.criticality),
-                                        lifecycle: format!("{}", asset_clone.lifecycle),
-                                        tags: serde_json::to_string(&asset_clone.tags).unwrap_or_else(|_| "[]".to_string()),
-                                        risk_score: asset_clone.risk_score as f64,
-                                        vulnerability_count: asset_clone.vulnerability_count as i32,
-                                        open_ports: serde_json::to_string(&asset_clone.open_ports).unwrap_or_else(|_| "[]".to_string()),
-                                        software: serde_json::to_string(&asset_clone.software).unwrap_or_else(|_| "[]".to_string()),
-                                        first_seen: asset_clone.first_seen.to_rfc3339(),
-                                        last_seen: asset_clone.last_seen.to_rfc3339(),
-                                        synced: false,
-                                    };
-                                    let repo = agent_storage::repositories::grc::ManagedAssetRepository::new(&db_clone);
-                                    if let Err(e) = repo.upsert(&stored).await {
-                                        warn!("Failed to persist asset to SQLite: {}", e);
-                                    }
-                                    if let Ok(json) = serde_json::to_string(&payload_clone) {
-                                        let repo2 = agent_storage::SyncQueueRepository::new(&db_clone);
-                                        let entry = agent_storage::SyncQueueEntry::new(
-                                            agent_storage::SyncEntityType::Asset,
-                                            asset_clone.id.to_string(),
-                                            json,
-                                        );
-                                        let _ = repo2.enqueue(&entry).await;
-                                    }
-                                });
-                            }
-                        }
-                        Ok(GuiCommand::UpdateAssetLifecycle { asset_id, lifecycle }) => {
-                            info!("[AUDIT] GUI updated asset lifecycle {}: {:?}", asset_id, lifecycle);
-                            if let Some(ref db_arc) = db_for_commands {
-                                let db_clone = std::sync::Arc::clone(db_arc);
-                                let aid = asset_id.clone();
-                                let status = format!("{}", lifecycle);
-                                tokio::spawn(async move {
-                                    let repo = agent_storage::repositories::grc::ManagedAssetRepository::new(&db_clone);
-                                    match repo.get_all().await {
-                                        Ok(mut all) => {
-                                            if let Some(asset) = all.iter_mut().find(|a| a.id == aid) {
-                                                asset.lifecycle = status;
-                                                asset.last_seen = chrono::Utc::now().to_rfc3339();
-                                                asset.synced = false;
-                                                if let Err(e) = repo.upsert(asset).await {
-                                                    tracing::warn!("Failed to update asset lifecycle: {}", e);
-                                                }
-                                                // Queue for remote sync
-                                                let payload = agent_sync::types::AssetPayload {
-                                                    id: asset.id.clone(),
-                                                    ip: asset.ip.clone(),
-                                                    hostname: asset.hostname.clone(),
-                                                    mac: asset.mac.clone(),
-                                                    vendor: asset.vendor.clone(),
-                                                    device_type: asset.device_type.clone(),
-                                                    criticality: asset.criticality.clone(),
-                                                    lifecycle: asset.lifecycle.clone(),
-                                                    tags: serde_json::from_str(&asset.tags).unwrap_or_default(),
-                                                    risk_score: asset.risk_score,
-                                                    vulnerability_count: asset.vulnerability_count as u32,
-                                                    open_ports: serde_json::from_str(&asset.open_ports).unwrap_or_default(),
-                                                    software: serde_json::from_str(&asset.software).unwrap_or_default(),
-                                                    first_seen: chrono::DateTime::parse_from_rfc3339(&asset.first_seen)
-                                                        .map(|dt| dt.with_timezone(&chrono::Utc))
-                                                        .unwrap_or_else(|_| chrono::Utc::now()),
-                                                    last_seen: chrono::DateTime::parse_from_rfc3339(&asset.last_seen)
-                                                        .map(|dt| dt.with_timezone(&chrono::Utc))
-                                                        .unwrap_or_else(|_| chrono::Utc::now()),
-                                                };
-                                                if let Ok(json) = serde_json::to_string(&payload) {
-                                                    let repo2 = agent_storage::SyncQueueRepository::new(&db_clone);
-                                                    let entry = agent_storage::SyncQueueEntry::new(
-                                                        agent_storage::SyncEntityType::Asset,
-                                                        asset.id.clone(),
-                                                        json,
-                                                    );
-                                                    let _ = repo2.enqueue(&entry).await;
-                                                }
-                                            }
-                                        }
-                                        Err(e) => {
-                                            tracing::warn!("Failed to load assets for lifecycle update: {}", e);
-                                        }
-                                    }
-                                });
-                            }
-                        }
-                        Ok(GuiCommand::SaveAlertRule { rule }) => {
-                            info!("[AUDIT] GUI saved alert rule: {}", rule.name);
-                            let payload = agent_core::sync_converters::alert_rule_to_payload(&rule);
-                            if let Some(ref db_arc) = db_for_commands {
-                                let db_clone = std::sync::Arc::clone(db_arc);
-                                let rule_clone = rule.clone();
-                                let payload_clone = payload.clone();
-                                let tx = bg_event_tx.clone();
-                                tokio::spawn(async move {
-                                    let stored = agent_storage::repositories::grc::StoredAlertRule {
-                                        id: rule_clone.id.to_string(),
-                                        name: rule_clone.name.clone(),
-                                        rule_type: rule_clone.rule_type.as_str().to_string(),
-                                        severity_threshold: rule_clone.severity_threshold.map(|s| s.as_str().to_string()),
-                                        detection_types: serde_json::to_string(&rule_clone.detection_types).unwrap_or_default(),
-                                        escalation_minutes: rule_clone.escalation_minutes.map(|v| v as i32),
-                                        enabled: rule_clone.enabled,
-                                        created_at: rule_clone.created_at.to_rfc3339(),
-                                        synced: false,
-                                    };
-                                    let repo = agent_storage::repositories::grc::AlertRuleRepository::new(&db_clone);
-                                    if let Err(e) = repo.upsert(&stored).await {
-                                        warn!("Failed to persist alert rule to SQLite: {}", e);
-                                    }
-                                    if let Ok(json) = serde_json::to_string(&payload_clone) {
-                                        let repo2 = agent_storage::SyncQueueRepository::new(&db_clone);
-                                        let entry = agent_storage::SyncQueueEntry::new(
-                                            agent_storage::SyncEntityType::AlertRule,
-                                            rule_clone.id.to_string(),
-                                            json,
-                                        );
-                                        let _ = repo2.enqueue(&entry).await;
-                                    }
-                                    // Reload and emit AlertingLoaded
-                                    emit_alerting_loaded_from_db(&db_clone, &tx).await;
-                                });
-                            }
-                        }
-                        Ok(GuiCommand::DeleteAlertRule { rule_id }) => {
-                            info!("[AUDIT] GUI deleted alert rule: {}", rule_id);
-                            if let Some(ref db_arc) = db_for_commands {
-                                let db_clone = std::sync::Arc::clone(db_arc);
-                                let rid = rule_id.clone();
-                                let tx = bg_event_tx.clone();
-                                tokio::spawn(async move {
-                                    let repo = agent_storage::SyncQueueRepository::new(&db_clone);
-                                    if let Err(e) = repo.delete_grc(agent_storage::SyncEntityType::AlertRule, &rid).await {
-                                        warn!("Failed to durably delete alert rule: {}", e);
-                                    }
-                                    // Reload and emit AlertingLoaded
-                                    emit_alerting_loaded_from_db(&db_clone, &tx).await;
-                                });
-                            }
-                        }
-                        Ok(GuiCommand::SaveWebhook { webhook }) => {
-                            // Same rule as the settings form, enforced where the
-                            // destination is stored: https, no credentials, no
-                            // loopback / link-local / metadata target.
-                            if let Err(e) = agent_common::webhook::validate_webhook_url(&webhook.url) {
-                                warn!("[AUDIT] Webhook '{}' refused: {}", webhook.name, e);
-                                let _ = bg_event_tx.send(AgentEvent::Notification {
-                                    notification: agent_gui::dto::GuiNotification::error(
-                                        "Webhook refusé",
-                                        format!("Le webhook « {} » n'a pas été enregistré. {}", webhook.name, e),
-                                    ),
-                                });
-                                continue;
-                            }
-                            info!("[AUDIT] GUI saved webhook: {}", webhook.name);
-                            if let Some(ref db_arc) = db_for_commands {
-                                let db_clone = std::sync::Arc::clone(db_arc);
-                                let wh_clone = webhook.clone();
-                                let tx = bg_event_tx.clone();
-                                tokio::spawn(async move {
-                                    let now = chrono::Utc::now().to_rfc3339();
-                                    let stored = agent_storage::repositories::grc::StoredWebhook {
-                                        id: wh_clone.id.to_string(),
-                                        name: wh_clone.name.clone(),
-                                        url: wh_clone.url.clone(),
-                                        events: wh_clone.format.clone(),
-                                        secret: None,
-                                        enabled: wh_clone.enabled,
-                                        created_at: now.clone(),
-                                        updated_at: now,
-                                        synced: false,
-                                    };
-                                    let repo = agent_storage::repositories::grc::WebhookRepository::new(&db_clone);
-                                    if let Err(e) = repo.upsert(&stored).await {
-                                        warn!("Failed to persist webhook to SQLite: {}", e);
-                                    }
-                                    let payload = agent_core::sync_converters::webhook_to_payload(&wh_clone);
-                                    if let Ok(json) = serde_json::to_string(&payload) {
-                                        let repo2 = agent_storage::SyncQueueRepository::new(&db_clone);
-                                        let entry = agent_storage::SyncQueueEntry::new(
-                                            agent_storage::SyncEntityType::Webhook,
-                                            wh_clone.id.to_string(),
-                                            json,
-                                        );
-                                        let _ = repo2.enqueue(&entry).await;
-                                    }
-                                    // Reload and emit AlertingLoaded
-                                    emit_alerting_loaded_from_db(&db_clone, &tx).await;
-                                });
-                            }
-                        }
-                        Ok(GuiCommand::DeleteWebhook { webhook_id }) => {
-                            info!("[AUDIT] GUI deleted webhook: {}", webhook_id);
-                            if let Some(ref db_arc) = db_for_commands {
-                                let db_clone = std::sync::Arc::clone(db_arc);
-                                let wid = webhook_id.clone();
-                                let tx = bg_event_tx.clone();
-                                tokio::spawn(async move {
-                                    let repo = agent_storage::SyncQueueRepository::new(&db_clone);
-                                    if let Err(e) = repo.delete_grc(agent_storage::SyncEntityType::Webhook, &wid).await {
-                                        warn!("Failed to durably delete webhook: {}", e);
-                                    }
-                                    // Reload and emit AlertingLoaded
-                                    emit_alerting_loaded_from_db(&db_clone, &tx).await;
-                                });
-                            }
-                        }
-                        Ok(GuiCommand::TestWebhook { webhook_id }) => {
-                            info!("[AUDIT] GUI requested webhook test: {}", webhook_id);
-                            let tx = bg_event_tx.clone();
-                            let db_clone = db_for_commands.clone();
-                            let wid = webhook_id.clone();
-                            tokio::spawn(async move {
-                                // Load webhook from SQLite
-                                let webhook_opt = if let Some(ref db_arc) = db_clone {
-                                    let repo = agent_storage::repositories::grc::WebhookRepository::new(db_arc);
-                                    match repo.get_all().await {
-                                        Ok(all) => all.into_iter().find(|w| w.id == wid),
-                                        Err(e) => {
-                                            warn!("Failed to load webhooks from SQLite: {}", e);
-                                            None
-                                        }
-                                    }
-                                } else {
-                                    None
-                                };
-
-                                let notification = if let Some(ref wh) = webhook_opt
-                                    && let Err(e) = agent_common::webhook::validate_webhook_url(&wh.url)
-                                {
-                                    agent_gui::dto::GuiNotification::error(
-                                        "Test webhook refusé",
-                                        format!("Le webhook « {} » n'a pas été contacté. {}", wh.name, e),
-                                    )
-                                } else if let Some(wh) = webhook_opt {
-                                    // The stored `events` column carries the format.
-                                    let payload = agent_common::webhook::test_payload(
-                                        &wh.events,
-                                        &chrono::Utc::now().to_rfc3339(),
-                                    );
-                                    // No redirects: a 30x towards an internal address is the
-                                    // classic way around the destination check above.
-                                    let client = reqwest::Client::builder()
-                                        .timeout(std::time::Duration::from_secs(10))
-                                        .redirect(reqwest::redirect::Policy::none())
-                                        .build()
-                                        .unwrap_or_default();
-                                    match client.post(&wh.url).json(&payload).send().await {
-                                        Ok(resp) if resp.status().is_success() => {
-                                            agent_gui::dto::GuiNotification::info(
-                                                "Test webhook r\u{00e9}ussi",
-                                                format!("Le webhook '{}' a r\u{00e9}pondu avec succ\u{00e8}s (HTTP {}).", wh.name, resp.status()),
-                                            )
-                                        }
-                                        Ok(resp) => {
-                                            agent_gui::dto::GuiNotification::error(
-                                                "Test webhook \u{00e9}chou\u{00e9}",
-                                                format!("Le webhook '{}' a r\u{00e9}pondu avec le code HTTP {}.", wh.name, resp.status()),
-                                            )
-                                        }
-                                        Err(e) => {
-                                            warn!("Webhook test '{}' failed: {}", wh.name, e);
-                                            let cause = if e.is_timeout() {
-                                                "le serveur n'a pas répondu dans les 10 secondes"
-                                            } else if e.is_connect() {
-                                                "connexion impossible (adresse, pare-feu ou certificat)"
-                                            } else {
-                                                "erreur réseau ; le détail est dans les journaux de l'agent"
-                                            };
-                                            agent_gui::dto::GuiNotification::error(
-                                                "Test webhook \u{00e9}chou\u{00e9}",
-                                                format!("Impossible de contacter le webhook « {} » : {}.", wh.name, cause),
-                                            )
-                                        }
-                                    }
-                                } else {
-                                    agent_gui::dto::GuiNotification::error(
-                                        "Webhook introuvable",
-                                        format!("Aucun webhook avec l'identifiant '{}' n'a \u{00e9}t\u{00e9} trouv\u{00e9}.", wid),
-                                    )
-                                };
-
-                                let _ = tx.send(AgentEvent::Notification { notification });
-                            });
-                        }
-
-                        Ok(GuiCommand::ConfigureAiProvider { settings, api_key, forget_key }) => {
-                            match remote_ai.configured(settings, api_key, forget_key) {
-                                Ok(candidate) => {
-                                    let result = match db_for_commands.as_ref() {
-                                        Some(db) => candidate.save(db).await,
-                                        None => Err("Base chiffrée indisponible : paramètres non enregistrés.".into()),
-                                    };
-                                    match result {
-                                        Ok(()) => {
-                                            remote_ai = candidate;
-                                            let _ = bg_event_tx.send(remote_ai.event());
-                                            agent_core::remote_ai::feedback(&bg_event_tx, "Paramètres IA enregistrés.");
-                                        }
-                                        Err(message) => agent_core::remote_ai::feedback(&bg_event_tx, message),
-                                    }
-                                }
-                                Err(message) => agent_core::remote_ai::feedback(&bg_event_tx, message),
-                            }
-                        }
-                        Ok(GuiCommand::TestAiProvider { settings, api_key }) => {
-                            let candidate = remote_ai.configured(settings, api_key, false);
-                            let tx = bg_event_tx.clone();
-                            tokio::spawn(async move {
-                                let result = match candidate {
-                                    Ok(candidate) => candidate.infer(
-                                        "Reply briefly.", "Reply with OK.",
-                                        std::sync::Arc::new(std::sync::atomic::AtomicBool::new(false)),
-                                        &mut |_| {},
-                                    ).await.map(|_| ()),
-                                    Err(message) => Err(message),
-                                };
-                                agent_core::remote_ai::feedback(&tx, match result {
-                                    Ok(()) => "Connexion réussie : le modèle a répondu. Paramètres non enregistrés par ce test.".into(),
-                                    Err(message) => message,
-                                });
-                            });
-                        }
-
-                        // ── LLM commands ──────────────────────────────────────
-                        Ok(GuiCommand::LlmPrompt {
-                            prompt,
-                            context,
-                            speak_response,
-                        }) => {
-                            info!("[AUDIT] GUI sent LLM prompt ({} chars)", prompt.len());
-                            if let Some(ref trail) = audit_trail_for_commands {
-                                let trail: std::sync::Arc<agent_core::audit_trail::LocalAuditTrail> = std::sync::Arc::clone(trail);
-                                // Audit previews must truncate on Unicode scalar boundaries:
-                                // French prompts routinely contain multi-byte characters.
-                                let prompt_cut = if prompt.chars().count() > 100 {
-                                    format!("{}...", prompt.chars().take(97).collect::<String>())
-                                } else {
-                                    prompt.clone()
-                                };
-                                tokio::spawn(async move {
-                                    trail.log(
-                                        agent_core::audit_trail::AuditAction::AIInteraction {
-                                            prompt_preview: prompt_cut,
-                                        },
-                                        "user",
-                                        None,
-                                    ).await;
-                                });
-                            }
-                            let tx = bg_event_tx.clone();
-                            let remote = remote_ai.clone();
-                            let svc = llm_service.clone();
-                            #[cfg(feature = "voice")]
-                            let voice: Option<std::sync::Arc<agent_core::voice::VoiceService>> = voice_service.clone();
-                            #[cfg(feature = "voice")]
-                            let voice_epoch = voice.as_ref().map_or(0, |v| v.speech_generation());
-                            #[cfg(not(feature = "voice"))]
-                            let _ = speak_response;
-                            let cancel = std::sync::Arc::new(std::sync::atomic::AtomicBool::new(false));
-                            if let Ok(mut slot) = llm_cancel.lock()
-                                && let Some(previous) = slot.replace(cancel.clone())
-                            {
-                                previous.store(true, std::sync::atomic::Ordering::SeqCst);
-                            }
-                            tokio::spawn(async move {
-                                let start = std::time::Instant::now();
-                                if remote.settings.provider != agent_gui::ai_provider::AiProvider::Local {
-                                    let context_label = context.map(|value| value.label_fr()).unwrap_or("Général");
-                                    let (system, prompt) = agent_core::llm_stream::assistant_prompt(&prompt, context_label, speak_response);
-                                    let mut forward = agent_core::llm_stream::DeltaForwarder::new(tx.clone());
-                                    #[cfg(feature = "voice")]
-                                    let mut speech = if speak_response { voice.as_ref().and_then(|v| v.speak_stream(voice_epoch)) } else { None };
-                                    let result = remote.infer(&system, &prompt, cancel.clone(), &mut |delta| {
-                                        forward.push(delta);
-                                        #[cfg(feature = "voice")]
-                                        if let Some(speech) = speech.as_mut() { speech.push(delta); }
-                                    }).await;
-                                    forward.flush();
-                                    let message = match result {
-                                        Ok(text) => text,
-                                        Err(error) => agent_core::llm_stream::interrupted_answer(
-                                            forward.text(), cancel.load(std::sync::atomic::Ordering::SeqCst), &error),
-                                    };
-                                    let _ = tx.send(AgentEvent::LlmChatResponse { message, processing_time_ms: start.elapsed().as_millis() as u64 });
-                                    #[cfg(feature = "voice")]
-                                    if let Some(speech) = speech { speech.finish(); }
-                                    return;
-                                }
-                                #[cfg(feature = "llm")]
-                                {
-                                    if let Some(ref svc) = svc {
-                                        if let Some(manager) = svc.get_manager().await {
-                                            let context_label = context
-                                                .map(|value| value.label_fr())
-                                                .unwrap_or("Général");
-                                            let (system_prompt, prompt) =
-                                                agent_core::llm_stream::assistant_prompt(&prompt, context_label, speak_response);
-                                            let max_tokens = if speak_response { 400 } else { 640 };
-                                            let req = agent_llm::engine::InferenceRequest::new(&prompt)
-                                                .with_system_prompt(system_prompt)
-                                                .with_max_tokens(max_tokens)
-                                                .with_temperature(0.2)
-                                                .with_cancel(cancel.clone());
-                                            // Stream the answer: the GUI shows it as it is written
-                                            // and the voice starts with the first sentence.
-                                            let mut forward = agent_core::llm_stream::DeltaForwarder::new(tx.clone());
-                                            #[cfg(feature = "voice")]
-                                            let mut speech = if speak_response {
-                                                voice.as_ref().and_then(|v| v.speak_stream(voice_epoch))
-                                            } else {
-                                                None
-                                            };
-                                            let result = manager
-                                                .engine()
-                                                .infer_stream(req, &mut |delta: &str| {
-                                                    forward.push(delta);
-                                                    #[cfg(feature = "voice")]
-                                                    if let Some(speech) = speech.as_mut() {
-                                                        speech.push(delta);
-                                                    }
-                                                })
-                                                .await;
-                                            forward.flush();
-                                            let (message, processing_time_ms) = match result {
-                                                Ok(resp) => (resp.text, resp.duration_ms),
-                                                Err(e) => {
-                                                    let cancelled = cancel.load(std::sync::atomic::Ordering::SeqCst);
-                                                    if cancelled {
-                                                        info!("[AUDIT] Assistant answer interrupted by the operator");
-                                                    } else {
-                                                        warn!("LLM inference error: {}", e);
-                                                    }
-                                                    #[cfg(feature = "voice")]
-                                                    if !cancelled && forward.text().trim().is_empty()
-                                                        && let Some(speech) = speech.as_mut()
-                                                    {
-                                                        speech.push(&format!("Erreur d'inférence : {e}"));
-                                                    }
-                                                    (
-                                                        agent_core::llm_stream::interrupted_answer(forward.text(), cancelled, &e.to_string()),
-                                                        start.elapsed().as_millis() as u64,
-                                                    )
-                                                }
-                                            };
-                                            let _ = tx.send(AgentEvent::LlmChatResponse {
-                                                message,
-                                                processing_time_ms,
-                                            });
-                                            #[cfg(feature = "voice")]
-                                            if let Some(speech) = speech {
-                                                speech.finish();
-                                            }
-                                            return;
-                                        }
-                                        let reason = svc.unavailable_reason().await
-                                            .unwrap_or_else(|| "Modèle en cours de configuration".to_string());
-                                        let message = format!("Analyse IA indisponible : {reason}.\n\nAucune analyse n’a été exécutée pour cette question. Ouvrez « Modèle & diagnostic » pour vérifier ou charger le modèle, puis renvoyez votre question. Les recommandations déterministes restent consultables dans l’onglet Recommandations.");
-                                        let _ = tx.send(AgentEvent::LlmChatResponse {
-                                            message: message.clone(),
-                                            processing_time_ms: start.elapsed().as_millis() as u64,
-                                        });
-                                        #[cfg(feature = "voice")]
-                                        if speak_response && let Some(ref v) = voice {
-                                            v.speak_if_current(&message, voice_epoch);
-                                        }
-                                        return;
-                                    }
-                                }
-                                // LLM not available (feature disabled or no service)
-                                let _ = &svc; // suppress unused-variable warning when llm feature is off
-                                let message = "Service IA indisponible. Aucune analyse n’a été exécutée. Consultez Modèle & diagnostic avant de renvoyer votre question.".to_string();
-                                let _ = tx.send(AgentEvent::LlmChatResponse {
-                                    message: message.clone(),
-                                    processing_time_ms: start.elapsed().as_millis() as u64,
-                                });
-                                #[cfg(feature = "voice")]
-                                if speak_response && let Some(ref v) = voice {
-                                    v.speak_if_current(&message, voice_epoch);
-                                }
-                            });
-                        }
-
-                        Ok(GuiCommand::LlmCancel) => {
-                            info!("[AUDIT] GUI stopped the assistant answer");
-                            if let Ok(slot) = llm_cancel.lock()
-                                && let Some(flag) = slot.as_ref()
-                            {
-                                flag.store(true, std::sync::atomic::Ordering::SeqCst);
-                            }
-                            #[cfg(feature = "voice")]
-                            if let Some(ref voice) = voice_service {
-                                voice.stop_speaking();
-                            }
-                        }
-                        Ok(GuiCommand::LlmWarmUp { context }) => {
-                            if remote_ai.settings.provider != agent_gui::ai_provider::AiProvider::Local { continue; }
-
-                            #[cfg(feature = "llm")]
-                            {
-                                let svc = llm_service.clone();
-                                let tx = bg_event_tx.clone();
-                                tokio::spawn(async move {
-                                    if let Some(ref svc) = svc
-                                        && let Some(manager) = svc.get_manager().await
-                                    {
-                                        let started = std::time::Instant::now();
-                                        if let Err(e) = manager.engine().warm_up().await {
-                                            warn!("LLM warm-up failed: {}", e);
-                                            return;
-                                        }
-                                        info!("LLM model ready in {:.1}s", started.elapsed().as_secs_f64());
-                                        if let Some(label) = manager.engine().acceleration().await {
-                                            let _ = tx.send(AgentEvent::LlmAcceleration { label });
-                                        }
-                                        // Pre-process the grounded context (background
-                                        // priority: a question pre-empts it). The prefix
-                                        // cache then serves the first question.
-                                        if let Some(context) = context.filter(|c| !c.trim().is_empty()) {
-                                            let request = agent_llm::engine::InferenceRequest::new(context)
-                                                .with_system_prompt(agent_core::llm_stream::assistant_system_prompt())
-                                                .with_max_tokens(1)
-                                                .with_temperature(0.0)
-                                                .background();
-                                            match manager.engine().infer(request).await {
-                                                Ok(_) => info!("LLM context pre-processed in {:.1}s", started.elapsed().as_secs_f64()),
-                                                Err(e) => debug!("LLM context pre-processing skipped: {}", e),
-                                            }
-                                        }
-                                    }
-                                });
-                            }
-                            #[cfg(not(feature = "llm"))]
-                            let _ = context;
-                        }
-                        Ok(GuiCommand::LlmGetStatus) => {
-                            info!("[AUDIT] GUI requested LLM status");
-                            let tx = bg_event_tx.clone();
-                            #[cfg(feature = "llm")]
-                            {
-                                let svc = llm_service.clone();
-                                tokio::spawn(async move {
-                                    if let Some(ref svc) = svc {
-                                        match svc.get_status().await {
-                                            agent_core::llm_service::LLMServiceStatus::Ready {
-                                                model_name,
-                                                inference_count,
-                                                memory_usage_mb,
-                                            } => {
-                                                let _ = tx.send(AgentEvent::LlmStatusUpdate {
-                                                    model_name,
-                                                    status: "ready".to_string(),
-                                                    inference_count,
-                                                    memory_mb: memory_usage_mb,
-                                                });
-                                            }
-                                            agent_core::llm_service::LLMServiceStatus::NotConfigured => {
-                                                let _ = tx.send(AgentEvent::LlmStatusUpdate {
-                                                    model_name: "N/A".to_string(),
-                                                    status: "not_configured".to_string(),
-                                                    inference_count: 0,
-                                                    memory_mb: 0,
-                                                });
-                                            }
-                                            agent_core::llm_service::LLMServiceStatus::NotAvailable => {
-                                                let _ = tx.send(AgentEvent::LlmStatusUpdate {
-                                                    model_name: "N/A".to_string(),
-                                                    status: "not_available".to_string(),
-                                                    inference_count: 0,
-                                                    memory_mb: 0,
-                                                });
-                                            }
-                                            agent_core::llm_service::LLMServiceStatus::Error(err) => {
-                                                let _ = tx.send(AgentEvent::LlmStatusUpdate {
-                                                    model_name: "N/A".to_string(),
-                                                    status: format!("error: {}", err),
-                                                    inference_count: 0,
-                                                    memory_mb: 0,
-                                                });
-                                            }
-                                            agent_core::llm_service::LLMServiceStatus::Downloading {
-                                                model_name,
-                                                progress_percent,
-                                                downloaded_mb,
-                                                total_mb,
-                                            } => {
-                                                let _ = tx.send(AgentEvent::LlmStatusUpdate {
-                                                    model_name,
-                                                    status: format!(
-                                                        "downloading: {}% ({}/{} MB)",
-                                                        progress_percent, downloaded_mb, total_mb
-                                                    ),
-                                                    inference_count: 0,
-                                                    memory_mb: 0,
-                                                });
-                                            }
-                                        }
-                                    } else {
-                                        let _ = tx.send(AgentEvent::LlmStatusUpdate {
-                                            model_name: "N/A".to_string(),
-                                            status: "not_available".to_string(),
-                                            inference_count: 0,
-                                            memory_mb: 0,
-                                        });
-                                    }
-                                });
-                            }
-                            #[cfg(not(feature = "llm"))]
-                            {
-                                let _ = tx.send(AgentEvent::LlmStatusUpdate {
-                                    model_name: "N/A".to_string(),
-                                    status: "not_available".to_string(),
-                                    inference_count: 0,
-                                    memory_mb: 0,
-                                });
-                            }
-                        }
-
-                        Ok(GuiCommand::LlmReloadModel) => {
-                            info!("[AUDIT] GUI requested LLM model reload");
-                            let tx = bg_event_tx.clone();
-                            #[cfg(feature = "llm")]
-                            {
-                                let svc = llm_service.clone();
-                                let llm_handle = handle_for_commands.clone();
-                                tokio::spawn(async move {
-                                    if let Some(ref svc) = svc {
-                                        if let Err(e) = svc.reload().await {
-                                            warn!("Failed to reload LLM model: {}", e);
-                                            llm_handle.set_llm_loaded(false);
-                                            let _ = tx.send(AgentEvent::LlmStatusUpdate {
-                                                model_name: "N/A".to_string(),
-                                                status: format!("reload_error: {}", e),
-                                                inference_count: 0,
-                                                memory_mb: 0,
-                                            });
-                                            return;
-                                        }
-                                        llm_handle.set_llm_loaded(true);
-                                        match svc.get_status().await {
-                                            agent_core::llm_service::LLMServiceStatus::Ready {
-                                                model_name,
-                                                inference_count,
-                                                memory_usage_mb,
-                                            } => {
-                                                let _ = tx.send(AgentEvent::LlmStatusUpdate {
-                                                    model_name,
-                                                    status: "ready".to_string(),
-                                                    inference_count,
-                                                    memory_mb: memory_usage_mb,
-                                                });
-                                            }
-                                            other => {
-                                                let _ = tx.send(AgentEvent::LlmStatusUpdate {
-                                                    model_name: "N/A".to_string(),
-                                                    status: format!("{}", other),
-                                                    inference_count: 0,
-                                                    memory_mb: 0,
-                                                });
-                                            }
-                                        }
-                                    } else {
-                                        let _ = tx.send(AgentEvent::LlmStatusUpdate {
-                                            model_name: "N/A".to_string(),
-                                            status: "not_available".to_string(),
-                                            inference_count: 0,
-                                            memory_mb: 0,
-                                        });
-                                    }
-                                });
-                            }
-                            #[cfg(not(feature = "llm"))]
-                            {
-                                let _ = tx.send(AgentEvent::LlmStatusUpdate {
-                                    model_name: "N/A".to_string(),
-                                    status: "not_available".to_string(),
-                                    inference_count: 0,
-                                    memory_mb: 0,
-                                });
-                            }
-                        }
-
-                        Ok(GuiCommand::LlmStartDownload) => {
-                            info!("[AUDIT] GUI requested LLM model download");
-                            let tx = bg_event_tx.clone();
-                            #[cfg(feature = "llm")]
-                            {
-                                let svc = llm_service.clone();
-                                tokio::spawn(async move {
-                                    if let Some(ref svc) = svc {
-                                        let config = match svc.get_config().await {
-                                            Ok(c) => c,
-                                            Err(e) => {
-                                                let _ = tx.send(AgentEvent::LlmDownloadFailed {
-                                                    model_name: "N/A".to_string(),
-                                                    error: format!("Configuration invalide: {}", e),
-                                                });
-                                                return;
-                                            }
-                                        };
-                                        let model_name = config.model.name.clone();
-                                        let tx2 = tx.clone();
-                                        let name2 = model_name.clone();
-                                        let progress_fn: agent_core::llm_service::DownloadProgressFn =
-                                            Box::new(move |percent, downloaded, total, speed| {
-                                                let _ = tx2.send(AgentEvent::LlmDownloadProgress {
-                                                    model_name: name2.clone(),
-                                                    progress_percent: percent,
-                                                    downloaded_bytes: downloaded,
-                                                    total_bytes: total,
-                                                    speed_bps: speed,
-                                                });
-                                            });
-                                        match svc.download_model_with_progress(&config, Some(progress_fn)).await {
-                                            Ok(()) => {
-                                                info!("LLM model download completed");
-                                                let total = config.model.path.metadata()
-                                                    .map(|m| m.len()).unwrap_or(0);
-                                                let _ = tx.send(AgentEvent::LlmDownloadComplete {
-                                                    model_name: model_name.clone(),
-                                                    total_bytes: total,
-                                                });
-                                                // Auto-initialize after download
-                                                if let Err(e) = svc.reload().await {
-                                                    warn!("Failed to initialize model after download: {}", e);
-                                                    let _ = tx.send(AgentEvent::LlmStatusUpdate {
-                                                        model_name,
-                                                        status: format!("init_error: {}", e),
-                                                        inference_count: 0,
-                                                        memory_mb: 0,
-                                                    });
-                                                } else if let agent_core::llm_service::LLMServiceStatus::Ready {
-                                                    model_name: name,
-                                                    inference_count,
-                                                    memory_usage_mb,
-                                                } = svc.get_status().await {
-                                                    let _ = tx.send(AgentEvent::LlmStatusUpdate {
-                                                        model_name: name,
-                                                        status: "ready".to_string(),
-                                                        inference_count,
-                                                        memory_mb: memory_usage_mb,
-                                                    });
-                                                }
-                                            }
-                                            Err(e) => {
-                                                warn!("LLM model download failed: {}", e);
-                                                let _ = tx.send(AgentEvent::LlmDownloadFailed {
-                                                    model_name,
-                                                    error: e.to_string(),
-                                                });
-                                            }
-                                        }
-                                    }
-                                });
-                            }
-                            #[cfg(not(feature = "llm"))]
-                            {
-                                let _ = tx.send(AgentEvent::LlmDownloadFailed {
-                                    model_name: "N/A".to_string(),
-                                    error: "Module IA non compilé".to_string(),
-                                });
-                            }
-                        }
-
-                        Ok(GuiCommand::LlmPauseDownload) => {
-                            info!("[AUDIT] GUI requested download pause");
-                            #[cfg(feature = "llm")]
-                            {
-                                let svc = llm_service.clone();
-                                tokio::spawn(async move {
-                                    if let Some(ref svc) = svc {
-                                        svc.pause_download().await;
-                                    }
-                                });
-                            }
-                        }
-
-                        Ok(GuiCommand::LlmResumeDownload) => {
-                            info!("[AUDIT] GUI requested download resume");
-                            #[cfg(feature = "llm")]
-                            {
-                                let svc = llm_service.clone();
-                                tokio::spawn(async move {
-                                    if let Some(ref svc) = svc {
-                                        svc.resume_download().await;
-                                    }
-                                });
-                            }
-                        }
-
-                        Ok(GuiCommand::LlmCancelDownload) => {
-                            info!("[AUDIT] GUI requested download cancel");
-                            #[cfg(feature = "llm")]
-                            {
-                                let svc = llm_service.clone();
-                                tokio::spawn(async move {
-                                    if let Some(ref svc) = svc {
-                                        svc.cancel_download().await;
-                                    }
-                                });
-                            }
-                        }
-
-                        Ok(GuiCommand::LlmAnalyzeVulnerability { finding_index, target_id }) => {
-                            info!("[AUDIT] GUI requested LLM vulnerability analysis for finding #{}", finding_index);
-                            if let Some(ref trail) = audit_trail_for_commands {
-                                let trail = std::sync::Arc::clone(trail);
-                                tokio::spawn(async move {
-                                    trail.log(
-                                        agent_core::audit_trail::AuditAction::AIInteraction {
-                                            prompt_preview: format!("Vulnerability analysis index: #{}", finding_index),
-                                        },
-                                        "user",
-                                        None,
-                                    ).await;
-                                });
-                            }
-                            let tx = bg_event_tx.clone();
-                            let svc = llm_service.clone();
-                            let handle = handle_for_commands.clone();
-                            tokio::spawn(async move {
-                                let target = target_id;
-                                #[cfg(feature = "llm")]
-                                {
-                                    if let Some(ref svc) = svc {
-                                        // Retrieve finding from cache
-                                        let finding = {
-                                            let cache = handle.state.last_vuln_findings.read().await;
-                                            cache.as_ref().and_then(|res| res.vulnerabilities.iter().find(|v| {
-                                                let id = v.cve_id.clone().or_else(|| v.advisory_id.clone()).unwrap_or_else(|| format!("{}-{}", v.source.to_uppercase(), v.package_name.to_uppercase()));
-                                                agent_gui::state::event_identity("finding", &(&id, &v.package_name, &v.installed_version, &v.source, Some(v.detected_at))) == target
-                                            }).cloned())
-                                        };
-
-                                        if let Some(finding) = finding {
-                                            match svc.analyze_vulnerability(&finding).await {
-                                                Ok(analysis) => {
-                                                    let _ = tx.send(AgentEvent::LlmAnalysisComplete {
-                                                        target: target.clone(),
-                                                        analysis,
-                                                        severity_override: None,
-                                                        is_false_positive: None,
-                                                        confidence: None,
-                                                        ai_remediation_script: None,
-                                                        ai_remediation_explanation: None,
-                                                    });
-                                                }
-                                                Err(e) => {
-                                                    warn!("LLM vulnerability analysis error: {}", e);
-                                                    let _ = tx.send(AgentEvent::LlmAnalysisComplete {
-                                                        target,
-                                                        analysis: format!("Erreur d'analyse : {}", e),
-                                                        severity_override: None,
-                                                        is_false_positive: None,
-                                                        confidence: None,
-                                                        ai_remediation_script: None,
-                                                        ai_remediation_explanation: None,
-                                                    });
-                                                }
-                                            }
-                                            return;
-                                        } else {
-                                            warn!("LlmAnalyzeVulnerability: finding #{} not found in cache", finding_index);
-                                        }
-                                    }
-                                }
-                                let _ = svc;
-                                let _ = tx.send(AgentEvent::LlmAnalysisComplete {
-                                    target,
-                                    analysis: "Module IA non disponible ou finding introuvable.".to_string(),
-                                    severity_override: None,
-                                    is_false_positive: None,
-                                    confidence: None,
-                                    ai_remediation_script: None,
-                                    ai_remediation_explanation: None,
-                                });
-                            });
-                        }
-
-                        Ok(GuiCommand::StopVoice) => {
-                            #[cfg(feature = "voice")]
-                            if let Some(ref voice) = voice_service {
-                                voice.stop_listening();
-                                voice.stop_speaking();
-                            }
-                            let _ = bg_event_tx.send(AgentEvent::LlmVoiceState { active: false });
-                            let _ = bg_event_tx.send(AgentEvent::VoiceStatus { speaking: false });
-                        }
-                        Ok(GuiCommand::ConfigureVoice { settings }) => {
-                            #[cfg(feature = "voice")]
-                            if let Some(ref voice) = voice_service {
-                                voice.configure(settings);
-                            }
-                            #[cfg(not(feature = "voice"))]
-                            let _ = settings;
-                        }
-                        Ok(GuiCommand::VoiceRefreshStatus) => {
-                            #[cfg(feature = "voice")]
-                            if let Some(ref voice) = voice_service {
-                                voice.publish_status();
-                            }
-                            #[cfg(not(feature = "voice"))]
-                            let _ = bg_event_tx.send(AgentEvent::VoiceEngineStatus {
-                                info: Box::default(),
-                            });
-                        }
-                        Ok(GuiCommand::VoiceInstallModel { model_key }) => {
-                            info!("[AUDIT] GUI requested Whisper model installation: {}", model_key);
-                            #[cfg(feature = "voice")]
-                            if let Some(voice) = voice_service.clone() {
-                                tokio::spawn(async move {
-                                    voice.install_model(&model_key).await;
-                                });
-                            }
-                            #[cfg(not(feature = "voice"))]
-                            let _ = bg_event_tx.send(AgentEvent::VoiceModelInstall {
-                                progress: agent_gui::dto::VoiceInstallProgress {
-                                    model_key,
-                                    phase: agent_gui::dto::VoiceInstallPhase::Failed,
-                                    downloaded_bytes: 0,
-                                    total_bytes: 0,
-                                    error: Some("Reconnaissance vocale indisponible dans cette version.".to_string()),
-                                },
-                            });
-                        }
-                        Ok(GuiCommand::VoiceCancelModelInstall) => {
-                            #[cfg(feature = "voice")]
-                            if let Some(ref voice) = voice_service {
-                                voice.cancel_install();
-                            }
-                        }
-                        Ok(GuiCommand::SetVoiceListening { enabled }) => {
-                            info!("[AUDIT] GUI requested voice listening: {}", enabled);
-                            #[cfg(feature = "voice")]
-                            {
-                                let voice: Option<std::sync::Arc<agent_core::voice::VoiceService>> = voice_service.clone();
-                                let tx = bg_event_tx.clone();
-                                {
-                                    if let Some(ref voice) = voice {
-                                        if enabled {
-                                            // Natural barge-in: silence any answer/alert before
-                                            // opening the microphone so Whisper cannot transcribe
-                                            // Sentinel's own synthesized voice.
-                                            voice.stop_speaking();
-                                            voice.start_listening().await;
-                                        } else {
-                                            // Ending the dictation keeps what was already
-                                            // said: it is transcribed right away.
-                                            voice.finish_listening();
-                                        }
-                                    } else if enabled {
-                                        let _ = tx.send(AgentEvent::VoiceError { message: "Service vocal indisponible. Vérifiez le microphone et le modèle Whisper.".to_string() });
-                                    }
-                                }
-                            }
-                            #[cfg(not(feature = "voice"))]
-                            {
-                                let tx = bg_event_tx.clone();
-                                tokio::spawn(async move {
-                                    if enabled {
-                                        tokio::time::sleep(std::time::Duration::from_millis(500)).await;
-                                        let _ = tx.send(AgentEvent::VoiceError {
-                                            message: "Reconnaissance vocale indisponible dans cette version.".to_string()
-                                        });
-                                    }
-                                });
-                            }
-                        }
-                        Ok(GuiCommand::SpeakNotification { text }) => {
-                            info!("[AUDIT] GUI requested a spoken security notification");
-                            let speech_started = {
-                                #[cfg(feature = "voice")]
-                                {
-                                    if let Some(ref voice) = voice_service {
-                                        voice.speak(&text);
-                                        true
-                                    } else {
-                                        false
-                                    }
-                                }
-                                #[cfg(not(feature = "voice"))]
-                                {
-                                    false
-                                }
-                            };
-                            if !speech_started {
-                                let _ = text;
-                                let _ = bg_event_tx.send(AgentEvent::VoiceError { message: "Synthèse vocale indisponible dans cette version.".to_string() });
-                                // Match the service's completion event even in
-                                // voice-less builds or when initialization failed.
-                                let _ = bg_event_tx.send(AgentEvent::VoiceStatus {
-                                    speaking: false,
-                                });
-                            }
-                        }
-
-                        Ok(GuiCommand::LlmToggleVoice) => {
-                            // Toggle voice: uses SetVoiceListening path — GUI manages the toggle state.
-                            info!("[AUDIT] GUI toggled voice recognition");
-                            #[cfg(feature = "voice")]
-                            {
-                                let voice: Option<std::sync::Arc<agent_core::voice::VoiceService>> = voice_service.clone();
-                                tokio::spawn(async move {
-                                    if let Some(ref voice) = voice {
-                                        voice.start_listening().await;
-                                    }
-                                });
-                            }
-                        }
-
-                        Ok(GuiCommand::LlmSelectModel { model_key, model_name, download_url, gguf_filename }) => {
-                            info!("[AUDIT] GUI requested model switch to '{}'", model_key);
-                            let tx = bg_event_tx.clone();
-                            let svc = llm_service.clone();
-                            let model_key_clone = model_key.clone();
-                            let model_name_clone = model_name.clone();
-                            tokio::spawn(async move {
-                                // Determine the config path
-                                let config_path = agent_common::config::AgentConfig::platform_data_dir()
-                                    .join("config")
-                                    .join("llm.json");
-                                let previous_config = std::fs::read(&config_path).ok();
-
-                                // Load or create base config
-                                let mut llm_cfg = if config_path.exists() {
-                                    agent_llm::LLMConfig::from_file(&config_path).unwrap_or_default()
-                                } else {
-                                    agent_llm::LLMConfig::default()
-                                };
-
-                                // Update model fields
-                                llm_cfg.model.name = model_key_clone.clone();
-                                if let Some(ref fname) = gguf_filename {
-                                    let candidate = std::path::Path::new(fname);
-                                    if candidate.file_name().and_then(|value| value.to_str())
-                                        != Some(fname.as_str())
-                                        || candidate.extension().and_then(|value| value.to_str())
-                                            != Some("gguf")
-                                    {
-                                        let _ = tx.send(AgentEvent::LlmDownloadFailed {
-                                            model_name: model_name_clone,
-                                            error: "Nom de fichier GGUF non valide".to_string(),
-                                        });
-                                        return;
-                                    }
-                                    llm_cfg.model.path = agent_common::config::AgentConfig::platform_data_dir()
-                                        .join("models")
-                                        .join(fname);
-                                }
-                                // Never inherit the previous model's URL. When absent,
-                                // the download service resolves the selected registry key.
-                                llm_cfg.model.download_url = download_url.clone();
-
-                                // Save updated config
-                                if let Some(parent) = config_path.parent() {
-                                    let _ = std::fs::create_dir_all(parent);
-                                }
-                                if let Err(e) = llm_cfg.save_to_file(&config_path) {
-                                    warn!("Failed to save updated LLM config: {}", e);
-                                    let _ = tx.send(AgentEvent::LlmDownloadFailed {
-                                        model_name: model_name_clone,
-                                        error: format!("Erreur de configuration: {}", e),
-                                    });
-                                    return;
-                                }
-
-                                // A model switch is transactional: failed downloads or
-                                // initialization must not leave the next application start
-                                // pinned to an unusable model configuration.
-                                let restore_previous_config = || match &previous_config {
-                                    Some(contents) => std::fs::write(&config_path, contents),
-                                    None => match std::fs::remove_file(&config_path) {
-                                        Ok(()) => Ok(()),
-                                        Err(error) if error.kind() == std::io::ErrorKind::NotFound => {
-                                            Ok(())
-                                        }
-                                        Err(error) => Err(error),
-                                    },
-                                };
-
-                                info!("LLM config updated for model '{}', starting download/reload", model_key_clone);
-
-                                // If model file doesn't exist → trigger download
-                                if !llm_cfg.model.path.exists() {
-                                    if let Some(ref llm_svc) = svc {
-                                        let tx2 = tx.clone();
-                                        let name_c = model_name_clone.clone();
-                                        let name_c2 = model_name_clone.clone();
-                                        let progress_tx = tx.clone();
-                                        let progress_name = model_name_clone.clone();
-                                        let progress_cb: agent_core::llm_service::DownloadProgressFn = Box::new(move |pct, dl, total, speed| {
-                                            let _ = progress_tx.send(AgentEvent::LlmDownloadProgress {
-                                                model_name: progress_name.clone(),
-                                                progress_percent: pct,
-                                                downloaded_bytes: dl,
-                                                total_bytes: total,
-                                                speed_bps: speed,
-                                            });
-                                        });
-                                        match llm_svc.download_model_with_progress(&llm_cfg, Some(progress_cb)).await {
-                                            Ok(()) => {
-                                                // Auto-reload after download
-                                                if let Err(e) = llm_svc.reload().await {
-                                                    warn!("Auto-reload after download failed: {}", e);
-                                                    if let Err(restore_error) = restore_previous_config() {
-                                                        warn!("Failed to restore previous LLM config: {}", restore_error);
-                                                    } else if previous_config.is_some()
-                                                        && let Err(restore_error) = llm_svc.reload().await
-                                                    {
-                                                        warn!("Failed to reactivate previous LLM model: {}", restore_error);
-                                                    }
-                                                    let _ = tx2.send(AgentEvent::LlmDownloadFailed {
-                                                        model_name: name_c,
-                                                        error: format!(
-                                                            "Modèle téléchargé mais impossible à charger: {}",
-                                                            e
-                                                        ),
-                                                    });
-                                                } else {
-                                                    let _ = tx2.send(AgentEvent::LlmDownloadComplete {
-                                                        model_name: name_c,
-                                                        total_bytes: llm_cfg.model.path.metadata().map(|m| m.len()).unwrap_or(0),
-                                                    });
-                                                    if let agent_core::llm_service::LLMServiceStatus::Ready {
-                                                        model_name,
-                                                        inference_count,
-                                                        memory_usage_mb,
-                                                    } = llm_svc.get_status().await
-                                                    {
-                                                        let _ = tx2.send(AgentEvent::LlmStatusUpdate {
-                                                            model_name,
-                                                            status: "ready".to_string(),
-                                                            inference_count,
-                                                            memory_mb: memory_usage_mb,
-                                                        });
-                                                    }
-                                                }
-                                            }
-                                            Err(e) => {
-                                                warn!("Download failed for '{}': {}", name_c2, e);
-                                                if let Err(restore_error) = restore_previous_config() {
-                                                    warn!("Failed to restore previous LLM config: {}", restore_error);
-                                                }
-                                                let _ = tx.send(AgentEvent::LlmDownloadFailed {
-                                                    model_name: name_c2,
-                                                    error: e.to_string(),
-                                                });
-                                            }
-                                        }
-                                    } else {
-                                        if let Err(restore_error) = restore_previous_config() {
-                                            warn!("Failed to restore previous LLM config: {}", restore_error);
-                                        }
-                                        let _ = tx.send(AgentEvent::LlmDownloadFailed {
-                                            model_name: model_name_clone,
-                                            error: "Service IA indisponible dans cette installation"
-                                                .to_string(),
-                                        });
-                                    }
-                                } else {
-                                    // Model already exists locally → just reload
-                                    if let Some(ref llm_svc) = svc {
-                                        match llm_svc.reload().await {
-                                            Ok(()) => {
-                                                let _ = tx.send(AgentEvent::LlmDownloadComplete {
-                                                    model_name: model_name_clone,
-                                                    total_bytes: llm_cfg.model.path.metadata()
-                                                        .map(|metadata| metadata.len())
-                                                        .unwrap_or(0),
-                                                });
-                                                if let agent_core::llm_service::LLMServiceStatus::Ready {
-                                                    model_name,
-                                                    inference_count,
-                                                    memory_usage_mb,
-                                                } = llm_svc.get_status().await
-                                                {
-                                                    let _ = tx.send(AgentEvent::LlmStatusUpdate {
-                                                        model_name,
-                                                        status: "ready".to_string(),
-                                                        inference_count,
-                                                        memory_mb: memory_usage_mb,
-                                                    });
-                                                }
-                                            }
-                                            Err(e) => {
-                                                warn!("Reload after model switch failed: {}", e);
-                                                if let Err(restore_error) = restore_previous_config() {
-                                                    warn!("Failed to restore previous LLM config: {}", restore_error);
-                                                } else if previous_config.is_some()
-                                                    && let Err(restore_error) = llm_svc.reload().await
-                                                {
-                                                    warn!("Failed to reactivate previous LLM model: {}", restore_error);
-                                                }
-                                                let _ = tx.send(AgentEvent::LlmDownloadFailed {
-                                                    model_name: model_name_clone,
-                                                    error: format!(
-                                                        "Le fichier GGUF existe mais son chargement a échoué: {}",
-                                                        e
-                                                    ),
-                                                });
-                                            }
-                                        }
-                                    } else {
-                                        if let Err(restore_error) = restore_previous_config() {
-                                            warn!("Failed to restore previous LLM config: {}", restore_error);
-                                        }
-                                        let _ = tx.send(AgentEvent::LlmDownloadFailed {
-                                            model_name: model_name_clone,
-                                            error: "Service IA indisponible dans cette installation"
-                                                .to_string(),
-                                        });
-                                    }
-                                }
-                            });
-                        }
-
-                        Ok(GuiCommand::LlmClassifyThreat { event_description, target_id }) => {
-
-                            let description_preview = event_description
-                                .chars()
-                                .take(80)
-                                .collect::<String>();
-                            info!("[AUDIT] GUI requested LLM threat classification: {}", description_preview);
-                            if let Some(ref trail) = audit_trail_for_commands {
-                                let trail = std::sync::Arc::clone(trail);
-                                let desc_cut = if event_description.chars().count() > 100 {
-                                    format!(
-                                        "{}...",
-                                        event_description.chars().take(97).collect::<String>()
-                                    )
-                                } else {
-                                    event_description.clone()
-                                };
-                                tokio::spawn(async move {
-                                    trail.log(
-                                        agent_core::audit_trail::AuditAction::AIInteraction {
-                                            prompt_preview: format!("Threat classification: {}", desc_cut),
-                                        },
-                                        "user",
-                                        None,
-                                    ).await;
-                                });
-                            }
-                            let tx = bg_event_tx.clone();
-                            let svc = llm_service.clone();
-                            tokio::spawn(async move {
-                                let start = std::time::Instant::now();
-                                #[cfg(feature = "llm")]
-                                {
-                                    if let Some(ref svc) = svc
-                                        && let Some(manager) = svc.get_manager().await
-                                    {
-                                        let event = agent_llm::security::SecurityEvent {
-                                            id: uuid::Uuid::new_v4().to_string(),
-                                            event_type: "user_submitted".to_string(),
-                                            description: event_description.clone(),
-                                            system_info: String::new(),
-                                            historical_context: String::new(),
-                                            timestamp: chrono::Utc::now(),
-                                            source: "gui".to_string(),
-                                            severity: "unknown".to_string(),
-                                            raw_data: serde_json::Value::Null,
-                                        };
-                                        match manager.classifier().classify_event(&event).await {
-                                            Ok(classification) => {
-                                                let analysis = format!(
-                                                    "Type: {:?}\nNiveau: {:?}\nConfiance: {}%\nVecteur d'attaque: {:?}\nImpact: {}",
-                                                    classification.threat_type,
-                                                    classification.threat_level,
-                                                    classification.confidence,
-                                                    classification.attack_vector,
-                                                    classification.impact_assessment,
-                                                );
-                                                let _ = tx.send(AgentEvent::LlmAnalysisComplete {
-                                                    target: target_id.clone(),
-                                                    analysis,
-                                                    severity_override: Some(format!("{}", classification.threat_level)),
-                                                    is_false_positive: None,
-                                                    confidence: Some(classification.confidence),
-                                                    ai_remediation_script: None,
-                                                    ai_remediation_explanation: None,
-                                                });
-                                            }
-                                            Err(e) => {
-                                                warn!("LLM threat classification error: {}", e);
-                                                let _ = tx.send(AgentEvent::LlmAnalysisComplete {
-                                                    target: target_id.clone(),
-                                                    analysis: format!("Erreur de classification : {}", e),
-                                                    severity_override: None,
-                                                    is_false_positive: None,
-                                                    confidence: None,
-                                                    ai_remediation_script: None,
-                                                    ai_remediation_explanation: None,
-                                                });
-                                            }
-                                        }
-                                        return;
-                                    }
-                                }
-                                let _ = svc;
-                                let _ = start;
-                                let _ = tx.send(AgentEvent::LlmAnalysisComplete {
-                                    target: target_id,
-                                    analysis: "Modèle IA non disponible pour la classification des menaces.".to_string(),
-                                    severity_override: None,
-                                    is_false_positive: None,
-                                    confidence: None,
-                                    ai_remediation_script: None,
-                                    ai_remediation_explanation: None,
-                                });
-                            });
-                        }
-
-                        Ok(GuiCommand::LlmAnalyzeRisk {
-                            risk_id,
-                            risk_title,
-                            risk_description,
-                            current_probability,
-                            current_impact,
-                        }) => {
-                            info!(
-                                "[AUDIT] GUI requested AI risk analysis for: {} (prob={}, impact={})",
-                                risk_title, current_probability, current_impact
-                            );
-                            if let Some(ref trail) = audit_trail_for_commands {
-                                let trail = std::sync::Arc::clone(trail);
-                                let title_copy = risk_title.clone();
-                                tokio::spawn(async move {
-                                    trail.log(
-                                        agent_core::audit_trail::AuditAction::AIInteraction {
-                                            prompt_preview: format!("Risk analysis: {}", title_copy),
-                                        },
-                                        "user",
-                                        None,
-                                    ).await;
-                                });
-                            }
-                            let _ = &risk_description; // used inside #[cfg(feature = "llm")] below
-                            let tx = bg_event_tx.clone();
-                            let svc = llm_service.clone();
-                            let rid = risk_id.clone();
-                            tokio::spawn(async move {
-                                #[cfg(feature = "llm")]
-                                {
-                                    if let Some(ref svc) = svc
-                                        && let Some(manager) = svc.get_manager().await
-                                    {
-                                        let prompt = format!(
-                                            "Tu es un analyste de risques en cybersécurité (GRC). Analyse le risque suivant et fournis :\n\
-                                             1. Une évaluation de la probabilité (1-5) et de l'impact (1-5)\n\
-                                             2. Une analyse détaillée (3-5 phrases)\n\
-                                             3. Des suggestions de mitigation concrètes (2-4 points)\n\n\
-                                             Risque : {risk_title}\n\
-                                             Description : {risk_description}\n\
-                                             Probabilité actuelle : {current_probability}/5\n\
-                                             Impact actuel : {current_impact}/5\n\n\
-                                             Réponds en JSON avec ce schéma :\n\
-                                             {{\n\
-                                               \"suggested_probability\": 1-5,\n\
-                                               \"suggested_impact\": 1-5,\n\
-                                               \"analysis\": \"texte d'analyse\",\n\
-                                               \"mitigation_suggestions\": [\"suggestion1\", \"suggestion2\"]\n\
-                                             }}"
-                                        );
-                                        let req = agent_llm::engine::InferenceRequest::new(&prompt)
-                                            .with_max_tokens(1024)
-                                            .with_temperature(0.4);
-                                        match manager.engine().infer(req).await {
-                                            Ok(resp) => {
-                                                // Try to parse structured JSON from the response
-                                                let (sugg_prob, sugg_impact, analysis, mitigations) =
-                                                    parse_risk_analysis_response(&resp.text);
-                                                let _ = tx.send(AgentEvent::LlmRiskAnalysis {
-                                                    risk_id: rid,
-                                                    suggested_probability: sugg_prob,
-                                                    suggested_impact: sugg_impact,
-                                                    analysis,
-                                                    mitigation_suggestions: mitigations,
-                                                });
-                                            }
-                                            Err(e) => {
-                                                warn!("LLM risk analysis error: {}", e);
-                                                let _ = tx.send(AgentEvent::LlmRiskAnalysis {
-                                                    risk_id: rid,
-                                                    suggested_probability: None,
-                                                    suggested_impact: None,
-                                                    analysis: format!("Erreur d'analyse IA : {}", e),
-                                                    mitigation_suggestions: vec![],
-                                                });
-                                            }
-                                        }
-                                        return;
-                                    }
-                                }
-                                let _ = &svc;
-                                let _ = tx.send(AgentEvent::LlmRiskAnalysis {
-                                    risk_id: rid,
-                                    suggested_probability: None,
-                                    suggested_impact: None,
-                                    analysis: "Modèle IA non disponible pour l'analyse des risques.".to_string(),
-                                    mitigation_suggestions: vec![],
-                                });
-                            });
-                        }
-
-                        Ok(GuiCommand::UpdateSiemConfig {
-                            enabled,
-                            format,
-                            transport,
-                            destination,
-                        }) => {
-                            info!(
-                                "[AUDIT] SIEM config updated via GUI: enabled={}, format={}, transport={}, dest={}",
-                                enabled, format, transport, destination
-                            );
-                            // Update the runtime SIEM config and notify the GUI
-                            handle_for_commands.update_siem_config(
-                                enabled,
-                                format.clone(),
-                                transport.clone(),
-                                destination.clone(),
-                            );
-                            let _ = bg_event_tx.send(AgentEvent::SiemConfigUpdate {
-                                enabled,
-                                format,
-                                transport,
-                                destination,
-                            });
-                        }
-
-                        Ok(GuiCommand::UpdateLogCollectorConfig {
-                            enabled,
-                            sources,
-                            poll_interval_secs,
-                        }) => {
-                            info!(
-                                "[AUDIT] Log collector config updated via GUI: enabled={}, sources={:?}, poll={}s",
-                                enabled, sources, poll_interval_secs
-                            );
-                            // Update runtime log collector config
-                            handle_for_commands.update_log_collector_config(
-                                enabled,
-                                &sources,
-                                poll_interval_secs,
-                            );
-                        }
-
-                        Err(mpsc::TryRecvError::Empty) => {
-                            tokio::time::sleep(std::time::Duration::from_millis(100)).await;
-                        }
-                        Err(mpsc::TryRecvError::Disconnected) => break,
-                    }
-                }
-            });
-
-            // On Windows, check whether the background service is already
-            // running.  If it is, skip the full agent runtime to avoid
-            // duplicate scans, heartbeats, and sync.  The service handles
-            // all of that; the GUI just provides the user interface.
-            //
-            // Two-layer detection:
-            // 1. Try a named mutex (Global\SentinelAgentRuntime) — if the
-            //    service holds it, we know immediately.
-            // 2. Fall back to SCM query with retries (handles boot-time
-            //    race where the service is still in StartPending).
-            #[cfg(windows)]
-            let service_is_running = {
-                // Layer 1: Named mutex — fast, non-racy check.
-                let mutex_held = is_runtime_mutex_held();
-
-                // Layer 2: SCM query with retries to handle StartPending.
-                let scm_running = if !mutex_held {
-                    let mut running = false;
-                    for attempt in 0..5 {
-                        match crate::service::get_service_state() {
-                            Ok(crate::service::ServiceState::Running) => {
-                                running = true;
-                                break;
-                            }
-                            Ok(crate::service::ServiceState::Starting) => {
-                                // Service is starting — wait and retry.
-                                info!(
-                                    "Service is starting (attempt {}/5), waiting...",
-                                    attempt + 1
-                                );
-                                tokio::time::sleep(std::time::Duration::from_secs(2)).await;
-                            }
-                            _ => break, // Not installed or stopped — no point retrying.
-                        }
-                    }
-                    running
-                } else {
-                    true
-                };
-
-                mutex_held || scm_running
-            };
-            #[cfg(not(windows))]
-            let service_is_running = false;
-
-            if service_is_running {
-                info!("SentinelGRCAgent service is running — GUI entering companion mode (no duplicate runtime)");
-                // Wait until the GUI requests shutdown.
-                loop {
-                    if handle.is_shutdown_requested() {
-                        break;
-                    }
-                    tokio::time::sleep(std::time::Duration::from_secs(1)).await;
-                }
-            } else {
-                // No service running — run the full agent runtime.
-                if let Err(e) = runtime.run().await {
-                    error!("Agent runtime error: {}", e);
-                }
-            }
-        });
+        rt.block_on(gui_background(
+            config,
+            enrolled,
+            bg_event_tx,
+            command_rx,
+            enrollment_rx,
+        ));
     });
 
     // Launch GUI on main thread (blocks until window closes)
@@ -4110,6 +1411,356 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
         Err(e) => {
             error!("GUI error: {}", e);
             ExitCode::FAILURE
+        }
+    }
+}
+
+/// What the GUI's background thread runs: the enrollment when the agent is
+/// not enrolled yet, then the command dispatcher and the agent runtime.
+#[cfg(feature = "gui")]
+async fn gui_background(
+    config: AgentConfig,
+    enrolled: bool,
+    bg_event_tx: std::sync::mpsc::Sender<agent_gui::events::AgentEvent>,
+    command_rx: std::sync::mpsc::Receiver<agent_gui::events::GuiCommand>,
+    enrollment_rx: std::sync::mpsc::Receiver<agent_gui::enrollment::EnrollmentCommand>,
+) {
+    let mut config = config;
+
+    // ── Handle enrollment from GUI if not yet enrolled ──
+    if !enrolled && !gui_enrollment(&mut config, &bg_event_tx, &enrollment_rx).await {
+        return;
+    }
+
+    // ── Run the agent runtime ──
+    let db_arc = open_gui_database().await;
+
+    // ── Standalone: keep listening for a "connect later" enrollment ──
+    // The wizard reopened from the settings sends its token on the
+    // enrollment channel; nobody else reads it once the runtime runs.
+    if config.standalone {
+        let listener_config = config.clone();
+        let listener_events = bg_event_tx.clone();
+        agent_core::supervised_tasks::spawn_logged("platform connection listener", async move {
+            listen_for_platform_connection(enrollment_rx, listener_config, listener_events).await;
+        });
+    }
+
+    let db_for_commands = db_arc.clone();
+    let mut runtime = AgentRuntime::new(config);
+    if let Some(ref db) = db_arc {
+        runtime = runtime.with_database(db.clone());
+    }
+    runtime.set_gui_event_tx(bg_event_tx.clone());
+    let sync_client = runtime.sync_client();
+    let handle = runtime.handle();
+
+    let remote_ai = load_remote_ai(db_for_commands.as_ref(), &bg_event_tx).await;
+
+    // Initialize LLM service for AI-powered analysis
+    #[cfg(feature = "llm")]
+    let llm_service = init_gui_llm(&runtime, &bg_event_tx).await;
+    #[cfg(not(feature = "llm"))]
+    let llm_service: Option<std::sync::Arc<()>> = None;
+
+    let audit_trail_for_commands =
+        db_arc
+            .as_ref()
+            .map(|db_ptr: &std::sync::Arc<agent_storage::Database>| {
+                std::sync::Arc::new(agent_core::audit_trail::LocalAuditTrail::new(
+                    db_ptr.clone(),
+                ))
+            });
+
+    #[cfg(feature = "voice")]
+    let voice_service = Some(std::sync::Arc::new(agent_core::voice::VoiceService::new(
+        bg_event_tx.clone(),
+    )));
+    // Cancellation flag of the assistant answer being generated.
+    let llm_cancel: std::sync::Arc<
+        std::sync::Mutex<Option<std::sync::Arc<std::sync::atomic::AtomicBool>>>,
+    > = std::sync::Arc::new(std::sync::Mutex::new(None));
+    #[cfg(not(feature = "voice"))]
+    let _voice_service: Option<std::sync::Arc<agent_core::voice::VoiceService>> = None;
+
+    // Spawn command processor
+    let ctx = gui_commands::CommandContext {
+        handle: handle.clone(),
+        events: bg_event_tx,
+        db: db_for_commands,
+        sync_client,
+        llm_service,
+        audit_trail: audit_trail_for_commands,
+        #[cfg(feature = "voice")]
+        voice_service,
+        llm_cancel,
+        remote_ai,
+        tasks: agent_core::supervised_tasks::TaskSet::new("interface commands"),
+    };
+    agent_core::supervised_tasks::spawn_logged(
+        "interface commands",
+        gui_commands::run(ctx, command_rx),
+    );
+
+    let service_is_running = background_service_is_running().await;
+
+    if service_is_running {
+        info!(
+            "SentinelGRCAgent service is running — GUI entering companion mode (no duplicate runtime)"
+        );
+        wait_for_shutdown_request(&handle).await;
+    } else {
+        // No service running — run the full agent runtime.
+        if let Err(e) = runtime.run().await {
+            error!("Agent runtime error: {}", e);
+        }
+    }
+}
+
+/// Companion mode: wait until the GUI requests shutdown.
+#[cfg(feature = "gui")]
+async fn wait_for_shutdown_request(handle: &agent_core::RuntimeHandle) {
+    loop {
+        if handle.is_shutdown_requested() {
+            break;
+        }
+        tokio::time::sleep(std::time::Duration::from_secs(1)).await;
+    }
+}
+
+/// Whether the background service already runs the agent. If it does, the
+/// desktop app skips the full agent runtime to avoid duplicate scans,
+/// heartbeats and sync: the service handles all of that and the app is
+/// only the user interface.
+///
+/// Two-layer detection:
+/// 1. Try a named mutex (`Global\SentinelAgentRuntime`) — if the service
+///    holds it, we know immediately.
+/// 2. Fall back to SCM query with retries (handles boot-time race where
+///    the service is still in StartPending).
+#[cfg(all(feature = "gui", windows))]
+async fn background_service_is_running() -> bool {
+    // Layer 1: Named mutex — fast, non-racy check.
+    let mutex_held = is_runtime_mutex_held();
+
+    // Layer 2: SCM query with retries to handle StartPending.
+    let scm_running = if !mutex_held {
+        let mut running = false;
+        for attempt in 0..5 {
+            match crate::service::get_service_state() {
+                Ok(crate::service::ServiceState::Running) => {
+                    running = true;
+                    break;
+                }
+                Ok(crate::service::ServiceState::Starting) => {
+                    // Service is starting — wait and retry.
+                    info!(
+                        "Service is starting (attempt {}/5), waiting...",
+                        attempt + 1
+                    );
+                    tokio::time::sleep(std::time::Duration::from_secs(2)).await;
+                }
+                _ => break, // Not installed or stopped — no point retrying.
+            }
+        }
+        running
+    } else {
+        true
+    };
+
+    mutex_held || scm_running
+}
+
+/// Whether the background service already runs the agent: only Windows
+/// installs one next to the desktop app.
+#[cfg(all(feature = "gui", not(windows)))]
+async fn background_service_is_running() -> bool {
+    false
+}
+
+/// Start the local AI model service for the interface and tell it the
+/// state of the model.
+#[cfg(all(feature = "gui", feature = "llm"))]
+async fn init_gui_llm(
+    runtime: &AgentRuntime,
+    bg_event_tx: &std::sync::mpsc::Sender<agent_gui::events::AgentEvent>,
+) -> Option<std::sync::Arc<agent_core::llm_service::LLMService>> {
+    use agent_gui::events::AgentEvent;
+
+    let svc = agent_core::llm_service::LLMService::new(None).await;
+    match svc {
+        Ok(s) => {
+            let arc_svc = std::sync::Arc::new(s);
+            // Emit initial LLM status to GUI
+            let status = arc_svc.get_status().await;
+            let (model_name, status_str, mem) = match &status {
+                agent_core::llm_service::LLMServiceStatus::Ready {
+                    model_name,
+                    memory_usage_mb,
+                    ..
+                } => (model_name.clone(), "ready".to_string(), *memory_usage_mb),
+                agent_core::llm_service::LLMServiceStatus::Error(reason) => {
+                    ("N/A".to_string(), format!("error: {}", reason), 0)
+                }
+                _ => ("N/A".to_string(), "not_configured".to_string(), 0),
+            };
+            let _ = bg_event_tx.send(AgentEvent::LlmStatusUpdate {
+                model_name,
+                status: status_str,
+                inference_count: 0,
+                memory_mb: mem,
+            });
+            info!("LLM service initialized for command processing");
+            runtime.set_llm_loaded(true);
+            Some(arc_svc)
+        }
+        Err(e) => {
+            warn!("Failed to init LLM service: {}", e);
+            let _ = bg_event_tx.send(AgentEvent::LlmStatusUpdate {
+                model_name: "N/A".to_string(),
+                status: format!("error: {}", e),
+                inference_count: 0,
+                memory_mb: 0,
+            });
+            None
+        }
+    }
+}
+
+/// The AI provider saved in the settings, shown to the interface.
+#[cfg(feature = "gui")]
+async fn load_remote_ai(
+    db: Option<&std::sync::Arc<agent_storage::Database>>,
+    bg_event_tx: &std::sync::mpsc::Sender<agent_gui::events::AgentEvent>,
+) -> agent_core::remote_ai::RemoteAi {
+    let mut remote_ai = agent_core::remote_ai::RemoteAi::default();
+    if let Some(db) = db {
+        match agent_core::remote_ai::RemoteAi::load(db).await {
+            Ok(saved) => remote_ai = saved,
+            Err(message) => agent_core::remote_ai::feedback(bg_event_tx, message),
+        }
+    }
+    let _ = bg_event_tx.send(remote_ai.event());
+    remote_ai
+}
+
+/// Open the encrypted database for the desktop app and bring its tables
+/// up to date. `None` when it cannot be opened: the agent then runs
+/// without sync services.
+#[cfg(feature = "gui")]
+async fn open_gui_database() -> Option<std::sync::Arc<agent_storage::Database>> {
+    // Open database for sync services
+    let db_arc = {
+        use agent_storage::{Database, DatabaseConfig, KeyManager};
+        let db_config = DatabaseConfig::default();
+        match KeyManager::new().and_then(|km| Database::open(db_config, &km)) {
+            Ok(db) => Some(std::sync::Arc::new(db)),
+            Err(e) => {
+                tracing::warn!("Failed to open database for sync services: {}", e);
+                None
+            }
+        }
+    };
+
+    // Run v2 persistence migrations (GUI tables: events, notifications, policy_snapshots)
+    if let Some(ref db) = db_arc {
+        match db
+            .with_connection_mut(|conn| {
+                agent_persistence::run_v2_migrations(conn)
+                    .map_err(|e| agent_storage::StorageError::Migration(e.to_string()))
+            })
+            .await
+        {
+            Ok(()) => info!("Persistence v2 migrations applied"),
+            Err(e) => warn!("Failed to apply v2 migrations (non-fatal): {}", e),
+        }
+    }
+
+    db_arc
+}
+
+/// The enrollment asked for from the interface of an agent that is not
+/// enrolled yet: a platform token, or the standalone mode. Returns `false`
+/// when the operator cancelled or the interface is gone.
+#[cfg(feature = "gui")]
+async fn gui_enrollment(
+    config: &mut AgentConfig,
+    bg_event_tx: &std::sync::mpsc::Sender<agent_gui::events::AgentEvent>,
+    enrollment_rx: &std::sync::mpsc::Receiver<agent_gui::enrollment::EnrollmentCommand>,
+) -> bool {
+    use agent_gui::enrollment::EnrollmentCommand;
+    use agent_gui::events::AgentEvent;
+    use std::sync::mpsc;
+
+    loop {
+        // Poll for enrollment commands (non-blocking in async)
+        let cmd = loop {
+            match enrollment_rx.try_recv() {
+                Ok(cmd) => break Some(cmd),
+                Err(mpsc::TryRecvError::Empty) => {
+                    tokio::time::sleep(std::time::Duration::from_millis(50)).await;
+                }
+                Err(mpsc::TryRecvError::Disconnected) => break None,
+            }
+        };
+
+        match cmd {
+            Some(
+                cmd @ (EnrollmentCommand::SubmitEnrollment { .. } | EnrollmentCommand::SubmitQr(_)),
+            ) => {
+                if process_enrollment_submission(cmd, config, bg_event_tx).await {
+                    // Wait for Finish before starting runtime
+                    wait_for_finish(enrollment_rx).await;
+                    return true;
+                }
+            }
+            Some(EnrollmentCommand::SetupStandalone { admin_password }) => {
+                info!("GUI setup: standalone mode chosen");
+                if let Some(ref pw) = admin_password {
+                    // Argon2id with a random per-install salt.
+                    match agent_gui::admin_auth::hash_password(pw) {
+                        Ok(hash) => {
+                            let _ = bg_event_tx.send(AgentEvent::AdminPasswordSet { hash });
+                        }
+                        Err(e) => warn!("Admin password not stored: {}", e),
+                    }
+                }
+                match AgentConfig::persist_standalone(true) {
+                    Ok(path) => {
+                        info!("Standalone mode saved to {}", path.display());
+                        config.standalone = true;
+                        if let Err(e) = bg_event_tx.send(AgentEvent::EnrollmentResult {
+                            success: true,
+                            message: "Mode autonome activé. Ce poste est protégé \
+                                      localement, sans plateforme."
+                                .to_string(),
+                            agent_id: None,
+                        }) {
+                            error!("Failed to send standalone setup event: {}", e);
+                        }
+                        wait_for_finish(enrollment_rx).await;
+                        return true;
+                    }
+                    Err(e) => {
+                        warn!("Standalone setup failed: {}", e);
+                        if let Err(e2) = bg_event_tx.send(AgentEvent::EnrollmentResult {
+                            success: false,
+                            message: format!("Impossible d'enregistrer le mode autonome : {}", e),
+                            agent_id: None,
+                        }) {
+                            error!("Failed to send standalone failure event: {}", e2);
+                        }
+                    }
+                }
+            }
+            Some(EnrollmentCommand::Cancel) | None => {
+                info!("Enrollment cancelled or channel closed");
+                return false;
+            }
+            Some(EnrollmentCommand::Finish) => {
+                // User clicked finish on a retry -- just break
+                return true;
+            }
         }
     }
 }
