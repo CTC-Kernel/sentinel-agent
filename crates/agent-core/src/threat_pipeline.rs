@@ -4,7 +4,9 @@
 //! Autonomous threat detection -> classification -> response pipeline.
 //!
 //! After each security scan cycle, this module:
-//! 1. Evaluates detection rules against live threat data
+//! 1. Evaluates detection rules against live threat data and against the
+//!    activity observed on the host (every process and connection, flagged
+//!    or not)
 //! 2. Classifies matched threats with AI (when LLM available)
 //! 3. Triggers matching playbooks automatically
 //! 4. Emits events to the GUI for visibility
@@ -25,15 +27,194 @@ pub struct RuleMatch {
     pub ai_classification: Option<String>,
 }
 
-/// Evaluate all enabled detection rules against the current threat context.
+/// A connection with a remote peer, observed on the host.
+#[derive(Debug, Clone)]
+pub struct ObservedConnection {
+    pub remote_ip: String,
+    pub port: u16,
+    pub process_name: Option<String>,
+}
+
+/// Activity observed on the host during one pass of the main loop, whether or
+/// not a detection engine flagged it.
+///
+/// Only the custom detection rules read it. Playbooks keep evaluating the
+/// [`ThreatContext`] alone: they act on the host, so they stay bound to what
+/// an engine has flagged.
+#[derive(Debug, Default)]
+pub struct ObservedActivity {
+    pub processes: Vec<ProcessInfo>,
+    pub connections: Vec<ObservedConnection>,
+}
+
+impl ObservedActivity {
+    pub fn is_empty(&self) -> bool {
+        self.processes.is_empty() && self.connections.is_empty()
+    }
+
+    /// Record processes seen by the scanner. The agent's own process is left
+    /// out, as in the scanner, so a rule cannot match the agent itself.
+    pub fn add_processes<'a>(
+        &mut self,
+        processes: impl IntoIterator<Item = &'a agent_scanner::security::process_monitor::ProcessInfo>,
+    ) {
+        let own_pid = std::process::id();
+        self.processes.extend(
+            processes
+                .into_iter()
+                .filter(|p| p.pid != own_pid && !p.name.trim().is_empty())
+                .map(|p| ProcessInfo {
+                    name: p.name.clone(),
+                    pid: p.pid,
+                    command_line: p.cmdline.clone().unwrap_or_default(),
+                }),
+        );
+    }
+
+    /// Record the connections that have a remote peer.
+    pub fn add_connections(&mut self, connections: &[agent_network::types::NetworkConnection]) {
+        self.connections.extend(connections.iter().filter_map(|c| {
+            let remote_ip = c.remote_address.as_deref()?.trim();
+            let port = c.remote_port.filter(|port| *port != 0)?;
+            (!remote_ip.is_empty()).then(|| ObservedConnection {
+                remote_ip: remote_ip.to_string(),
+                port,
+                process_name: c.process_name.clone(),
+            })
+        }));
+    }
+}
+
+/// Observations a rule has already reported, so that a long-running process or
+/// a persistent connection is reported when it appears, not at every scan.
+#[derive(Debug, Default)]
+pub struct RuleHitMemory {
+    reported: std::collections::HashMap<String, std::time::Instant>,
+}
+
+impl RuleHitMemory {
+    /// An observation that is still present is reported again after this delay.
+    pub const REMINDER: std::time::Duration = std::time::Duration::from_secs(24 * 60 * 60);
+    /// Observations remembered; beyond it the oldest half is forgotten.
+    const CAPACITY: usize = 20_000;
+
+    /// Whether `key` is to be reported now. It is then remembered.
+    fn report(&mut self, key: String, now: std::time::Instant) -> bool {
+        if let Some(at) = self.reported.get(&key)
+            && now.saturating_duration_since(*at) < Self::REMINDER
+        {
+            return false;
+        }
+        if self.reported.len() >= Self::CAPACITY {
+            self.forget_oldest(now);
+        }
+        self.reported.insert(key, now);
+        true
+    }
+
+    fn forget_oldest(&mut self, now: std::time::Instant) {
+        self.reported
+            .retain(|_, at| now.saturating_duration_since(*at) < Self::REMINDER);
+        if self.reported.len() < Self::CAPACITY {
+            return;
+        }
+        let mut ages: Vec<std::time::Instant> = self.reported.values().copied().collect();
+        ages.sort_unstable();
+        let median = ages[ages.len() / 2];
+        self.reported.retain(|_, at| *at > median);
+    }
+}
+
+/// What a rule condition found in the observed activity and has not reported
+/// yet: a description of the first observation and the number of others.
+fn observed_match(
+    rule_id: &str,
+    condition: &agent_gui::dto::DetectionCondition,
+    observed: &ObservedActivity,
+    memory: &mut RuleHitMemory,
+    now: std::time::Instant,
+) -> Option<String> {
+    use agent_gui::dto::DetectionConditionType as Kind;
+
+    let needle = condition.value.to_lowercase();
+    let mut new_hits: Vec<String> = Vec::new();
+    match condition.condition_type {
+        Kind::ProcessNameContains | Kind::CommandLineContains => {
+            let by_name = condition.condition_type == Kind::ProcessNameContains;
+            for process in &observed.processes {
+                let haystack = if by_name {
+                    &process.name
+                } else {
+                    &process.command_line
+                };
+                if !haystack.to_lowercase().contains(&needle) {
+                    continue;
+                }
+                let key = format!(
+                    "{rule_id}\u{1f}process\u{1f}{}\u{1f}{}",
+                    process.pid,
+                    process.name.to_lowercase()
+                );
+                if memory.report(key, now) {
+                    new_hits.push(if by_name {
+                        format!("Process: {} (PID {})", process.name, process.pid)
+                    } else {
+                        format!(
+                            "Command line match in process {} (PID {})",
+                            process.name, process.pid
+                        )
+                    });
+                }
+            }
+        }
+        Kind::NetworkPort => {
+            let port = condition.value.trim().parse::<u16>().ok()?;
+            for connection in observed.connections.iter().filter(|c| c.port == port) {
+                let key = format!(
+                    "{rule_id}\u{1f}connection\u{1f}{}\u{1f}{port}",
+                    connection.remote_ip
+                );
+                if memory.report(key, now) {
+                    new_hits.push(match &connection.process_name {
+                        Some(process) if !process.trim().is_empty() => {
+                            format!("Connection to {}:{port} by {process}", connection.remote_ip)
+                        }
+                        _ => format!("Connection to {}:{port}", connection.remote_ip),
+                    });
+                }
+            }
+        }
+        // File changes and alert severities are not raw activity: they are
+        // matched in the threat context.
+        Kind::FimPathMatch | Kind::SeverityLevel => {}
+    }
+
+    let others = new_hits.len().saturating_sub(1);
+    let first = new_hits.into_iter().next()?;
+    Some(if others > 0 {
+        format!("{first} (+{others} more)")
+    } else {
+        first
+    })
+}
+
+/// Evaluate all enabled detection rules against the current threat context
+/// and the activity observed on the host.
+///
+/// A condition matches what a detection engine flagged (`context`) or, for
+/// process names, command lines and ports, anything observed on the host
+/// (`observed`). An observation is reported once: `memory` remembers it.
 ///
 /// Returns a list of matched rules.
 pub fn evaluate_detection_rules(
     rules: &[agent_gui::dto::DetectionRule],
     context: &ThreatContext,
+    observed: &ObservedActivity,
+    memory: &mut RuleHitMemory,
 ) -> Vec<RuleMatch> {
     use agent_gui::dto::DetectionConditionType;
 
+    let now = std::time::Instant::now();
     let mut matches = Vec::new();
 
     for rule in rules {
@@ -100,7 +281,11 @@ pub fn evaluate_detection_rules(
                 }
             };
 
-            if let Some(matched_value) = matched {
+            // Always evaluated, so what the engines flagged is remembered too
+            // and not reported a second time as a plain observation.
+            let observed_hit = observed_match(&rule.id, condition, observed, memory, now);
+
+            if let Some(matched_value) = matched.or(observed_hit) {
                 matches.push(RuleMatch {
                     rule_id: rule.id.to_string(),
                     rule_name: rule.name.clone(),
@@ -187,10 +372,13 @@ pub struct PipelineResult {
 ///
 /// Call this after each security scan cycle in the main loop.
 /// Returns the detection rule matches and playbook logs for sync to the platform.
+#[allow(clippy::too_many_arguments)]
 pub async fn run_threat_pipeline(
     rules: &[agent_gui::dto::DetectionRule],
     playbooks: &[agent_gui::dto::Playbook],
     context: &ThreatContext,
+    observed: &ObservedActivity,
+    rule_memory: &mut RuleHitMemory,
     gui_tx: &Option<std::sync::mpsc::Sender<agent_gui::events::AgentEvent>>,
     #[cfg(feature = "llm")] llm_service: Option<&crate::llm_service::LLMService>,
     audit_trail: Option<&std::sync::Arc<crate::audit_trail::LocalAuditTrail>>,
@@ -198,7 +386,7 @@ pub async fn run_threat_pipeline(
 ) -> PipelineResult {
     // Step 1: Evaluate detection rules
     #[allow(unused_mut)]
-    let mut matches = evaluate_detection_rules(rules, context);
+    let mut matches = evaluate_detection_rules(rules, context, observed, rule_memory);
 
     info!(
         "Threat pipeline: {} detection rule matches found",
@@ -500,6 +688,19 @@ mod tests {
     use super::*;
     use agent_scanner::{IncidentSeverity, IncidentType, SecurityIncident};
 
+    /// Rules evaluated on what the engines flagged only, as before raw activity.
+    fn evaluate(
+        rules: &[agent_gui::dto::DetectionRule],
+        context: &ThreatContext,
+    ) -> Vec<RuleMatch> {
+        evaluate_detection_rules(
+            rules,
+            context,
+            &ObservedActivity::default(),
+            &mut RuleHitMemory::default(),
+        )
+    }
+
     fn incident(kind: IncidentType, evidence: serde_json::Value) -> SecurityIncident {
         SecurityIncident::new(kind, IncidentSeverity::High, "test", "test").with_evidence(evidence)
     }
@@ -620,7 +821,7 @@ mod tests {
                     condition_type: *kind,
                     value: value.into(),
                 }];
-                assert!(evaluate_detection_rules(&[rule.clone()], &context).is_empty());
+                assert!(evaluate(&[rule.clone()], &context).is_empty());
             }
         }
         for (kind, value, count) in [
@@ -634,12 +835,258 @@ mod tests {
                 condition_type: kind,
                 value: value.into(),
             }];
-            assert_eq!(
-                evaluate_detection_rules(&[rule.clone()], &context).len(),
-                count
-            );
+            assert_eq!(evaluate(&[rule.clone()], &context).len(), count);
         }
         rule.enabled = false;
-        assert!(evaluate_detection_rules(&[rule], &context).is_empty());
+        assert!(evaluate(&[rule], &context).is_empty());
+    }
+
+    fn rule_with(
+        kind: agent_gui::dto::DetectionConditionType,
+        value: &str,
+    ) -> agent_gui::dto::DetectionRule {
+        agent_gui::dto::DetectionRule {
+            id: "rule-1".into(),
+            name: "test".into(),
+            description: String::new(),
+            severity: agent_gui::dto::Severity::High,
+            conditions: vec![agent_gui::dto::DetectionCondition {
+                condition_type: kind,
+                value: value.into(),
+            }],
+            actions: vec![],
+            enabled: true,
+            created_at: chrono::Utc::now(),
+            last_match: None,
+            match_count: 0,
+        }
+    }
+
+    fn process(name: &str, pid: u32, command_line: &str) -> ProcessInfo {
+        ProcessInfo {
+            name: name.into(),
+            pid,
+            command_line: command_line.into(),
+        }
+    }
+
+    #[test]
+    fn rules_match_processes_no_engine_flagged_and_report_them_once() {
+        use agent_gui::dto::DetectionConditionType as Kind;
+        let nothing_flagged = ThreatContext::default();
+        let observed = ObservedActivity {
+            processes: vec![
+                process(
+                    "AnyDesk",
+                    4312,
+                    "/Applications/AnyDesk.app/AnyDesk --service",
+                ),
+                process("Safari", 900, "/Applications/Safari.app/Safari"),
+            ],
+            connections: vec![],
+        };
+        let mut memory = RuleHitMemory::default();
+
+        let by_name = rule_with(Kind::ProcessNameContains, "anydesk");
+        let matches = evaluate_detection_rules(
+            std::slice::from_ref(&by_name),
+            &nothing_flagged,
+            &observed,
+            &mut memory,
+        );
+        assert_eq!(matches.len(), 1);
+        assert_eq!(matches[0].matched_value, "Process: AnyDesk (PID 4312)");
+        // The process is still running at the next scan: not reported again.
+        assert!(
+            evaluate_detection_rules(&[by_name], &nothing_flagged, &observed, &mut memory)
+                .is_empty()
+        );
+
+        let mut by_command = rule_with(Kind::CommandLineContains, "--SERVICE");
+        by_command.id = "rule-2".into();
+        let matches = evaluate_detection_rules(
+            &[by_command],
+            &nothing_flagged,
+            &observed,
+            &mut RuleHitMemory::default(),
+        );
+        assert_eq!(
+            matches[0].matched_value,
+            "Command line match in process AnyDesk (PID 4312)"
+        );
+    }
+
+    #[test]
+    fn several_new_observations_of_a_condition_make_one_match() {
+        use agent_gui::dto::DetectionConditionType as Kind;
+        let observed = ObservedActivity {
+            processes: vec![
+                process("helper", 10, ""),
+                process("helper", 11, ""),
+                process("helper", 12, ""),
+            ],
+            connections: vec![],
+        };
+        let mut memory = RuleHitMemory::default();
+        let rule = rule_with(Kind::ProcessNameContains, "helper");
+        let matches = evaluate_detection_rules(
+            std::slice::from_ref(&rule),
+            &ThreatContext::default(),
+            &observed,
+            &mut memory,
+        );
+        assert_eq!(matches.len(), 1);
+        assert_eq!(
+            matches[0].matched_value,
+            "Process: helper (PID 10) (+2 more)"
+        );
+
+        // A new instance appears among the known ones: it alone is reported.
+        let observed = ObservedActivity {
+            processes: vec![process("helper", 10, ""), process("helper", 13, "")],
+            connections: vec![],
+        };
+        let matches =
+            evaluate_detection_rules(&[rule], &ThreatContext::default(), &observed, &mut memory);
+        assert_eq!(matches[0].matched_value, "Process: helper (PID 13)");
+    }
+
+    #[test]
+    fn port_rules_match_observed_connections_only_on_the_exact_port() {
+        use agent_gui::dto::DetectionConditionType as Kind;
+        let observed = ObservedActivity {
+            processes: vec![],
+            connections: vec![
+                ObservedConnection {
+                    remote_ip: "203.0.113.7".into(),
+                    port: 3389,
+                    process_name: Some("mstsc".into()),
+                },
+                ObservedConnection {
+                    remote_ip: "203.0.113.8".into(),
+                    port: 33890,
+                    process_name: None,
+                },
+            ],
+        };
+        let mut memory = RuleHitMemory::default();
+        let rule = rule_with(Kind::NetworkPort, "3389");
+        let matches = evaluate_detection_rules(
+            std::slice::from_ref(&rule),
+            &ThreatContext::default(),
+            &observed,
+            &mut memory,
+        );
+        assert_eq!(matches.len(), 1);
+        assert_eq!(
+            matches[0].matched_value,
+            "Connection to 203.0.113.7:3389 by mstsc"
+        );
+        assert!(
+            evaluate_detection_rules(&[rule], &ThreatContext::default(), &observed, &mut memory)
+                .is_empty()
+        );
+    }
+
+    #[test]
+    fn file_and_severity_rules_ignore_raw_activity() {
+        use agent_gui::dto::DetectionConditionType as Kind;
+        let observed = ObservedActivity {
+            processes: vec![process("high", 10, "/etc/passwd high")],
+            connections: vec![ObservedConnection {
+                remote_ip: "203.0.113.7".into(),
+                port: 22,
+                process_name: None,
+            }],
+        };
+        for (kind, value) in [(Kind::FimPathMatch, "passwd"), (Kind::SeverityLevel, "low")] {
+            assert!(
+                evaluate_detection_rules(
+                    &[rule_with(kind, value)],
+                    &ThreatContext::default(),
+                    &observed,
+                    &mut RuleHitMemory::default(),
+                )
+                .is_empty()
+            );
+        }
+    }
+
+    #[test]
+    fn a_flagged_process_is_not_reported_again_as_a_plain_observation() {
+        use agent_gui::dto::DetectionConditionType as Kind;
+        let flagged = ThreatContext {
+            suspicious_processes: vec![process("nc", 77, "nc -l 4444")],
+            ..Default::default()
+        };
+        let observed = ObservedActivity {
+            processes: vec![process("nc", 77, "nc -l 4444")],
+            connections: vec![],
+        };
+        let mut memory = RuleHitMemory::default();
+        let rule = rule_with(Kind::ProcessNameContains, "nc");
+        assert_eq!(
+            evaluate_detection_rules(
+                std::slice::from_ref(&rule),
+                &flagged,
+                &observed,
+                &mut memory
+            )
+            .len(),
+            1
+        );
+        // Next scan: the engine no longer flags it, the process is still there.
+        assert!(
+            evaluate_detection_rules(&[rule], &ThreatContext::default(), &observed, &mut memory)
+                .is_empty()
+        );
+    }
+
+    #[test]
+    fn an_observation_is_reported_again_after_the_reminder_delay() {
+        let mut memory = RuleHitMemory::default();
+        let start = std::time::Instant::now();
+        assert!(memory.report("rule\u{1f}process\u{1f}1\u{1f}x".into(), start));
+        let before = start + RuleHitMemory::REMINDER - std::time::Duration::from_secs(1);
+        assert!(!memory.report("rule\u{1f}process\u{1f}1\u{1f}x".into(), before));
+        let after = start + RuleHitMemory::REMINDER;
+        assert!(memory.report("rule\u{1f}process\u{1f}1\u{1f}x".into(), after));
+    }
+
+    #[test]
+    fn the_memory_stays_bounded() {
+        let mut memory = RuleHitMemory::default();
+        let start = std::time::Instant::now();
+        for i in 0..(RuleHitMemory::CAPACITY + 10) {
+            let at = start + std::time::Duration::from_millis(i as u64);
+            assert!(memory.report(format!("key-{i}"), at));
+        }
+        assert!(memory.reported.len() <= RuleHitMemory::CAPACITY);
+        // The most recent observations are the ones kept.
+        let last = format!("key-{}", RuleHitMemory::CAPACITY + 9);
+        assert!(memory.reported.contains_key(&last));
+    }
+
+    #[test]
+    fn observed_activity_leaves_out_the_agent_and_peerless_connections() {
+        use agent_scanner::security::process_monitor::ProcessInfo as Scanned;
+        let scanned = |pid: u32, name: &str| Scanned {
+            pid,
+            name: name.into(),
+            path: None,
+            cmdline: Some(format!("{name} --flag")),
+            ppid: None,
+            user: None,
+        };
+        let mut observed = ObservedActivity::default();
+        assert!(observed.is_empty());
+        observed.add_processes(&[
+            scanned(std::process::id(), "agent"),
+            scanned(42, "bash"),
+            scanned(43, "  "),
+        ]);
+        assert_eq!(observed.processes.len(), 1);
+        assert_eq!(observed.processes[0].command_line, "bash --flag");
+        assert!(!observed.is_empty());
     }
 }

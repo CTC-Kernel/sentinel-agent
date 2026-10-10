@@ -540,6 +540,19 @@ impl ProcessMonitor {
 
     /// Scan all running processes for suspicious activity.
     pub async fn scan_processes(&self) -> ScannerResult<(Vec<SecurityIncident>, u32)> {
+        let (incidents, processes) = self.scan_processes_with_snapshot().await?;
+        Ok((
+            incidents,
+            u32::try_from(processes.len()).unwrap_or(u32::MAX),
+        ))
+    }
+
+    /// Scan all running processes and return, with the incidents, the process
+    /// list the scan was run on (for rules evaluated on every process, not
+    /// only on the suspicious ones).
+    pub async fn scan_processes_with_snapshot(
+        &self,
+    ) -> ScannerResult<(Vec<SecurityIncident>, Vec<ProcessInfo>)> {
         let processes = self.get_processes()?;
         let count = u32::try_from(processes.len()).unwrap_or(u32::MAX);
         let mut incidents = Vec::new();
@@ -557,11 +570,11 @@ impl ProcessMonitor {
             incidents.extend(sigma_incidents(sigma, &processes, my_pid));
         }
 
-        for proc in processes {
+        for proc in &processes {
             if proc.pid == my_pid {
                 continue;
             }
-            if let Some(incident) = self.analyze_process(&proc) {
+            if let Some(incident) = self.analyze_process(proc) {
                 warn!(
                     "Suspicious process detected: {} (PID: {})",
                     proc.name, proc.pid
@@ -570,7 +583,7 @@ impl ProcessMonitor {
             }
         }
 
-        Ok((incidents, count))
+        Ok((incidents, processes))
     }
 }
 

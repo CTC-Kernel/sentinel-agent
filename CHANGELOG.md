@@ -10,6 +10,27 @@ Tous les changements notables apportés au projet **Sentinel GRC Agent** sont co
 
 ## 🚀 [Non publié]
 
+### 🎯 Détection : les règles personnalisées s'appliquent à toute l'activité observée
+
+- **Portée** : les conditions « nom de processus », « ligne de commande » et
+  « port réseau » sont évaluées sur tous les processus (scan périodique et
+  démarrages en temps réel) et sur toutes les connexions ayant un pair distant,
+  et plus seulement sur ce que les moteurs natifs ont déjà signalé. Une règle
+  « nom de processus contient anydesk » se déclenche donc même si l'agent ne
+  juge pas ce processus suspect. Les conditions de chemin de fichier et de
+  sévérité sont inchangées.
+- **Sans répétition** : une observation est remontée quand elle apparaît, puis
+  rappelée au bout de 24 h si elle est toujours là. Plusieurs nouvelles
+  observations d'une même condition forment une seule correspondance
+  (« (+2 more) »).
+- **Garde-fous** : le processus de l'agent n'est jamais évalué, les
+  autorisations de triage (motifs de processus, adresses IP) s'appliquent, et
+  les playbooks ne s'exécutent toujours que sur des éléments signalés par un
+  moteur.
+- **Console** : l'agent déclare cette portée quand il récupère ses règles
+  (`GET /detection-rules?scope=telemetry`) ; la console n'affiche plus
+  l'avertissement de portée restreinte pour cet agent.
+
 ### 🧬 Détection : règles YARA sur les fichiers créés ou modifiés
 
 - **Analyse YARA** : les fichiers que la surveillance d'intégrité signale

@@ -1049,6 +1049,8 @@ impl AgentRuntime {
             warn!("Initial security scan failed: {}", e);
         }
         let mut last_security_scan = std::time::Instant::now();
+        // What the custom detection rules have already reported.
+        let mut rule_hit_memory = threat_pipeline::RuleHitMemory::default();
         // Fingerprints of the incidents reported by the previous scan. A
         // persistent condition is re-detected on every scan; only notify when
         // it is new (or reappears after having cleared).
@@ -1282,6 +1284,9 @@ impl AgentRuntime {
             let mut pipeline_incidents: Vec<agent_scanner::SecurityIncident> = Vec::new();
             let mut pipeline_network_alerts: Vec<agent_network::NetworkSecurityAlert> = Vec::new();
             let mut pipeline_fim_alerts: Vec<(String, String)> = Vec::new();
+            // Every process and connection seen in this iteration, flagged or
+            // not: the custom detection rules apply to all of them.
+            let mut observed_activity = threat_pipeline::ObservedActivity::default();
 
             // Indicator feeds refreshed in the background
             let fresh_feed_intel = self
@@ -1295,7 +1300,9 @@ impl AgentRuntime {
             }
 
             // Processes started since the last pass, evaluated as they start
-            for incident in self.take_process_start_incidents() {
+            let (process_starts, process_start_incidents) = self.take_process_starts();
+            observed_activity.add_processes(process_starts.iter().map(|start| &start.process));
+            for incident in process_start_incidents {
                 warn!("{}", incident.title);
                 if let Err(e) = self.upload_incident(&incident).await {
                     error!("Failed to upload process incident: {}", e);
@@ -2069,6 +2076,7 @@ impl AgentRuntime {
                             kpi_incident_count = kpi_incident_count.saturating_add(count as u32);
                         }
                         pipeline_incidents.extend(result.incidents.iter().cloned());
+                        observed_activity.add_processes(&result.processes);
 
                         if count == 0 {
                             // A clean periodic scan is not news: logging it avoids a
@@ -2255,6 +2263,7 @@ impl AgentRuntime {
                 is_active = true;
                 match self.run_network_collection().await {
                     Ok(snapshot) => {
+                        observed_activity.add_connections(&snapshot.connections);
                         #[cfg(feature = "gui")]
                         let mut alert_count: u32 = 0;
                         match self.run_network_security_detection(&snapshot).await {
@@ -2479,20 +2488,25 @@ impl AgentRuntime {
 
             // ── Autonomous threat pipeline ──
             // Evaluate detection rules against accumulated threat data from this
-            // iteration (security scan incidents, network alerts, FIM alerts).
-            if !pipeline_incidents.is_empty()
+            // iteration (security scan incidents, network alerts, FIM alerts)
+            // and against the activity observed, flagged or not. Playbooks act
+            // on the host: they only run on what an engine flagged.
+            let flagged_activity = !pipeline_incidents.is_empty()
                 || !pipeline_network_alerts.is_empty()
-                || !pipeline_fim_alerts.is_empty()
-            {
+                || !pipeline_fim_alerts.is_empty();
+            if flagged_activity || !observed_activity.is_empty() {
                 // Authorized events still reach the SIEM below (audit trail) but
                 // never match detection rules nor trigger playbooks.
+                let allowlist = self.state.allowlist_snapshot();
                 let (triaged_incidents, triaged_network, triaged_fim) =
                     triage_allowlist::unauthorized_pipeline_inputs(
-                        &self.state.allowlist_snapshot(),
+                        &allowlist,
                         &pipeline_incidents,
                         &pipeline_network_alerts,
                         &pipeline_fim_alerts,
                     );
+                let observed_activity =
+                    triage_allowlist::unauthorized_observed(&allowlist, observed_activity);
                 let threat_context = threat_pipeline::build_threat_context(
                     &triaged_incidents,
                     &triaged_network,
@@ -2517,13 +2531,15 @@ impl AgentRuntime {
                         Err(e) => warn!("Failed to load detection rules for pipeline: {}", e),
                     }
 
-                    let pb_repo = agent_storage::repositories::grc::PlaybookRepository::new(db);
-                    match pb_repo.get_all().await {
-                        Ok(stored_pbs) => {
-                            playbooks = threat_pipeline::stored_playbooks_to_dto(&stored_pbs);
-                            debug!("Loaded {} playbooks for pipeline", playbooks.len());
+                    if flagged_activity {
+                        let pb_repo = agent_storage::repositories::grc::PlaybookRepository::new(db);
+                        match pb_repo.get_all().await {
+                            Ok(stored_pbs) => {
+                                playbooks = threat_pipeline::stored_playbooks_to_dto(&stored_pbs);
+                                debug!("Loaded {} playbooks for pipeline", playbooks.len());
+                            }
+                            Err(e) => warn!("Failed to load playbooks for pipeline: {}", e),
                         }
-                        Err(e) => warn!("Failed to load playbooks for pipeline: {}", e),
                     }
                 }
 
@@ -2533,6 +2549,8 @@ impl AgentRuntime {
                         &detection_rules,
                         &playbooks,
                         &threat_context,
+                        &observed_activity,
+                        &mut rule_hit_memory,
                         #[cfg(feature = "gui")]
                         &self.gui_event_tx,
                         #[cfg(not(feature = "gui"))]

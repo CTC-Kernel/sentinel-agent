@@ -52,21 +52,27 @@ impl AgentRuntime {
         }
     }
 
-    /// Incidents raised by the processes started since the last call.
-    pub(crate) fn take_process_start_incidents(&self) -> Vec<SecurityIncident> {
+    /// The processes started since the last call and the incidents they raise.
+    /// The starts themselves go to the custom detection rules, which apply to
+    /// every process and not only to the suspicious ones.
+    pub(crate) fn take_process_starts(&self) -> (Vec<ProcessStart>, Vec<SecurityIncident>) {
         let guard = self
             .process_telemetry
             .lock()
             .unwrap_or_else(|e| e.into_inner());
         let Some(telemetry) = guard.as_ref() else {
-            return Vec::new();
+            return (Vec::new(), Vec::new());
         };
-        telemetry
+        let starts: Vec<ProcessStart> = telemetry
             .events
             .try_iter()
             .take(MAX_EVENTS_PER_PASS)
-            .flat_map(|start| self.security_monitor.analyze_process_start(&start))
-            .collect()
+            .collect();
+        let incidents = starts
+            .iter()
+            .flat_map(|start| self.security_monitor.analyze_process_start(start))
+            .collect();
+        (starts, incidents)
     }
 
     /// Stop the event source.

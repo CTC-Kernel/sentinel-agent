@@ -853,6 +853,8 @@ mod tests {
             &[],
             &[pb.clone()],
             &ctx,
+            &crate::threat_pipeline::ObservedActivity::default(),
+            &mut crate::threat_pipeline::RuleHitMemory::default(),
             &Some(tx),
             #[cfg(feature = "llm")]
             None,
