@@ -1000,15 +1000,7 @@ impl AgentRuntime {
         self.start_yara();
 
         // Indicator feeds (block lists, STIX, TAXII), when any is configured
-        let feeds = threat_intel_feeds::usable_feeds(&self.config.threat_intel_feeds);
-        if !feeds.is_empty() {
-            info!("Following {} threat intelligence feed(s)", feeds.len());
-            tokio::spawn(threat_intel_feeds::run(
-                feeds,
-                Arc::clone(&self.pending_feed_intel),
-                Arc::clone(&self.state.shutdown),
-            ));
-        }
+        self.start_threat_intel_feeds();
 
         // Initialize SIEM forwarder (disabled by default).
         // Events always reach the platform via record_event() + heartbeat sync.

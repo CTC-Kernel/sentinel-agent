@@ -10,12 +10,13 @@ use agent_gui::dto::GuiDiscoveredDevice;
 use agent_gui::events::AgentEvent;
 #[cfg(feature = "gui")]
 use agent_storage::repositories::StoredDevice;
+use std::sync::Arc;
 use tokio::sync::mpsc;
 #[cfg(feature = "gui")]
 use tracing::{debug, warn};
 use tracing::{error, info};
 
-use crate::AgentRuntime;
+use crate::{AgentRuntime, threat_intel_feeds};
 
 /// A device of the last network discovery, as the interface shows it.
 #[cfg(feature = "gui")]
@@ -76,6 +77,20 @@ impl AgentRuntime {
 
         let mut fim_guard = self.fim_engine.write().await;
         *fim_guard = Some(engine);
+    }
+
+    /// Follow the configured indicator feeds (block lists, STIX, TAXII) in
+    /// the background; the main loop applies what they bring.
+    pub(crate) fn start_threat_intel_feeds(&self) {
+        let feeds = threat_intel_feeds::usable_feeds(&self.config.threat_intel_feeds);
+        if !feeds.is_empty() {
+            info!("Following {} threat intelligence feed(s)", feeds.len());
+            tokio::spawn(threat_intel_feeds::run(
+                feeds,
+                Arc::clone(&self.pending_feed_intel),
+                Arc::clone(&self.state.shutdown),
+            ));
+        }
     }
 }
 
