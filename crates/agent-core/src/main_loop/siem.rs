@@ -212,7 +212,22 @@ impl AgentRuntime {
             .unwrap_or(false);
         // Don't activate external transport without a configured destination
         let effective_enabled = gui_enabled && has_destination;
-        let mut siem_guard = self.siem_forwarder.write().await;
+        // The usual pass has nothing to change, and does not ask for the
+        // forwarder exclusively: a background task may be delivering an
+        // event with it.
+        let unchanged = self
+            .siem_forwarder
+            .read()
+            .await
+            .as_ref()
+            .is_none_or(|siem| siem.is_enabled() == effective_enabled);
+        if unchanged {
+            return;
+        }
+        let Ok(mut siem_guard) = self.siem_forwarder.try_write() else {
+            debug!("SIEM forwarder in use: settings applied at the next pass");
+            return;
+        };
         if let Some(ref mut siem) = *siem_guard
             && siem.is_enabled() != effective_enabled
         {
@@ -629,6 +644,34 @@ mod tests {
         test.runtime.collect_os_logs(&mut st).await;
 
         assert_eq!(st.last_log_collection, started);
+    }
+
+    #[cfg(feature = "gui")]
+    #[tokio::test]
+    async fn settings_wait_for_a_forwarder_in_use_instead_of_blocking() {
+        let test = standalone_runtime();
+        test.runtime.init_siem_forwarder().await;
+        let state = &test.runtime.state;
+        state.siem_enabled.store(true, Ordering::Release);
+        *state.siem_destination.lock().unwrap() = "siem.example.org:6514".to_string();
+
+        // An event is being delivered: the stage returns, nothing applied.
+        let in_use = test.runtime.siem_forwarder.read().await;
+        test.runtime.sync_gui_siem_config().await;
+        assert!(!in_use.as_ref().unwrap().is_enabled());
+        drop(in_use);
+
+        // Applied at the next pass.
+        test.runtime.sync_gui_siem_config().await;
+        assert!(
+            test.runtime
+                .siem_forwarder
+                .read()
+                .await
+                .as_ref()
+                .unwrap()
+                .is_enabled()
+        );
     }
 
     #[tokio::test]
