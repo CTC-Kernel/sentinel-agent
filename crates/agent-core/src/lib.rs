@@ -131,7 +131,7 @@ use agent_siem::SiemForwarder;
 #[cfg(feature = "gui")]
 use agent_gui::dto::{
     GuiDiscoveredDevice, GuiPolicySummary, GuiSuspiciousProcess, GuiUsbEvent,
-    GuiVulnerabilitySummary, UsbEventType as GuiUsbEventType,
+    UsbEventType as GuiUsbEventType,
 };
 #[cfg(feature = "gui")]
 use agent_gui::events::AgentEvent;
@@ -1059,117 +1059,7 @@ impl AgentRuntime {
             //    scan (inventory, OSV lookups, AI analysis, uploads) never delays
             //    heartbeats. At most one scan runs at a time: a new one is only
             //    started once the previous task handle has been collected here.
-            if st.vuln_scan_task.as_ref().is_some_and(|t| t.is_finished())
-                && let Some(task) = st.vuln_scan_task.take()
-            {
-                st.last_vuln_scan = std::time::Instant::now();
-                match task.await {
-                    Ok(Ok(result)) => {
-                        let count = result.vulnerabilities.len();
-                        if count > 0 {
-                            info!("Vulnerability scan found {} issues", count);
-                        }
-                        #[cfg(feature = "gui")]
-                        {
-                            let exploited = result
-                                .vulnerabilities
-                                .iter()
-                                .filter(|v| v.is_known_exploited())
-                                .count();
-                            let severity = if exploited > 0 {
-                                "error"
-                            } else if count > 0 {
-                                "warning"
-                            } else {
-                                "info"
-                            };
-                            let mut message = format!(
-                                "{} vulnérabilités détectées sur {} paquets",
-                                count, result.packages_scanned
-                            );
-                            if exploited > 0 {
-                                message.push_str(&format!(
-                                    ", dont {} exploitée{} activement (CISA KEV)",
-                                    exploited,
-                                    if exploited > 1 { "s" } else { "" }
-                                ));
-                            }
-                            self.emit_notification(
-                                "Scan vulnérabilités terminé",
-                                &message,
-                                severity,
-                            );
-                            let mut critical = 0u32;
-                            let mut high = 0u32;
-                            let mut medium = 0u32;
-                            let mut low = 0u32;
-                            for v in &result.vulnerabilities {
-                                match v.severity {
-                                    agent_scanner::vulnerability::Severity::Critical => {
-                                        critical = critical.saturating_add(1)
-                                    }
-                                    agent_scanner::vulnerability::Severity::High => {
-                                        high = high.saturating_add(1)
-                                    }
-                                    agent_scanner::vulnerability::Severity::Medium => {
-                                        medium = medium.saturating_add(1)
-                                    }
-                                    agent_scanner::vulnerability::Severity::Low => {
-                                        low = low.saturating_add(1)
-                                    }
-                                }
-                            }
-                            self.emit_gui_event(AgentEvent::VulnerabilityUpdate {
-                                summary: GuiVulnerabilitySummary {
-                                    critical,
-                                    high,
-                                    medium,
-                                    low,
-                                    last_scan_at: Some(chrono::Utc::now()),
-                                },
-                            });
-                            self.emit_gui_event(AgentEvent::SoftwareUpdate {
-                                packages: self.build_software_packages(&result),
-                            });
-                            self.emit_gui_event(AgentEvent::VulnerabilityFindings {
-                                findings: self.build_vulnerability_findings(&result),
-                                exploit_intel: self.build_exploit_intel_status(&result),
-                            });
-                            // Browser extensions are part of the software
-                            // inventory and refreshed with it.
-                            let extensions =
-                                agent_scanner::browser_extensions::installed_extensions().await;
-                            self.emit_gui_event(AgentEvent::BrowserExtensions {
-                                extensions: self.build_browser_extensions(&extensions),
-                            });
-                            st.gui.kpi_open_vulns = count as u32;
-                            st.gui.last_check_at = Some(chrono::Utc::now());
-                        }
-                    }
-                    Ok(Err(e)) => {
-                        warn!("Vulnerability scan failed: {}", e);
-                        #[cfg(feature = "gui")]
-                        self.emit_notification(
-                            "Scan vulnérabilités échoué",
-                            &format!("{}", e),
-                            "error",
-                        );
-                    }
-                    Err(join_error) => {
-                        error!("Vulnerability scan task aborted: {}", join_error);
-                    }
-                }
-                #[cfg(feature = "gui")]
-                {
-                    self.state.scanning.store(false, Ordering::Release);
-                    self.emit_status_update(
-                        st.gui.last_check_at,
-                        st.compliance_score,
-                        st.gui.cached_pending_sync,
-                        st.gui.cached_policy_summary,
-                    );
-                }
-            }
+            self.collect_vuln_scan(&mut st).await;
 
             if !pass.is_paused
                 && st.vuln_scan_task.is_none()
