@@ -979,27 +979,7 @@ impl AgentRuntime {
         st.last_security_scan = std::time::Instant::now();
 
         // Initialize network collection with staggered start
-        let (network_static_interval, network_connection_interval, network_security_interval) = {
-            let mut network_manager = self.network_manager.write().await;
-            let static_interval = network_manager.next_static_interval();
-            let conn_interval = network_manager.next_connection_interval();
-            let sec_interval = network_manager.next_security_interval();
-            info!(
-                "Network collection intervals: static={:.0}s, connections={:.0}s, security={:.0}s",
-                static_interval.as_secs_f64(),
-                conn_interval.as_secs_f64(),
-                sec_interval.as_secs_f64()
-            );
-            (static_interval, conn_interval, sec_interval)
-        };
-
-        // Initialize network timing with staggered delays
-        st.start_network_schedule(
-            std::time::Instant::now(),
-            network_static_interval,
-            network_connection_interval,
-            network_security_interval,
-        );
+        self.start_network_schedule(&mut st).await;
 
         // Log collector timer — polls OS event logs at the configured interval
         st.last_log_collection = std::time::Instant::now();
