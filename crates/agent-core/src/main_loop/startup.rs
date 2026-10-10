@@ -3,14 +3,17 @@
 
 //! What the agent sets up once, before the first pass of the main loop.
 
+use agent_fim::FimEngine;
 #[cfg(feature = "gui")]
 use agent_gui::dto::GuiDiscoveredDevice;
 #[cfg(feature = "gui")]
 use agent_gui::events::AgentEvent;
 #[cfg(feature = "gui")]
 use agent_storage::repositories::StoredDevice;
+use tokio::sync::mpsc;
 #[cfg(feature = "gui")]
-use tracing::{debug, info, warn};
+use tracing::{debug, warn};
+use tracing::{error, info};
 
 use crate::AgentRuntime;
 
@@ -55,6 +58,24 @@ impl AgentRuntime {
                 }
             }
         }
+    }
+
+    /// Start the file integrity engine; its alerts are read by the main loop.
+    pub(crate) async fn start_fim_engine(&self) {
+        let (fim_tx, fim_rx) = mpsc::channel(1000);
+        let mut fim_rx_guard = self.fim_rx.lock().await;
+        *fim_rx_guard = Some(fim_rx);
+
+        let engine = FimEngine::with_defaults(fim_tx);
+
+        if let Err(e) = engine.start().await {
+            error!("Failed to start FIM engine: {}", e);
+        } else {
+            info!("FIM engine started successfully");
+        }
+
+        let mut fim_guard = self.fim_engine.write().await;
+        *fim_guard = Some(engine);
     }
 }
 

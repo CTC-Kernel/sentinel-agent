@@ -988,22 +988,7 @@ impl AgentRuntime {
         self.run_initial_network_collection().await;
 
         // Initialize FIM engine
-        {
-            let (fim_tx, fim_rx) = mpsc::channel(1000);
-            let mut fim_rx_guard = self.fim_rx.lock().await;
-            *fim_rx_guard = Some(fim_rx);
-
-            let engine = FimEngine::with_defaults(fim_tx);
-
-            if let Err(e) = engine.start().await {
-                error!("Failed to start FIM engine: {}", e);
-            } else {
-                info!("FIM engine started successfully");
-            }
-
-            let mut fim_guard = self.fim_engine.write().await;
-            *fim_guard = Some(engine);
-        }
+        self.start_fim_engine().await;
 
         // Ransomware canary files (or their removal when the option is off)
         self.start_ransomware_canaries().await;
