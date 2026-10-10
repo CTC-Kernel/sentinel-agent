@@ -9,6 +9,7 @@ mod detection;
 #[cfg(feature = "gui")]
 mod discovery;
 mod fim;
+mod idle;
 mod maintenance;
 mod network;
 mod pass;

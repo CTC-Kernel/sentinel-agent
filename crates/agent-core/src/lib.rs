@@ -1107,35 +1107,8 @@ impl AgentRuntime {
             self.resource_stage(&mut st, &pass);
 
             // Sleep for a short interval before checking shutdown again
-            tokio::select! {
-                _ = tokio::time::sleep(tokio::time::Duration::from_secs(1)) => {}
-                req = async {
-                    let mut rx = self.remediation_rx.lock().await;
-                    rx.recv().await
-                } => {
-                    if let Some(req) = req {
-                        #[cfg(feature = "gui")]
-                        match req {
-                            state::RemediationRequest::Execute { check_id } => {
-                                self.remediate(&check_id).await;
-                            }
-                            state::RemediationRequest::Preview { check_id } => {
-                                self.remediate_preview(&check_id);
-                            }
-                            state::RemediationRequest::ApplyAi { action } => {
-                                self.apply_ai_remediation(action).await;
-                            }
-                        }
-                        #[cfg(not(feature = "gui"))]
-                        {
-                            let _ = req;
-                        }
-                    }
-                }
-                _ = self.wait_for_shutdown() => {
-                    info!("Shutdown signal received, initiating graceful exit sequence...");
-                    break;
-                }
+            if !self.idle_until_next_pass().await {
+                break;
             }
         }
 
