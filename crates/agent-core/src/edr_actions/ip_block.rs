@@ -16,7 +16,9 @@ use tracing::debug;
 /// The firewall the commands are written for.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(super) enum Backend {
+    #[cfg_attr(target_os = "windows", allow(dead_code))] // Windows uses netsh.
     Iptables,
+    #[cfg_attr(target_os = "linux", allow(dead_code))] // Linux uses iptables.
     Netsh,
 }
 

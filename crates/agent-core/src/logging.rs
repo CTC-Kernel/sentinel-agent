@@ -13,6 +13,7 @@ use std::io::Write;
 static ACTIVE_LOG_DIR: std::sync::OnceLock<std::path::PathBuf> = std::sync::OnceLock::new();
 
 /// Directory selected by logging initialization, without creating another sink.
+#[cfg_attr(not(feature = "tray"), allow(dead_code))] // Only the tray opens the log folder.
 pub(crate) fn active_log_dir() -> Option<&'static std::path::Path> {
     ACTIVE_LOG_DIR.get().map(std::path::PathBuf::as_path)
 }
