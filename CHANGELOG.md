@@ -362,6 +362,62 @@ Tous les changements notables apportés au projet **Sentinel GRC Agent** sont co
   quarantaine reste impossible depuis le service, que son bac à sable empêche
   d'écrire hors de ses répertoires.
 
+### 🛡️ Réponse : la quarantaine refuse les dossiers et protège mieux l'agent
+
+- **Fichiers uniquement** : la mise en quarantaine refuse tout ce qui n'est pas
+  un fichier ordinaire. Un playbook visant un dossier (`/etc/sentinel`,
+  `/var/lib`, un dossier personnel…) le déplaçait en entier dans la
+  quarantaine, avec tout son contenu.
+- **Protection de l'agent étendue** : un dossier qui contient un chemin protégé
+  est refusé au même titre que ce chemin, à la mise en quarantaine comme à la
+  restauration, et tout le dossier de configuration est protégé (plus
+  seulement `agent.json`). Un dossier déjà en quarantaine reste restaurable.
+- **Destination de restauration toujours vérifiée** : un chemin d'origine
+  relatif réduit à un nom de fichier échappait au contrôle de la destination,
+  et le fichier était restauré dans le dossier de travail de l'agent — la
+  racine du système pour le service. Il est désormais résolu puis contrôlé
+  comme les autres, et une destination impossible à résoudre est refusée.
+
+### 🛡️ Sécurité : la surveillance d'intégrité n'ignore plus les fichiers nommés « sentinel »
+
+- **Contournement corrigé** : les exclusions `dossier/**` étaient comparées en
+  sous-chaîne, si bien que l'auto-exclusion `sentinel/**` écartait tout chemin
+  contenant « sentinel » (`/etc/cron.d/sentinel-update`,
+  `/etc/hosts.sentinel-test`…) : ni alerte d'intégrité, ni analyse YARA, ni
+  playbook. Elles ne s'appliquent plus qu'au contenu d'un dossier portant
+  exactement ce nom ; un fichier nommé `sentinel` reste surveillé.
+- **Motifs d'exclusion** : un motif sans joker (`node_modules`) désigne
+  désormais un fichier ou un dossier de ce nom, et non plus tout chemin qui le
+  contient ; un motif vide n'exclut plus rien (il excluait tout). Les motifs
+  `*.ext` sont inchangés.
+- **Dossiers de l'agent** : configuration, données, journaux, quarantaine et
+  préférences de l'interface restent exclus sous Linux, macOS et Windows ; ils
+  sont maintenant listés par leur nom exact. Le binaire Linux
+  `/usr/bin/sentinel-agent` et les fichiers de service de l'agent (unité
+  systemd, logrotate, AppArmor, LaunchDaemon macOS) n'étaient exclus que par ce
+  défaut : ils sont désormais surveillés comme les autres.
+
+### 🎯 Détection : les règles personnalisées s'appliquent à toute l'activité observée
+
+- **Portée** : les conditions « nom de processus », « ligne de commande » et
+  « port réseau » sont évaluées sur tous les processus (scan périodique et
+  démarrages en temps réel) et sur toutes les connexions ayant un pair distant,
+  et plus seulement sur ce que les moteurs natifs ont déjà signalé. Une règle
+  « nom de processus contient anydesk » se déclenche donc même si l'agent ne
+  juge pas ce processus suspect. Les conditions de chemin de fichier et de
+  sévérité sont inchangées.
+- **Sans répétition** : une observation est remontée quand elle apparaît, puis
+  rappelée au bout de 24 h si elle est toujours là. Plusieurs nouvelles
+  observations d'une même condition forment une seule correspondance
+  (« (+2 more) »).
+- **Garde-fous** : le processus de l'agent n'est jamais évalué, les
+  autorisations de triage (motifs de processus, adresses IP) s'appliquent, et
+  les playbooks ne s'exécutent toujours que sur des éléments signalés par un
+  moteur.
+- **Console** : l'agent déclare cette portée quand il récupère ses règles
+  (`GET /detection-rules?scope=telemetry`) ; la console n'affiche plus
+  l'avertissement de portée restreinte pour cet agent.
+
 ### 🧬 Détection : règles YARA sur les fichiers créés ou modifiés
 
 - **Analyse YARA** : les fichiers que la surveillance d'intégrité signale

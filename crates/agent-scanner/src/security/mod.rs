@@ -38,7 +38,7 @@ pub mod yara;
 
 use crate::error::ScannerResult;
 use chrono::{DateTime, Utc};
-use process_monitor::ProcessMonitor;
+use process_monitor::{ProcessInfo, ProcessMonitor};
 use serde::{Deserialize, Serialize};
 use system_monitor::SystemMonitor;
 use tracing::{debug, info, warn};
@@ -285,6 +285,11 @@ pub struct SecurityScanResult {
     /// Any errors encountered (non-fatal).
     #[serde(default)]
     pub errors: Vec<String>,
+
+    /// Processes the scan ran on, suspicious or not. Kept in memory for the
+    /// custom detection rules; never serialized with the result.
+    #[serde(skip)]
+    pub processes: Vec<ProcessInfo>,
 }
 
 /// Main security monitor that coordinates process and system monitoring.
@@ -351,11 +356,13 @@ impl SecurityMonitor {
         let mut all_errors = Vec::new();
         let mut processes_scanned = 0u32;
         let mut system_checks = 0u32;
+        let mut scanned_processes = Vec::new();
 
         // Scan running processes
         info!("Scanning running processes for suspicious activity...");
-        match self.process_monitor.scan_processes().await {
-            Ok((incidents, count)) => {
+        match self.process_monitor.scan_processes_with_snapshot().await {
+            Ok((incidents, processes)) => {
+                let count = u32::try_from(processes.len()).unwrap_or(u32::MAX);
                 processes_scanned = count;
                 debug!(
                     "Found {} suspicious processes out of {} scanned",
@@ -363,6 +370,7 @@ impl SecurityMonitor {
                     count
                 );
                 all_incidents.extend(incidents);
+                scanned_processes = processes;
             }
             Err(e) => {
                 let error_msg = format!("Process scan failed: {}", e);
@@ -435,6 +443,7 @@ impl SecurityMonitor {
             processes_scanned,
             system_checks_performed: system_checks,
             errors: all_errors,
+            processes: scanned_processes,
         })
     }
 

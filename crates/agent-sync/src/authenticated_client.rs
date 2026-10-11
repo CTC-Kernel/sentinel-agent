@@ -423,11 +423,19 @@ impl AuthenticatedClient {
     }
 
     /// Fetch detection rules from the SaaS.
+    ///
+    /// `scope=telemetry` tells the platform that this agent applies the rules
+    /// to every process and connection it observes, not only to what its
+    /// engines flagged; the console shows the scope of each agent. The query
+    /// string is not part of the request signature.
     pub async fn fetch_detection_rules(&self) -> SyncResult<Vec<DetectionRulePayload>> {
         let agent_id = self.agent_id().await?;
         debug!("Fetching detection rules for agent {}", agent_id);
-        self.get(&format!("/v1/agents/{}/detection-rules", agent_id))
-            .await
+        self.get(&format!(
+            "/v1/agents/{}/detection-rules?scope=telemetry",
+            agent_id
+        ))
+        .await
     }
 
     /// Fetch software inventory from the SaaS.

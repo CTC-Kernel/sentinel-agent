@@ -1018,6 +1018,8 @@ mod tests {
             &[],
             &[pb.clone()],
             &ctx,
+            &crate::threat_pipeline::ObservedActivity::default(),
+            &mut crate::threat_pipeline::RuleHitMemory::default(),
             &Some(tx),
             #[cfg(feature = "llm")]
             None,
@@ -1518,6 +1520,8 @@ mod tests {
                     &[],
                     std::slice::from_ref(pb),
                     ctx,
+                    &crate::threat_pipeline::ObservedActivity::default(),
+                    &mut crate::threat_pipeline::RuleHitMemory::default(),
                     &None,
                     #[cfg(feature = "llm")]
                     None,

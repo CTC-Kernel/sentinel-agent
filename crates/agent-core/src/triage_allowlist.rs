@@ -8,7 +8,31 @@
 //! does is interrupt the operator or act on the host: no notification, no
 //! detection-rule match and no playbook execution.
 
+use crate::threat_pipeline::ObservedActivity;
 use agent_gui::dto::{AllowlistRule, AllowlistRuleType as Kind, allowlist_covers};
+
+/// The observed activity without the processes and remote peers covered by an
+/// authorization: like the events of the engines, they match no rule.
+pub fn unauthorized_observed(
+    rules: &[AllowlistRule],
+    observed: ObservedActivity,
+) -> ObservedActivity {
+    if rules.is_empty() {
+        return observed;
+    }
+    ObservedActivity {
+        processes: observed
+            .processes
+            .into_iter()
+            .filter(|p| !allowlist_covers(rules, Kind::ProcessPattern, &p.name))
+            .collect(),
+        connections: observed
+            .connections
+            .into_iter()
+            .filter(|c| !allowlist_covers(rules, Kind::IpAddress, &c.remote_ip))
+            .collect(),
+    }
+}
 
 /// Whether a security-scan incident is covered by an authorization.
 pub fn incident_is_authorized(
@@ -104,6 +128,44 @@ mod tests {
             "test",
         )
         .with_evidence(serde_json::json!({ "process_name": name, "pid": 4242 }))
+    }
+
+    #[test]
+    fn authorized_processes_and_peers_are_removed_from_observed_activity() {
+        use crate::playbook_engine::ProcessInfo;
+        use crate::threat_pipeline::ObservedConnection;
+        let observed = || ObservedActivity {
+            processes: ["backup-daily", "anydesk"]
+                .into_iter()
+                .enumerate()
+                .map(|(i, name)| ProcessInfo {
+                    name: name.into(),
+                    pid: 100 + i as u32,
+                    command_line: String::new(),
+                })
+                .collect(),
+            connections: ["10.0.0.5", "203.0.113.7"]
+                .into_iter()
+                .map(|ip| ObservedConnection {
+                    remote_ip: ip.into(),
+                    port: 3389,
+                    process_name: None,
+                })
+                .collect(),
+        };
+        // No authorization: everything observed reaches the rules.
+        let all = unauthorized_observed(&[], observed());
+        assert_eq!((all.processes.len(), all.connections.len()), (2, 2));
+
+        let rules = [
+            rule(Kind::ProcessPattern, "backup-*"),
+            rule(Kind::IpAddress, "10.0.0.0/8"),
+        ];
+        let kept = unauthorized_observed(&rules, observed());
+        assert_eq!(kept.processes.len(), 1);
+        assert_eq!(kept.processes[0].name, "anydesk");
+        assert_eq!(kept.connections.len(), 1);
+        assert_eq!(kept.connections[0].remote_ip, "203.0.113.7");
     }
 
     #[test]

@@ -373,7 +373,7 @@ async fn auto_analyze_vulnerabilities(
 }
 
 impl AgentRuntime {
-    /// Run a security scan and upload incidents.
+    /// Run a security scan and queue its incidents for upload.
     pub(crate) async fn run_security_scan(&self) -> Result<SecurityScanResult, CommonError> {
         debug!("Running security scan...");
 
@@ -390,9 +390,7 @@ impl AgentRuntime {
             );
 
             for incident in &result.incidents {
-                if let Err(e) = self.upload_incident(incident).await {
-                    error!("Failed to upload security incident: {}", e);
-                }
+                self.queue_incident(incident, "security incident").await;
             }
         } else {
             debug!("Security scan clean: no incidents detected");
@@ -403,11 +401,11 @@ impl AgentRuntime {
 
     /// Report a security incident to the platform.
     ///
-    /// The main loop waits on this call before it evaluates the response
-    /// playbooks, and an incident matters most when the network is at its
-    /// worst. So the direct upload is short, and an incident that does not go
-    /// through is kept in the local queue and sent again later instead of
-    /// being dropped: `Ok` means delivered or safely queued.
+    /// The upload task sends what the loop queued one item at a time, and an
+    /// incident matters most when the network is at its worst. So the direct
+    /// upload is short, and an incident that does not go through is kept in
+    /// the local queue and sent again later instead of being dropped: `Ok`
+    /// means delivered or safely queued.
     pub(crate) async fn upload_incident(
         &self,
         incident: &agent_scanner::SecurityIncident,
@@ -437,7 +435,7 @@ impl AgentRuntime {
             }
         };
 
-        match self.queue_incident(&payload).await {
+        match self.keep_incident_for_retry(&payload).await {
             Ok(()) => {
                 warn!(
                     "Incident '{}' not delivered ({}); queued for retry",
@@ -485,7 +483,10 @@ impl AgentRuntime {
     }
 
     /// Keep an undelivered incident in the local queue.
-    async fn queue_incident(&self, payload: &serde_json::Value) -> Result<(), CommonError> {
+    async fn keep_incident_for_retry(
+        &self,
+        payload: &serde_json::Value,
+    ) -> Result<(), CommonError> {
         let db = self
             .db
             .as_ref()

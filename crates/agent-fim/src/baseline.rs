@@ -16,6 +16,10 @@
 //! root) is still followed: its size and modification time stand for its
 //! contents, and its permissions and owner are compared as for any file.
 
+// The baseline and the watcher share one matcher and must keep doing so: if
+// the baseline hashed a file the watcher ignores (or vice versa), the agent
+// would alert on its own excluded paths.
+use crate::watcher::{is_ignored_dir, is_ignored_path};
 use agent_common::types::{
     FimAlert, FimAttribute, FimBaseline, FimChangeType, FimDetection, FimOwner,
 };
@@ -218,7 +222,13 @@ impl BaselineManager {
             .follow_links(false)
             .max_depth(depth)
             .into_iter()
-            .filter_entry(|e| !is_ignored(e.path(), ignore_patterns));
+            .filter_entry(|e| {
+                if e.file_type().is_dir() {
+                    !is_ignored_dir(e.path(), ignore_patterns)
+                } else {
+                    !is_ignored_path(e.path(), ignore_patterns)
+                }
+            });
 
         for entry in walker.flatten() {
             if !entry.file_type().is_file() {
@@ -371,7 +381,7 @@ impl BaselineManager {
             .collect();
         for path in unvisited {
             let covered = scope.iter().any(|root| path.starts_with(root));
-            if !covered || is_ignored(&path, ignore_patterns) {
+            if !covered || is_ignored_path(&path, ignore_patterns) {
                 if self.write().remove(&path).is_some() {
                     self.dirty.store(true, Ordering::Release);
                 }
@@ -679,32 +689,6 @@ fn get_owner(metadata: &fs::Metadata) -> (Option<u32>, Option<u32>) {
     }
 }
 
-/// Check if a path matches any ignore pattern.
-///
-/// Matching is case-insensitive with normalized separators, mirroring
-/// `watcher::is_ignored_path`. The baseline and the watcher must agree: if the
-/// baseline hashed a file the watcher ignores (or vice versa), the agent would
-/// alert on its own excluded paths.
-fn is_ignored(path: &Path, patterns: &[String]) -> bool {
-    let path_norm = path.to_string_lossy().to_lowercase().replace('\\', "/");
-    for pattern in patterns {
-        let pattern_norm = pattern.to_lowercase().replace('\\', "/");
-        // Simple glob matching for common patterns
-        if let Some(suffix) = pattern_norm.strip_prefix('*') {
-            if path_norm.ends_with(suffix) {
-                return true;
-            }
-        } else if let Some(prefix) = pattern_norm.strip_suffix("/**") {
-            if path_norm.contains(prefix) {
-                return true;
-            }
-        } else if path_norm.contains(&pattern_norm) {
-            return true;
-        }
-    }
-    false
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -770,9 +754,38 @@ mod tests {
     fn test_is_ignored() {
         let patterns = vec!["*.log".to_string(), ".git/**".to_string()];
 
-        assert!(is_ignored(Path::new("/var/log/app.log"), &patterns));
-        assert!(is_ignored(Path::new("/repo/.git/objects/abc"), &patterns));
-        assert!(!is_ignored(Path::new("/etc/hosts"), &patterns));
+        assert!(is_ignored_path(Path::new("/var/log/app.log"), &patterns));
+        assert!(is_ignored_path(
+            Path::new("/repo/.git/objects/abc"),
+            &patterns
+        ));
+        assert!(!is_ignored_path(Path::new("/etc/hosts"), &patterns));
+    }
+
+    /// A file whose name merely contains the agent's directory name must be
+    /// baselined like any other; only the directory's content is left out.
+    #[test]
+    fn baseline_skips_agent_directory_but_not_lookalike_files() {
+        let dir = tempfile::tempdir().unwrap();
+        let root = dir.path().canonicalize().unwrap();
+        fs::create_dir_all(root.join("sentinel")).unwrap();
+        fs::create_dir_all(root.join("cron.d")).unwrap();
+        fs::write(root.join("sentinel/agent.json"), "{}").unwrap();
+        fs::write(root.join("sentinel-update"), "x").unwrap();
+        fs::write(root.join("cron.d/sentinel-job"), "x").unwrap();
+        fs::write(root.join("cron.d/sentinel"), "x").unwrap();
+
+        let patterns = agent_common::types::fim::SELF_EXCLUSION_PATTERNS
+            .iter()
+            .map(|p| (*p).to_string())
+            .collect::<Vec<_>>();
+        let mgr = BaselineManager::new();
+        assert_eq!(mgr.create_baseline(&root, &patterns).unwrap(), 3);
+
+        assert!(mgr.get(&root.join("sentinel/agent.json")).is_none());
+        assert!(mgr.get(&root.join("sentinel-update")).is_some());
+        assert!(mgr.get(&root.join("cron.d/sentinel-job")).is_some());
+        assert!(mgr.get(&root.join("cron.d/sentinel")).is_some());
     }
 
     /// A directory by its resolved path, and a baseline manager.
