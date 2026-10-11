@@ -1,0 +1,248 @@
+# Règles Sigma livrées avec l'agent Sentinel GRC.
+#
+# Elles s'appuient sur les champs que l'agent extrait des journaux (voir
+# crates/agent-siem/src/decode.rs). Pour en ajuster une, copiez-la dans le
+# dossier « sigma.d » avec le même `id` : votre version la remplace. Pour en
+# désactiver une, ajoutez son `id` à « sigma.d/disabled-rules.txt ».
+title: Requête web portant un motif d'attaque
+id: 4a27027d-f8dc-521f-8ba1-c675bc6eb40b
+name: web_attack_attempt
+status: stable
+description: Une requête contient un motif de traversée de répertoire, d'injection SQL ou d'injection de commande.
+author: Sentinel GRC
+logsource:
+    category: webserver
+detection:
+    traversal:
+        c-uri|contains:
+            - '../../'
+            - '..%2f'
+            - '%2e%2e%2f'
+            - '%2e%2e/'
+            - '..%5c'
+            - '/etc/passwd'
+            - '/etc/shadow'
+            - '/proc/self/environ'
+            - 'boot.ini'
+            - 'win.ini'
+    sql_injection:
+        c-uri|contains:
+            - 'union+select'
+            - 'union%20select'
+            - 'union select'
+            - 'information_schema'
+            - '%27+or+'
+            - '%27%20or%20'
+            - 'sleep('
+            - 'benchmark('
+            - 'waitfor+delay'
+            - 'waitfor%20delay'
+            - 'xp_cmdshell'
+            - 'load_file('
+            - 'into+outfile'
+            - 'into%20outfile'
+    injection:
+        c-uri|contains:
+            - '${jndi:'
+            - '%24%7bjndi'
+            - '$%7bjndi'
+            - ';wget+'
+            - ';curl+'
+            - '%3bwget'
+            - '%3bcurl'
+            - '|wget'
+            - '/bin/sh'
+            - '/bin/bash'
+            - 'php://input'
+            - 'php://filter'
+            - 'expect://'
+            - '<script'
+            - '%3cscript'
+    headers:
+        c-useragent|contains:
+            - '${jndi:'
+            - '() {'
+    condition: 1 of them
+level: informational
+---
+title: Balayage d'attaques web
+id: d5abcfa8-e7fb-5dfe-b69b-52503593ee63
+status: stable
+description: Une même adresse a envoyé de nombreuses requêtes portant des motifs d'attaque en quelques minutes.
+author: Sentinel GRC
+tags:
+    - attack.initial_access
+    - attack.reconnaissance
+    - attack.t1190
+    - attack.t1595.002
+correlation:
+    type: event_count
+    generate: true
+    rules:
+        - web_attack_attempt
+    group-by:
+        - src_ip
+    timespan: 5m
+    condition:
+        gte: 10
+level: medium
+---
+title: Fichier système lu par traversée de répertoire
+id: dc1880f4-4bc6-5340-b097-d182cef2efb5
+status: stable
+description: Une requête de traversée de répertoire visant un fichier système a reçu une réponse positive. Le serveur a probablement livré le fichier.
+author: Sentinel GRC
+tags:
+    - attack.initial_access
+    - attack.t1190
+logsource:
+    category: webserver
+detection:
+    target:
+        c-uri|contains:
+            - '/etc/passwd'
+            - '/etc/shadow'
+            - '/proc/self/environ'
+            - 'boot.ini'
+            - 'win.ini'
+    traversal:
+        c-uri|contains:
+            - '../'
+            - '..%2f'
+            - '%2e%2e'
+            - '..%5c'
+    answered:
+        sc-status:
+            - 200
+            - 206
+    condition: target and traversal and answered
+level: high
+---
+title: Tentative d'exploitation Log4Shell
+id: 007db759-efa6-5ece-b042-4e08002f1444
+status: stable
+description: Une requête porte une recherche JNDI dans son adresse, son agent ou son référent, comme le fait l'exploitation de Log4Shell (CVE-2021-44228).
+author: Sentinel GRC
+tags:
+    - attack.initial_access
+    - attack.t1190
+    - cve.2021-44228
+logsource:
+    category: webserver
+detection:
+    uri:
+        c-uri|contains:
+            - '${jndi:'
+            - '%24%7bjndi'
+            - '$%7bjndi'
+            - '${${'
+    agent:
+        c-useragent|contains:
+            - '${jndi:'
+            - '${${'
+    referer:
+        cs-referer|contains:
+            - '${jndi:'
+            - '${${'
+    condition: 1 of them
+level: medium
+---
+title: Outil d'analyse de vulnérabilités web
+id: 377d8d49-9e3b-5a5d-b65e-1ececa8002e2
+status: stable
+description: Une requête s'annonce comme venant d'un outil d'analyse ou d'attaque connu.
+author: Sentinel GRC
+tags:
+    - attack.reconnaissance
+    - attack.t1595.002
+logsource:
+    category: webserver
+detection:
+    selection:
+        c-useragent|contains:
+            - sqlmap
+            - nikto
+            - nuclei
+            - wpscan
+            - acunetix
+            - nessus
+            - openvas
+            - masscan
+            - zgrab
+            - dirbuster
+            - gobuster
+            - feroxbuster
+            - 'Nmap Scripting Engine'
+            - havij
+            - w3af
+            - arachni
+    condition: selection
+level: low
+---
+title: Page web introuvable
+id: 95beb906-c985-51cb-b535-94d66c33ab7d
+name: web_not_found
+status: stable
+description: Le serveur a répondu qu'une page n'existe pas.
+author: Sentinel GRC
+logsource:
+    category: webserver
+detection:
+    selection:
+        sc-status: 404
+    condition: selection
+level: informational
+---
+title: Énumération du contenu d'un site web
+id: c5dbdbd4-8874-5059-8c3f-052fcdd544f5
+status: stable
+description: Une même adresse a demandé de très nombreuses pages inexistantes en peu de temps, ce que fait un outil qui cherche des fichiers et des dossiers cachés.
+author: Sentinel GRC
+tags:
+    - attack.reconnaissance
+    - attack.t1595.003
+correlation:
+    type: event_count
+    rules:
+        - web_not_found
+    group-by:
+        - src_ip
+    timespan: 2m
+    condition:
+        gte: 60
+level: medium
+---
+title: Authentification web refusée
+id: ea5b3e3e-3631-58a4-9fa3-790704dc614d
+name: web_auth_refused
+status: stable
+description: Le serveur a refusé une authentification ou un accès.
+author: Sentinel GRC
+logsource:
+    category: webserver
+detection:
+    selection:
+        sc-status:
+            - 401
+            - 403
+    condition: selection
+level: informational
+---
+title: Force brute sur une authentification web
+id: aeb169b0-cfc6-5c8a-be0d-bc4b9a9fdeb2
+status: stable
+description: Une même adresse s'est vu refuser l'accès de très nombreuses fois en quelques minutes.
+author: Sentinel GRC
+tags:
+    - attack.credential_access
+    - attack.t1110
+correlation:
+    type: event_count
+    rules:
+        - web_auth_refused
+    group-by:
+        - src_ip
+    timespan: 5m
+    condition:
+        gte: 30
+level: medium

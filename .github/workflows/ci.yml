@@ -76,7 +76,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
       - name: Install cargo-audit
-        run: cargo install cargo-audit
+        run: cargo install cargo-audit --locked
       - name: Run security audit
         run: cargo audit
 
@@ -96,6 +96,38 @@ jobs:
       - name: Install dependencies
         run: sudo apt-get update && sudo apt-get install -y libssl-dev pkg-config libgtk-3-dev libayatana-appindicator3-dev libxdo-dev libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev libxkbcommon-dev libudev-dev libasound2-dev libspeechd-dev
       - run: cargo test --all-features
+
+  # The same tests on the two desktop systems the agent ships for. Much of
+  # the response code is specific to one system (pf, netsh, DPAPI, launchd)
+  # and was only ever compiled there, never run.
+  # Not required yet: these jobs are new and must prove stable first. Remove
+  # `continue-on-error` once they have been green for a while.
+  test-desktop:
+    name: Tests (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    needs: [clippy, deny]
+    continue-on-error: true
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - name: Copy icons for Windows build
+        if: runner.os == 'Windows'
+        run: |
+          mkdir -p "crates/agent-gui/assets/icons"
+          mkdir -p "crates/agent-core/assets/icons"
+          Copy-Item "assets/icons/sentinel-agent.ico" "crates/agent-gui/assets/icons/"
+          Copy-Item "assets/icons/sentinel-agent.ico" "crates/agent-core/assets/icons/"
+        shell: pwsh
+      - name: Set Perl for vendored OpenSSL builds
+        if: runner.os == 'Windows'
+        run: echo "PERL=C:/Strawberry/perl/bin/perl.exe" >> $GITHUB_ENV
+        shell: bash
+      - run: cargo test --workspace --features agent-core/gui
 
   # Code coverage
   coverage:
@@ -255,7 +287,7 @@ jobs:
           path: target/release
 
       - name: Install cargo-deb
-        run: cargo install cargo-deb
+        run: cargo install cargo-deb --locked
 
       - name: Build DEB
         run: |
@@ -284,7 +316,7 @@ jobs:
           path: target/release
 
       - name: Install cargo-generate-rpm
-        run: cargo install cargo-generate-rpm
+        run: cargo install cargo-generate-rpm --locked
 
       - name: Strip binary
         run: |

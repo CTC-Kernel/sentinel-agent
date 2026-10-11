@@ -188,6 +188,17 @@ fn friendly_error(raw: &str) -> String {
             "Le service privilégié Sentinel est injoignable : installez-le avec \
              `sudo sentinel-agent install` puis `sudo sentinel-agent start` \
              (ou réinstallez le pkg)."
+        } else if part.contains("only accepted from the Sentinel application") {
+            "Le service privilégié a refusé la demande : elle ne vient pas de \
+             l'application Sentinel installée avec lui. Utilisez l'application \
+             installée, ou réinstallez le pkg pour réaligner les deux."
+        } else if part.contains("is no longer running") || part.contains("PID was reused") {
+            "Le processus détecté s'est déjà terminé : rien n'a été arrêté."
+        } else if part.contains("Cannot block the DNS resolver")
+            || part.contains("Cannot block the network gateway")
+        {
+            "Adresse non bloquée : c'est le résolveur DNS ou la passerelle de ce \
+             poste, la bloquer le couperait du réseau."
         } else if part.contains("SIEM destination is not enabled") {
             "Aucune destination SIEM n'est activée : configurez-la dans \
              Paramètres › Intégration SIEM."
@@ -928,6 +939,32 @@ mod tests {
     fn installed_template_is_detected_even_when_legacy_flag_is_missing() {
         let installed = vec![playbook("Ransomware", false)];
         assert!(is_template_installed(&installed, "Ransomware"));
+    }
+
+    /// The messages are the ones `agent-core` produces (`edr_actions`,
+    /// `privileged`): this crate cannot name them, so they are quoted here.
+    #[test]
+    fn response_refusals_are_explained_to_the_operator() {
+        let reused = friendly_error(
+            "PID 4242 is no longer 'xmrig' (now 'Finder'): the detected process has \
+             exited and its PID was reused, nothing was terminated",
+        );
+        assert!(reused.contains("déjà terminé"), "{reused}");
+
+        let foreign = friendly_error(
+            "Refused: privileged actions are only accepted from the Sentinel \
+             application installed with this service",
+        );
+        assert!(foreign.contains("a refusé la demande"), "{foreign}");
+
+        let resolver =
+            friendly_error("Anti-Draper protection: Cannot block the DNS resolver of this host");
+        assert!(resolver.contains("résolveur DNS"), "{resolver}");
+    }
+
+    #[test]
+    fn unknown_errors_are_shown_as_received() {
+        assert_eq!(friendly_error("pfctl: syntax error"), "pfctl: syntax error");
     }
 
     #[test]

@@ -110,6 +110,7 @@ name = "sentinel-agent"
 assets = [
     { source = "../../target/release/agent-core", dest = "/usr/bin/sentinel-agent", mode = "755" },
     { source = "debian/sentinel-agent.service", dest = "/lib/systemd/system/sentinel-agent.service", mode = "644" },
+    { source = "debian/sentinel-agent-helper.service", dest = "/lib/systemd/system/sentinel-agent-helper.service", mode = "644" },
     { source = "../../linux/logrotate/sentinel-agent", dest = "/etc/logrotate.d/sentinel-agent", mode = "644" },
     { source = "../../linux/apparmor/sentinel-agent", dest = "/etc/apparmor.d/usr.bin.sentinel-agent", mode = "644" },
     { source = "../../config/agent.example.json", dest = "/etc/sentinel/agent.example.json", mode = "644" },
@@ -137,6 +138,7 @@ maintainer-scripts = "debian/"
 assets = [
     ["target/release/agent-core", "usr/bin/sentinel-agent", "755"],
     ["debian/sentinel-agent.service", "lib/systemd/system/sentinel-agent.service", "644"],
+    ["debian/sentinel-agent-helper.service", "lib/systemd/system/sentinel-agent-helper.service", "644"],
     ["../../linux/logrotate/sentinel-agent", "etc/logrotate.d/sentinel-agent", "644"],
     ["../../linux/apparmor/sentinel-agent", "etc/apparmor.d/usr.bin.sentinel-agent", "644"],
     ["../../config/agent.example.json", "etc/sentinel/agent.example.json", "644"],

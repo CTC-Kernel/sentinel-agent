@@ -27,6 +27,31 @@ use std::sync::atomic::Ordering;
 #[cfg(feature = "gui")]
 use tracing::warn;
 
+/// What a file integrity alert changed besides the contents, as shown in the
+/// interface: `permissions 440 → 666 · propriétaire 0:0 → 501:20`.
+#[cfg(feature = "gui")]
+pub(crate) fn fim_change_detail(alert: &agent_common::types::FimAlert) -> Option<String> {
+    use agent_common::types::PERMISSION_BITS;
+    let mut parts = Vec::new();
+    if let (Some(old), Some(new)) = (alert.old_permissions, alert.new_permissions) {
+        parts.push(format!(
+            "permissions {:o} \u{2192} {:o}",
+            old & PERMISSION_BITS,
+            new & PERMISSION_BITS
+        ));
+    }
+    if let (Some(old), Some(new)) = (alert.old_owner, alert.new_owner) {
+        parts.push(format!(
+            "propri\u{00e9}taire {}:{} \u{2192} {}:{}",
+            old.uid, old.gid, new.uid, new.gid
+        ));
+    }
+    if alert.widens_access() {
+        parts.push("acc\u{00e8}s \u{00e9}largi".to_string());
+    }
+    (!parts.is_empty()).then(|| parts.join(" \u{00b7} "))
+}
+
 #[cfg(feature = "gui")]
 impl AgentRuntime {
     /// Emit a GUI event (no-op if no sender set).

@@ -1,0 +1,339 @@
+# Règles Sigma livrées avec l'agent Sentinel GRC.
+#
+# Elles s'appuient sur les champs que l'agent extrait des journaux (voir
+# crates/agent-siem/src/decode.rs). Pour en ajuster une, copiez-la dans le
+# dossier « sigma.d » avec le même `id` : votre version la remplace. Pour en
+# désactiver une, ajoutez son `id` à « sigma.d/disabled-rules.txt ».
+title: Échec d'ouverture de session Windows
+id: 31d62dad-1a5c-5d31-bedf-0a6b34757b62
+name: win_logon_failed
+status: stable
+description: Une ouverture de session Windows a échoué.
+author: Sentinel GRC
+logsource:
+    product: windows
+    service: security
+detection:
+    selection:
+        EventID: 4625
+    condition: selection
+level: informational
+---
+title: Force brute sur l'ouverture de session Windows
+id: 6d28c68d-5942-56ed-a668-d1689b0914e3
+status: stable
+description: Une même adresse a échoué de nombreuses fois à ouvrir une session Windows en quelques minutes.
+author: Sentinel GRC
+tags:
+    - attack.credential_access
+    - attack.t1110.001
+correlation:
+    type: event_count
+    rules:
+        - win_logon_failed
+    group-by:
+        - src_ip
+    timespan: 5m
+    condition:
+        gte: 10
+level: high
+---
+title: Pulvérisation de mots de passe Windows
+id: 59d2ae19-0d81-5402-a71a-66bcd07a350b
+status: stable
+description: Une même adresse a essayé de nombreux comptes Windows différents en quelques minutes.
+author: Sentinel GRC
+tags:
+    - attack.credential_access
+    - attack.t1110.003
+correlation:
+    type: value_count
+    rules:
+        - win_logon_failed
+    group-by:
+        - src_ip
+    timespan: 10m
+    condition:
+        field: TargetUserName
+        gte: 6
+level: high
+---
+title: Échecs répétés d'ouverture de session pour un compte Windows
+id: c248609f-2cdb-5741-88e5-9d20fccdced0
+status: stable
+description: Un même compte Windows a été refusé de nombreuses fois en quelques minutes.
+author: Sentinel GRC
+tags:
+    - attack.credential_access
+    - attack.t1110
+correlation:
+    type: event_count
+    rules:
+        - win_logon_failed
+    group-by:
+        - TargetUserName
+    timespan: 5m
+    condition:
+        gte: 10
+level: medium
+---
+title: Journal de sécurité Windows effacé
+id: 6802a580-3c03-58db-866d-7994d5eecd4c
+status: stable
+description: Le journal de sécurité a été effacé, ce que fait un attaquant pour supprimer ses traces.
+author: Sentinel GRC
+tags:
+    - attack.defense_evasion
+    - attack.t1070.001
+logsource:
+    product: windows
+    service: security
+detection:
+    selection:
+        EventID: 1102
+    condition: selection
+level: high
+---
+title: Journal d'événements Windows effacé
+id: 4e047e0c-6c43-5169-9d6b-f7704dcc67f2
+status: stable
+description: Un journal d'événements a été effacé.
+author: Sentinel GRC
+tags:
+    - attack.defense_evasion
+    - attack.t1070.001
+logsource:
+    product: windows
+    service: system
+detection:
+    selection:
+        EventID: 104
+    condition: selection
+level: high
+---
+title: Compte utilisateur Windows créé
+id: 0b036b51-5e06-58fa-a349-9918742b68b5
+status: stable
+description: Un compte local ou de domaine a été créé.
+author: Sentinel GRC
+tags:
+    - attack.persistence
+    - attack.t1136.001
+logsource:
+    product: windows
+    service: security
+detection:
+    selection:
+        EventID: 4720
+    condition: selection
+level: medium
+---
+title: Compte ajouté à un groupe d'administration Windows
+id: 8cf491aa-ae02-5671-83c6-927191496e69
+status: stable
+description: Un compte a été ajouté au groupe Administrateurs, Admins du domaine, Administrateurs de l'entreprise ou Administrateurs du schéma.
+author: Sentinel GRC
+tags:
+    - attack.persistence
+    - attack.privilege_escalation
+    - attack.t1098
+logsource:
+    product: windows
+    service: security
+detection:
+    selection:
+        EventID:
+            - 4728
+            - 4732
+            - 4756
+        TargetSid|endswith:
+            - '-544'
+            - '-512'
+            - '-518'
+            - '-519'
+    condition: selection
+level: high
+---
+title: Service Windows installé avec une commande suspecte
+id: de53f473-08ff-5780-a2b7-b7f1df400ee5
+status: stable
+description: Un service a été installé dont la commande lance un interpréteur, un outil de téléchargement, ou un programme placé dans un dossier accessible en écriture aux utilisateurs.
+author: Sentinel GRC
+tags:
+    - attack.persistence
+    - attack.privilege_escalation
+    - attack.t1543.003
+logsource:
+    product: windows
+    service: system
+detection:
+    selection:
+        EventID: 7045
+        ImagePath|contains:
+            - powershell
+            - pwsh
+            - 'cmd.exe /c'
+            - 'cmd /c'
+            - '%COMSPEC%'
+            - '\Users\Public\'
+            - '\AppData\'
+            - '\Temp\'
+            - 'ADMIN$'
+            - rundll32
+            - regsvr32
+            - mshta
+            - certutil
+            - bitsadmin
+    condition: selection
+level: high
+---
+title: Service Windows installé
+id: 0210559b-1b15-5078-84c9-30d1f6ddfb34
+status: stable
+description: Un service a été installé.
+author: Sentinel GRC
+tags:
+    - attack.persistence
+    - attack.t1543.003
+logsource:
+    product: windows
+    service: system
+detection:
+    selection:
+        EventID: 7045
+    condition: selection
+level: low
+---
+title: Tâche planifiée Windows créée
+id: 96210d4b-e2c4-5016-acb7-32007f39d6d9
+status: stable
+description: Une tâche planifiée a été créée.
+author: Sentinel GRC
+tags:
+    - attack.persistence
+    - attack.t1053.005
+logsource:
+    product: windows
+    service: security
+detection:
+    selection:
+        EventID: 4698
+    condition: selection
+level: low
+---
+title: Stratégie d'audit Windows modifiée
+id: 5deab746-d7ff-5630-a993-2560b4c83a9c
+status: stable
+description: La stratégie d'audit du système a été modifiée, ce qui peut faire cesser l'enregistrement d'événements de sécurité.
+author: Sentinel GRC
+tags:
+    - attack.defense_evasion
+    - attack.t1562.002
+logsource:
+    product: windows
+    service: security
+detection:
+    selection:
+        EventID: 4719
+    condition: selection
+level: medium
+---
+title: Ouverture de session Bureau à distance depuis Internet
+id: 3664d7a3-c8de-5093-bb32-86dbaedd17ce
+status: stable
+description: Une session Bureau à distance a été ouverte depuis une adresse publique.
+author: Sentinel GRC
+tags:
+    - attack.initial_access
+    - attack.lateral_movement
+    - attack.t1133
+    - attack.t1021.001
+logsource:
+    product: windows
+    service: security
+detection:
+    selection:
+        EventID: 4624
+        LogonType: 10
+    remote:
+        src_ip|exists: true
+    filter_private:
+        src_ip|cidr:
+            - 10.0.0.0/8
+            - 172.16.0.0/12
+            - 192.168.0.0/16
+            - 127.0.0.0/8
+            - 169.254.0.0/16
+            - 100.64.0.0/10
+            - ::1
+            - fe80::/10
+            - fc00::/7
+    condition: selection and remote and not filter_private
+level: medium
+---
+title: Microsoft Defender a détecté un programme malveillant
+id: c910a36c-2b22-5395-b847-40ba422063dd
+status: stable
+description: L'antivirus Microsoft Defender a détecté un programme malveillant ou indésirable.
+author: Sentinel GRC
+tags:
+    - attack.execution
+logsource:
+    product: windows
+    service: windefend
+detection:
+    selection:
+        EventID:
+            - 1006
+            - 1015
+            - 1116
+    condition: selection
+level: high
+---
+title: Protection en temps réel de Microsoft Defender désactivée
+id: ee37008b-d00f-5395-9053-ae9d273be703
+status: stable
+description: La protection en temps réel ou l'analyse de Microsoft Defender a été désactivée.
+author: Sentinel GRC
+tags:
+    - attack.defense_evasion
+    - attack.t1562.001
+logsource:
+    product: windows
+    service: windefend
+detection:
+    selection:
+        EventID:
+            - 5001
+            - 5010
+            - 5012
+    condition: selection
+level: high
+---
+title: Script PowerShell d'un outil offensif connu
+id: 4de89714-22f8-5c04-a8e3-013942a8377c
+status: stable
+description: Un bloc de script PowerShell contient le nom d'une fonction d'un outil offensif connu, ou une commande qui désactive les protections.
+author: Sentinel GRC
+tags:
+    - attack.execution
+    - attack.t1059.001
+logsource:
+    product: windows
+    service: powershell
+detection:
+    selection:
+        EventID: 4104
+        ScriptBlockText|contains:
+            - Invoke-Mimikatz
+            - Invoke-ReflectivePEInjection
+            - Invoke-Shellcode
+            - Invoke-Kerberoast
+            - Invoke-BloodHound
+            - Get-GPPPassword
+            - amsiInitFailed
+            - System.Management.Automation.AmsiUtils
+            - 'Set-MpPreference -DisableRealtimeMonitoring'
+            - 'Add-MpPreference -ExclusionPath'
+    condition: selection
+level: high

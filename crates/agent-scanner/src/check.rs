@@ -49,6 +49,21 @@ impl CheckOutput {
         }
     }
 
+    /// An output for a check that cannot be evaluated on this system (the
+    /// file it reads does not exist, the tool it asks is not installed): it
+    /// counts neither for nor against the score.
+    pub fn not_applicable(message: impl Into<String>, raw_data: serde_json::Value) -> Self {
+        Self::fail(message, raw_data).with_metadata(Self::NOT_APPLICABLE, "true")
+    }
+
+    /// Metadata key marking an output as not applicable.
+    pub const NOT_APPLICABLE: &'static str = "not_applicable";
+
+    /// Whether the check could not be evaluated on this system.
+    pub fn is_not_applicable(&self) -> bool {
+        self.metadata.contains_key(Self::NOT_APPLICABLE)
+    }
+
     /// Add metadata to the output.
     pub fn with_metadata(mut self, key: impl Into<String>, value: impl Into<String>) -> Self {
         self.metadata.insert(key.into(), value.into());

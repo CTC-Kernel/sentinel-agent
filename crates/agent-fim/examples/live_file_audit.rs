@@ -14,6 +14,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             ignore_patterns: vec![],
             recursive: true,
             debounce_ms: 100,
+            rescan_interval_secs: 0,
         },
         tx,
     );

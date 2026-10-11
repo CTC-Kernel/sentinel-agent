@@ -60,9 +60,12 @@ mod compliance;
 mod configure_cmd;
 pub mod edr_actions;
 mod enrollment;
+mod fim_attribution;
 mod gui_bridge;
 mod heartbeat;
 pub mod host_isolation;
+mod inventory_watch;
+mod log_analysis;
 pub mod mdm;
 mod network_ops;
 pub mod playbook_engine;
@@ -262,6 +265,8 @@ const DEFAULT_SECURITY_SCAN_INTERVAL_SECS: u64 = 5 * 60;
 
 /// Interval between background checks of the release catalog (6 hours).
 const UPDATE_CHECK_INTERVAL_SECS: u64 = 6 * 60 * 60;
+/// How often incidents the platform has not received yet are sent again.
+const INCIDENT_FLUSH_INTERVAL_SECS: u64 = 60;
 
 /// Delay before the first background update check after start-up, so a
 /// freshly installed or relaunched agent settles before looking again.
@@ -357,10 +362,18 @@ pub struct AgentRuntime {
     feed_threat_intel: RwLock<Option<agent_network::ThreatIntelligence>>,
     /// Fresh feed intelligence waiting for the main loop to apply it.
     pending_feed_intel: threat_intel_feeds::PendingIntel,
+    /// SHA-256 of the files the indicator feeds list as malicious.
+    malicious_file_hashes: RwLock<Arc<std::collections::BTreeSet<String>>>,
     /// YARA helper (`None`: not installed, or no rules).
     yara: std::sync::Mutex<Option<agent_scanner::security::yara::YaraScanner>>,
     /// Source of process start events (`None`: option off or unavailable).
     process_telemetry: std::sync::Mutex<Option<process_telemetry::ProcessTelemetry>>,
+    /// Log sources and the rules evaluated on them (`None`: option off).
+    log_analysis: std::sync::Mutex<Option<log_analysis::LogAnalysis>>,
+    /// What was recently seen that can say who changed a file.
+    fim_attribution: std::sync::Mutex<fim_attribution::Attribution>,
+    /// The inventory of the system and when it was taken (`None`: option off).
+    inventory: std::sync::Mutex<Option<inventory_watch::InventoryWatch>>,
     /// Tampered ransomware canary folders (`None`: protection off).
     canary_rx: tokio::sync::Mutex<Option<mpsc::Receiver<agent_fim::canary::CanaryIncident>>>,
     /// Stops the current ransomware canary watcher (one flag per start).
@@ -606,15 +619,32 @@ impl AgentRuntime {
                 .join("exploit-intel"),
         );
         let mut security_monitor = SecurityMonitor::new();
-        let sigma =
-            security_monitor.load_sigma_rules(&AgentConfig::platform_data_dir().join("sigma.d"));
-        if sigma.loaded > 0 || !sigma.errors.is_empty() {
-            info!(
-                "Sigma rules: {} loaded, {} for another log source or system, {} refused",
-                sigma.loaded,
-                sigma.not_applicable,
-                sigma.errors.len()
+        // One reading of the rules directory gives the rules for processes
+        // and, when the logs are analysed, the rules for log events (with
+        // the ones shipped with the agent).
+        let rules_dir = AgentConfig::platform_data_dir().join("sigma.d");
+        let (log_analysis, sigma) = if config.log_analysis {
+            let (analysis, loaded) = log_analysis::LogAnalysis::load(&config, &rules_dir);
+            (Some(analysis), loaded)
+        } else {
+            let loaded = agent_scanner::security::sigma::load_rules(
+                &rules_dir,
+                &agent_scanner::security::sigma::LogCoverage::default(),
             );
+            (None, loaded)
+        };
+        security_monitor.set_sigma_rules(sigma.processes);
+        security_monitor.set_rootkit_detection(config.rootkit_detection);
+        security_monitor.watch_registry(AgentConfig::platform_data_dir().join("registry.json"));
+        let sigma = sigma.report;
+        if sigma.loaded + sigma.log_rules + sigma.correlations > 0 || !sigma.errors.is_empty() {
+            info!(
+                "Sigma rules: {}",
+                agent_scanner::security::sigma_logs::summary(&sigma)
+            );
+        }
+        for (reason, count) in &sigma.not_applicable_reasons {
+            debug!("Sigma rules not evaluated here: {} ({})", reason, count);
         }
         for error in &sigma.errors {
             warn!("Sigma rule not loaded: {}", error);
@@ -639,6 +669,19 @@ impl AgentRuntime {
             &mut registry,
             &AgentConfig::platform_data_dir().join("checks.d"),
         );
+        // Policies in the SCA format: the organisation's own, and the
+        // hardening policy shipped with the agent when it is asked for.
+        {
+            use agent_scanner::checks::sca;
+            let host = sca::SystemHost::shared();
+            let policies_dir = AgentConfig::platform_data_dir().join("sca.d");
+            let report = sca::register_policies(&mut registry, &policies_dir, &host);
+            sca::log_report(&report, &policies_dir.display().to_string());
+            if config.hardening_benchmark {
+                let report = sca::register_builtin_policies(&mut registry, &host);
+                sca::log_report(&report, "the shipped hardening policy");
+            }
+        }
 
         let check_registry = Arc::new(registry);
 
@@ -650,6 +693,9 @@ impl AgentRuntime {
         info!("Initialized network manager with smart scheduling");
 
         let active_frameworks = config.active_frameworks.clone();
+        let inventory = config
+            .system_inventory
+            .then(inventory_watch::InventoryWatch::new);
 
         Self {
             config,
@@ -694,8 +740,12 @@ impl AgentRuntime {
             platform_threat_intel: RwLock::new(None),
             feed_threat_intel: RwLock::new(None),
             pending_feed_intel: Arc::new(std::sync::Mutex::new(None)),
+            malicious_file_hashes: RwLock::new(Arc::default()),
             yara: std::sync::Mutex::new(None),
             process_telemetry: std::sync::Mutex::new(None),
+            log_analysis: std::sync::Mutex::new(log_analysis),
+            fim_attribution: std::sync::Mutex::new(fim_attribution::Attribution::default()),
+            inventory: std::sync::Mutex::new(inventory),
             canary_rx: tokio::sync::Mutex::new(None),
             canary_shutdown: std::sync::Mutex::new(Arc::new(std::sync::atomic::AtomicBool::new(
                 false,
@@ -899,6 +949,9 @@ impl AgentRuntime {
         // AgentRuntime construction (which may include a failed GUI attempt).
         self.resource_monitor.reset_startup_time();
 
+        // The service manager's watchdog already counts down.
+        crate::service::watchdog::start();
+
         info!("Starting Sentinel GRC Agent v{}", AGENT_VERSION);
         info!("Server URL: https://cyber-threat-consulting.com [redacted]");
         info!(
@@ -920,6 +973,14 @@ impl AgentRuntime {
         // Honor timed IP unblocks whose in-memory timers died with the previous
         // process: expired blocks are lifted now, the rest are rescheduled.
         crate::edr_actions::reconcile_pending_blocks().await;
+        // And for an account lock: unlocked if its time passed while the
+        // agent was stopped.
+        crate::edr_actions::account::reconcile_pending_locks().await;
+        // The organisation's response programs, which playbooks ask for by name.
+        for error in crate::edr_actions::response_command::configure(&self.config.response_commands)
+        {
+            warn!("Response command not usable: {}", error);
+        }
         // Same for a host isolation: lifted if it expired, applied again if not.
         crate::host_isolation::reconcile_host_isolation().await;
 
@@ -934,6 +995,16 @@ impl AgentRuntime {
             self.seed_builtin_check_rules().await;
         } else {
             self.run_platform_startup().await?;
+        }
+
+        // What became of an update started by the previous process.
+        self.report_previous_update_outcome().await;
+
+        if self.config.playbook_simulation {
+            warn!(
+                "Playbook simulation is on: automatic response actions are recorded, \
+                 not executed (\"playbook_simulation\" in the configuration)"
+            );
         }
 
         // Last network monitoring consent received from the platform: must be
@@ -1011,6 +1082,7 @@ impl AgentRuntime {
 
         // Track last operation times
         let mut last_heartbeat = std::time::Instant::now();
+        let mut last_incident_flush = std::time::Instant::now();
         let mut last_vuln_scan = std::time::Instant::now()
             .checked_sub(std::time::Duration::from_secs(self.vuln_scan_interval_secs))
             .unwrap_or_else(std::time::Instant::now);
@@ -1144,7 +1216,26 @@ impl AgentRuntime {
             let mut fim_rx_guard = self.fim_rx.lock().await;
             *fim_rx_guard = Some(fim_rx);
 
-            let engine = FimEngine::with_defaults(fim_tx);
+            // The configured paths and exclusions, or the defaults. The
+            // baseline is kept beside the agent's data so that a change made
+            // while the agent is stopped is found at the next start.
+            let policy = agent_fim::policy::build_policy(
+                self.config.fim_watched_paths.as_deref(),
+                self.config.fim_ignore_patterns.as_deref(),
+            );
+            // The default paths include places that may not exist (yet);
+            // only a path the configuration names is worth a warning.
+            if self.config.fim_watched_paths.is_some() {
+                for warning in agent_fim::policy::validate_policy(&policy) {
+                    warn!("FIM policy: {}", warning);
+                }
+            }
+            let fim_dir = AgentConfig::platform_data_dir().join("fim");
+            let mut engine = FimEngine::new(policy, fim_tx);
+            if self.config.fim_report_changes {
+                engine = engine.with_content_dir(fim_dir.join("content"));
+            }
+            let engine = engine.with_state_file(fim_dir.join("baseline.json"));
 
             if let Err(e) = engine.start().await {
                 error!("Failed to start FIM engine: {}", e);
@@ -1254,7 +1345,18 @@ impl AgentRuntime {
 
         // Initialize correlation engine with default rules
         {
-            let engine = agent_siem::CorrelationEngine::with_default_rules();
+            // With the logs analysed by the detection rules, the two coarse
+            // counters they replace are left out: "five lines saying failed"
+            // and "three lines saying sudo" would report the same activity a
+            // second time, and much that is not an attack.
+            let engine = if self.config.log_analysis {
+                agent_siem::CorrelationEngine::with_default_rules_except(&[
+                    "brute_force",
+                    "privilege_escalation",
+                ])
+            } else {
+                agent_siem::CorrelationEngine::with_default_rules()
+            };
             let mut guard = self.correlation_engine.write().await;
             *guard = Some(engine);
             info!("Correlation engine initialized");
@@ -1262,6 +1364,8 @@ impl AgentRuntime {
 
         info!("Agent main loop started");
         loop {
+            crate::service::watchdog::beat();
+
             // Check for shutdown signal
             if self.state.shutdown.load(Ordering::Acquire) {
                 info!("Shutdown requested, stopping main loop");
@@ -1290,8 +1394,99 @@ impl AgentRuntime {
                 .unwrap_or_else(|e| e.into_inner())
                 .take();
             if let Some(intel) = fresh_feed_intel {
-                *self.feed_threat_intel.write().await = Some(intel);
+                if !intel.file_hashes.is_empty() {
+                    info!(
+                        "Threat intelligence in use: {} malicious file hashes",
+                        intel.file_hashes.len()
+                    );
+                }
+                *self.malicious_file_hashes.write().await = intel.file_hashes;
+                *self.feed_threat_intel.write().await = Some(intel.network);
                 self.apply_threat_intel().await;
+            }
+
+            // Log events written since the last pass, evaluated against the rules
+            #[cfg(target_os = "windows")]
+            self.read_windows_events().await;
+            let log_findings = tokio::task::block_in_place(|| self.take_log_findings());
+            if !log_findings.file_actors.is_empty() {
+                let now = std::time::Instant::now();
+                let mut attribution = self
+                    .fim_attribution
+                    .lock()
+                    .unwrap_or_else(|e| e.into_inner());
+                for (path, actor) in log_findings.file_actors {
+                    attribution.audited(&path, actor, now);
+                }
+            }
+            for incident in log_findings.incidents {
+                warn!("{}", incident.title);
+                if let Err(e) = self.upload_incident(&incident).await {
+                    error!("Failed to upload log detection incident: {}", e);
+                }
+                #[cfg(feature = "gui")]
+                {
+                    self.emit_system_incident(&incident);
+                    let level = match incident.severity {
+                        agent_scanner::IncidentSeverity::Critical
+                        | agent_scanner::IncidentSeverity::High => "error",
+                        _ => "warning",
+                    };
+                    self.emit_notification(
+                        "Détection dans les journaux",
+                        incident.title.trim_start_matches("Sigma: "),
+                        level,
+                    );
+                    kpi_incident_count = kpi_incident_count.saturating_add(1);
+                }
+                pipeline_incidents.push(incident);
+            }
+            if !log_findings.records.is_empty() {
+                let siem_guard = self.siem_forwarder.read().await;
+                if let Some(siem) = siem_guard.as_ref() {
+                    for event in &log_findings.records {
+                        siem.record_event(event.clone()).await;
+                        if siem.is_enabled()
+                            && let Err(e) = siem.send_event(event).await
+                        {
+                            warn!("Failed to forward log detection to external SIEM: {}", e);
+                        }
+                    }
+                }
+            }
+
+            // Accounts, services and listening ports: what changed since the
+            // last inventory
+            let (inventory_incidents, inventory_records) = self.inventory_pass().await;
+            for incident in inventory_incidents {
+                warn!("{}", incident.title);
+                if let Err(e) = self.upload_incident(&incident).await {
+                    error!("Failed to upload inventory change incident: {}", e);
+                }
+                #[cfg(feature = "gui")]
+                {
+                    self.emit_system_incident(&incident);
+                    self.emit_notification(
+                        "Changement dans l'inventaire du poste",
+                        &incident.description,
+                        "warning",
+                    );
+                    kpi_incident_count = kpi_incident_count.saturating_add(1);
+                }
+                pipeline_incidents.push(incident);
+            }
+            if !inventory_records.is_empty() {
+                let siem_guard = self.siem_forwarder.read().await;
+                if let Some(siem) = siem_guard.as_ref() {
+                    for event in &inventory_records {
+                        siem.record_event(event.clone()).await;
+                        if siem.is_enabled()
+                            && let Err(e) = siem.send_event(event).await
+                        {
+                            warn!("Failed to forward inventory change to external SIEM: {}", e);
+                        }
+                    }
+                }
             }
 
             // Processes started since the last pass, evaluated as they start
@@ -1348,28 +1543,45 @@ impl AgentRuntime {
             let mut fim_batch_payloads: Vec<agent_sync::types::FimAlertPayload> = Vec::new();
             // Files created or changed, to scan with the YARA rules.
             let mut yara_candidates: Vec<String> = Vec::new();
+            // The same files with their SHA-256, to compare with the feeds.
+            let mut hash_candidates: Vec<(String, String)> = Vec::new();
             let mut fim_siem_reports: Vec<api_client::SecurityIncidentReport> = Vec::new();
+            // Changes made while the agent was stopped, found at this start.
+            let mut fim_found_at_start: u32 = 0;
             {
                 let mut rx_guard = self.fim_rx.lock().await;
                 if let Some(rx) = rx_guard.as_mut() {
-                    while let Ok(alert) = rx.try_recv() {
+                    while let Ok(mut alert) = rx.try_recv() {
                         info!("FIM Alert: {:?} on {}", alert.change, alert.path.display());
+                        alert.actor = self
+                            .fim_attribution
+                            .lock()
+                            .unwrap_or_else(|e| e.into_inner())
+                            .actor_for(&alert.path.to_string_lossy(), std::time::Instant::now());
 
+                        // A file opened to more accounts (write bit for all,
+                        // set-user-ID, another owner) is a step of an attack
+                        // more often than an edit is.
+                        let widens_access = alert.widens_access();
+                        if alert.detection == agent_common::types::FimDetection::Startup {
+                            fim_found_at_start = fim_found_at_start.saturating_add(1);
+                        }
                         let report = api_client::SecurityIncidentReport {
                             incident_type: api_client::IncidentType::UnauthorizedChange,
-                            severity: api_client::Severity::Medium,
+                            severity: if widens_access {
+                                api_client::Severity::High
+                            } else {
+                                api_client::Severity::Medium
+                            },
                             title: format!("File Integrity Alert: {}", alert.path.display()),
-                            description: format!(
-                                "File {} was modified. Change type: {:?}.",
-                                alert.path.display(),
-                                alert.change
-                            ),
+                            description: alert.description(),
                             evidence: serde_json::json!({
                                 "path": alert.path,
                                 "change_type": alert.change,
                                 "old_hash": alert.old_hash,
                                 "new_hash": alert.new_hash,
                                 "timestamp": alert.timestamp,
+                                "details": alert.details(),
                             }),
                             confidence: 100,
                             detected_at: chrono::Utc::now().to_rfc3339(),
@@ -1404,6 +1616,17 @@ impl AgentRuntime {
                                     timestamp: alert.timestamp,
                                     acknowledged: false,
                                     allowlisted: false,
+                                    detection: alert.detection,
+                                    sha256: alert.new_sha256.clone(),
+                                    detail: gui_bridge::fim_change_detail(&alert),
+                                    diff: alert.diff.clone(),
+                                    actor: alert.actor.as_ref().map(|actor| {
+                                        if actor.exact {
+                                            actor.label()
+                                        } else {
+                                            format!("{} (probable)", actor.label())
+                                        }
+                                    }),
                                 },
                             });
                             let today = chrono::Utc::now().timestamp().max(0) as u64
@@ -1426,6 +1649,12 @@ impl AgentRuntime {
                                 | agent_common::types::FimChangeType::Renamed
                         ) {
                             yara_candidates.push(alert.path.to_string_lossy().to_string());
+                            if let Some(sha256) = &alert.new_sha256 {
+                                hash_candidates.push((
+                                    alert.path.to_string_lossy().to_string(),
+                                    sha256.clone(),
+                                ));
+                            }
                         }
 
                         // Collect for batched uploads (avoid per-alert HTTP requests → 429)
@@ -1439,7 +1668,7 @@ impl AgentRuntime {
                         if let Some(siem) = siem_guard.as_ref() {
                             let mut event = agent_siem::SiemEvent {
                                 timestamp: chrono::Utc::now(),
-                                severity: 5,
+                                severity: if widens_access { 8 } else { 5 },
                                 category: agent_siem::EventCategory::FileIntegrity,
                                 name: "File Integrity Change".to_string(),
                                 description: siem_description,
@@ -1453,7 +1682,7 @@ impl AgentRuntime {
                                 process_name: None,
                                 process_id: None,
                                 file_path: Some(alert.path.to_string_lossy().to_string()),
-                                custom_fields: serde_json::Value::Null,
+                                custom_fields: alert.details(),
                                 event_id: uuid::Uuid::new_v4().to_string(),
                                 agent_version: AGENT_VERSION.to_string(),
                             };
@@ -1481,6 +1710,50 @@ impl AgentRuntime {
                             }
                         }
                     }
+                }
+            }
+
+            if fim_found_at_start > 0 {
+                warn!(
+                    "FIM: {} watched file(s) changed while the agent was not running",
+                    fim_found_at_start
+                );
+                #[cfg(feature = "gui")]
+                self.emit_notification(
+                    "Fichiers modifiés pendant l'arrêt de l'agent",
+                    &format!(
+                        "{fim_found_at_start} fichier(s) surveillé(s) ont changé alors que \
+                         l'agent ne tournait pas. Détail dans Intégrité des fichiers."
+                    ),
+                    "warning",
+                );
+            }
+
+            // Indicator feeds: a created or changed file whose SHA-256 is listed
+            if !hash_candidates.is_empty() {
+                let listed = self.malicious_file_hashes.read().await.clone();
+                for (path, sha256) in hash_candidates {
+                    if !listed.contains(&sha256) {
+                        continue;
+                    }
+                    let incident = threat_intel_feeds::known_malware_incident(&path, &sha256);
+                    warn!("{}", incident.title);
+                    if let Err(e) = self.upload_incident(&incident).await {
+                        error!("Failed to upload known malware incident: {}", e);
+                    }
+                    #[cfg(feature = "gui")]
+                    {
+                        self.emit_system_incident(&incident);
+                        self.emit_notification(
+                            "Fichier malveillant connu détecté",
+                            &incident.description,
+                            "error",
+                        );
+                        kpi_incident_count = kpi_incident_count.saturating_add(1);
+                    }
+                    pipeline_fim_alerts
+                        .push((path, threat_intel_feeds::PLAYBOOK_CHANGE_TYPE.to_string()));
+                    pipeline_incidents.push(incident);
                 }
             }
 
@@ -1625,6 +1898,14 @@ impl AgentRuntime {
                         info!("SIEM forwarder config synced from GUI (enabled=true)");
                     }
                 }
+            }
+
+            // Incidents queued while the platform was unreachable
+            if !self.config.standalone
+                && last_incident_flush.elapsed().as_secs() >= INCIDENT_FLUSH_INTERVAL_SECS
+            {
+                last_incident_flush = std::time::Instant::now();
+                self.flush_queued_incidents().await;
             }
 
             // 2. Heartbeat & Config Sync (a standalone agent has nobody to report to)
@@ -2541,6 +2822,7 @@ impl AgentRuntime {
                         self.llm_service.as_ref().map(|s| s.as_ref()),
                         self.audit_trail.as_ref(),
                         siem_delivery.as_ref(),
+                        self.config.playbook_simulation,
                     )
                     .await;
                     drop(siem_delivery);
@@ -3366,6 +3648,7 @@ impl AgentRuntime {
         }
         self.stop_ransomware_canaries();
         self.stop_process_telemetry();
+        self.stop_log_analysis();
 
         // 4. Close database handle (implicit by Drop, but we can log it)
         info!("Closing database and terminating runtime.");

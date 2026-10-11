@@ -47,6 +47,7 @@ fn policy_validation_reports_missing_paths() {
         ignore_patterns: vec![],
         recursive: true,
         debounce_ms: 500,
+        rescan_interval_secs: 0,
     };
 
     let warnings = validate_policy(&policy);
@@ -67,6 +68,7 @@ async fn baseline_count_starts_at_zero() {
             ignore_patterns: vec![],
             recursive: false,
             debounce_ms: 500,
+            rescan_interval_secs: 0,
         },
         tx,
     );
@@ -107,6 +109,7 @@ async fn engine_start_stop_lifecycle() {
             ignore_patterns: vec![],
             recursive: true,
             debounce_ms: 500,
+            rescan_interval_secs: 0,
         },
         tx,
     );
@@ -140,6 +143,7 @@ async fn config_update_applies_new_policy() {
             ignore_patterns: vec![],
             recursive: false,
             debounce_ms: 500,
+            rescan_interval_secs: 0,
         },
         tx,
     );
@@ -153,6 +157,7 @@ async fn config_update_applies_new_policy() {
         ignore_patterns: vec![],
         recursive: true,
         debounce_ms: 500,
+        rescan_interval_secs: 0,
     };
 
     engine

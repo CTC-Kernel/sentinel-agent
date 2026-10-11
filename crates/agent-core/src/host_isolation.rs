@@ -83,7 +83,7 @@ pub(crate) struct Command {
 }
 
 impl Command {
-    fn new(program: &'static str, args: &[&str]) -> Self {
+    pub(crate) fn new(program: &'static str, args: &[&str]) -> Self {
         Self {
             program,
             args: args.iter().map(|arg| (*arg).to_string()).collect(),
@@ -463,7 +463,7 @@ pub(crate) fn reconcile_action(state: &IsolationState, now: i64) -> Reconcile {
 // ── Execution ───────────────────────────────────────────────────────────────
 
 /// Run a command; on failure return what it printed.
-async fn run(command: &Command) -> Result<String, String> {
+pub(crate) async fn run(command: &Command) -> Result<String, String> {
     let output = agent_common::process::silent_async_command(command.program)
         .args(&command.args)
         .output()

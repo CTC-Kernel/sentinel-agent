@@ -230,8 +230,13 @@ impl CheckRunner {
             );
         }
 
-        // Create check result
-        let mut result = if output.passed {
+        // Create check result. A check that could not be evaluated on this
+        // system is skipped, not failed.
+        let mut result = if output.is_not_applicable() {
+            let mut skipped = CheckResult::fail(&check_id, &output.message);
+            skipped.status = CheckStatus::Skipped;
+            skipped
+        } else if output.passed {
             CheckResult::pass(&check_id)
         } else {
             CheckResult::fail(&check_id, &output.message)

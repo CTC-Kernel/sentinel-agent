@@ -1,0 +1,399 @@
+# Politique de conformité livrée avec l'agent Sentinel GRC.
+#
+# Même format que les politiques SCA de Wazuh : vos propres politiques, ou
+# celles écrites pour Wazuh, se déposent dans le dossier « sca.d » du dossier
+# de données de l'agent. Champs propres à Sentinel : « severity »,
+# « category » (par contrôle) et « platforms » (par politique).
+
+policy:
+  id: sentinel_macos
+  name: "Durcissement macOS — socle Sentinel"
+  description: "Protections du système, mises à jour, services de partage, comptes et ouverture de session."
+  platforms: [macos]
+
+checks:
+  - id: 2001
+    title: "Gatekeeper actif"
+    description: "Gatekeeper refuse les applications non signées ou non notariées."
+    remediation: "sudo spctl --master-enable"
+    severity: high
+    category: antivirus
+    compliance:
+      - iso_27001: ["A.8.7"]
+      - cis_csc_v8: ["10"]
+    condition: all
+    rules:
+      - 'c:spctl --status -> r:assessments enabled'
+  - id: 2002
+    title: "Protection de l'intégrité du système (SIP) active"
+    description: "SIP empêche même root de modifier les fichiers du système."
+    remediation: "Démarrer en mode récupération, puis : csrutil enable"
+    severity: critical
+    category: kernel_security
+    compliance:
+      - iso_27001: ["A.8.9"]
+      - cis_csc_v8: ["4"]
+    condition: all
+    rules:
+      - 'c:csrutil status -> r:status: enabled'
+  - id: 2003
+    title: "FileVault actif"
+    description: "Sans chiffrement du disque, un Mac volé livre toutes ses données."
+    remediation: "Réglages Système > Confidentialité et sécurité > FileVault."
+    severity: high
+    category: encryption
+    compliance:
+      - iso_27001: ["A.8.24"]
+      - cis_csc_v8: ["3"]
+    condition: all
+    rules:
+      - 'c:fdesetup status -> r:FileVault is On'
+  - id: 2004
+    title: "Coupe-feu applicatif actif"
+    description: "Le coupe-feu refuse les connexions entrantes vers les applications non autorisées."
+    remediation: "Réglages Système > Réseau > Coupe-feu."
+    severity: medium
+    category: firewall
+    compliance:
+      - iso_27001: ["A.8.20"]
+      - cis_csc_v8: ["12"]
+    condition: all
+    rules:
+      - 'c:/usr/libexec/ApplicationFirewall/socketfilterfw --getglobalstate -> r:enabled'
+  - id: 2005
+    title: "Mode furtif du coupe-feu actif"
+    description: "En mode furtif, le Mac ne répond pas aux sondes réseau."
+    remediation: "Réglages Système > Réseau > Coupe-feu > Options > Activer le mode furtif."
+    severity: low
+    category: firewall
+    compliance:
+      - iso_27001: ["A.8.20"]
+      - cis_csc_v8: ["12"]
+    condition: all
+    rules:
+      - 'c:/usr/libexec/ApplicationFirewall/socketfilterfw --getstealthmode -> r:mode is on|mode enabled'
+  - id: 2010
+    title: "Recherche automatique des mises à jour"
+    description: "Les mises à jour doivent être recherchées sans intervention."
+    remediation: "Réglages Système > Général > Mise à jour de logiciels, ou : sudo defaults write /Library/Preferences/com.apple.SoftwareUpdate AutomaticCheckEnabled -bool true"
+    severity: medium
+    category: updates
+    compliance:
+      - iso_27001: ["A.8.8"]
+      - cis_csc_v8: ["7"]
+    condition: none
+    rules:
+      - 'c:defaults read /Library/Preferences/com.apple.SoftwareUpdate AutomaticCheckEnabled -> 0'
+  - id: 2011
+    title: "Téléchargement automatique des mises à jour"
+    description: "Une mise à jour déjà téléchargée s'installe plus vite."
+    remediation: "Réglages Système > Général > Mise à jour de logiciels, ou : sudo defaults write /Library/Preferences/com.apple.SoftwareUpdate AutomaticDownload -bool true"
+    severity: medium
+    category: updates
+    compliance:
+      - iso_27001: ["A.8.8"]
+      - cis_csc_v8: ["7"]
+    condition: none
+    rules:
+      - 'c:defaults read /Library/Preferences/com.apple.SoftwareUpdate AutomaticDownload -> 0'
+  - id: 2012
+    title: "Installation automatique des correctifs de sécurité"
+    description: "Les réponses de sécurité rapides corrigent des failles activement exploitées."
+    remediation: "Réglages Système > Général > Mise à jour de logiciels, ou : sudo defaults write /Library/Preferences/com.apple.SoftwareUpdate CriticalUpdateInstall -bool true"
+    severity: medium
+    category: updates
+    compliance:
+      - iso_27001: ["A.8.8"]
+      - cis_csc_v8: ["7"]
+    condition: none
+    rules:
+      - 'c:defaults read /Library/Preferences/com.apple.SoftwareUpdate CriticalUpdateInstall -> 0'
+  - id: 2013
+    title: "Mise à jour automatique des données de sécurité"
+    description: "XProtect et Gatekeeper dépendent de définitions à jour."
+    remediation: "Réglages Système > Général > Mise à jour de logiciels, ou : sudo defaults write /Library/Preferences/com.apple.SoftwareUpdate ConfigDataInstall -bool true"
+    severity: medium
+    category: updates
+    compliance:
+      - iso_27001: ["A.8.8"]
+      - cis_csc_v8: ["7"]
+    condition: none
+    rules:
+      - 'c:defaults read /Library/Preferences/com.apple.SoftwareUpdate ConfigDataInstall -> 0'
+  - id: 2014
+    title: "Installation automatique des mises à jour de macOS"
+    description: "Un système à jour ferme les failles publiées."
+    remediation: "Réglages Système > Général > Mise à jour de logiciels, ou : sudo defaults write /Library/Preferences/com.apple.SoftwareUpdate AutomaticallyInstallMacOSUpdates -bool true"
+    severity: medium
+    category: updates
+    compliance:
+      - iso_27001: ["A.8.8"]
+      - cis_csc_v8: ["7"]
+    condition: none
+    rules:
+      - 'c:defaults read /Library/Preferences/com.apple.SoftwareUpdate AutomaticallyInstallMacOSUpdates -> 0'
+  - id: 2020
+    title: "Session à distance (SSH) désactivée"
+    description: "À n'activer que sur les Mac administrés à distance."
+    remediation: "Réglages Système > Général > Partage : désactiver le service."
+    severity: medium
+    category: remote_access
+    compliance:
+      - iso_27001: ["A.8.20"]
+      - cis_csc_v8: ["4"]
+    condition: none
+    rules:
+      - 'c:launchctl print-disabled system -> r:com.openssh.sshd" => enabled|com.openssh.sshd" => false'
+  - id: 2021
+    title: "Partage d'écran désactivé"
+    description: "Le partage d'écran donne la main complète sur la session."
+    remediation: "Réglages Système > Général > Partage : désactiver le service."
+    severity: medium
+    category: remote_access
+    compliance:
+      - iso_27001: ["A.8.20"]
+      - cis_csc_v8: ["4"]
+    condition: none
+    rules:
+      - 'c:launchctl print-disabled system -> r:com.apple.screensharing" => enabled|com.apple.screensharing" => false'
+  - id: 2022
+    title: "Partage de fichiers désactivé"
+    description: "Un partage oublié expose des documents à tout le réseau."
+    remediation: "Réglages Système > Général > Partage : désactiver le service."
+    severity: medium
+    category: remote_access
+    compliance:
+      - iso_27001: ["A.8.20"]
+      - cis_csc_v8: ["4"]
+    condition: none
+    rules:
+      - 'c:launchctl print-disabled system -> r:com.apple.smbd" => enabled|com.apple.smbd" => false'
+  - id: 2023
+    title: "Événements Apple distants désactivés"
+    description: "Les événements Apple distants laissent une autre machine piloter les applications."
+    remediation: "Réglages Système > Général > Partage : désactiver le service."
+    severity: medium
+    category: remote_access
+    compliance:
+      - iso_27001: ["A.8.20"]
+      - cis_csc_v8: ["4"]
+    condition: none
+    rules:
+      - 'c:launchctl print-disabled system -> r:com.apple.AEServer" => enabled|com.apple.AEServer" => false'
+  - id: 2024
+    title: "Serveur FTP désactivé"
+    description: "FTP transmet les mots de passe en clair."
+    remediation: "Réglages Système > Général > Partage : désactiver le service."
+    severity: high
+    category: remote_access
+    compliance:
+      - iso_27001: ["A.8.20"]
+      - cis_csc_v8: ["4"]
+    condition: none
+    rules:
+      - 'c:launchctl print-disabled system -> r:com.apple.ftpd" => enabled|com.apple.ftpd" => false'
+  - id: 2025
+    title: "Partage d'imprimantes désactivé"
+    description: "Un Mac ne doit pas servir de serveur d'impression sans raison."
+    remediation: "Réglages Système > Général > Partage > Partage d'imprimantes."
+    severity: low
+    category: remote_access
+    compliance:
+      - iso_27001: ["A.8.20"]
+      - cis_csc_v8: ["4"]
+    condition: none
+    rules:
+      - 'c:cupsctl -> r:_share_printers=1'
+  - id: 2026
+    title: "Gestion à distance (Apple Remote Desktop) désactivée"
+    description: "La gestion à distance donne un contrôle complet du Mac."
+    remediation: "Réglages Système > Général > Partage > Gestion à distance."
+    severity: medium
+    category: remote_access
+    compliance:
+      - iso_27001: ["A.8.20"]
+      - cis_csc_v8: ["4"]
+    condition: none
+    rules:
+      - 'p:ARDAgent'
+  - id: 2027
+    title: "Partage Internet désactivé"
+    description: "Le partage Internet fait du Mac un routeur pour des appareils inconnus."
+    remediation: "Réglages Système > Général > Partage > Partage Internet."
+    severity: medium
+    category: network_hardening
+    compliance:
+      - iso_27001: ["A.8.20"]
+      - cis_csc_v8: ["12"]
+    condition: none
+    rules:
+      - 'c:defaults read /Library/Preferences/SystemConfiguration/com.apple.nat -> r:Enabled = 1'
+  - id: 2028
+    title: "Routage IP désactivé"
+    description: "Le Mac ne doit pas relayer de paquets entre ses interfaces."
+    remediation: "sudo sysctl -w net.inet.ip.forwarding=0"
+    severity: low
+    category: network_hardening
+    compliance:
+      - iso_27001: ["A.8.20"]
+      - cis_csc_v8: ["12"]
+    condition: all
+    rules:
+      - 'c:sysctl -n net.inet.ip.forwarding -> 0'
+  - id: 2029
+    title: "Serveur web intégré arrêté"
+    description: "Le serveur Apache livré avec macOS ne doit pas tourner sur un poste."
+    remediation: "sudo apachectl stop ; sudo launchctl disable system/org.apache.httpd"
+    severity: low
+    category: protocols
+    compliance:
+      - iso_27001: ["A.8.20"]
+      - cis_csc_v8: ["4"]
+    condition: none
+    rules:
+      - 'p:httpd'
+  - id: 2030
+    title: "Serveur NFS arrêté"
+    description: "NFS exporte des dossiers sans authentification forte."
+    remediation: "sudo nfsd disable"
+    severity: medium
+    category: protocols
+    compliance:
+      - iso_27001: ["A.8.20"]
+      - cis_csc_v8: ["4"]
+    condition: none
+    rules:
+      - 'p:nfsd'
+  - id: 2031
+    title: "Réveil par le réseau désactivé"
+    description: "Un Mac réveillable à distance est joignable pendant sa veille."
+    remediation: "sudo pmset -a womp 0"
+    severity: low
+    category: network_hardening
+    compliance:
+      - iso_27001: ["A.8.20"]
+      - cis_csc_v8: ["12"]
+    condition: none
+    rules:
+      - 'c:pmset -g -> r:womp\s+1'
+  - id: 2040
+    title: "Compte invité désactivé"
+    description: "Le compte invité ouvre une session sans mot de passe."
+    remediation: "Réglages Système > Utilisateurs et groupes > Utilisateur invité."
+    severity: medium
+    category: accounts
+    compliance:
+      - iso_27001: ["A.5.16"]
+      - cis_csc_v8: ["5"]
+    condition: none
+    rules:
+      - 'c:defaults read /Library/Preferences/com.apple.loginwindow GuestEnabled -> 1'
+  - id: 2041
+    title: "Ouverture de session automatique désactivée"
+    description: "Avec l'ouverture automatique, quiconque allume le Mac est dans la session."
+    remediation: "Réglages Système > Utilisateurs et groupes > Ouvrir automatiquement une session : Non."
+    severity: high
+    category: authentication
+    compliance:
+      - iso_27001: ["A.8.5"]
+      - cis_csc_v8: ["6"]
+    condition: none
+    rules:
+      - 'c:defaults read /Library/Preferences/com.apple.loginwindow autoLoginUser -> r:^\w+$'
+  - id: 2042
+    title: "Compte root désactivé"
+    description: "Sous macOS, l'administration passe par sudo ; le compte root n'a pas à être activé."
+    remediation: "dsenableroot -d"
+    severity: medium
+    category: privileged_access
+    compliance:
+      - iso_27001: ["A.8.2"]
+      - cis_csc_v8: ["5"]
+    condition: all
+    rules:
+      - 'c:dscl . -read /Users/root AuthenticationAuthority -> r:No such key'
+  - id: 2043
+    title: "Verrouillage de l'écran exigé"
+    description: "L'écran verrouillé doit demander le mot de passe."
+    remediation: "Réglages Système > Écran verrouillé > Exiger le mot de passe."
+    severity: high
+    category: session_lock
+    compliance:
+      - iso_27001: ["A.8.1"]
+      - cis_csc_v8: ["4"]
+    condition: none
+    rules:
+      - 'c:sysadminctl -screenLock status -> r:screenLock is off'
+  - id: 2044
+    title: "Aucun indice de mot de passe à l'ouverture de session"
+    description: "Un indice de mot de passe aide surtout celui qui ne le connaît pas."
+    remediation: "sudo defaults write /Library/Preferences/com.apple.loginwindow RetriesUntilHint -int 0"
+    severity: low
+    category: authentication
+    compliance:
+      - iso_27001: ["A.8.5"]
+      - cis_csc_v8: ["6"]
+    condition: none
+    rules:
+      - 'c:defaults read /Library/Preferences/com.apple.loginwindow RetriesUntilHint -> n:^(\d+)$ compare > 0'
+  - id: 2045
+    title: "Fenêtre d'ouverture de session sans liste de comptes"
+    description: "Demander le nom et le mot de passe évite de révéler les comptes du Mac."
+    remediation: "Réglages Système > Écran verrouillé > Afficher la fenêtre d'ouverture de session : Nom et mot de passe."
+    severity: low
+    category: authentication
+    compliance:
+      - iso_27001: ["A.8.5"]
+      - cis_csc_v8: ["6"]
+    condition: all
+    rules:
+      - 'c:defaults read /Library/Preferences/com.apple.loginwindow SHOWFULLNAME -> 1'
+  - id: 2050
+    title: "Connexion SSH directe en root non autorisée"
+    description: "Si la session à distance est activée, root ne doit pas pouvoir s'y connecter directement."
+    remediation: "Écrire « PermitRootLogin no » dans /etc/ssh/sshd_config."
+    severity: medium
+    category: remote_access
+    compliance:
+      - iso_27001: ["A.8.5"]
+      - cis_csc_v8: ["4"]
+    condition: none
+    rules:
+      - 'f:/etc/ssh/sshd_config -> r:^\s*PermitRootLogin\s+yes'
+  - id: 2051
+    title: "Mots de passe vides refusés par SSH"
+    description: "Un compte sans mot de passe ne doit jamais ouvrir de session distante."
+    remediation: "Écrire « PermitEmptyPasswords no » dans /etc/ssh/sshd_config."
+    severity: high
+    category: remote_access
+    compliance:
+      - iso_27001: ["A.8.5"]
+      - cis_csc_v8: ["4"]
+    condition: none
+    rules:
+      - 'f:/etc/ssh/sshd_config -> r:^\s*PermitEmptyPasswords\s+yes'
+  - id: 2052
+    title: "Aucune relation de confiance rsh"
+    description: "Les fichiers hosts.equiv et .rhosts ouvrent une session sans mot de passe sur la seule foi de l'adresse du client. Un fichier hosts.equiv vide, comme celui que livre macOS, n'accorde rien."
+    remediation: "Vider /etc/hosts.equiv et supprimer /var/root/.rhosts."
+    severity: high
+    category: remote_access
+    compliance:
+      - iso_27001: ["A.8.5"]
+      - cis_csc_v8: ["4"]
+    condition: none
+    rules:
+      - 'd:/etc -> r:^hosts.equiv$ -> !r:^\s*# && r:\w'
+      - 'f:/var/root/.rhosts'
+  - id: 2053
+    title: "Mise en cache de contenu désactivée"
+    description: "Le cache de contenu fait du Mac un serveur pour les autres appareils du réseau."
+    remediation: "Réglages Système > Général > Partage > Mise en cache de contenu."
+    severity: low
+    category: network_hardening
+    compliance:
+      - iso_27001: ["A.8.20"]
+      - cis_csc_v8: ["4"]
+    condition: none
+    rules:
+      - 'c:defaults read /Library/Preferences/com.apple.AssetCache.plist Activated -> 1'

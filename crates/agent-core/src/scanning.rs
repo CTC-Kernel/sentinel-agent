@@ -401,7 +401,13 @@ impl AgentRuntime {
         Ok(result)
     }
 
-    /// Upload a security incident to the server.
+    /// Report a security incident to the platform.
+    ///
+    /// The main loop waits on this call before it evaluates the response
+    /// playbooks, and an incident matters most when the network is at its
+    /// worst. So the direct upload is short, and an incident that does not go
+    /// through is kept in the local queue and sent again later instead of
+    /// being dropped: `Ok` means delivered or safely queued.
     pub(crate) async fn upload_incident(
         &self,
         incident: &agent_scanner::SecurityIncident,
@@ -409,40 +415,187 @@ impl AgentRuntime {
         if self.config.standalone {
             return Ok(());
         }
+        let payload = incident_payload(incident);
+
+        // While the platform does not answer, do not make every incident
+        // of a burst wait for its own timeout.
+        let failure = if incident_uploads_suspended(now_epoch_secs()) {
+            CommonError::network("platform unreachable a moment ago")
+        } else {
+            match self.post_incident(&payload).await {
+                Ok(incident_id) => {
+                    info!(
+                        "Reported incident '{}' (type: {}, ID: {})",
+                        incident.title, incident.incident_type, incident_id
+                    );
+                    return Ok(());
+                }
+                Err(e) => {
+                    suspend_incident_uploads(now_epoch_secs());
+                    e
+                }
+            }
+        };
+
+        match self.queue_incident(&payload).await {
+            Ok(()) => {
+                warn!(
+                    "Incident '{}' not delivered ({}); queued for retry",
+                    incident.title, failure
+                );
+                Ok(())
+            }
+            Err(queue_error) => {
+                error!(
+                    "Incident '{}' could not be queued: {}",
+                    incident.title, queue_error
+                );
+                Err(failure)
+            }
+        }
+    }
+
+    /// Send one incident, waiting no longer than [`INCIDENT_UPLOAD_TIMEOUT`].
+    /// Returns the identifier the platform gave it.
+    async fn post_incident(&self, payload: &serde_json::Value) -> Result<String, CommonError> {
         let api_client = self.api_client.read().await;
         let client = api_client
             .as_ref()
             .ok_or_else(|| CommonError::config("API client not initialized"))?;
-
         let agent_id = client
             .agent_id()
             .ok_or_else(|| CommonError::config("Agent not enrolled"))?;
 
-        let payload = serde_json::json!({
-            "incident_type": format!("{}", incident.incident_type),
-            "severity": format!("{}", incident.severity),
-            "title": incident.title,
-            "description": incident.description,
-            "evidence": incident.evidence,
-            "confidence": incident.confidence,
-            "detected_at": incident.detected_at.to_rfc3339(),
-        });
-
         let url = format!("/v1/agents/{}/incidents", agent_id);
-        let response: serde_json::Value = client.post(&url, &payload).await?;
+        let response: serde_json::Value =
+            tokio::time::timeout(INCIDENT_UPLOAD_TIMEOUT, client.post(&url, payload))
+                .await
+                .map_err(|_| {
+                    CommonError::network(format!(
+                        "no answer within {}s",
+                        INCIDENT_UPLOAD_TIMEOUT.as_secs()
+                    ))
+                })??;
 
-        let incident_id = response
+        Ok(response
             .get("incident_id")
             .and_then(|v| v.as_str())
-            .unwrap_or("unknown");
-
-        info!(
-            "Reported incident '{}' (type: {}, ID: {})",
-            incident.title, incident.incident_type, incident_id
-        );
-
-        Ok(())
+            .unwrap_or("unknown")
+            .to_string())
     }
+
+    /// Keep an undelivered incident in the local queue.
+    async fn queue_incident(&self, payload: &serde_json::Value) -> Result<(), CommonError> {
+        let db = self
+            .db
+            .as_ref()
+            .ok_or_else(|| CommonError::config("no local database"))?;
+        let entry = agent_storage::SyncQueueEntry::new(
+            agent_storage::SyncEntityType::Incident,
+            uuid::Uuid::new_v4().to_string(),
+            payload.to_string(),
+        )
+        .with_priority(INCIDENT_QUEUE_PRIORITY);
+        agent_storage::SyncQueueRepository::new(db)
+            .enqueue(&entry)
+            .await
+            .map(|_| ())
+            .map_err(|e| CommonError::internal(e.to_string()))
+    }
+
+    /// Send the incidents waiting in the local queue, oldest first. Stops at
+    /// the first failure: the platform is likely still unreachable, and the
+    /// queue schedules the next attempt itself. Returns how many were sent.
+    pub(crate) async fn flush_queued_incidents(&self) -> usize {
+        if self.config.standalone {
+            return 0;
+        }
+        let Some(db) = self.db.as_ref() else {
+            return 0;
+        };
+        let queue = agent_storage::SyncQueueRepository::new(db);
+        let pending = match queue
+            .get_pending_for(
+                agent_storage::SyncEntityType::Incident,
+                INCIDENT_FLUSH_BATCH,
+            )
+            .await
+        {
+            Ok(pending) => pending,
+            Err(e) => {
+                warn!("Queued incidents could not be read: {}", e);
+                return 0;
+            }
+        };
+
+        let mut sent = 0;
+        for item in pending {
+            let outcome = match serde_json::from_str::<serde_json::Value>(&item.payload) {
+                Ok(payload) => self.post_incident(&payload).await.map(drop),
+                Err(e) => Err(CommonError::internal(format!("unreadable payload: {e}"))),
+            };
+            match outcome {
+                Ok(()) => {
+                    if let Err(e) = queue.remove(&[item.id]).await {
+                        warn!("Delivered incident not removed from the queue: {}", e);
+                    }
+                    sent += 1;
+                }
+                Err(e) => {
+                    suspend_incident_uploads(now_epoch_secs());
+                    if let Err(e) = queue.record_failure(item.id, &e.to_string()).await {
+                        warn!("Incident retry not rescheduled: {}", e);
+                    }
+                    break;
+                }
+            }
+        }
+        if sent > 0 {
+            info!("Delivered {} queued incident(s) to the platform", sent);
+        }
+        sent
+    }
+}
+
+/// Longest wait for the platform when reporting one incident.
+const INCIDENT_UPLOAD_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(5);
+/// After a failed upload, incidents go straight to the queue for this long.
+const INCIDENT_UPLOAD_PAUSE_SECS: u64 = 60;
+/// Incidents are delivered before inventory and other queued records.
+const INCIDENT_QUEUE_PRIORITY: i32 = 10;
+/// Queued incidents sent per flush.
+const INCIDENT_FLUSH_BATCH: i64 = 20;
+
+/// Epoch second until which direct incident uploads are skipped.
+static INCIDENT_UPLOADS_RESUME_AT: std::sync::atomic::AtomicU64 =
+    std::sync::atomic::AtomicU64::new(0);
+
+fn now_epoch_secs() -> u64 {
+    chrono::Utc::now().timestamp().max(0) as u64
+}
+
+fn incident_uploads_suspended(now: u64) -> bool {
+    now < INCIDENT_UPLOADS_RESUME_AT.load(std::sync::atomic::Ordering::Relaxed)
+}
+
+fn suspend_incident_uploads(now: u64) {
+    INCIDENT_UPLOADS_RESUME_AT.store(
+        now + INCIDENT_UPLOAD_PAUSE_SECS,
+        std::sync::atomic::Ordering::Relaxed,
+    );
+}
+
+/// The incident as the platform's `/incidents` endpoint expects it.
+fn incident_payload(incident: &agent_scanner::SecurityIncident) -> serde_json::Value {
+    serde_json::json!({
+        "incident_type": format!("{}", incident.incident_type),
+        "severity": format!("{}", incident.severity),
+        "title": incident.title,
+        "description": incident.description,
+        "evidence": incident.evidence,
+        "confidence": incident.confidence,
+        "detected_at": incident.detected_at.to_rfc3339(),
+    })
 }
 
 #[cfg(test)]
@@ -463,6 +616,102 @@ mod tests {
             });
         }
         f
+    }
+
+    // ── incidents: nothing is lost while the platform is unreachable ────
+
+    fn incident(title: &str) -> agent_scanner::SecurityIncident {
+        agent_scanner::SecurityIncident {
+            incident_type: agent_scanner::IncidentType::Malware,
+            severity: agent_scanner::IncidentSeverity::Critical,
+            title: title.to_string(),
+            description: "test".to_string(),
+            evidence: serde_json::json!({"pid": 4242}),
+            confidence: 90,
+            detected_at: chrono::Utc::now(),
+        }
+    }
+
+    /// A platform agent that cannot reach its platform (no API client), with
+    /// a real local database.
+    fn offline_runtime(dir: &std::path::Path, standalone: bool) -> crate::AgentRuntime {
+        let key_manager = agent_storage::KeyManager::new_with_key(&[7; 32]);
+        let db = agent_storage::Database::open(
+            agent_storage::DatabaseConfig::with_path(dir.join("agent.db")),
+            &key_manager,
+        )
+        .unwrap();
+        let config = agent_common::config::AgentConfig {
+            standalone,
+            ..Default::default()
+        };
+        crate::AgentRuntime::new(config).with_database(std::sync::Arc::new(db))
+    }
+
+    /// Incidents ready to be sent.
+    async fn queued_incidents(runtime: &crate::AgentRuntime) -> Vec<agent_storage::SyncQueueItem> {
+        let db = runtime.db.as_ref().unwrap();
+        agent_storage::SyncQueueRepository::new(db)
+            .get_pending_for(agent_storage::SyncEntityType::Incident, 100)
+            .await
+            .unwrap()
+    }
+
+    #[tokio::test]
+    async fn an_undelivered_incident_is_queued_not_dropped() {
+        let dir = tempfile::tempdir().unwrap();
+        let runtime = offline_runtime(dir.path(), false);
+
+        runtime
+            .upload_incident(&incident("Ransomware canary touched"))
+            .await
+            .expect("queued counts as handled");
+
+        let queued = queued_incidents(&runtime).await;
+        assert_eq!(queued.len(), 1);
+        assert_eq!(queued[0].priority, super::INCIDENT_QUEUE_PRIORITY);
+        let payload: serde_json::Value = serde_json::from_str(&queued[0].payload).unwrap();
+        assert_eq!(payload["title"], "Ransomware canary touched");
+        assert_eq!(payload["severity"], "critical");
+        assert_eq!(payload["evidence"]["pid"], 4242);
+    }
+
+    #[tokio::test]
+    async fn a_failed_flush_keeps_the_incident_for_a_later_attempt() {
+        let dir = tempfile::tempdir().unwrap();
+        let runtime = offline_runtime(dir.path(), false);
+        runtime.upload_incident(&incident("kept")).await.unwrap();
+
+        // Still no platform: nothing is sent, nothing is lost.
+        assert_eq!(runtime.flush_queued_incidents().await, 0);
+
+        let db = runtime.db.as_ref().unwrap();
+        let stats = agent_storage::SyncQueueRepository::new(db)
+            .queue_stats()
+            .await
+            .unwrap();
+        assert_eq!(stats.total_count, 1, "the incident must stay queued");
+        assert_eq!(stats.failed_count, 0, "and remain eligible for a retry");
+    }
+
+    #[tokio::test]
+    async fn a_standalone_agent_reports_to_nobody_and_queues_nothing() {
+        let dir = tempfile::tempdir().unwrap();
+        let runtime = offline_runtime(dir.path(), true);
+        runtime
+            .upload_incident(&incident("local only"))
+            .await
+            .unwrap();
+        assert!(queued_incidents(&runtime).await.is_empty());
+        assert_eq!(runtime.flush_queued_incidents().await, 0);
+    }
+
+    #[test]
+    fn a_failure_sends_the_next_incidents_straight_to_the_queue_for_a_minute() {
+        super::suspend_incident_uploads(1_000);
+        assert!(super::incident_uploads_suspended(1_000));
+        assert!(super::incident_uploads_suspended(1_059));
+        assert!(!super::incident_uploads_suspended(1_060));
     }
 
     #[test]

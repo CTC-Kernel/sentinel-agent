@@ -706,6 +706,39 @@ pub struct GuiFimAlert {
     /// Whether the path has been added to an allowlist rule.
     #[serde(default)]
     pub allowlisted: bool,
+    /// How the change was found: as it happened, at start (made while the
+    /// agent was stopped) or by a full scan.
+    #[serde(default)]
+    pub detection: agent_common::types::FimDetection,
+    /// SHA-256 of the file after the change.
+    #[serde(default)]
+    pub sha256: Option<String>,
+    /// What changed besides the contents (permissions, owner), in words.
+    #[serde(default)]
+    pub detail: Option<String>,
+    /// The lines removed and added, for a small text file.
+    #[serde(default)]
+    pub diff: Option<String>,
+    /// Who made the change, when something says it (marked "probable" when
+    /// deduced from a program seen starting).
+    #[serde(default)]
+    pub actor: Option<String>,
+}
+
+impl GuiFimAlert {
+    /// How the change was found, in words.
+    pub fn detection_label(&self) -> &'static str {
+        use agent_common::types::FimDetection;
+        match self.detection {
+            FimDetection::Realtime => "Temps r\u{00e9}el",
+            FimDetection::Startup => {
+                "Au d\u{00e9}marrage (modifi\u{00e9} pendant l'arr\u{00ea}t de l'agent)"
+            }
+            FimDetection::Rescan => {
+                "Analyse compl\u{00e8}te (non signal\u{00e9} par le syst\u{00e8}me)"
+            }
+        }
+    }
 }
 
 /// A suspicious process event for GUI display.
@@ -1304,6 +1337,14 @@ pub enum PlaybookActionType {
     SendSiemAlert,
     #[serde(alias = "CreateNotification")]
     CreateNotification,
+    /// Lock the local account an alert names; parameter: duration in
+    /// seconds (`0`: until an administrator unlocks it, blank: one hour).
+    #[serde(alias = "DisableAccount")]
+    DisableAccount,
+    /// Run a response command declared in the agent's configuration;
+    /// parameter: its name.
+    #[serde(alias = "RunCommand")]
+    RunCommand,
 }
 
 impl PlaybookActionType {
@@ -1315,6 +1356,8 @@ impl PlaybookActionType {
             Self::IsolateHost => "IsolateHost",
             Self::SendSiemAlert => "SendSiemAlert",
             Self::CreateNotification => "CreateNotification",
+            Self::DisableAccount => "DisableAccount",
+            Self::RunCommand => "RunCommand",
         }
     }
 
@@ -1326,6 +1369,8 @@ impl PlaybookActionType {
             Self::IsolateHost => "Isoler le poste du r\u{00e9}seau",
             Self::SendSiemAlert => "Alerte SIEM",
             Self::CreateNotification => "Notification",
+            Self::DisableAccount => "Verrouiller le compte",
+            Self::RunCommand => "Commande de r\u{00e9}ponse",
         }
     }
 
@@ -1337,6 +1382,8 @@ impl PlaybookActionType {
             Self::IsolateHost,
             Self::SendSiemAlert,
             Self::CreateNotification,
+            Self::DisableAccount,
+            Self::RunCommand,
         ]
     }
 }

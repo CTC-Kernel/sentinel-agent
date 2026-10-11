@@ -1,0 +1,256 @@
+# Règles Sigma livrées avec l'agent Sentinel GRC.
+#
+# Elles s'appuient sur les champs que l'agent extrait des journaux (voir
+# crates/agent-siem/src/decode.rs). Pour en ajuster une, copiez-la dans le
+# dossier « sigma.d » avec le même `id` : votre version la remplace. Pour en
+# désactiver une, ajoutez son `id` à « sigma.d/disabled-rules.txt ».
+title: Échec de connexion SSH
+id: 3b76ed9d-ebd4-52e3-89b5-ae814f56171b
+name: ssh_failed_login
+status: stable
+description: Une tentative de connexion SSH a échoué.
+author: Sentinel GRC
+logsource:
+    service: sshd
+detection:
+    selection:
+        action:
+            - login_failed
+            - max_auth_exceeded
+    condition: selection
+level: informational
+---
+title: Connexion SSH réussie
+id: cf55b293-1b50-5419-97ad-4f0cc97cef78
+name: ssh_login_success
+status: stable
+description: Une session SSH a été ouverte.
+author: Sentinel GRC
+logsource:
+    service: sshd
+detection:
+    selection:
+        action: login_success
+    condition: selection
+level: informational
+---
+title: Attaque par force brute SSH
+id: ed89fc60-78f6-5216-a68c-5486dd456e4e
+name: ssh_brute_force
+status: stable
+description: Une même adresse a échoué de nombreuses fois à se connecter en SSH en quelques minutes.
+author: Sentinel GRC
+tags:
+    - attack.credential_access
+    - attack.t1110.001
+correlation:
+    type: event_count
+    rules:
+        - ssh_failed_login
+    group-by:
+        - src_ip
+    timespan: 5m
+    condition:
+        gte: 8
+level: high
+---
+title: Pulvérisation de mots de passe SSH
+id: 695eb355-b64d-5bde-8858-588fe85e1dcf
+name: ssh_password_spraying
+status: stable
+description: Une même adresse a essayé de nombreux comptes différents en SSH, signe d'un essai de mots de passe courants sur une liste de comptes.
+author: Sentinel GRC
+tags:
+    - attack.credential_access
+    - attack.t1110.003
+correlation:
+    type: value_count
+    rules:
+        - ssh_failed_login
+    group-by:
+        - src_ip
+    timespan: 10m
+    condition:
+        field: user
+        gte: 6
+level: high
+---
+title: Connexion SSH réussie après une attaque par force brute
+id: 4ef0f469-81e9-5e68-ba7d-727c95851195
+status: stable
+description: Une adresse qui venait d'échouer de nombreuses fois a fini par ouvrir une session SSH. Le mot de passe du compte a probablement été trouvé.
+author: Sentinel GRC
+tags:
+    - attack.initial_access
+    - attack.credential_access
+    - attack.t1110
+    - attack.t1078
+correlation:
+    type: temporal_ordered
+    generate: true
+    rules:
+        - ssh_brute_force
+        - ssh_login_success
+    group-by:
+        - src_ip
+    timespan: 30m
+level: critical
+---
+title: Connexion SSH directe en root
+id: 26e9c9f4-e5ff-5130-bfa2-cd40f9ba1e91
+status: stable
+description: Une session SSH a été ouverte directement avec le compte root.
+author: Sentinel GRC
+tags:
+    - attack.initial_access
+    - attack.t1078.003
+logsource:
+    service: sshd
+detection:
+    selection:
+        action: login_success
+        user: root
+    condition: selection
+level: low
+---
+title: Mots de passe sudo refusés à plusieurs reprises
+id: 7725ba6d-de5f-5cb1-bce9-0a279bb61c3f
+status: stable
+description: sudo a abandonné après plusieurs mots de passe incorrects pour le même compte.
+author: Sentinel GRC
+tags:
+    - attack.privilege_escalation
+    - attack.t1548.003
+logsource:
+    service: sudo
+detection:
+    selection:
+        action: incorrect_password
+        attempts|gte: 3
+    condition: selection
+level: medium
+---
+title: Tentative sudo d'un compte non autorisé
+id: cab362bd-41bd-5076-95e6-0e99cf7b32b8
+status: stable
+description: Un compte absent de sudoers, ou sans droit sur cette commande, a tenté de l'exécuter avec sudo.
+author: Sentinel GRC
+tags:
+    - attack.privilege_escalation
+    - attack.t1548.003
+logsource:
+    service: sudo
+detection:
+    selection:
+        action:
+            - not_in_sudoers
+            - command_not_allowed
+    condition: selection
+level: medium
+---
+title: Échec de su
+id: 284c6fa5-2354-534c-8ab4-8748e5923709
+name: su_failure
+status: stable
+description: Un changement de compte par su a échoué.
+author: Sentinel GRC
+logsource:
+    service: su
+detection:
+    selection:
+        action:
+            - su_failed
+            - auth_failure
+    condition: selection
+level: informational
+---
+title: Échecs répétés de su
+id: 574b57a1-f8c4-50a1-836d-b3157c695093
+status: stable
+description: Un compte a échoué plusieurs fois de suite à prendre l'identité d'un autre avec su.
+author: Sentinel GRC
+tags:
+    - attack.privilege_escalation
+    - attack.t1548
+correlation:
+    type: event_count
+    rules:
+        - su_failure
+    group-by:
+        - user
+    timespan: 10m
+    condition:
+        gte: 4
+level: medium
+---
+title: Échec d'authentification PAM
+id: 511b6ed5-85f5-5d99-9483-1f4b4da96b57
+name: pam_auth_failure
+status: stable
+description: Un service a refusé une authentification.
+author: Sentinel GRC
+logsource:
+    service: auth
+detection:
+    selection:
+        action: auth_failure
+    filter_counted_elsewhere:
+        program:
+            - su
+            - sudo
+    condition: selection and not filter_counted_elsewhere
+level: informational
+---
+title: Échecs d'authentification répétés sur un compte
+id: 62d677d5-1095-513b-b631-3bbd962767e7
+status: stable
+description: Un même compte a été refusé de nombreuses fois en quelques minutes, tous services confondus.
+author: Sentinel GRC
+tags:
+    - attack.credential_access
+    - attack.t1110
+correlation:
+    type: event_count
+    rules:
+        - pam_auth_failure
+    group-by:
+        - user
+    timespan: 10m
+    condition:
+        gte: 8
+level: medium
+---
+title: Échec d'authentification au partage d'écran
+id: f4c0b571-b6e3-5f36-abfe-f4578c1b9e80
+name: screen_sharing_failed
+status: stable
+description: Une connexion au partage d'écran de macOS a été refusée.
+author: Sentinel GRC
+logsource:
+    product: macos
+    service: screensharingd
+detection:
+    selection:
+        action: login_failed
+    condition: selection
+level: informational
+---
+title: Attaque par force brute sur le partage d'écran
+id: 43a973cb-2c34-5d9e-90b5-119241b6d506
+status: stable
+description: Une même adresse a échoué de nombreuses fois à s'authentifier au partage d'écran de macOS.
+author: Sentinel GRC
+tags:
+    - attack.credential_access
+    - attack.t1110.001
+    - attack.t1021.005
+correlation:
+    type: event_count
+    rules:
+        - screen_sharing_failed
+    group-by:
+        - src_ip
+    timespan: 5m
+    condition:
+        gte: 5
+level: high

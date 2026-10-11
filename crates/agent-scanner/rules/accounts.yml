@@ -1,0 +1,101 @@
+# Règles Sigma livrées avec l'agent Sentinel GRC.
+#
+# Elles s'appuient sur les champs que l'agent extrait des journaux (voir
+# crates/agent-siem/src/decode.rs). Pour en ajuster une, copiez-la dans le
+# dossier « sigma.d » avec le même `id` : votre version la remplace. Pour en
+# désactiver une, ajoutez son `id` à « sigma.d/disabled-rules.txt ».
+title: Compte utilisateur créé
+id: 1fbcceb4-edc5-5ab5-b4f5-2948b450f577
+status: stable
+description: Un compte local a été créé.
+author: Sentinel GRC
+tags:
+    - attack.persistence
+    - attack.t1136.001
+logsource:
+    service: auth
+detection:
+    selection:
+        action: user_created
+    filter_root_uid:
+        uid: 0
+    condition: selection and not filter_root_uid
+level: medium
+---
+title: Compte créé avec l'UID 0
+id: ac48c004-171f-5dbe-9ed8-9797f8cca5d3
+status: stable
+description: Un compte a été créé avec l'identifiant de root. Il a tous les droits sous un autre nom, procédé classique de porte dérobée.
+author: Sentinel GRC
+tags:
+    - attack.persistence
+    - attack.privilege_escalation
+    - attack.t1136.001
+logsource:
+    service: auth
+detection:
+    selection:
+        action: user_created
+        uid: 0
+    condition: selection
+level: critical
+---
+title: Compte ajouté à un groupe privilégié
+id: d30d5907-0838-5e6c-8d0a-f1c998aa2f9b
+status: stable
+description: Un compte a été ajouté à un groupe qui donne les droits d'administration ou un accès équivalent (sudo, wheel, docker…).
+author: Sentinel GRC
+tags:
+    - attack.persistence
+    - attack.privilege_escalation
+    - attack.t1098
+logsource:
+    service: auth
+detection:
+    selection:
+        action: group_member_added
+        group:
+            - sudo
+            - wheel
+            - admin
+            - adm
+            - root
+            - docker
+            - lxd
+            - libvirt
+            - shadow
+            - disk
+    condition: selection
+level: high
+---
+title: Compte utilisateur supprimé
+id: 34075402-e98b-508d-986b-5b6ac0f3b21d
+status: stable
+description: Un compte local a été supprimé.
+author: Sentinel GRC
+tags:
+    - attack.impact
+    - attack.t1531
+logsource:
+    service: auth
+detection:
+    selection:
+        action: user_deleted
+    condition: selection
+level: low
+---
+title: Mot de passe d'un compte modifié
+id: 30a848a0-7c6c-5768-b458-7a5be95a9dc9
+status: stable
+description: Le mot de passe d'un compte local a été modifié.
+author: Sentinel GRC
+tags:
+    - attack.persistence
+    - attack.t1098
+logsource:
+    service: auth
+detection:
+    selection:
+        action: password_changed
+    condition: selection
+level: low

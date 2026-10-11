@@ -690,7 +690,7 @@ jobs:
           sudo apt-get install -y libgtk-3-dev libayatana-appindicator3-dev libssl-dev pkg-config libxdo-dev libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev libxkbcommon-dev libudev-dev
 
       - name: Install cargo-deb
-        run: cargo install cargo-deb
+        run: cargo install cargo-deb --locked
 
       - name: Build release binary
         run: cargo build --release --features gui --package agent-core --no-default-features
@@ -739,7 +739,7 @@ jobs:
           sudo apt-get install -y libgtk-3-dev libayatana-appindicator3-dev libssl-dev pkg-config libxdo-dev libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev libxkbcommon-dev libudev-dev
 
       - name: Install cargo-generate-rpm
-        run: cargo install cargo-generate-rpm
+        run: cargo install cargo-generate-rpm --locked
 
       - name: Build release binary
         run: cargo build --release --features gui --package agent-core --no-default-features
@@ -780,7 +780,7 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
 
       - name: Install cargo-cyclonedx
-        run: cargo install cargo-cyclonedx
+        run: cargo install cargo-cyclonedx --locked
 
       - name: Generate CycloneDX SBOM
         run: |
@@ -998,7 +998,14 @@ jobs:
           set -euo pipefail
           BUCKET="gs://${{ secrets.FIREBASE_STORAGE_BUCKET }}/releases/agent"
 
-          # Sign a single latest package (if present) and upload <file>.sig.
+          # Sign a single latest package (if present) and upload:
+          #   <file>.sig                 signature of the package, checked by
+          #                              the agents released before the manifest
+          #   <file>.manifest.json(.sig) signed statement of the version and
+          #                              hash of the package, required by the
+          #                              agents released since: it stops an old
+          #                              signed package from being served as
+          #                              a new version
           sign_and_upload() {
             local folder="$1"      # artifacts subdir
             local latest_name="$2" # latest file name
@@ -1007,7 +1014,8 @@ jobs:
             if [ -f "$file" ]; then
               echo "Signing $file"
               cargo run -q -p xtask -- sign "$file"
-              gcloud storage cp "$file.sig" "$BUCKET/$dest/"
+              cargo run -q -p xtask -- manifest "$file" --version "$RELEASE_VERSION"
+              gcloud storage cp "$file.sig" "$file.manifest.json" "$file.manifest.json.sig" "$BUCKET/$dest/"
             else
               echo "::warning::Signed updates enabled but $file is missing; skipping"
             fi
@@ -1018,11 +1026,15 @@ jobs:
           sign_and_upload "sentinel-agent-linux-deb" "sentinel-agent-latest-amd64.deb" "linux_deb"
           sign_and_upload "sentinel-agent-linux-rpm" "sentinel-agent-latest.x86_64.rpm" "linux_rpm"
 
-          # Keep .sig aliases fresh like the other latest files.
-          gcloud storage objects update "$BUCKET/**/*.sig" \
-            --cache-control="public, max-age=3600, no-cache" 2>/dev/null || true
-          gcloud storage objects add-iam-policy-binding "$BUCKET/**/*.sig" \
-            --member="allUsers" --role="roles/storage.objectViewer" --quiet > /dev/null 2>&1 || true
+          # Keep the signatures and manifests fresh like the other latest files.
+          for pattern in "*.sig" "*.manifest.json"; do
+            gcloud storage objects update "$BUCKET/**/$pattern" \
+              --cache-control="public, max-age=3600, no-cache" 2>/dev/null || true
+            gcloud storage objects add-iam-policy-binding "$BUCKET/**/$pattern" \
+              --member="allUsers" --role="roles/storage.objectViewer" --quiet > /dev/null 2>&1 || true
+          done
+          gcloud storage objects update "$BUCKET/**/*.manifest.json" \
+            --content-type="application/json" 2>/dev/null || true
 
           echo "✅ Update packages signed and signatures uploaded"
 

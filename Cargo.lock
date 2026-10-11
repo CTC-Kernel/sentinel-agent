@@ -382,6 +382,7 @@ dependencies = [
  "rustls-platform-verifier",
  "serde",
  "serde_json",
+ "tempfile",
  "thiserror 2.0.18",
  "tokio",
  "tokio-rustls",
@@ -11544,10 +11545,14 @@ checksum = "3ae8337f8a065cfc972643663ea4279e04e7256de865aa66fe25cec5fb912d3f"
 name = "xtask"
 version = "4.0.43"
 dependencies = [
+ "agent-common",
  "anyhow",
  "clap",
  "hex",
  "ring",
+ "serde_json",
+ "sha2",
+ "tempfile",
 ]
 
 [[package]]

@@ -6,11 +6,21 @@
 #   macOS    ~/Library/Application Support/SentinelGRC/sigma.d/
 #   Windows  C:\ProgramData\Sentinel\sigma.d\
 #
-# Les règles de la communauté (https://github.com/SigmaHQ/sigma, dossiers
-# rules/*/process_creation) s'utilisent telles quelles. Seules les règles
-# « category: process_creation » écrites pour le système du poste sont
-# évaluées ; les autres sont comptées à part dans les journaux. Une règle
+# Les règles de la communauté (https://github.com/SigmaHQ/sigma) s'utilisent
+# telles quelles. Sont évaluées, pour le système du poste :
+#   - les règles « category: process_creation », sur les processus ;
+#   - les règles écrites pour un journal que l'agent lit (« service: sshd »,
+#     « auth », « sudo », « syslog », « security »…, « category: webserver »
+#     pour un journal d'accès déclaré dans « log_files »), sur les journaux ;
+#   - les règles de corrélation (« correlation: »), qui comptent les
+#     correspondances d'autres règles : N échecs depuis une même adresse…
+# Les autres sont comptées à part dans les journaux de l'agent. Une règle
 # utilisant une construction non prise en charge est refusée avec sa raison.
+#
+# L'agent livre ses propres règles sur les journaux (force brute SSH, sudo,
+# comptes, attaques web, événements Windows). Pour en ajuster une, déposez ici
+# une règle portant le même « id » ; pour en désactiver une, inscrivez son
+# « id » dans « sigma.d/disabled-rules.txt » (un par ligne).
 title: Shell lancé par netcat
 id: 0f6a1c52-7d3e-4b8a-9c41-5e2d7a903b10
 status: experimental

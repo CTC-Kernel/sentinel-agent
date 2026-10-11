@@ -187,6 +187,10 @@ pub struct PipelineResult {
 ///
 /// Call this after each security scan cycle in the main loop.
 /// Returns the detection rule matches and playbook logs for sync to the platform.
+///
+/// With `simulate_playbooks`, triggered playbooks act on nothing: what they
+/// would have done is recorded in their log entry instead.
+#[allow(clippy::too_many_arguments)]
 pub async fn run_threat_pipeline(
     rules: &[agent_gui::dto::DetectionRule],
     playbooks: &[agent_gui::dto::Playbook],
@@ -195,6 +199,7 @@ pub async fn run_threat_pipeline(
     #[cfg(feature = "llm")] llm_service: Option<&crate::llm_service::LLMService>,
     audit_trail: Option<&std::sync::Arc<crate::audit_trail::LocalAuditTrail>>,
     siem: Option<&agent_siem::SiemForwarder>,
+    simulate_playbooks: bool,
 ) -> PipelineResult {
     // Step 1: Evaluate detection rules
     #[allow(unused_mut)]
@@ -232,23 +237,39 @@ pub async fn run_threat_pipeline(
                 evaluation.playbook_name, evaluation.confidence
             );
 
-            // Execute the playbook actions
-            let results = crate::playbook_engine::execute_playbook_actions_with_delivery(
-                &evaluation.playbook_name,
-                &evaluation.actions,
-                audit_trail,
-                gui_tx.as_ref(),
-                siem,
-            )
-            .await;
+            // Execute the playbook actions, or record what they would do
+            let results = if simulate_playbooks {
+                crate::playbook_engine::simulate_playbook_actions(
+                    &evaluation.playbook_name,
+                    &evaluation.actions,
+                    audit_trail,
+                )
+                .await
+            } else {
+                crate::playbook_engine::execute_playbook_actions_with_delivery(
+                    &evaluation.playbook_name,
+                    &evaluation.actions,
+                    audit_trail,
+                    gui_tx.as_ref(),
+                    siem,
+                )
+                .await
+            };
 
             let success_count = results.iter().filter(|r| r.success).count();
             let total = results.len();
 
-            info!(
-                "Playbook '{}' executed: {}/{} actions succeeded",
-                evaluation.playbook_name, success_count, total
-            );
+            if simulate_playbooks {
+                info!(
+                    "Playbook '{}' simulated: {} of {} action(s) would run, nothing was changed",
+                    evaluation.playbook_name, success_count, total
+                );
+            } else {
+                info!(
+                    "Playbook '{}' executed: {}/{} actions succeeded",
+                    evaluation.playbook_name, success_count, total
+                );
+            }
 
             // Build playbook log entry
             let log_entry = agent_gui::dto::PlaybookLogEntry {
@@ -446,7 +467,7 @@ pub fn build_threat_context(
         })
         .collect();
 
-    let net_alerts = network_alerts
+    let mut net_alerts: Vec<NetworkAlertInfo> = network_alerts
         .iter()
         .map(|alert| {
             let severity_str = match alert.severity {
@@ -465,9 +486,34 @@ pub fn build_threat_context(
                 port,
                 severity: severity_str.to_string(),
                 description: alert.description.clone(),
+                user: None,
             }
         })
         .collect();
+
+    // A detection on the logs that names a remote address (a brute force, a
+    // web attack) is a network alert for the playbooks: its source can be
+    // blocked like the peer of a suspicious connection.
+    net_alerts.extend(incidents.iter().filter_map(|incident| {
+        let evidence = &incident.evidence;
+        if evidence.get("detection")?.as_str()? != "sigma_log" {
+            return None;
+        }
+        let address = evidence.get("event")?.get("src_ip")?.as_str()?;
+        address.parse::<std::net::IpAddr>().ok()?;
+        Some(NetworkAlertInfo {
+            remote_ip: Some(address.to_string()),
+            port: None,
+            severity: incident.severity.to_string(),
+            description: incident.title.clone(),
+            // The account of a session that was opened: the one that was
+            // taken. The accounts merely tried are not named.
+            user: (evidence["event"]["action"] == "login_success")
+                .then(|| evidence["event"]["user"].as_str())
+                .flatten()
+                .map(str::to_string),
+        })
+    }));
 
     let fim = fim_alerts
         .iter()
@@ -502,6 +548,48 @@ mod tests {
 
     fn incident(kind: IncidentType, evidence: serde_json::Value) -> SecurityIncident {
         SecurityIncident::new(kind, IncidentSeverity::High, "test", "test").with_evidence(evidence)
+    }
+
+    /// A detection on the logs that names an address can have that address
+    /// blocked; the account is named only when it was taken.
+    #[test]
+    fn a_log_detection_gives_the_playbooks_its_address_and_the_account_taken() {
+        let log = |action: &str, address: &str| {
+            incident(
+                IncidentType::CredentialTheft,
+                serde_json::json!({
+                    "detection": "sigma_log",
+                    "event": { "src_ip": address, "user": "deploy", "action": action },
+                }),
+            )
+        };
+        let context = build_threat_context(
+            &[
+                log("login_success", "203.0.113.9"),
+                log("login_failed", "198.51.100.7"),
+                // No address, or not one: nothing to block.
+                log("login_success", "bastion.example"),
+                incident(
+                    IncidentType::Malware,
+                    serde_json::json!({"detection": "yara"}),
+                ),
+            ],
+            &[],
+            &[],
+        );
+        let alerts: Vec<(Option<&str>, Option<&str>)> = context
+            .network_alerts
+            .iter()
+            .map(|alert| (alert.remote_ip.as_deref(), alert.user.as_deref()))
+            .collect();
+        assert_eq!(
+            alerts,
+            [
+                (Some("203.0.113.9"), Some("deploy")),
+                (Some("198.51.100.7"), None),
+            ]
+        );
+        assert_eq!(context.network_alerts[0].severity, "high");
     }
 
     #[test]
@@ -596,6 +684,7 @@ mod tests {
                 port: Some(443),
                 severity: "high".into(),
                 description: "invalid-port".into(),
+                user: None,
             }],
             fim_alerts: vec![FimAlertInfo {
                 path: "/tmp/test".into(),

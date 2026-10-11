@@ -38,8 +38,11 @@
 
 pub mod collector;
 pub mod correlation;
+pub mod decode;
 pub mod error;
 pub mod formats;
+pub mod logfile;
+pub mod stream;
 pub mod transports;
 
 pub use collector::{LogCollector, LogCollectorConfig, LogSource};

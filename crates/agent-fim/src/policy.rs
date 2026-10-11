@@ -44,6 +44,7 @@ pub fn build_policy(
         ignore_patterns,
         recursive: true,
         debounce_ms: 500,
+        rescan_interval_secs: defaults.rescan_interval_secs,
     }
     .with_self_exclusions()
 }
@@ -97,6 +98,7 @@ mod tests {
             ignore_patterns: vec![],
             recursive: true,
             debounce_ms: 500,
+            rescan_interval_secs: 0,
         };
 
         let warnings = validate_policy(&policy);
@@ -110,6 +112,7 @@ mod tests {
             ignore_patterns: vec![],
             recursive: true,
             debounce_ms: 50,
+            rescan_interval_secs: 0,
         };
 
         let warnings = validate_policy(&policy);

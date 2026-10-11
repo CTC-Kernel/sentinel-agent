@@ -128,15 +128,11 @@ mod tests {
     use std::path::PathBuf;
 
     fn make_alert(change: FimChangeType) -> FimAlert {
-        FimAlert {
-            path: PathBuf::from("/test/file"),
+        FimAlert::new(
+            PathBuf::from("/test/file"),
             change,
-            old_hash: None,
-            new_hash: None,
-            new_size: None,
-            timestamp: Utc::now(),
-            acknowledged: false,
-        }
+            agent_common::types::FimDetection::Realtime,
+        )
     }
 
     #[test]

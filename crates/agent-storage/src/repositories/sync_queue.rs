@@ -46,6 +46,8 @@ pub enum SyncEntityType {
     AlertRuleDelete,
     Webhook,
     WebhookDelete,
+    /// A security incident the platform has not received yet.
+    Incident,
 }
 
 impl SyncEntityType {
@@ -68,6 +70,7 @@ impl SyncEntityType {
             SyncEntityType::AlertRuleDelete => "alert_rule_delete",
             SyncEntityType::Webhook => "webhook",
             SyncEntityType::WebhookDelete => "webhook_delete",
+            SyncEntityType::Incident => "incident",
         }
     }
 
@@ -90,6 +93,7 @@ impl SyncEntityType {
             "alert_rule_delete" => Some(SyncEntityType::AlertRuleDelete),
             "webhook" => Some(SyncEntityType::Webhook),
             "webhook_delete" => Some(SyncEntityType::WebhookDelete),
+            "incident" => Some(SyncEntityType::Incident),
             _ => None,
         }
     }

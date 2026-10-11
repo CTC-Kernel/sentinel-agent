@@ -1,0 +1,1150 @@
+# Politique de conformité livrée avec l'agent Sentinel GRC.
+#
+# Même format que les politiques SCA de Wazuh : vos propres politiques, ou
+# celles écrites pour Wazuh, se déposent dans le dossier « sca.d » du dossier
+# de données de l'agent. Champs propres à Sentinel : « severity »,
+# « category » (par contrôle) et « platforms » (par politique).
+
+policy:
+  id: sentinel_linux
+  name: "Durcissement Linux — socle Sentinel"
+  description: "Réglages du noyau, comptes, SSH, droits des fichiers système et services hérités."
+  platforms: [linux]
+
+checks:
+  - id: 1001
+    title: "Routage IPv4 désactivé"
+    description: "Le poste ne doit pas relayer de paquets entre ses interfaces, sauf s'il est routeur ou héberge des conteneurs."
+    remediation: "sysctl -w net.ipv4.ip_forward=0 puis l'inscrire dans /etc/sysctl.d/."
+    severity: low
+    category: network_hardening
+    compliance:
+      - iso_27001: ["A.8.20"]
+      - cis_csc_v8: ["12"]
+    condition: all
+    rules:
+      - 'f:/proc/sys/net/ipv4/ip_forward -> 0'
+  - id: 1002
+    title: "Redirections ICMP refusées"
+    description: "Une redirection ICMP forgée détourne le trafic du poste vers une machine de l'attaquant."
+    remediation: "sysctl -w net.ipv4.conf.all.accept_redirects=0 puis l'inscrire dans /etc/sysctl.d/."
+    severity: medium
+    category: network_hardening
+    compliance:
+      - iso_27001: ["A.8.20"]
+      - cis_csc_v8: ["12"]
+    condition: all
+    rules:
+      - 'f:/proc/sys/net/ipv4/conf/all/accept_redirects -> 0'
+  - id: 1003
+    title: "Redirections ICMP refusées sur les nouvelles interfaces"
+    description: "Le réglage par défaut s'applique aux interfaces créées après le démarrage."
+    remediation: "sysctl -w net.ipv4.conf.default.accept_redirects=0 puis l'inscrire dans /etc/sysctl.d/."
+    severity: medium
+    category: network_hardening
+    compliance:
+      - iso_27001: ["A.8.20"]
+      - cis_csc_v8: ["12"]
+    condition: all
+    rules:
+      - 'f:/proc/sys/net/ipv4/conf/default/accept_redirects -> 0'
+  - id: 1004
+    title: "Redirections ICMP des passerelles refusées"
+    description: "Même venant d'une passerelle connue, une redirection ICMP peut être forgée."
+    remediation: "sysctl -w net.ipv4.conf.all.secure_redirects=0 puis l'inscrire dans /etc/sysctl.d/."
+    severity: low
+    category: network_hardening
+    compliance:
+      - iso_27001: ["A.8.20"]
+      - cis_csc_v8: ["12"]
+    condition: all
+    rules:
+      - 'f:/proc/sys/net/ipv4/conf/all/secure_redirects -> 0'
+  - id: 1005
+    title: "Envoi de redirections ICMP désactivé"
+    description: "Seul un routeur envoie des redirections ICMP."
+    remediation: "sysctl -w net.ipv4.conf.all.send_redirects=0 puis l'inscrire dans /etc/sysctl.d/."
+    severity: low
+    category: network_hardening
+    compliance:
+      - iso_27001: ["A.8.20"]
+      - cis_csc_v8: ["12"]
+    condition: all
+    rules:
+      - 'f:/proc/sys/net/ipv4/conf/all/send_redirects -> 0'
+  - id: 1006
+    title: "Routage par la source refusé"
+    description: "Le routage par la source laisse l'émetteur choisir le chemin et contourner le filtrage."
+    remediation: "sysctl -w net.ipv4.conf.all.accept_source_route=0 puis l'inscrire dans /etc/sysctl.d/."
+    severity: medium
+    category: network_hardening
+    compliance:
+      - iso_27001: ["A.8.20"]
+      - cis_csc_v8: ["12"]
+    condition: all
+    rules:
+      - 'f:/proc/sys/net/ipv4/conf/all/accept_source_route -> 0'
+  - id: 1007
+    title: "Paquets à adresse impossible journalisés"
+    description: "Un paquet dont l'adresse source ne peut pas venir de cette interface trahit une usurpation."
+    remediation: "sysctl -w net.ipv4.conf.all.log_martians=1 puis l'inscrire dans /etc/sysctl.d/."
+    severity: low
+    category: audit_logging
+    compliance:
+      - iso_27001: ["A.8.15"]
+      - cis_csc_v8: ["8"]
+    condition: all
+    rules:
+      - 'f:/proc/sys/net/ipv4/conf/all/log_martians -> 1'
+  - id: 1008
+    title: "Ping de diffusion ignoré"
+    description: "Répondre aux pings de diffusion fait du poste un amplificateur d'attaque par déni de service."
+    remediation: "sysctl -w net.ipv4.icmp_echo_ignore_broadcasts=1 puis l'inscrire dans /etc/sysctl.d/."
+    severity: low
+    category: network_hardening
+    compliance:
+      - iso_27001: ["A.8.20"]
+      - cis_csc_v8: ["12"]
+    condition: all
+    rules:
+      - 'f:/proc/sys/net/ipv4/icmp_echo_ignore_broadcasts -> 1'
+  - id: 1009
+    title: "Réponses d'erreur ICMP invalides ignorées"
+    description: "Évite de remplir les journaux de réponses ICMP forgées."
+    remediation: "sysctl -w net.ipv4.icmp_ignore_bogus_error_responses=1 puis l'inscrire dans /etc/sysctl.d/."
+    severity: low
+    category: network_hardening
+    compliance:
+      - iso_27001: ["A.8.20"]
+      - cis_csc_v8: ["12"]
+    condition: all
+    rules:
+      - 'f:/proc/sys/net/ipv4/icmp_ignore_bogus_error_responses -> 1'
+  - id: 1010
+    title: "Filtrage par chemin inverse actif"
+    description: "Un paquet arrivant par une interface d'où sa source n'est pas joignable est rejeté, ce qui bloque l'usurpation d'adresse."
+    remediation: "sysctl -w net.ipv4.conf.all.rp_filter=1 puis l'inscrire dans /etc/sysctl.d/."
+    severity: medium
+    category: network_hardening
+    compliance:
+      - iso_27001: ["A.8.20"]
+      - cis_csc_v8: ["12"]
+    condition: all
+    rules:
+      - 'f:/proc/sys/net/ipv4/conf/all/rp_filter -> r:^1$|^2$'
+  - id: 1011
+    title: "Protection contre l'inondation SYN active"
+    description: "Les cookies SYN gardent le poste joignable pendant une inondation de demandes de connexion."
+    remediation: "sysctl -w net.ipv4.tcp_syncookies=1 puis l'inscrire dans /etc/sysctl.d/."
+    severity: medium
+    category: network_hardening
+    compliance:
+      - iso_27001: ["A.8.20"]
+      - cis_csc_v8: ["12"]
+    condition: all
+    rules:
+      - 'f:/proc/sys/net/ipv4/tcp_syncookies -> 1'
+  - id: 1012
+    title: "Redirections ICMPv6 refusées"
+    description: "Comme en IPv4, une redirection forgée détourne le trafic."
+    remediation: "sysctl -w net.ipv6.conf.all.accept_redirects=0 puis l'inscrire dans /etc/sysctl.d/."
+    severity: medium
+    category: network_hardening
+    compliance:
+      - iso_27001: ["A.8.20"]
+      - cis_csc_v8: ["12"]
+    condition: all
+    rules:
+      - 'f:/proc/sys/net/ipv6/conf/all/accept_redirects -> 0'
+  - id: 1013
+    title: "Routage par la source IPv6 refusé"
+    description: "Le routage par la source laisse l'émetteur choisir le chemin et contourner le filtrage."
+    remediation: "sysctl -w net.ipv6.conf.all.accept_source_route=0 puis l'inscrire dans /etc/sysctl.d/."
+    severity: medium
+    category: network_hardening
+    compliance:
+      - iso_27001: ["A.8.20"]
+      - cis_csc_v8: ["12"]
+    condition: all
+    rules:
+      - 'f:/proc/sys/net/ipv6/conf/all/accept_source_route -> 0'
+  - id: 1014
+    title: "Annonces de routeur IPv6 refusées"
+    description: "Une annonce de routeur forgée fait du poste de l'attaquant la passerelle IPv6. À laisser actif sur un poste qui s'autoconfigure en IPv6."
+    remediation: "sysctl -w net.ipv6.conf.all.accept_ra=0 puis l'inscrire dans /etc/sysctl.d/."
+    severity: low
+    category: network_hardening
+    compliance:
+      - iso_27001: ["A.8.20"]
+      - cis_csc_v8: ["12"]
+    condition: all
+    rules:
+      - 'f:/proc/sys/net/ipv6/conf/all/accept_ra -> 0'
+  - id: 1020
+    title: "Disposition aléatoire de la mémoire (ASLR) complète"
+    description: "L'ASLR rend imprévisibles les adresses qu'un code d'exploitation doit connaître."
+    remediation: "sysctl -w kernel.randomize_va_space=2 puis l'inscrire dans /etc/sysctl.d/."
+    severity: high
+    category: kernel_security
+    compliance:
+      - iso_27001: ["A.8.9"]
+      - cis_csc_v8: ["4"]
+    condition: all
+    rules:
+      - 'f:/proc/sys/kernel/randomize_va_space -> 2'
+  - id: 1021
+    title: "Journal du noyau réservé aux administrateurs"
+    description: "Le journal du noyau révèle des adresses mémoire utiles à une élévation de privilèges."
+    remediation: "sysctl -w kernel.dmesg_restrict=1 puis l'inscrire dans /etc/sysctl.d/."
+    severity: low
+    category: kernel_security
+    compliance:
+      - iso_27001: ["A.8.9"]
+      - cis_csc_v8: ["4"]
+    condition: all
+    rules:
+      - 'f:/proc/sys/kernel/dmesg_restrict -> 1'
+  - id: 1022
+    title: "Adresses du noyau masquées"
+    description: "Les adresses du noyau affichées dans /proc aident à contourner l'ASLR du noyau."
+    remediation: "sysctl -w kernel.kptr_restrict=1 puis l'inscrire dans /etc/sysctl.d/."
+    severity: low
+    category: kernel_security
+    compliance:
+      - iso_27001: ["A.8.9"]
+      - cis_csc_v8: ["4"]
+    condition: all
+    rules:
+      - 'f:/proc/sys/kernel/kptr_restrict -> r:^1$|^2$'
+  - id: 1023
+    title: "Attachement aux processus restreint (ptrace)"
+    description: "Sans restriction, un processus compromis lit la mémoire des autres processus du même compte : mots de passe, clés, jetons."
+    remediation: "sysctl -w kernel.yama.ptrace_scope=1 puis l'inscrire dans /etc/sysctl.d/."
+    severity: medium
+    category: kernel_security
+    compliance:
+      - iso_27001: ["A.8.9"]
+      - cis_csc_v8: ["4"]
+    condition: all
+    rules:
+      - 'f:/proc/sys/kernel/yama/ptrace_scope -> n:^(\d+) compare >= 1'
+  - id: 1024
+    title: "Pas d'image mémoire pour les programmes privilégiés"
+    description: "L'image mémoire d'un programme set-user-ID contient des données que son lanceur ne doit pas lire."
+    remediation: "sysctl -w fs.suid_dumpable=0 puis l'inscrire dans /etc/sysctl.d/."
+    severity: medium
+    category: kernel_security
+    compliance:
+      - iso_27001: ["A.8.9"]
+      - cis_csc_v8: ["4"]
+    condition: all
+    rules:
+      - 'f:/proc/sys/fs/suid_dumpable -> 0'
+  - id: 1025
+    title: "Liens physiques protégés"
+    description: "Empêche un utilisateur de créer un lien vers un fichier qu'il ne possède pas pour le faire modifier par un programme privilégié."
+    remediation: "sysctl -w fs.protected_hardlinks=1 puis l'inscrire dans /etc/sysctl.d/."
+    severity: medium
+    category: kernel_security
+    compliance:
+      - iso_27001: ["A.8.9"]
+      - cis_csc_v8: ["4"]
+    condition: all
+    rules:
+      - 'f:/proc/sys/fs/protected_hardlinks -> 1'
+  - id: 1026
+    title: "Liens symboliques protégés"
+    description: "Bloque les attaques par lien symbolique dans les dossiers partagés comme /tmp."
+    remediation: "sysctl -w fs.protected_symlinks=1 puis l'inscrire dans /etc/sysctl.d/."
+    severity: medium
+    category: kernel_security
+    compliance:
+      - iso_27001: ["A.8.9"]
+      - cis_csc_v8: ["4"]
+    condition: all
+    rules:
+      - 'f:/proc/sys/fs/protected_symlinks -> 1'
+  - id: 1027
+    title: "BPF réservé aux comptes privilégiés"
+    description: "Le chargement de programmes BPF par un compte ordinaire a servi à de nombreuses élévations de privilèges."
+    remediation: "sysctl -w kernel.unprivileged_bpf_disabled=1 puis l'inscrire dans /etc/sysctl.d/."
+    severity: medium
+    category: kernel_security
+    compliance:
+      - iso_27001: ["A.8.9"]
+      - cis_csc_v8: ["4"]
+    condition: all
+    rules:
+      - 'f:/proc/sys/kernel/unprivileged_bpf_disabled -> n:^(\d+) compare >= 1'
+  - id: 1028
+    title: "Compteurs de performance restreints"
+    description: "Les compteurs de performance du noyau donnent à un compte ordinaire des informations exploitables par canal auxiliaire."
+    remediation: "sysctl -w kernel.perf_event_paranoid=2 puis l'inscrire dans /etc/sysctl.d/."
+    severity: low
+    category: kernel_security
+    compliance:
+      - iso_27001: ["A.8.9"]
+      - cis_csc_v8: ["4"]
+    condition: all
+    rules:
+      - 'f:/proc/sys/kernel/perf_event_paranoid -> n:^(\d+) compare >= 2'
+  - id: 1040
+    title: "Module noyau cramfs non chargeable"
+    description: "Système de fichiers compressé ancien, rarement utilisé. Un module inutile élargit la surface d'attaque du noyau."
+    remediation: "Créer /etc/modprobe.d/cramfs.conf avec « install cramfs /bin/false » et « blacklist cramfs »."
+    severity: low
+    category: kernel_security
+    compliance:
+      - iso_27001: ["A.8.9"]
+      - cis_csc_v8: ["4"]
+    condition: all
+    rules:
+      - 'c:modprobe -n -v cramfs -> r:install /bin/true|install /bin/false|not found'
+      - 'not c:lsmod -> r:^cramfs\s'
+  - id: 1041
+    title: "Module noyau freevxfs non chargeable"
+    description: "Système de fichiers Veritas, rarement utilisé. Un module inutile élargit la surface d'attaque du noyau."
+    remediation: "Créer /etc/modprobe.d/freevxfs.conf avec « install freevxfs /bin/false » et « blacklist freevxfs »."
+    severity: low
+    category: kernel_security
+    compliance:
+      - iso_27001: ["A.8.9"]
+      - cis_csc_v8: ["4"]
+    condition: all
+    rules:
+      - 'c:modprobe -n -v freevxfs -> r:install /bin/true|install /bin/false|not found'
+      - 'not c:lsmod -> r:^freevxfs\s'
+  - id: 1042
+    title: "Module noyau hfs non chargeable"
+    description: "Système de fichiers des anciens Mac. Un module inutile élargit la surface d'attaque du noyau."
+    remediation: "Créer /etc/modprobe.d/hfs.conf avec « install hfs /bin/false » et « blacklist hfs »."
+    severity: low
+    category: kernel_security
+    compliance:
+      - iso_27001: ["A.8.9"]
+      - cis_csc_v8: ["4"]
+    condition: all
+    rules:
+      - 'c:modprobe -n -v hfs -> r:install /bin/true|install /bin/false|not found'
+      - 'not c:lsmod -> r:^hfs\s'
+  - id: 1043
+    title: "Module noyau hfsplus non chargeable"
+    description: "Système de fichiers des Mac. Un module inutile élargit la surface d'attaque du noyau."
+    remediation: "Créer /etc/modprobe.d/hfsplus.conf avec « install hfsplus /bin/false » et « blacklist hfsplus »."
+    severity: low
+    category: kernel_security
+    compliance:
+      - iso_27001: ["A.8.9"]
+      - cis_csc_v8: ["4"]
+    condition: all
+    rules:
+      - 'c:modprobe -n -v hfsplus -> r:install /bin/true|install /bin/false|not found'
+      - 'not c:lsmod -> r:^hfsplus\s'
+  - id: 1044
+    title: "Module noyau jffs2 non chargeable"
+    description: "Système de fichiers pour mémoire flash embarquée. Un module inutile élargit la surface d'attaque du noyau."
+    remediation: "Créer /etc/modprobe.d/jffs2.conf avec « install jffs2 /bin/false » et « blacklist jffs2 »."
+    severity: low
+    category: kernel_security
+    compliance:
+      - iso_27001: ["A.8.9"]
+      - cis_csc_v8: ["4"]
+    condition: all
+    rules:
+      - 'c:modprobe -n -v jffs2 -> r:install /bin/true|install /bin/false|not found'
+      - 'not c:lsmod -> r:^jffs2\s'
+  - id: 1045
+    title: "Module noyau dccp non chargeable"
+    description: "Protocole de transport rarement utilisé. Un module inutile élargit la surface d'attaque du noyau."
+    remediation: "Créer /etc/modprobe.d/dccp.conf avec « install dccp /bin/false » et « blacklist dccp »."
+    severity: low
+    category: kernel_security
+    compliance:
+      - iso_27001: ["A.8.9"]
+      - cis_csc_v8: ["4"]
+    condition: all
+    rules:
+      - 'c:modprobe -n -v dccp -> r:install /bin/true|install /bin/false|not found'
+      - 'not c:lsmod -> r:^dccp\s'
+  - id: 1046
+    title: "Module noyau sctp non chargeable"
+    description: "Protocole de transport des réseaux de téléphonie. Un module inutile élargit la surface d'attaque du noyau."
+    remediation: "Créer /etc/modprobe.d/sctp.conf avec « install sctp /bin/false » et « blacklist sctp »."
+    severity: low
+    category: kernel_security
+    compliance:
+      - iso_27001: ["A.8.9"]
+      - cis_csc_v8: ["4"]
+    condition: all
+    rules:
+      - 'c:modprobe -n -v sctp -> r:install /bin/true|install /bin/false|not found'
+      - 'not c:lsmod -> r:^sctp\s'
+  - id: 1047
+    title: "Module noyau rds non chargeable"
+    description: "Protocole de grappes Oracle. Un module inutile élargit la surface d'attaque du noyau."
+    remediation: "Créer /etc/modprobe.d/rds.conf avec « install rds /bin/false » et « blacklist rds »."
+    severity: low
+    category: kernel_security
+    compliance:
+      - iso_27001: ["A.8.9"]
+      - cis_csc_v8: ["4"]
+    condition: all
+    rules:
+      - 'c:modprobe -n -v rds -> r:install /bin/true|install /bin/false|not found'
+      - 'not c:lsmod -> r:^rds\s'
+  - id: 1048
+    title: "Module noyau tipc non chargeable"
+    description: "Protocole de communication entre nœuds de grappe. Un module inutile élargit la surface d'attaque du noyau."
+    remediation: "Créer /etc/modprobe.d/tipc.conf avec « install tipc /bin/false » et « blacklist tipc »."
+    severity: low
+    category: kernel_security
+    compliance:
+      - iso_27001: ["A.8.9"]
+      - cis_csc_v8: ["4"]
+    condition: all
+    rules:
+      - 'c:modprobe -n -v tipc -> r:install /bin/true|install /bin/false|not found'
+      - 'not c:lsmod -> r:^tipc\s'
+  - id: 1050
+    title: "/tmp monté avec nodev"
+    description: "Aucun fichier de périphérique ne doit être interprété dans /tmp, où tout compte peut écrire. Le contrôle échoue aussi si /tmp n'est pas un montage séparé."
+    remediation: "Ajouter l'option nodev à la ligne de /tmp dans /etc/fstab, puis remonter."
+    severity: low
+    category: kernel_security
+    compliance:
+      - iso_27001: ["A.8.9"]
+      - cis_csc_v8: ["4"]
+    condition: all
+    rules:
+      - 'f:/proc/mounts -> r:\s/tmp\s && r:nodev'
+  - id: 1051
+    title: "/tmp monté avec nosuid"
+    description: "Aucun programme set-user-ID ne doit agir depuis /tmp, où tout compte peut écrire. Le contrôle échoue aussi si /tmp n'est pas un montage séparé."
+    remediation: "Ajouter l'option nosuid à la ligne de /tmp dans /etc/fstab, puis remonter."
+    severity: low
+    category: kernel_security
+    compliance:
+      - iso_27001: ["A.8.9"]
+      - cis_csc_v8: ["4"]
+    condition: all
+    rules:
+      - 'f:/proc/mounts -> r:\s/tmp\s && r:nosuid'
+  - id: 1052
+    title: "/tmp monté avec noexec"
+    description: "Aucun programme ne doit s'exécuter depuis /tmp, où tout compte peut écrire. Le contrôle échoue aussi si /tmp n'est pas un montage séparé."
+    remediation: "Ajouter l'option noexec à la ligne de /tmp dans /etc/fstab, puis remonter."
+    severity: low
+    category: kernel_security
+    compliance:
+      - iso_27001: ["A.8.9"]
+      - cis_csc_v8: ["4"]
+    condition: all
+    rules:
+      - 'f:/proc/mounts -> r:\s/tmp\s && r:noexec'
+  - id: 1053
+    title: "/dev/shm monté avec nodev"
+    description: "Aucun fichier de périphérique ne doit être interprété dans /dev/shm, où tout compte peut écrire. Le contrôle échoue aussi si /dev/shm n'est pas un montage séparé."
+    remediation: "Ajouter l'option nodev à la ligne de /dev/shm dans /etc/fstab, puis remonter."
+    severity: low
+    category: kernel_security
+    compliance:
+      - iso_27001: ["A.8.9"]
+      - cis_csc_v8: ["4"]
+    condition: all
+    rules:
+      - 'f:/proc/mounts -> r:\s/dev/shm\s && r:nodev'
+  - id: 1054
+    title: "/dev/shm monté avec nosuid"
+    description: "Aucun programme set-user-ID ne doit agir depuis /dev/shm, où tout compte peut écrire. Le contrôle échoue aussi si /dev/shm n'est pas un montage séparé."
+    remediation: "Ajouter l'option nosuid à la ligne de /dev/shm dans /etc/fstab, puis remonter."
+    severity: low
+    category: kernel_security
+    compliance:
+      - iso_27001: ["A.8.9"]
+      - cis_csc_v8: ["4"]
+    condition: all
+    rules:
+      - 'f:/proc/mounts -> r:\s/dev/shm\s && r:nosuid'
+  - id: 1055
+    title: "/dev/shm monté avec noexec"
+    description: "Aucun programme ne doit s'exécuter depuis /dev/shm, où tout compte peut écrire. Le contrôle échoue aussi si /dev/shm n'est pas un montage séparé."
+    remediation: "Ajouter l'option noexec à la ligne de /dev/shm dans /etc/fstab, puis remonter."
+    severity: medium
+    category: kernel_security
+    compliance:
+      - iso_27001: ["A.8.9"]
+      - cis_csc_v8: ["4"]
+    condition: all
+    rules:
+      - 'f:/proc/mounts -> r:\s/dev/shm\s && r:noexec'
+  - id: 1060
+    title: "Durée de vie maximale des mots de passe définie"
+    description: "Un mot de passe qui n'expire jamais reste utilisable indéfiniment après avoir fuité."
+    remediation: "Fixer PASS_MAX_DAYS à 365 ou moins dans /etc/login.defs."
+    severity: medium
+    category: authentication
+    compliance:
+      - iso_27001: ["A.5.17"]
+      - cis_csc_v8: ["5"]
+    condition: all
+    rules:
+      - 'f:/etc/login.defs -> n:^\s*PASS_MAX_DAYS\s+(\d+) compare <= 365'
+  - id: 1061
+    title: "Délai minimal entre deux changements de mot de passe"
+    description: "Sans délai, un utilisateur enchaîne les changements pour revenir à son ancien mot de passe."
+    remediation: "Fixer PASS_MIN_DAYS à 1 ou plus dans /etc/login.defs."
+    severity: low
+    category: authentication
+    compliance:
+      - iso_27001: ["A.5.17"]
+      - cis_csc_v8: ["5"]
+    condition: all
+    rules:
+      - 'f:/etc/login.defs -> n:^\s*PASS_MIN_DAYS\s+(\d+) compare >= 1'
+  - id: 1062
+    title: "Avertissement avant expiration du mot de passe"
+    description: "L'utilisateur doit être prévenu au moins une semaine avant l'expiration."
+    remediation: "Fixer PASS_WARN_AGE à 7 ou plus dans /etc/login.defs."
+    severity: low
+    category: authentication
+    compliance:
+      - iso_27001: ["A.5.17"]
+      - cis_csc_v8: ["5"]
+    condition: all
+    rules:
+      - 'f:/etc/login.defs -> n:^\s*PASS_WARN_AGE\s+(\d+) compare >= 7'
+  - id: 1063
+    title: "Hachage fort des mots de passe"
+    description: "Les mots de passe doivent être hachés avec SHA-512 ou yescrypt, pas MD5 ni DES."
+    remediation: "Fixer ENCRYPT_METHOD à SHA512 ou YESCRYPT dans /etc/login.defs."
+    severity: high
+    category: authentication
+    compliance:
+      - iso_27001: ["A.5.17"]
+      - cis_csc_v8: ["5"]
+    condition: all
+    rules:
+      - 'f:/etc/login.defs -> r:^\s*ENCRYPT_METHOD\s+SHA512|^\s*ENCRYPT_METHOD\s+YESCRYPT'
+  - id: 1064
+    title: "Masque de création de fichiers restrictif"
+    description: "Les fichiers créés par les utilisateurs ne doivent pas être lisibles par tous par défaut."
+    remediation: "Fixer UMASK à 027 dans /etc/login.defs."
+    severity: low
+    category: access_control
+    compliance:
+      - iso_27001: ["A.8.3"]
+      - cis_csc_v8: ["3"]
+    condition: all
+    rules:
+      - 'f:/etc/login.defs -> r:^\s*UMASK\s+027|^\s*UMASK\s+077'
+  - id: 1065
+    title: "Aucun compte sans mot de passe"
+    description: "Un compte dont le champ de mot de passe est vide s'ouvre sans rien saisir."
+    remediation: "Verrouiller le compte (passwd -l) ou lui donner un mot de passe."
+    severity: critical
+    category: authentication
+    compliance:
+      - iso_27001: ["A.5.17"]
+      - cis_csc_v8: ["5"]
+    condition: none
+    rules:
+      - 'f:/etc/shadow -> r:^\w+::'
+  - id: 1066
+    title: "root est le seul compte d'UID 0"
+    description: "Un second compte d'UID 0 a tous les droits sous un autre nom : c'est une porte dérobée classique."
+    remediation: "Supprimer le compte ou lui donner un autre UID."
+    severity: critical
+    category: privileged_access
+    compliance:
+      - iso_27001: ["A.8.2"]
+      - cis_csc_v8: ["5"]
+    condition: none
+    rules:
+      - 'f:/etc/passwd -> !r:^root: && r:^\w+:\w*:0:'
+  - id: 1067
+    title: "Aucune entrée NIS héritée dans les fichiers de comptes"
+    description: "Une ligne commençant par « + » importe des comptes d'un annuaire NIS, y compris forgé."
+    remediation: "Supprimer les lignes commençant par « + » de /etc/passwd, /etc/shadow et /etc/group."
+    severity: high
+    category: accounts
+    compliance:
+      - iso_27001: ["A.5.16"]
+      - cis_csc_v8: ["5"]
+    condition: none
+    rules:
+      - 'f:/etc/passwd -> r:^+'
+      - 'f:/etc/group -> r:^+'
+  - id: 1068
+    title: "su réservé à un groupe"
+    description: "Sans restriction, tout compte peut tenter de deviner le mot de passe de root avec su."
+    remediation: "Activer pam_wheel.so dans /etc/pam.d/su."
+    severity: medium
+    category: privileged_access
+    compliance:
+      - iso_27001: ["A.8.2"]
+      - cis_csc_v8: ["6"]
+    condition: all
+    rules:
+      - 'f:/etc/pam.d/su -> !r:^\s*# && r:pam_wheel.so'
+  - id: 1069
+    title: "sudo exige un terminal dédié"
+    description: "Avec use_pty, un programme lancé par sudo ne peut pas garder la main sur le terminal de l'utilisateur après son retour."
+    remediation: "Ajouter « Defaults use_pty » dans un fichier de /etc/sudoers.d/."
+    severity: low
+    category: privileged_access
+    compliance:
+      - iso_27001: ["A.8.2"]
+      - cis_csc_v8: ["6"]
+    condition: any
+    rules:
+      - 'f:/etc/sudoers -> !r:^\s*# && r:^\s*Defaults\s+\.*use_pty'
+      - 'd:/etc/sudoers.d -> r:\w -> !r:^\s*# && r:^\s*Defaults\s+\.*use_pty'
+  - id: 1070
+    title: "sudo journalise dans un fichier"
+    description: "Un journal propre à sudo garde la trace des commandes lancées avec les droits d'un autre compte."
+    remediation: "Ajouter « Defaults logfile=/var/log/sudo.log » dans un fichier de /etc/sudoers.d/."
+    severity: low
+    category: audit_logging
+    compliance:
+      - iso_27001: ["A.8.15"]
+      - cis_csc_v8: ["8"]
+    condition: any
+    rules:
+      - 'f:/etc/sudoers -> !r:^\s*# && r:^\s*Defaults\s+\.*logfile'
+      - 'd:/etc/sudoers.d -> r:\w -> !r:^\s*# && r:^\s*Defaults\s+\.*logfile'
+  - id: 1071
+    title: "sudo demande toujours un mot de passe"
+    description: "Une règle NOPASSWD donne les droits d'administration à quiconque prend la main sur la session du compte."
+    remediation: "Retirer NOPASSWD des règles de /etc/sudoers et /etc/sudoers.d/."
+    severity: medium
+    category: privileged_access
+    compliance:
+      - iso_27001: ["A.8.2"]
+      - cis_csc_v8: ["6"]
+    condition: none
+    rules:
+      - 'f:/etc/sudoers -> !r:^\s*# && r:NOPASSWD'
+      - 'd:/etc/sudoers.d -> r:\w -> !r:^\s*# && r:NOPASSWD'
+  - id: 1072
+    title: "Verrouillage après des échecs d'authentification"
+    description: "Sans verrouillage, un attaquant essaie des mots de passe sans limite."
+    remediation: "Activer pam_faillock.so dans la pile PAM d'authentification."
+    severity: medium
+    category: authentication
+    compliance:
+      - iso_27001: ["A.5.17"]
+      - cis_csc_v8: ["5"]
+    condition: any
+    rules:
+      - 'd:/etc/pam.d -> r:^common-auth$|^system-auth$|^password-auth$ -> !r:^\s*# && r:pam_faillock.so|pam_tally2.so'
+  - id: 1073
+    title: "Qualité des mots de passe contrôlée"
+    description: "Un module PAM doit refuser les mots de passe trop simples."
+    remediation: "Installer et activer pam_pwquality.so dans la pile PAM des mots de passe."
+    severity: medium
+    category: authentication
+    compliance:
+      - iso_27001: ["A.5.17"]
+      - cis_csc_v8: ["5"]
+    condition: any
+    rules:
+      - 'd:/etc/pam.d -> r:^common-password$|^system-auth$|^password-auth$ -> !r:^\s*# && r:pam_pwquality.so|pam_cracklib.so'
+  - id: 1074
+    title: "Longueur minimale des mots de passe"
+    description: "Douze caractères au moins."
+    remediation: "Fixer minlen à 12 ou plus dans /etc/security/pwquality.conf."
+    severity: medium
+    category: authentication
+    compliance:
+      - iso_27001: ["A.5.17"]
+      - cis_csc_v8: ["5"]
+    condition: all
+    rules:
+      - 'd:/etc/security -> r:^pwquality.conf$ -> n:^\s*minlen\s*=\s*(\d+) compare >= 12'
+  - id: 1075
+    title: "Sessions de commande inactives fermées"
+    description: "Une session laissée ouverte sur un terminal abandonné reste utilisable par quiconque passe."
+    remediation: "Définir TMOUT (900 par exemple) dans un fichier de /etc/profile.d/."
+    severity: low
+    category: session_lock
+    compliance:
+      - iso_27001: ["A.8.1"]
+      - cis_csc_v8: ["4"]
+    condition: any
+    rules:
+      - 'f:/etc/profile -> !r:^\s*# && r:TMOUT='
+      - 'f:/etc/bash.bashrc -> !r:^\s*# && r:TMOUT='
+      - 'd:/etc/profile.d -> r:\.sh$ -> !r:^\s*# && r:TMOUT='
+  - id: 1080
+    title: "Connexion SSH directe en root interdite"
+    description: "Chaque action d'administration doit être attribuable à une personne : on se connecte avec son compte, puis on élève ses droits."
+    remediation: "Écrire « PermitRootLogin no » dans /etc/ssh/sshd_config, puis recharger sshd."
+    severity: high
+    category: remote_access
+    compliance:
+      - iso_27001: ["A.8.5"]
+      - cis_csc_v8: ["4"]
+    condition: any
+    rules:
+      - 'c:sshd -T -> r:^permitrootlogin no'
+      - 'f:/etc/ssh/sshd_config -> r:^\s*PermitRootLogin\s+no'
+      - 'd:/etc/ssh/sshd_config.d -> r:\.conf$ -> r:^\s*PermitRootLogin\s+no'
+  - id: 1081
+    title: "Mots de passe vides refusés par SSH"
+    description: "Un compte sans mot de passe ne doit jamais ouvrir de session distante."
+    remediation: "Écrire « PermitEmptyPasswords no » dans /etc/ssh/sshd_config, puis recharger sshd."
+    severity: critical
+    category: remote_access
+    compliance:
+      - iso_27001: ["A.8.5"]
+      - cis_csc_v8: ["4"]
+    condition: none
+    rules:
+      - 'c:sshd -T -> r:^permitemptypasswords yes'
+      - 'f:/etc/ssh/sshd_config -> r:^\s*PermitEmptyPasswords\s+yes'
+      - 'd:/etc/ssh/sshd_config.d -> r:\.conf$ -> r:^\s*PermitEmptyPasswords\s+yes'
+  - id: 1082
+    title: "Redirection X11 désactivée dans SSH"
+    description: "La redirection X11 expose l'affichage du client aux programmes du serveur."
+    remediation: "Écrire « X11Forwarding no » dans /etc/ssh/sshd_config, puis recharger sshd."
+    severity: low
+    category: remote_access
+    compliance:
+      - iso_27001: ["A.8.5"]
+      - cis_csc_v8: ["4"]
+    condition: none
+    rules:
+      - 'c:sshd -T -> r:^x11forwarding yes'
+      - 'f:/etc/ssh/sshd_config -> r:^\s*X11Forwarding\s+yes'
+      - 'd:/etc/ssh/sshd_config.d -> r:\.conf$ -> r:^\s*X11Forwarding\s+yes'
+  - id: 1083
+    title: "Fichiers .rhosts ignorés par SSH"
+    description: "Les fichiers .rhosts accordent la confiance sur la seule adresse du client."
+    remediation: "Écrire « IgnoreRhosts yes » dans /etc/ssh/sshd_config, puis recharger sshd."
+    severity: medium
+    category: remote_access
+    compliance:
+      - iso_27001: ["A.8.5"]
+      - cis_csc_v8: ["4"]
+    condition: none
+    rules:
+      - 'c:sshd -T -> r:^ignorerhosts no'
+      - 'f:/etc/ssh/sshd_config -> r:^\s*IgnoreRhosts\s+no'
+      - 'd:/etc/ssh/sshd_config.d -> r:\.conf$ -> r:^\s*IgnoreRhosts\s+no'
+  - id: 1084
+    title: "Authentification par machine désactivée dans SSH"
+    description: "Faire confiance à une machine entière revient à faire confiance à tous ses comptes."
+    remediation: "Écrire « HostbasedAuthentication no » dans /etc/ssh/sshd_config, puis recharger sshd."
+    severity: medium
+    category: remote_access
+    compliance:
+      - iso_27001: ["A.8.5"]
+      - cis_csc_v8: ["4"]
+    condition: none
+    rules:
+      - 'c:sshd -T -> r:^hostbasedauthentication yes'
+      - 'f:/etc/ssh/sshd_config -> r:^\s*HostbasedAuthentication\s+yes'
+      - 'd:/etc/ssh/sshd_config.d -> r:\.conf$ -> r:^\s*HostbasedAuthentication\s+yes'
+  - id: 1085
+    title: "Variables d'environnement utilisateur refusées par SSH"
+    description: "Un utilisateur qui fixe son environnement peut contourner des restrictions de sshd."
+    remediation: "Écrire « PermitUserEnvironment no » dans /etc/ssh/sshd_config, puis recharger sshd."
+    severity: medium
+    category: remote_access
+    compliance:
+      - iso_27001: ["A.8.5"]
+      - cis_csc_v8: ["4"]
+    condition: none
+    rules:
+      - 'c:sshd -T -> r:^permituserenvironment yes'
+      - 'f:/etc/ssh/sshd_config -> r:^\s*PermitUserEnvironment\s+yes'
+      - 'd:/etc/ssh/sshd_config.d -> r:\.conf$ -> r:^\s*PermitUserEnvironment\s+yes'
+  - id: 1086
+    title: "Tentatives d'authentification SSH limitées"
+    description: "Quatre essais au plus par connexion."
+    remediation: "Écrire « MaxAuthTries 4 » dans /etc/ssh/sshd_config, puis recharger sshd."
+    severity: medium
+    category: remote_access
+    compliance:
+      - iso_27001: ["A.8.5"]
+      - cis_csc_v8: ["4"]
+    condition: any
+    rules:
+      - 'c:sshd -T -> n:^maxauthtries\s+(\d+) compare <= 4'
+      - 'f:/etc/ssh/sshd_config -> n:^\s*MaxAuthTries\s+(\d+) compare <= 4'
+  - id: 1087
+    title: "Sessions SSH inactives détectées"
+    description: "Sans sonde d'activité, une session abandonnée reste ouverte indéfiniment."
+    remediation: "Écrire « ClientAliveInterval 300 » dans /etc/ssh/sshd_config, puis recharger sshd."
+    severity: low
+    category: remote_access
+    compliance:
+      - iso_27001: ["A.8.5"]
+      - cis_csc_v8: ["4"]
+    condition: any
+    rules:
+      - 'c:sshd -T -> n:^clientaliveinterval\s+(\d+) compare > 0'
+      - 'f:/etc/ssh/sshd_config -> n:^\s*ClientAliveInterval\s+(\d+) compare > 0'
+  - id: 1088
+    title: "Délai d'authentification SSH court"
+    description: "Une minute au plus pour s'authentifier, afin de ne pas laisser de connexions à demi ouvertes."
+    remediation: "Écrire « LoginGraceTime 60 » dans /etc/ssh/sshd_config, puis recharger sshd."
+    severity: low
+    category: remote_access
+    compliance:
+      - iso_27001: ["A.8.5"]
+      - cis_csc_v8: ["4"]
+    condition: any
+    rules:
+      - 'c:sshd -T -> n:^logingracetime\s+(\d+) compare <= 60'
+      - 'f:/etc/ssh/sshd_config -> n:^\s*LoginGraceTime\s+(\d+)\s*$ compare <= 60'
+  - id: 1089
+    title: "Version 1 du protocole SSH désactivée"
+    description: "La version 1 de SSH est cassée depuis longtemps."
+    remediation: "Supprimer la ligne « Protocol 1 » de /etc/ssh/sshd_config."
+    severity: high
+    category: protocols
+    compliance:
+      - iso_27001: ["A.8.24"]
+      - cis_csc_v8: ["3"]
+    condition: none
+    rules:
+      - 'f:/etc/ssh/sshd_config -> r:^\s*Protocol\s+\.*1'
+  - id: 1090
+    title: "Chiffrements SSH faibles exclus"
+    description: "3DES, RC4 et Blowfish ne protègent plus une session."
+    remediation: "Retirer 3des-cbc, arcfour et blowfish-cbc de la ligne Ciphers de /etc/ssh/sshd_config."
+    severity: medium
+    category: protocols
+    compliance:
+      - iso_27001: ["A.8.24"]
+      - cis_csc_v8: ["3"]
+    condition: none
+    rules:
+      - 'c:sshd -T -> r:^ciphers\s+\.*3des-cbc|^ciphers\s+\.*arcfour|^ciphers\s+\.*blowfish'
+      - 'f:/etc/ssh/sshd_config -> r:^\s*Ciphers\s+\.*3des-cbc|^\s*Ciphers\s+\.*arcfour|^\s*Ciphers\s+\.*blowfish'
+  - id: 1091
+    title: "Configuration de sshd protégée en écriture et en lecture"
+    description: "Le fichier de configuration de sshd ne doit être lisible et modifiable que par root."
+    remediation: "chmod 600 /etc/ssh/sshd_config"
+    severity: medium
+    category: remote_access
+    compliance:
+      - iso_27001: ["A.8.5"]
+      - cis_csc_v8: ["4"]
+    regex_type: pcre2
+    condition: none
+    rules:
+      - 'c:stat -c %a /etc/ssh/sshd_config -> r:^\d+$ && !r:^(600|400)$'
+  - id: 1092
+    title: "Authentification SSH par mot de passe désactivée"
+    description: "Avec des clés seulement, deviner un mot de passe ne sert plus à rien. Recommandation, à adapter à votre usage."
+    remediation: "Écrire « PasswordAuthentication no » dans /etc/ssh/sshd_config une fois les clés déployées."
+    severity: low
+    category: remote_access
+    compliance:
+      - iso_27001: ["A.8.5"]
+      - cis_csc_v8: ["4"]
+    condition: any
+    rules:
+      - 'c:sshd -T -> r:^passwordauthentication no'
+      - 'f:/etc/ssh/sshd_config -> r:^\s*PasswordAuthentication\s+no'
+      - 'd:/etc/ssh/sshd_config.d -> r:\.conf$ -> r:^\s*PasswordAuthentication\s+no'
+  - id: 1100
+    title: "Droits de /etc/passwd"
+    description: "/etc/passwd ne doit pas être ouvert au-delà de ce que son usage demande."
+    remediation: "chmod 644 /etc/passwd"
+    severity: medium
+    category: access_control
+    compliance:
+      - iso_27001: ["A.8.3"]
+      - cis_csc_v8: ["3"]
+    regex_type: pcre2
+    condition: none
+    rules:
+      - 'c:stat -c %a /etc/passwd -> r:^\d+$ && !r:^(644|640|600|444|440|400)$'
+  - id: 1101
+    title: "Droits de /etc/group"
+    description: "/etc/group ne doit pas être ouvert au-delà de ce que son usage demande."
+    remediation: "chmod 644 /etc/group"
+    severity: medium
+    category: access_control
+    compliance:
+      - iso_27001: ["A.8.3"]
+      - cis_csc_v8: ["3"]
+    regex_type: pcre2
+    condition: none
+    rules:
+      - 'c:stat -c %a /etc/group -> r:^\d+$ && !r:^(644|640|600|444|440|400)$'
+  - id: 1102
+    title: "Droits de /etc/shadow"
+    description: "/etc/shadow ne doit pas être ouvert au-delà de ce que son usage demande."
+    remediation: "chmod 640 /etc/shadow"
+    severity: high
+    category: access_control
+    compliance:
+      - iso_27001: ["A.8.3"]
+      - cis_csc_v8: ["3"]
+    regex_type: pcre2
+    condition: none
+    rules:
+      - 'c:stat -c %a /etc/shadow -> r:^\d+$ && !r:^(640|600|400|0)$'
+  - id: 1103
+    title: "Droits de /etc/gshadow"
+    description: "/etc/gshadow ne doit pas être ouvert au-delà de ce que son usage demande."
+    remediation: "chmod 640 /etc/gshadow"
+    severity: high
+    category: access_control
+    compliance:
+      - iso_27001: ["A.8.3"]
+      - cis_csc_v8: ["3"]
+    regex_type: pcre2
+    condition: none
+    rules:
+      - 'c:stat -c %a /etc/gshadow -> r:^\d+$ && !r:^(640|600|400|0)$'
+  - id: 1104
+    title: "Droits de /etc/crontab"
+    description: "/etc/crontab ne doit pas être ouvert au-delà de ce que son usage demande."
+    remediation: "chmod 600 /etc/crontab"
+    severity: low
+    category: access_control
+    compliance:
+      - iso_27001: ["A.8.3"]
+      - cis_csc_v8: ["3"]
+    regex_type: pcre2
+    condition: none
+    rules:
+      - 'c:stat -c %a /etc/crontab -> r:^\d+$ && !r:^(600|400)$'
+  - id: 1105
+    title: "Droits de /etc/cron.d"
+    description: "/etc/cron.d ne doit pas être ouvert au-delà de ce que son usage demande."
+    remediation: "chmod 700 /etc/cron.d"
+    severity: low
+    category: access_control
+    compliance:
+      - iso_27001: ["A.8.3"]
+      - cis_csc_v8: ["3"]
+    regex_type: pcre2
+    condition: none
+    rules:
+      - 'c:stat -c %a /etc/cron.d -> r:^\d+$ && !r:^(700)$'
+  - id: 1106
+    title: "Droits de /etc/cron.daily"
+    description: "/etc/cron.daily ne doit pas être ouvert au-delà de ce que son usage demande."
+    remediation: "chmod 700 /etc/cron.daily"
+    severity: low
+    category: access_control
+    compliance:
+      - iso_27001: ["A.8.3"]
+      - cis_csc_v8: ["3"]
+    regex_type: pcre2
+    condition: none
+    rules:
+      - 'c:stat -c %a /etc/cron.daily -> r:^\d+$ && !r:^(700)$'
+  - id: 1107
+    title: "Droits de /etc/cron.hourly"
+    description: "/etc/cron.hourly ne doit pas être ouvert au-delà de ce que son usage demande."
+    remediation: "chmod 700 /etc/cron.hourly"
+    severity: low
+    category: access_control
+    compliance:
+      - iso_27001: ["A.8.3"]
+      - cis_csc_v8: ["3"]
+    regex_type: pcre2
+    condition: none
+    rules:
+      - 'c:stat -c %a /etc/cron.hourly -> r:^\d+$ && !r:^(700)$'
+  - id: 1108
+    title: "cron réservé aux comptes autorisés"
+    description: "Sans liste d'autorisation, tout compte peut planifier des tâches."
+    remediation: "Créer /etc/cron.allow avec les comptes autorisés."
+    severity: low
+    category: access_control
+    compliance:
+      - iso_27001: ["A.8.3"]
+      - cis_csc_v8: ["6"]
+    condition: all
+    rules:
+      - 'f:/etc/cron.allow'
+  - id: 1109
+    title: "Aucune relation de confiance rsh"
+    description: "Les fichiers hosts.equiv et .rhosts ouvrent une session sans mot de passe sur la seule foi de l'adresse du client. Un fichier hosts.equiv vide, comme celui que livre macOS, n'accorde rien."
+    remediation: "Vider /etc/hosts.equiv et supprimer /root/.rhosts."
+    severity: high
+    category: remote_access
+    compliance:
+      - iso_27001: ["A.8.5"]
+      - cis_csc_v8: ["4"]
+    condition: none
+    rules:
+      - 'd:/etc -> r:^hosts.equiv$ -> !r:^\s*# && r:\w'
+      - 'f:/root/.rhosts'
+  - id: 1120
+    title: "Serveur telnet absent"
+    description: "Telnet transmet les mots de passe en clair."
+    remediation: "Désinstaller le serveur telnet ; utiliser SSH."
+    severity: high
+    category: protocols
+    compliance:
+      - iso_27001: ["A.8.20"]
+      - cis_csc_v8: ["4"]
+    condition: none
+    rules:
+      - 'p:telnetd'
+      - 'p:in.telnetd'
+  - id: 1121
+    title: "Services rsh et rlogin absents"
+    description: "rsh et rlogin transmettent tout en clair et se fient à l'adresse du client."
+    remediation: "Désinstaller rsh-server ; utiliser SSH."
+    severity: high
+    category: protocols
+    compliance:
+      - iso_27001: ["A.8.20"]
+      - cis_csc_v8: ["4"]
+    condition: none
+    rules:
+      - 'p:rshd'
+      - 'p:in.rshd'
+      - 'p:rlogind'
+      - 'p:in.rlogind'
+  - id: 1122
+    title: "Serveur TFTP absent"
+    description: "TFTP ne demande aucune authentification."
+    remediation: "Désinstaller le serveur TFTP s'il n'est pas indispensable."
+    severity: medium
+    category: protocols
+    compliance:
+      - iso_27001: ["A.8.20"]
+      - cis_csc_v8: ["4"]
+    condition: none
+    rules:
+      - 'p:tftpd'
+      - 'p:in.tftpd'
+  - id: 1123
+    title: "Services NIS absents"
+    description: "NIS diffuse les comptes et leurs empreintes de mot de passe sur le réseau."
+    remediation: "Désinstaller ypserv et ypbind ; utiliser un annuaire LDAP chiffré."
+    severity: high
+    category: protocols
+    compliance:
+      - iso_27001: ["A.8.20"]
+      - cis_csc_v8: ["4"]
+    condition: none
+    rules:
+      - 'p:ypserv'
+      - 'p:ypbind'
+  - id: 1124
+    title: "Super-serveur inetd absent"
+    description: "inetd et xinetd lancent des services réseau anciens, souvent oubliés."
+    remediation: "Désinstaller inetd ou xinetd si aucun service n'en dépend."
+    severity: low
+    category: protocols
+    compliance:
+      - iso_27001: ["A.8.20"]
+      - cis_csc_v8: ["4"]
+    condition: none
+    rules:
+      - 'p:inetd'
+      - 'p:xinetd'
+  - id: 1125
+    title: "Serveur FTP absent"
+    description: "FTP transmet les mots de passe en clair."
+    remediation: "Remplacer FTP par SFTP."
+    severity: medium
+    category: protocols
+    compliance:
+      - iso_27001: ["A.8.20"]
+      - cis_csc_v8: ["4"]
+    condition: none
+    rules:
+      - 'p:vsftpd'
+      - 'p:proftpd'
+      - 'p:pure-ftpd'
+  - id: 1130
+    title: "Service d'audit en fonctionnement"
+    description: "auditd enregistre les appels sensibles : sans lui, pas de trace de qui a fait quoi."
+    remediation: "Installer auditd et activer le service."
+    severity: medium
+    category: audit_logging
+    compliance:
+      - iso_27001: ["A.8.15"]
+      - cis_csc_v8: ["8"]
+    condition: all
+    rules:
+      - 'p:auditd'
+  - id: 1131
+    title: "Journalisation système en fonctionnement"
+    description: "Un service de journalisation doit recevoir les messages du système."
+    remediation: "Activer systemd-journald ou rsyslog."
+    severity: high
+    category: audit_logging
+    compliance:
+      - iso_27001: ["A.8.15"]
+      - cis_csc_v8: ["8"]
+    condition: any
+    rules:
+      - 'p:systemd-journald'
+      - 'p:rsyslogd'
+      - 'p:syslog-ng'
+  - id: 1132
+    title: "Journal système conservé sur disque"
+    description: "Un journal gardé en mémoire seulement est perdu au redémarrage, et avec lui les traces d'un incident."
+    remediation: "Écrire « Storage=persistent » dans /etc/systemd/journald.conf."
+    severity: low
+    category: audit_logging
+    compliance:
+      - iso_27001: ["A.8.15"]
+      - cis_csc_v8: ["8"]
+    condition: any
+    rules:
+      - 'f:/etc/systemd/journald.conf -> r:^\s*Storage=persistent'
+      - 'd:/var/log/journal'
+  - id: 1133
+    title: "Rotation des journaux configurée"
+    description: "Sans rotation, les journaux remplissent le disque ou sont supprimés d'un bloc."
+    remediation: "Installer logrotate."
+    severity: low
+    category: audit_logging
+    compliance:
+      - iso_27001: ["A.8.15"]
+      - cis_csc_v8: ["8"]
+    condition: all
+    rules:
+      - 'f:/etc/logrotate.conf'
+  - id: 1134
+    title: "Contrôle d'accès obligatoire actif"
+    description: "AppArmor ou SELinux confine les services : un service compromis ne peut pas sortir de son périmètre."
+    remediation: "Activer AppArmor ou mettre SELinux en mode enforcing."
+    severity: medium
+    category: kernel_security
+    compliance:
+      - iso_27001: ["A.8.9"]
+      - cis_csc_v8: ["4"]
+    condition: any
+    rules:
+      - 'c:sh -c "cat /sys/module/apparmor/parameters/enabled /sys/fs/selinux/enforce 2>/dev/null" -> r:^Y$|^1$'
+  - id: 1135
+    title: "Images mémoire désactivées pour les utilisateurs"
+    description: "L'image mémoire d'un programme contient ses données, secrets compris."
+    remediation: "Ajouter « * hard core 0 » dans un fichier de /etc/security/limits.d/."
+    severity: low
+    category: data_protection
+    compliance:
+      - iso_27001: ["A.8.12"]
+      - cis_csc_v8: ["3"]
+    condition: any
+    rules:
+      - 'f:/etc/security/limits.conf -> !r:^\s*# && r:hard\s+core\s+0'
+      - 'd:/etc/security/limits.d -> r:\.conf$ -> !r:^\s*# && r:hard\s+core\s+0'
+  - id: 1136
+    title: "Redémarrage par Ctrl-Alt-Suppr désactivé"
+    description: "Quiconque accède au clavier ne doit pas pouvoir redémarrer un serveur."
+    remediation: "systemctl mask ctrl-alt-del.target"
+    severity: low
+    category: general
+    compliance:
+      - iso_27001: ["A.7.8"]
+      - cis_csc_v8: ["4"]
+    condition: all
+    rules:
+      - 'c:systemctl is-enabled ctrl-alt-del.target -> r:^masked'

@@ -13,6 +13,11 @@ use tracing::{info, warn};
 // Compiled for tests on every platform: only `pfctl` itself needs macOS.
 #[cfg(any(target_os = "macos", test))]
 mod pf_blocklist;
+// Same for the iptables and netsh commands.
+pub mod account;
+#[cfg(any(target_os = "linux", target_os = "windows", test))]
+mod ip_block;
+pub mod response_command;
 
 /// Directories whose contents must never be quarantined or restored into.
 ///
@@ -95,6 +100,109 @@ fn is_protected_target(target: &Path, protected: &[PathBuf]) -> bool {
         .any(|p| target == p || target.starts_with(p))
 }
 
+/// A process name as the detections and the system report it, made
+/// comparable: case and a Windows `.exe` suffix do not tell processes apart.
+fn comparable_name(name: &str) -> String {
+    let name = name.trim().to_lowercase();
+    name.strip_suffix(".exe").unwrap_or(&name).to_string()
+}
+
+/// Whether the process found under a PID is the one a detection named.
+///
+/// `actual` holds the names the system gives that process (its name, the file
+/// name of its executable and of its first argument). Detections and the
+/// system do not read the name from the same place, and the kernel cuts it to
+/// 15 or 16 characters: a name that is the cut form of the other matches.
+fn names_same_process(expected: &str, actual: &[String]) -> bool {
+    /// Shortest length at which the kernel may have cut a name.
+    const TRUNCATED_NAME_CHARS: usize = 15;
+
+    let expected = comparable_name(expected);
+    if expected.is_empty() {
+        return false;
+    }
+    actual.iter().map(|name| comparable_name(name)).any(|name| {
+        let (shorter, longer) = if name.len() <= expected.len() {
+            (&name, &expected)
+        } else {
+            (&expected, &name)
+        };
+        name == expected
+            || (shorter.chars().count() >= TRUNCATED_NAME_CHARS
+                && longer.starts_with(shorter.as_str()))
+    })
+}
+
+/// Names the system currently gives the process `pid`, or `None` when no
+/// such process is running.
+fn running_process_names(pid: u32) -> Option<Vec<String>> {
+    use sysinfo::{Pid, ProcessRefreshKind, ProcessesToUpdate, System, UpdateKind};
+
+    let target = Pid::from_u32(pid);
+    let mut system = System::new();
+    system.refresh_processes_specifics(
+        ProcessesToUpdate::Some(&[target]),
+        true,
+        ProcessRefreshKind::nothing()
+            .with_exe(UpdateKind::Always)
+            .with_cmd(UpdateKind::Always),
+    );
+    let process = system.process(target)?;
+
+    let file_name = |path: &Path| {
+        path.file_name()
+            .map(|name| name.to_string_lossy().into_owned())
+    };
+    let mut names = vec![process.name().to_string_lossy().into_owned()];
+    names.extend(process.exe().and_then(file_name));
+    names.extend(
+        process
+            .cmd()
+            .first()
+            .and_then(|argument| file_name(Path::new(argument))),
+    );
+    Some(names)
+}
+
+/// Refuse to act on `pid` unless it still is the process `process_name`.
+///
+/// A PID is only a number the system hands out again once its process has
+/// exited. Between a detection and the response, the malicious process may be
+/// gone and an unrelated one may have taken its PID: killing by number alone
+/// would then terminate the wrong program.
+fn confirm_process_identity(
+    process_name: &str,
+    pid: u32,
+    actual: Option<&[String]>,
+) -> Result<(), CommonError> {
+    if process_name.trim().is_empty() {
+        return Err(CommonError::internal(format!(
+            "Cannot confirm what PID {} is: no process name was given",
+            pid
+        )));
+    }
+    let Some(actual) = actual else {
+        return Err(CommonError::internal(format!(
+            "Process '{}' (PID {}) is no longer running",
+            process_name, pid
+        )));
+    };
+    if !names_same_process(process_name, actual) {
+        warn!(
+            "PID {} was detected as '{}' and is now {:?}: not terminated",
+            pid, process_name, actual
+        );
+        return Err(CommonError::internal(format!(
+            "PID {} is no longer '{}' (now '{}'): the detected process has exited \
+             and its PID was reused, nothing was terminated",
+            pid,
+            process_name,
+            actual.first().map(String::as_str).unwrap_or("unknown")
+        )));
+    }
+    Ok(())
+}
+
 /// Kill a process by name and PID.
 pub async fn kill_process(process_name: &str, pid: u32) -> Result<(), CommonError> {
     // Anti-Draper protection: reject the PIDs that would take the host or the
@@ -127,6 +235,10 @@ pub async fn kill_process(process_name: &str, pid: u32) -> Result<(), CommonErro
             "Anti-Draper protection: Cannot terminate the Sentinel Agent process",
         ));
     }
+
+    // Checked last, right before the signal: the shorter the gap, the less
+    // room for the PID to change hands.
+    confirm_process_identity(process_name, pid, running_process_names(pid).as_deref())?;
 
     info!(
         "Attempting to kill process '{}' (PID: {})",
@@ -398,6 +510,68 @@ async fn resolves_to_backend(server_url: &str, candidate: std::net::IpAddr) -> b
     }
 }
 
+/// Parse an address as the network collectors report it: IPv6 link-local
+/// addresses carry their interface (`fe80::1%en0`).
+fn parse_reported_address(value: &str) -> Option<std::net::IpAddr> {
+    let address = value.trim().split('%').next().unwrap_or_default();
+    address
+        .parse::<std::net::IpAddr>()
+        .ok()
+        .map(|ip| ip.to_canonical())
+}
+
+/// What `ip` is to this host's connectivity, when blocking it would cut the
+/// host off: its DNS resolver or a gateway of its routing table.
+fn essential_role(
+    ip: std::net::IpAddr,
+    resolvers: &[String],
+    gateways: &[String],
+) -> Option<&'static str> {
+    let listed = |addresses: &[String]| {
+        addresses
+            .iter()
+            .filter_map(|address| parse_reported_address(address))
+            .any(|address| address == ip)
+    };
+    if listed(resolvers) {
+        Some("DNS resolver")
+    } else if listed(gateways) {
+        Some("network gateway")
+    } else {
+        None
+    }
+}
+
+/// DNS resolvers and gateways of this host. Empty when they cannot be read
+/// in time: the check they feed protects against a mistake, it must not make
+/// a block fail.
+async fn network_essentials() -> (Vec<String>, Vec<String>) {
+    const LOOKUP_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(3);
+
+    let resolvers = async {
+        agent_network::collector::DnsCollector::new()
+            .collect()
+            .await
+            .map(|dns| dns.servers)
+            .unwrap_or_default()
+    };
+    let gateways = async {
+        agent_network::collector::RouteCollector::new()
+            .collect()
+            .await
+            .map(|routes| {
+                routes
+                    .into_iter()
+                    .filter_map(|route| route.gateway)
+                    .collect()
+            })
+            .unwrap_or_default()
+    };
+    tokio::time::timeout(LOOKUP_TIMEOUT, async { tokio::join!(resolvers, gateways) })
+        .await
+        .unwrap_or_default()
+}
+
 /// Block an IP address using the system firewall.
 ///
 /// If `duration_secs` is greater than 0, the IP will be automatically unblocked
@@ -416,10 +590,12 @@ pub async fn block_ip(ip: &str, duration_secs: u64) -> Result<(), CommonError> {
         .map(|_| ());
     }
 
-    // Validate IP format first
+    // Validate IP format first. An IPv4 address written as IPv6
+    // (`::ffff:127.0.0.1`) is the IPv4 address: checked and blocked as such.
     let parsed_ip: std::net::IpAddr = ip
-        .parse()
-        .map_err(|_| CommonError::internal(format!("Invalid IP address: {}", ip)))?;
+        .parse::<std::net::IpAddr>()
+        .map_err(|_| CommonError::internal(format!("Invalid IP address: {}", ip)))?
+        .to_canonical();
 
     // Anti-Draper protection: Prevent blocking localhost or the backend server
     // SECURITY: Use parsed IP to prevent bypass via alternative representations
@@ -446,6 +622,20 @@ pub async fn block_ip(ip: &str, duration_secs: u64) -> Result<(), CommonError> {
         ));
     }
 
+    // Traffic is dropped in both directions: blocking the resolver or the
+    // gateway would take the host off the network, platform included.
+    let (resolvers, gateways) = network_essentials().await;
+    if let Some(role) = essential_role(parsed_ip, &resolvers, &gateways) {
+        warn!(
+            "Anti-Draper triggered: Attempted to block the {} ({})",
+            role, ip
+        );
+        return Err(CommonError::internal(format!(
+            "Anti-Draper protection: Cannot block the {} of this host",
+            role
+        )));
+    }
+
     #[cfg(target_os = "macos")]
     {
         // Use pf (packet filter) on macOS
@@ -458,46 +648,14 @@ pub async fn block_ip(ip: &str, duration_secs: u64) -> Result<(), CommonError> {
         .map_err(|e| CommonError::internal(format!("Failed to apply pf rule: {}", e)))?;
     }
 
-    #[cfg(target_os = "linux")]
-    {
-        let output = agent_common::process::silent_async_command("iptables")
-            .args(["-A", "INPUT", "-s", ip, "-j", "DROP"])
-            .output()
-            .await
-            .map_err(|e| CommonError::internal(format!("Failed to execute iptables: {}", e)))?;
-
-        if !output.status.success() {
-            let stderr = String::from_utf8_lossy(&output.stderr);
-            return Err(CommonError::internal(format!(
-                "iptables failed: {}",
-                stderr
-            )));
-        }
-    }
-
-    #[cfg(target_os = "windows")]
-    {
-        let rule_name = format!("SentinelBlock_{}", ip.replace(['.', ':'], "_"));
-        let output = agent_common::process::silent_async_command("netsh")
-            .args([
-                "advfirewall",
-                "firewall",
-                "add",
-                "rule",
-                &format!("name={}", rule_name),
-                "dir=in",
-                "action=block",
-                &format!("remoteip={}", ip),
-            ])
-            .output()
-            .await
-            .map_err(|e| CommonError::internal(format!("Failed to execute netsh: {}", e)))?;
-
-        if !output.status.success() {
-            let stderr = String::from_utf8_lossy(&output.stderr);
-            return Err(CommonError::internal(format!("netsh failed: {}", stderr)));
-        }
-    }
+    #[cfg(any(target_os = "linux", target_os = "windows"))]
+    ip_block::block(
+        &ip_block::SystemFirewall,
+        ip_block::Backend::SYSTEM,
+        parsed_ip,
+    )
+    .await
+    .map_err(|e| CommonError::internal(format!("Failed to apply firewall rules: {}", e)))?;
 
     // Schedule automatic unblock if duration > 0.
     //
@@ -647,36 +805,25 @@ pub async fn unblock_ip(ip: &str) -> Result<(), CommonError> {
         .map_err(|e| CommonError::internal(format!("Failed to remove pf rule: {}", e)))?;
     }
 
-    #[cfg(target_os = "linux")]
+    #[cfg(any(target_os = "linux", target_os = "windows"))]
     {
-        let output = agent_common::process::silent_async_command("iptables")
-            .args(["-D", "INPUT", "-s", ip, "-j", "DROP"])
-            .output()
-            .await
-            .map_err(|e| CommonError::internal(format!("Failed to execute iptables: {}", e)))?;
-
-        if !output.status.success() {
-            let stderr = String::from_utf8_lossy(&output.stderr);
-            return Err(CommonError::internal(format!(
-                "iptables unblock failed: {}",
-                stderr
-            )));
+        let parsed_ip: std::net::IpAddr = ip
+            .parse()
+            .map_err(|_| CommonError::internal(format!("Invalid IP address: {}", ip)))?;
+        let lifted = ip_block::unblock(
+            &ip_block::SystemFirewall,
+            ip_block::Backend::SYSTEM,
+            parsed_ip,
+        )
+        .await;
+        // Windows Firewall reports a rule that is already gone as a failure:
+        // as before, that does not make the unblock fail.
+        #[cfg(target_os = "linux")]
+        lifted.map_err(|e| CommonError::internal(format!("iptables unblock failed: {}", e)))?;
+        #[cfg(target_os = "windows")]
+        if let Err(e) = lifted {
+            tracing::debug!("No firewall rule removed for '{}': {}", ip, e);
         }
-    }
-
-    #[cfg(target_os = "windows")]
-    {
-        let rule_name = format!("SentinelBlock_{}", ip.replace(['.', ':'], "_"));
-        let _ = agent_common::process::silent_async_command("netsh")
-            .args([
-                "advfirewall",
-                "firewall",
-                "delete",
-                "rule",
-                &format!("name={}", rule_name),
-            ])
-            .output()
-            .await;
     }
 
     info!("Successfully unblocked IP '{}'", ip);
@@ -706,6 +853,103 @@ mod tests {
                 msg
             );
         }
+    }
+
+    // ── kill: the PID must still be the detected process ────────────────
+
+    fn names(values: &[&str]) -> Vec<String> {
+        values.iter().map(|value| (*value).to_string()).collect()
+    }
+
+    #[test]
+    fn test_kill_matches_the_detected_process_by_name() {
+        assert!(names_same_process("xmrig", &names(&["xmrig"])));
+        // Windows reports the image name with or without its extension.
+        assert!(names_same_process("Evil.EXE", &names(&["evil"])));
+        assert!(names_same_process("evil", &names(&["evil.exe"])));
+        // The detection read the executable's file name, the system the
+        // (different) process name.
+        assert!(names_same_process(
+            "python3",
+            &names(&["Python", "python3", "python3"])
+        ));
+    }
+
+    #[test]
+    fn test_kill_accepts_a_name_the_kernel_truncated() {
+        // Linux keeps 15 characters of the name.
+        assert!(names_same_process(
+            "my-badprocess-v",
+            &names(&["my-badprocess-v1.2"])
+        ));
+        assert!(names_same_process(
+            "my-badprocess-v1.2",
+            &names(&["my-badprocess-v"])
+        ));
+        // A short common prefix is another program, not a truncation.
+        assert!(!names_same_process("ssh", &names(&["sshd"])));
+        assert!(!names_same_process("node", &names(&["nodemon"])));
+    }
+
+    #[test]
+    fn test_kill_refuses_a_reused_pid() {
+        let error = confirm_process_identity("xmrig", 4242, Some(&names(&["Finder"])))
+            .unwrap_err()
+            .to_string();
+        assert!(error.contains("PID was reused"), "{error}");
+        assert!(error.contains("Finder"), "{error}");
+    }
+
+    #[test]
+    fn test_kill_reports_a_process_that_already_exited() {
+        let error = confirm_process_identity("xmrig", 4242, None)
+            .unwrap_err()
+            .to_string();
+        assert!(error.contains("no longer running"), "{error}");
+    }
+
+    #[test]
+    fn test_kill_needs_a_name_to_confirm_the_target() {
+        assert!(confirm_process_identity("  ", 4242, Some(&names(&["Finder"]))).is_err());
+        assert!(!names_same_process("", &names(&[""])));
+    }
+
+    /// The lookup the check relies on, against a real process: this one.
+    #[test]
+    fn test_running_process_names_finds_this_process() {
+        let actual = running_process_names(std::process::id()).expect("the test process runs");
+        let exe = std::env::current_exe().unwrap();
+        let exe_name = exe.file_name().unwrap().to_string_lossy();
+        assert!(
+            names_same_process(&exe_name, &actual),
+            "{exe_name} not among {actual:?}"
+        );
+        assert!(confirm_process_identity(&exe_name, std::process::id(), Some(&actual)).is_ok());
+    }
+
+    /// End to end on a process this test owns: the wrong name spares it, the
+    /// right one terminates it.
+    #[cfg(unix)]
+    #[tokio::test]
+    async fn test_kill_spares_a_process_with_another_name_then_kills_the_named_one() {
+        let mut child = std::process::Command::new("sleep")
+            .arg("60")
+            .spawn()
+            .expect("spawn sleep");
+        let pid = child.id();
+
+        let refused = kill_process("definitely-not-sleep", pid).await;
+        assert!(refused.is_err(), "a mismatching name must not kill");
+        assert!(
+            child.try_wait().unwrap().is_none(),
+            "the process must still be running"
+        );
+
+        kill_process("sleep", pid)
+            .await
+            .expect("kill the named process");
+        let status = child.wait().unwrap();
+        assert!(!status.success(), "the process must have been terminated");
     }
 
     #[tokio::test]
@@ -980,6 +1224,42 @@ mod tests {
         let _ = tokio::fs::remove_file(qdir.join(&quarantine_id)).await;
         let _ = tokio::fs::remove_file(&meta_path).await;
         let _ = quarantine_dir.close();
+    }
+
+    // ── block_ip: resolver and gateway ──────────────────────────────────
+
+    #[test]
+    fn test_resolver_and_gateway_are_never_blocked() {
+        let resolvers = vec!["192.168.1.1".to_string(), "fe80::1%en0".to_string()];
+        let gateways = vec!["192.168.1.254".to_string(), "link#12".to_string()];
+        let role = |ip: &str| essential_role(ip.parse().unwrap(), &resolvers, &gateways);
+
+        assert_eq!(role("192.168.1.1"), Some("DNS resolver"));
+        assert_eq!(role("fe80::1"), Some("DNS resolver"));
+        assert_eq!(role("192.168.1.254"), Some("network gateway"));
+        // The same resolver, written as an IPv4-mapped IPv6 address.
+        assert_eq!(
+            essential_role(
+                "::ffff:192.168.1.1"
+                    .parse::<std::net::IpAddr>()
+                    .unwrap()
+                    .to_canonical(),
+                &resolvers,
+                &gateways
+            ),
+            Some("DNS resolver")
+        );
+        assert_eq!(role("203.0.113.7"), None);
+        assert_eq!(role("192.168.1.2"), None);
+    }
+
+    #[test]
+    fn test_unreadable_network_setup_blocks_nothing_by_itself() {
+        let unknown: Vec<String> = vec![String::new(), "default".to_string()];
+        assert_eq!(
+            essential_role("203.0.113.7".parse().unwrap(), &unknown, &unknown),
+            None
+        );
     }
 
     // ── block_ip: loopback rejection ────────────────────────────────────

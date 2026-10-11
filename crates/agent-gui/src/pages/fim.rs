@@ -337,6 +337,13 @@ impl FimPage {
                             "Date de d\u{00e9}tection",
                             &crate::format::local_datetime_secs(alert.timestamp),
                         );
+                        widgets::detail_field(ui, "D\u{00e9}tection", alert.detection_label());
+                        if let Some(ref detail) = alert.detail {
+                            widgets::detail_field(ui, "Changement", detail);
+                        }
+                        if let Some(ref actor) = alert.actor {
+                            widgets::detail_field(ui, "Auteur", actor);
+                        }
 
                         widgets::detail_section(ui, "HACHAGES");
                         if let Some(ref old) = alert.old_hash {
@@ -344,6 +351,14 @@ impl FimPage {
                         }
                         if let Some(ref new) = alert.new_hash {
                             widgets::detail_mono(ui, "Hash actuel", new);
+                        }
+                        if let Some(ref sha256) = alert.sha256 {
+                            widgets::detail_mono(ui, "SHA-256", sha256);
+                        }
+
+                        if let Some(ref diff) = alert.diff {
+                            widgets::detail_section(ui, "LIGNES MODIFI\u{00c9}ES");
+                            ui.label(egui::RichText::new(diff).monospace());
                         }
 
                         widgets::detail_section(ui, "STATUT");
@@ -472,7 +487,15 @@ impl FimPage {
     }
 
     fn export_events_csv(state: &AppState, indices: &[usize]) -> bool {
-        let headers = &["chemin", "modification", "date", "statut"];
+        let headers = &[
+            "chemin",
+            "modification",
+            "date",
+            "statut",
+            "detection",
+            "changement",
+            "sha256",
+        ];
         let rows: Vec<Vec<String>> = indices
             .iter()
             .filter_map(|&i| {
@@ -487,6 +510,9 @@ impl FimPage {
                         "En attente"
                     }
                     .to_string(),
+                    e.detection.to_string(),
+                    e.detail.clone().unwrap_or_default(),
+                    e.sha256.clone().unwrap_or_default(),
                 ])
             })
             .collect();

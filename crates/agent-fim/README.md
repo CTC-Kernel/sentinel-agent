@@ -4,79 +4,83 @@ Surveillance d'integrite des fichiers (FIM) pour le Sentinel GRC Agent.
 
 ## Presentation
 
-Cette crate fournit un moteur de File Integrity Monitoring (FIM) haute performance base sur des primitives cryptographiques fortes :
+Trois mecanismes trouvent un changement, et chaque alerte dit lequel :
 
-- **Surveillance temps reel** : Detection instantanee des modifications via les APIs OS natives (inotify, FSEvents, ReadDirectoryChanges)
-- **Hachage BLAKE3/SHA2** : Baselines d'integrite ultra-rapides avec BLAKE3, SHA-256 optionnel pour conformite
-- **Politiques flexibles** : Configuration des chemins surveilles, patterns d'exclusion, profondeur maximale
-- **Generation d'alertes** : Alertes categorisees par severite avec contexte complet
+- **Temps reel** : les evenements du systeme (inotify, FSEvents, ReadDirectoryChanges).
+- **Au demarrage** : la base de reference est conservee sur disque entre deux
+  executions ; les fichiers lui sont compares au lancement, ce qui revele ce
+  qui a ete change pendant que l'agent etait arrete.
+- **Analyse complete periodique** (6 h par defaut) : ce que le systeme n'a pas
+  signale (file d'evenements saturee, limite de surveillance, dossier remplace).
+
+Un changement est une difference de contenu, de permissions, de proprietaire ou
+de groupe ; l'alerte porte les valeurs avant et apres, et le SHA-256 du fichier
+cree ou modifie.
 
 ## Architecture
 
 ```
 FimEngine (coordinateur)
-  |-- Watcher      : Surveillance OS des evenements fichier (notify)
-  |-- BaselineManager : Calcul et comparaison des hashs BLAKE3
-  |-- Alerts       : Generation d'alertes FIM
-  `-- Policy       : Configuration des politiques de surveillance
+  |-- Watcher         : evenements du systeme, lectures differees (notify)
+  |-- BaselineManager : lecture, comparaison et enregistrement d'un fichier en une etape
+  |-- Store           : base de reference conservee entre deux executions
+  |-- Canary          : fichiers leurres anti-ransomware
+  `-- Policy          : chemins surveilles et exclusions
 ```
 
 ## Modules
 
 | Module | Description |
 |--------|-------------|
-| `watcher` | Boucle async de surveillance via la crate `notify` |
-| `baseline` | Gestion des snapshots d'integrite (HashMap + RwLock) |
-| `alerts` | Logique de generation et categorisation des alertes |
-| `policy` | Configuration des politiques FIM |
+| `watcher` | Boucle d'evenements : anti-rebond, relecture en fin de rafale, liens symboliques |
+| `baseline` | Base de reference, `observe` (un fichier) et `scan` (tous les chemins) |
+| `store` | Sauvegarde et relecture de la base, couverture (chemins et exclusions) |
+| `alerts` | File bornee des alertes |
+| `policy` | Construction et validation de la politique |
+| `canary` | Fichiers leurres |
 
-## Capacites
+## Ce qui est detecte
 
-### Surveillance
+| Changement | Detail dans l'alerte |
+|------------|----------------------|
+| Creation | BLAKE3, SHA-256, taille |
+| Modification du contenu | BLAKE3 avant/apres, SHA-256, taille |
+| Permissions | bits avant/apres ; gravite haute si l'acces est elargi |
+| Proprietaire, groupe | uid:gid avant/apres |
+| Suppression, renommage | BLAKE3 du fichier disparu |
+| Fichier remplace par un lien symbolique | signale comme suppression du fichier surveille |
 
-- Surveillance recursive ou non-recursive des repertoires
-- Profondeur maximale configurable (defaut : 5 niveaux)
-- Patterns d'exclusion via glob matching
-- Deduplication des evenements rapides (debounce)
+Un fichier que l'agent n'a pas le droit de lire reste suivi par sa taille, sa
+date de modification, ses permissions et son proprietaire.
 
-### Plateformes supportees
+## Limites
 
-| Plateforme | Backend |
-|------------|---------|
-| Linux | inotify |
-| macOS | FSEvents |
-| Windows | ReadDirectoryChanges |
-
-### Types de changements detectes
-
-- Creation de fichier
-- Modification de contenu
-- Suppression de fichier
-- Renommage
-- Changement de permissions
+- Qui a fait le changement (utilisateur, processus) n'est pas connu : les
+  evenements du systeme ne le disent pas.
+- Le registre Windows n'est pas surveille.
+- La base conservee n'est pas signee : elle est protegee par les droits du
+  dossier de donnees. Elle protege des changements faits agent arrete, pas d'un
+  compte capable de la reecrire (qui peut aussi arreter l'agent).
+- 100 000 fichiers suivis au plus, 32 niveaux sous chaque chemin surveille.
 
 ## Utilisation
 
 ```rust
-use agent_fim::{FimEngine, FimPolicy};
+use agent_fim::{FimEngine, policy::build_policy};
 
-// Definir une politique de surveillance
-let policy = FimPolicy {
-    watched_paths: vec!["/etc".into(), "/usr/bin".into()],
-    recursive: true,
-    ignore_patterns: vec!["*.tmp".into(), "*.log".into()],
-    // ...
-};
-
-// Demarrer le moteur FIM
-let engine = FimEngine::new(policy)?;
-engine.create_baseline().await?;
-engine.start_watching().await?;
+let (alert_tx, mut alert_rx) = tokio::sync::mpsc::channel(1000);
+let engine = FimEngine::new(build_policy(None, None), alert_tx)
+    .with_state_file("/var/lib/sentinel-grc/fim/baseline.json".into());
+engine.start().await?;               // compare le disque a la base conservee
+while let Some(alert) = alert_rx.recv().await {
+    println!("{} ({})", alert.description(), alert.detection);
+}
 ```
 
-## Securite
+## Plateformes
 
-- **BLAKE3** pour le hachage rapide des baselines (3x plus rapide que SHA-256)
-- **SHA-256** optionnel pour conformite reglementaire
-- Les alertes FIM alimentent le pipeline de menaces (`threat_pipeline`) pour correlation
-- Integre avec les referentiels NIS2 et ISO 27001 (controle d'integrite des actifs)
+| Plateforme | Evenements | Verifie |
+|------------|------------|---------|
+| macOS | FSEvents | tests et essai reel (`cargo run -p agent-fim --example live_file_audit`) |
+| Linux | inotify | non exerce sur ce systeme |
+| Windows | ReadDirectoryChanges | non exerce sur ce systeme ; permissions et proprietaire non suivis |

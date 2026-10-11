@@ -28,7 +28,10 @@
 pub mod process_events;
 pub mod process_monitor;
 pub mod process_tree;
+pub mod registry_monitor;
+pub mod rootcheck;
 pub mod sigma;
+pub mod sigma_logs;
 pub mod system_monitor;
 pub mod usb_monitor;
 pub mod yara;
@@ -288,6 +291,10 @@ pub struct SecurityScanResult {
 pub struct SecurityMonitor {
     process_monitor: ProcessMonitor,
     system_monitor: SystemMonitor,
+    /// Signs of a rootkit (`None`: the checks are turned off).
+    rootcheck: Option<std::sync::Arc<rootcheck::Rootcheck>>,
+    /// The registry start-up locations (`None`: not Windows, or not asked).
+    registry: Option<std::sync::Arc<registry_monitor::RegistryMonitor>>,
 }
 
 impl SecurityMonitor {
@@ -296,7 +303,24 @@ impl SecurityMonitor {
         Self {
             process_monitor: ProcessMonitor::new(),
             system_monitor: SystemMonitor::new(),
+            rootcheck: Some(std::sync::Arc::new(rootcheck::Rootcheck::new())),
+            registry: None,
         }
+    }
+
+    /// Follow the registry values a program uses to start by itself,
+    /// keeping the reference in `state_path`. Does nothing off Windows.
+    pub fn watch_registry(&mut self, state_path: std::path::PathBuf) {
+        if cfg!(windows) {
+            self.registry = Some(std::sync::Arc::new(registry_monitor::RegistryMonitor::new(
+                state_path,
+            )));
+        }
+    }
+
+    /// Turn the rootkit checks on or off (on by default).
+    pub fn set_rootkit_detection(&mut self, enabled: bool) {
+        self.rootcheck = enabled.then(|| std::sync::Arc::new(rootcheck::Rootcheck::new()));
     }
 
     /// Load the Sigma rules found under `dir` and evaluate them against the
@@ -305,6 +329,11 @@ impl SecurityMonitor {
         let (engine, report) = sigma::SigmaEngine::load_dir(dir);
         self.process_monitor.set_sigma_engine(engine);
         report
+    }
+
+    /// Evaluate these Sigma rules against the processes at every scan.
+    pub fn set_sigma_rules(&mut self, engine: sigma::SigmaEngine) {
+        self.process_monitor.set_sigma_engine(engine);
     }
 
     /// Evaluate a process that has just started (see [`process_events`]).
@@ -358,6 +387,37 @@ impl SecurityMonitor {
                 let error_msg = format!("System check failed: {}", e);
                 warn!("{}", error_msg);
                 all_errors.push(error_msg);
+            }
+        }
+
+        // Signs of a rootkit. The probes block, and once an hour take about
+        // a second: they run off the asynchronous threads.
+        if let Some(rootcheck) = self.rootcheck.clone() {
+            match tokio::task::spawn_blocking(move || rootcheck.scan()).await {
+                Ok(result) => {
+                    system_checks += result.checks;
+                    all_incidents.extend(result.incidents);
+                }
+                Err(e) => {
+                    let error_msg = format!("Rootkit checks failed: {}", e);
+                    warn!("{}", error_msg);
+                    all_errors.push(error_msg);
+                }
+            }
+        }
+
+        // Registry values a program uses to start by itself (Windows).
+        if let Some(registry) = self.registry.clone() {
+            match tokio::task::spawn_blocking(move || registry.check()).await {
+                Ok(incidents) => {
+                    system_checks += 1;
+                    all_incidents.extend(incidents);
+                }
+                Err(e) => {
+                    let error_msg = format!("Registry check failed: {}", e);
+                    warn!("{}", error_msg);
+                    all_errors.push(error_msg);
+                }
             }
         }
 

@@ -1,0 +1,10 @@
+# One compiler for every developer, CI job and release build. `stable` moves
+# every six weeks: a release built today and rebuilt next month would not be
+# the same binary, and a new lint can fail `clippy -D warnings` on a commit
+# that changed nothing. Raise the version deliberately, in its own commit.
+[toolchain]
+channel = "1.97.1"
+profile = "minimal"
+components = ["rustfmt", "clippy", "llvm-tools-preview"]
+# Both halves of the macOS universal binary.
+targets = ["aarch64-apple-darwin", "x86_64-apple-darwin"]

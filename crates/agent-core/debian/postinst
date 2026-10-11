@@ -75,22 +75,37 @@ if command -v apparmor_parser > /dev/null 2>&1; then
     fi
 fi
 
-# Reload systemd and enable service
+# Reload systemd and enable the service and its root helper (firewall and
+# isolation actions; the service itself runs unprivileged)
 systemctl daemon-reload
 systemctl enable sentinel-agent.service
+systemctl enable sentinel-agent-helper.service || true
 
-# Start or restart depending on install type
+# Start or restart depending on install type.
+# dpkg: "configure" with the previous version as $2 on an upgrade.
+# rpm:  1 on a first install, 2 on an upgrade.
 case "$1" in
     configure)
         if [ -z "$2" ]; then
-            # Fresh install
-            systemctl start sentinel-agent.service || true
+            action=start
         else
-            # Upgrade
-            systemctl restart sentinel-agent.service || true
+            action=restart
         fi
         ;;
+    1)
+        action=start
+        ;;
+    2)
+        action=restart
+        ;;
+    *)
+        action=
+        ;;
 esac
+if [ -n "$action" ]; then
+    systemctl "$action" sentinel-agent-helper.service || true
+    systemctl "$action" sentinel-agent.service || true
+fi
 
 echo "Sentinel GRC Agent installe avec succes."
 echo "Service : systemctl status sentinel-agent"

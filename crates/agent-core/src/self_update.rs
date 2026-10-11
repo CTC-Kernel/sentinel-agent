@@ -37,6 +37,48 @@ impl AgentRuntime {
         }
     }
 
+    /// Report what became of the update a previous process started.
+    ///
+    /// The agent exits while the system installer runs, so only the process
+    /// that comes back can tell: it is the new version, or the installer did
+    /// not replace it.
+    pub(crate) async fn report_previous_update_outcome(&self) {
+        use crate::update_manager::UpdateOutcome;
+
+        match crate::update_manager::take_update_outcome(AGENT_VERSION) {
+            Some(UpdateOutcome::Completed { version }) => {
+                info!("[AUDIT] Update to version {} completed", version);
+                self.report_update("completed", Some(&version), None).await;
+                #[cfg(feature = "gui")]
+                self.emit_notification(
+                    "Mise à jour installée",
+                    &format!("L'agent est maintenant en version {}.", version),
+                    "info",
+                );
+            }
+            Some(UpdateOutcome::Failed { version }) => {
+                let reason = format!(
+                    "the installer did not replace the agent: still version {}",
+                    AGENT_VERSION
+                );
+                error!("Update to version {} failed: {}", version, reason);
+                self.report_update("failed", Some(&version), Some(&reason))
+                    .await;
+                #[cfg(feature = "gui")]
+                self.emit_notification(
+                    "Échec de la mise à jour",
+                    &format!(
+                        "La version {} n'a pas pu être installée ; l'agent reste en version {}. \
+                         Nouvel essai automatique dans 24 h.",
+                        version, AGENT_VERSION
+                    ),
+                    "error",
+                );
+            }
+            None => {}
+        }
+    }
+
     /// Run the self-update process requested by a person or the server.
     pub async fn run_self_update(&self) -> Result<(), CommonError> {
         self.self_update(true).await
@@ -113,6 +155,18 @@ impl AgentRuntime {
         drop(api_client);
 
         match update_manager.check_for_update().await {
+            // Installing this version was tried recently and did not go
+            // through: do not download it and exit again at every check.
+            Ok(Some(info))
+                if !interactive && crate::update_manager::retry_delayed(&info.version) =>
+            {
+                info!(
+                    "Version {} is available but its last installation failed; \
+                     waiting before the next automatic attempt",
+                    info.version
+                );
+                Ok(())
+            }
             Ok(Some(info)) => {
                 info!(
                     "New version available: {}. Starting update...",

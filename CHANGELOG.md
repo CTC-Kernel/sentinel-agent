@@ -10,6 +10,358 @@ Tous les changements notables apportés au projet **Sentinel GRC Agent** sont co
 
 ## 🚀 [Non publié]
 
+### 🔒 Réponse : verrouillage de compte et commande de réponse
+
+- **Verrouiller un compte** (action de playbook « Verrouiller le compte ») :
+  le compte nommé par l'alerte est verrouillé (`usermod --lock --expiredate
+  1` sous Linux, ce qui refuse aussi les clés SSH ; `;DisabledUser;` sous
+  macOS ; `net user … /active:no` sous Windows) et ses sessions sont fermées.
+  Il est déverrouillé à la fin de la durée demandée (une heure par défaut, 0
+  pour « jusqu'à intervention »), y compris après un redémarrage de l'agent.
+- **Quel compte** : celui d'une session ouverte que l'alerte désigne (le
+  compte pris après une force brute), jamais les comptes simplement essayés,
+  et seulement si le playbook comporte l'action.
+- **Refusé** : root et l'administrateur intégré, les comptes système, le
+  compte sous lequel tourne l'agent, le compte qui utilise le Mac à ce
+  moment, le dernier compte capable d'administrer le poste, un compte
+  inexistant. Un compte déjà verrouillé est laissé tel quel, et l'agent ne
+  déverrouille que ce qu'il a verrouillé.
+- **Commande de réponse** (`response_commands`, action « Commande de
+  réponse ») : un programme de l'organisation (ouvrir un ticket, prévenir
+  l'astreinte) qu'un playbook demande par son nom. Il reçoit sur son entrée
+  un document JSON : le playbook, ce qu'il a reconnu, les processus,
+  adresses, fichiers et comptes visés. Un playbook, qui vient de la
+  plateforme, ne peut que nommer une commande déclarée dans la configuration
+  locale ; rien de ce qu'il porte n'est exécuté. Programme donné par chemin
+  absolu, lancé sans interpréteur, refusé s'il n'appartient pas à root ou au
+  compte de l'agent ou si d'autres peuvent l'écrire.
+- Les deux actions comptent dans la limite d'actions destructrices par
+  exécution et sont décrites sans être lancées en mode simulation.
+- **Vérifié** : verrouillage et déverrouillage exercés sur un compte de test
+  d'une Ubuntu 24.04 réelle (état `P` → `L` → `P`, expiration remise à
+  « jamais », refus de root). **Non vérifié** : macOS et Windows (commandes
+  construites et testées, non lancées) ; pas de modèle de playbook dans
+  l'interface, les deux actions s'y choisissent dans la liste.
+
+### 🧬 Intégrité des fichiers : lignes modifiées, auteur du changement, registre Windows
+
+- **Lignes modifiées** : pour un petit fichier texte, l'alerte donne les
+  lignes retirées et ajoutées (`-ancienne`, `+nouvelle`, sous `@@ line N`).
+  Le dernier contenu connu est conservé dans le dossier de données, à une
+  condition : que le fichier soit lisible par tous les comptes du poste. Un
+  fichier que ses droits réservent (`/etc/shadow`, une clé privée,
+  `/etc/sudoers`) n'est jamais copié, et la copie d'un fichier qui devient
+  privé est supprimée. 256 Kio par fichier, 256 Mio au total. Réglage
+  `fim_report_changes` (actif par défaut).
+- **Auteur du changement**, quand quelque chose le dit :
+  - exact, d'après l'audit du système : enregistrements auditd sous Linux
+    (`auditctl -w /etc -p wa`), événements 4663 sous Windows (avec une entrée
+    d'audit sur le fichier) ;
+  - probable, d'après les processus vus démarrer
+    (`process_event_telemetry`) : un programme lancé dans les dix minutes
+    précédentes avec le fichier sur sa ligne de commande (`sed -i …
+    /etc/hosts`).
+  Sans l'un ni l'autre, l'alerte dit ce qui a changé, pas qui : rien n'est
+  inventé. L'agent n'installe pas lui-même de règle d'audit.
+- **Registre Windows** : les valeurs qu'un programme utilise pour démarrer
+  seul (`Run`, `RunOnce` machine et utilisateurs, `Winlogon`, `AppInit_DLLs`,
+  paquets LSA, `BootExecute`, `AppCertDlls`, `Image File Execution Options`,
+  association des `.exe`) sont relues à chaque analyse de sécurité ; une
+  valeur ajoutée ou modifiée est signalée, avec sa technique ATT&CK. La
+  première lecture sert de référence, conservée entre deux exécutions.
+- **Non vérifié** : le registre est lu par `reg query`, dont la lecture est
+  testée sur des exemples de sortie mais qui n'a pas tourné sous Windows.
+  L'attribution par audit est testée sur des enregistrements d'exemple.
+
+### 🧾 Inventaire du poste : comptes, groupes, services, ports en écoute
+
+- **Inventaire toutes les dix minutes** : comptes (identifiant, shell, peut
+  ouvrir une session ou non), groupes et leurs membres, services (unités
+  systemd, éléments de lancement de `/Library`, services Windows avec leur
+  commande), ports en écoute avec le programme qui les tient.
+- **Ce qui change est signalé** : compte créé (critique s'il porte
+  l'identifiant de root), compte recevant l'identifiant de root ou un shell,
+  compte ajouté à un groupe d'administration, service installé ou dont la
+  commande change, port ouvert sur le réseau et pas vu depuis une semaine.
+  Les suppressions, les ports locaux et les ports déjà connus sont
+  enregistrés (événements SIEM) sans lever d'incident. Le premier inventaire
+  sert de référence.
+- **Une source en échec ne supprime rien** : une commande qui ne répond pas
+  donne une liste vide, qui n'est pas prise pour la suppression de tous les
+  comptes.
+- `sentinel-agent inventory` affiche l'inventaire courant en JSON. Réglage
+  `system_inventory` (actif par défaut).
+- **Constat sur macOS 15 et suivants** : `netstat` ne renvoie rien à un
+  programme sans l'autorisation « Réseau local ». L'inventaire lit donc les
+  ports avec `lsof` (ceux du compte de l'agent, tous s'il est root), et le
+  contrôle des ports cachés est sauté quand la liste complète n'est pas
+  disponible, plutôt que mené sur une liste partielle.
+- **Vérifié** : collecte exercée sur un Mac réel (133 comptes, 11 ports ;
+  trois défauts corrigés au passage : comptes et groupes en double dans la
+  réponse du service d'annuaire, ports non lus) et sur une Ubuntu 24.04
+  réelle (25 comptes, 140 services). **Non vérifié** : la collecte Windows
+  (PowerShell) n'a pas tourné ; sa lecture est testée sur un exemple. Pas
+  d'envoi de l'inventaire à la plateforme ni de page dans l'interface.
+
+### 📋 Conformité : politiques au format SCA et socle de durcissement
+
+- **Politiques au format SCA** (`sca.d`) : un fichier YAML décrit des
+  contrôles par des règles sur le contenu d'un fichier, les entrées d'un
+  dossier, un processus, la sortie d'une commande ou une valeur du registre
+  Windows, combinées par `all`, `any` ou `none`, avec comparaison numérique
+  (`n:… compare <= 365`). Le format est celui des politiques SCA de Wazuh :
+  une politique écrite pour Wazuh se dépose telle quelle, dialecte
+  d'expressions régulières OSSEC compris (`regex_type: pcre2` accepté).
+  Chaque contrôle est exécuté, noté et remonté comme les contrôles intégrés.
+- **Contrôle non applicable** : un contrôle dont une règle ne peut pas être
+  évaluée (fichier absent, outil non installé) n'est ni réussi ni échoué ; il
+  ne compte pas dans le score. Ce statut manquait : un tel contrôle était une
+  erreur ou un échec.
+- **Socle de durcissement livré** : 169 contrôles (90 pour Linux, 32 pour
+  macOS, 47 pour Windows), en français, avec leur remédiation et leur
+  rattachement ISO 27001 et CIS : réglages du noyau et du réseau, comptes et
+  mots de passe, sudo, SSH, droits des fichiers système, services hérités,
+  journalisation ; Gatekeeper, SIP, FileVault, mises à jour, services de
+  partage ; SMB, NTLM, LSA, WDigest, UAC, Bureau à distance, WinRM,
+  PowerShell, Defender. Activé par `hardening_benchmark` (désactivé par
+  défaut : ces contrôles entrent dans le score de conformité, que leur
+  activation modifie donc).
+- **Vérifié** : la politique macOS a tourné sur un Mac réel (29 contrôles
+  conformes, 3 écarts, tous avérés ; un faux écart corrigé au passage :
+  macOS livre un `/etc/hosts.equiv` vide) et la politique Linux sur une
+  Ubuntu 24.04 réelle (48 conformes, 30 écarts, 12 non applicables faute de
+  sshd ; neuf règles corrigées après le premier passage, qui donnaient
+  « non applicable » ou « échec » pour un fichier absent). **Non vérifié** :
+  la politique Windows repose sur la commande `reg query`, dont la lecture
+  est testée sur un exemple de sortie mais qui n'a pas tourné sous Windows.
+
+### 🕳️ Détection de rootkits : ce que le système cache
+
+- **Processus cachés** : chaque numéro de processus est sondé ; un processus
+  qui répond sans figurer dans la liste du système est signalé (incident
+  critique). Les fils d'exécution et les processus tout juste lancés ne sont
+  pas confondus avec un processus caché.
+- **Ports d'écoute cachés** : chaque port TCP est lié un instant ; un port
+  occupé, absent de la liste du système et qui accepte une connexion est
+  signalé (critique).
+- **Modules noyau cachés** (Linux) : module présent dans `/sys/module` mais
+  absent de `/proc/modules`.
+- **Bibliothèque imposée à tous les programmes** : `/etc/ld.so.preload`,
+  `LD_PRELOAD` dans `/etc/environment` (Linux), `DYLD_INSERT_LIBRARIES` dans
+  un élément de lancement (macOS).
+- **Interface en mode promiscuité**, hors interfaces virtuelles et ports de
+  pont.
+- **Fichiers là où il n'en faut pas** : fichiers ordinaires dans `/dev`,
+  programmes au nom masqué dans les dossiers temporaires.
+- **Processus dont le programme a été supprimé** après avoir été lancé depuis
+  un dossier temporaire ou depuis la mémoire (Linux).
+- **Fichiers de rootkits connus** (Linux) : une trentaine de chemins laissés
+  par des rootkits publiés.
+- Chaque constat est signalé une fois par jour. Les sondes de processus et de
+  ports tournent une fois par heure (environ une seconde) ; le reste à chaque
+  analyse de sécurité. Réglage `rootkit_detection` (actif par défaut).
+- **Limites** : ces contrôles s'exécutent en espace utilisateur, avec les
+  réponses que donne le noyau ; un rootkit noyau qui falsifie les deux façons
+  de poser la question n'est pas vu. Un port caché lié à une seule adresse
+  externe n'est pas détecté (la vérification se fait sur la boucle locale,
+  pour ne pas signaler un port simplement réservé). Windows n'est pas couvert.
+- **Vérifié** : exécuté sur un Mac réel et sur une Ubuntu 24.04 réelle,
+  sans faux positif après correction de ceux que les premiers essais ont
+  montrés (ports du pont Thunderbolt sous macOS ; sous Linux, périphériques
+  montés sur un fichier d'attente, que la liste du dossier donnait pour des
+  fichiers ordinaires). Aucun rootkit réel n'a servi d'essai : la détection
+  elle-même est testée sur des systèmes simulés.
+
+### 📜 Analyse de journaux : règles Sigma sur les journaux, corrélations, lecture en temps réel
+
+- **Les règles Sigma s'appliquent aux journaux**, plus seulement aux
+  processus : règles écrites pour un service (`sshd`, `auth`, `sudo`,
+  `syslog`, `cron`, `security`, `system`, `powershell`…) ou pour la catégorie
+  `webserver`. Les règles de la communauté SigmaHQ pour ces sources se
+  déposent telles quelles dans `sigma.d`.
+- **Règles de corrélation Sigma** (`correlation:`) : `event_count` (N
+  correspondances), `value_count` (N valeurs distinctes d'un champ),
+  `temporal` et `temporal_ordered` (plusieurs règles, dans l'ordre ou non),
+  par groupe (`group-by`) et par fenêtre de temps. Une corrélation peut en
+  compter une autre. Plusieurs documents par fichier, modificateur `cidr`.
+- **Décodeurs** : les lignes de sshd, sudo, su, PAM, useradd/usermod/gpasswd,
+  passwd, du pare-feu du noyau (iptables, nftables, ufw), d'auditd, du partage
+  d'écran macOS, des journaux d'accès web et des événements Windows sont
+  traduites en champs fixes (`action`, `user`, `src_ip`, `command`…), les
+  mêmes d'un système à l'autre.
+- **Lecture en temps réel** : `log stream` sous macOS, `journalctl --follow`
+  sous Linux, canaux d'événements Windows relus depuis le dernier
+  enregistrement lu (données de l'événement comprises, plus seulement son
+  message). Sous macOS, les lignes de sudo et de sshd ne sont jamais
+  conservées par le système : elles ne peuvent être lues qu'à leur passage,
+  ce que la lecture par fenêtre d'une minute ne faisait pas.
+- **Fichiers de journaux déclarés** (`log_files`) : journal d'accès d'un
+  serveur web, journal JSON d'une application, fichier syslog ou auditd.
+  Lecture depuis la fin à la première fois, position conservée entre deux
+  exécutions, rotation et troncature suivies.
+- **48 règles livrées** (35 règles, 13 corrélations), en français, avec leurs
+  techniques ATT&CK : force brute et pulvérisation de mots de passe SSH,
+  connexion réussie après une force brute, sudo refusé, su, comptes créés
+  (dont UID 0) ou ajoutés à un groupe privilégié, mode promiscuité, balayage
+  de ports interne, attaques web (traversée de répertoire aboutie, Log4Shell,
+  balayage, énumération, force brute), événements Windows (journal effacé,
+  force brute, compte ajouté aux administrateurs, service suspect, Bureau à
+  distance depuis Internet, Defender). Une règle de `sigma.d` portant le même
+  `id` remplace celle livrée ; un `id` inscrit dans
+  `sigma.d/disabled-rules.txt` la désactive.
+- **Réponse** : une détection qui nomme une adresse distante est présentée aux
+  playbooks comme une alerte réseau ; un playbook peut donc bloquer l'adresse
+  d'une force brute.
+- **Pas d'avalanche** : une même règle, pour un même groupe (adresse, compte),
+  lève un incident par quart d'heure ; 20 incidents au plus par passe. Les
+  règles de niveau `low` et `informational` deviennent des événements SIEM,
+  pas des incidents.
+- Les deux anciens compteurs que ces règles remplacent (« cinq lignes
+  contenant failed », « trois lignes contenant sudo ») sont retirés quand
+  l'analyse est active : ils signalaient deux fois la même activité, et
+  l'usage ordinaire de sudo comme une élévation de privilèges critique.
+- Réglages : `log_analysis` (actif par défaut), `log_analysis_all_programs`,
+  `log_files`.
+- **Vérifié** : lecture réelle sous macOS (`log stream`, ligne sudo
+  réelle, qui a fait corriger le décodeur) ; sous une Ubuntu 24.04 réelle,
+  tests passés et `journalctl` démarré avec ses filtres. **Non vérifié** :
+  le script PowerShell des canaux Windows n'a pas tourné ; les règles Linux
+  et Windows sont testées sur des lignes et des événements d'exemple. Sous
+  Linux, le compte du service doit appartenir au groupe `systemd-journal` ;
+  à défaut, `/var/log/auth.log` ou `/var/log/secure` sont suivis s'ils sont
+  lisibles. Les `aliases` des corrélations et les conditions d'absence (`lt`,
+  `eq`…) ne sont pas pris en charge. Les règles pour d'autres catégories
+  (`network_connection`, `registry_set`, `dns_query`…) restent non évaluées.
+
+### 🗂️ Intégrité des fichiers : base conservée, analyses complètes, détail des changements
+
+- **Changements faits agent arrêté** : la base de référence n'existait qu'en
+  mémoire et était reconstruite à chaque démarrage à partir des fichiers tels
+  qu'ils étaient. Arrêter l'agent, modifier `/etc/sudoers` et le relancer ne
+  laissait aucune trace. La base est maintenant conservée dans le dossier de
+  données (`fim/baseline.json`, lisible par le seul compte de l'agent) et
+  comparée au disque à chaque démarrage : fichiers créés, modifiés ou
+  supprimés pendant l'arrêt sont signalés, avec la mention « au démarrage ».
+  Une base conservée illisible est signalée dans le journal, jamais remplacée
+  en silence.
+- **Analyse complète périodique** (toutes les 6 h, `rescan_interval_secs` de
+  la politique, 0 pour désactiver) : retrouve ce que le système n'a pas
+  signalé (file d'événements saturée, limite de surveillance atteinte,
+  dossier remplacé d'un bloc). Un changement vu à la fois par la surveillance
+  temps réel et par l'analyse n'est signalé qu'une fois.
+- **Permissions et propriétaire** : l'alerte dit ce qui a changé, avec les
+  valeurs avant et après (`permissions 644 → 4755`, `propriétaire 0:0 →
+  501:20`). Un changement qui ouvre le fichier (écriture pour le groupe ou
+  tous, bit set-user-ID, autre propriétaire) est de gravité haute. Un
+  événement de métadonnées sans changement réel (date d'accès, attribut
+  étendu) ne lève plus d'alerte « permissions modifiées ».
+- **Fichiers illisibles par l'agent** (`/etc/shadow`, `/etc/sudoers` pour un
+  service non root) : ils n'étaient pas suivis. Leur taille, leur date de
+  modification, leurs permissions et leur propriétaire le sont maintenant.
+- **Fichier remplacé par un lien symbolique** : la disparition du fichier
+  surveillé est signalée ; seule la cible du lien l'était.
+- **État final des fichiers écrits en plusieurs fois** : les événements
+  arrivés pendant l'intervalle anti-rebond étaient ignorés, et la base gardait
+  l'empreinte d'un fichier partiel. Le fichier est relu une fois la rafale
+  terminée.
+- **`fim_watched_paths` et `fim_ignore_patterns` appliqués** : ces deux champs
+  de la configuration locale étaient lus mais jamais transmis au moteur, qui
+  démarrait toujours avec les chemins par défaut.
+- **Chemins par défaut étendus** aux emplacements de persistance : unités
+  systemd, `/boot`, `/bin`, `/sbin`, `/usr/local/bin` et `/usr/local/sbin`
+  (Linux) ; `StartupItems`, `PrivilegedHelperTools`, `SecurityAgentPlugins`,
+  `/usr/local/bin` (macOS) ; dossier de démarrage commun, tâches planifiées
+  et scripts de stratégie de groupe (Windows). 100 000 fichiers suivis au
+  plus, 32 niveaux de profondeur (5 auparavant).
+- **SHA-256 dans chaque alerte** de création ou de modification (interface,
+  plateforme, SIEM), calculé pour les seuls fichiers qui ont changé.
+- **Interface** : la fiche d'une alerte indique l'origine de la détection, le
+  détail du changement et le SHA-256 ; l'export CSV aussi.
+
+### 🧪 Détection : fichiers malveillants connus par leur empreinte
+
+- Les flux `threat_intel_feeds` fournissent aussi des **SHA-256 de fichiers
+  malveillants** : listes texte, CSV (l'empreinte est lue dans n'importe
+  quelle colonne), STIX et TAXII (`file:hashes.'SHA-256'`). Un fichier créé ou
+  modifié dont l'empreinte est listée lève un incident critique « fichier
+  malveillant connu » et peut déclencher un playbook (type de changement
+  `malicious_hash`).
+- Seul le SHA-256 est comparé : un flux qui ne donne que du MD5 ou du SHA-1
+  n'apporte aucun indicateur de fichier. Un fichier déjà présent avant
+  l'arrivée de son empreinte dans un flux n'est comparé qu'à sa prochaine
+  modification.
+- **Vérifié** : tests et essai réel sous macOS (FSEvents) et sur une Ubuntu
+  24.04 réelle (inotify). **Non vérifié** : Windows (chemins par défaut,
+  ReadDirectoryChanges). La base conservée n'est pas signée : un compte
+  capable de la réécrire peut aussi arrêter l'agent.
+
+### 🛡️ Réponse : actions fiabilisées, socket privilégié durci, mises à jour suivies
+
+- **Blocage d'adresse IP dans les deux sens** : le blocage ne retenait que le
+  trafic entrant. Sous macOS et Windows, le poste restait libre de joindre
+  l'adresse bloquée (canal de commande, exfiltration) ; sous Linux, la règle
+  ajoutée en fin de chaîne passait derrière celles d'ufw ou de firewalld et
+  ignorait IPv6. Le trafic sortant est maintenant coupé aussi (pf, `iptables`
+  et `ip6tables` en tête de chaîne, règle `dir=out` du pare-feu Windows). Un
+  blocage posé par une version précédente se lève toujours.
+- **Garde-fous du blocage** : refus de bloquer le résolveur DNS ou une
+  passerelle du poste, ce qui le couperait du réseau, plateforme comprise. Une
+  adresse IPv4 écrite en IPv6 (`::ffff:127.0.0.1`) est traitée comme l'adresse
+  IPv4 qu'elle est.
+- **Arrêt de processus lié à son identité** : juste avant le signal, l'agent
+  vérifie que le PID porte encore le nom du processus détecté. Un PID réutilisé
+  par un autre programme n'est plus arrêté à la place du processus disparu.
+- **Socket des actions privilégiées** : appartenir au groupe des
+  administrateurs ne suffit plus. Le service demande au système quel programme
+  est connecté et refuse tout autre que l'application Sentinel : un programme
+  lancé par un administrateur ne peut plus lever un isolement ou débloquer une
+  adresse en écrivant sur le socket. Délai de 5 s pour recevoir une requête et
+  8 requêtes simultanées au plus.
+- **Incidents conservés hors ligne** : un incident que la plateforme n'a pas
+  reçu était seulement journalisé. Il est placé dans la file locale et renvoyé
+  toutes les minutes. L'envoi direct attend 5 s au plus (30 s auparavant) et,
+  après un échec, les incidents suivants vont droit dans la file pendant une
+  minute : une plateforme injoignable ne retarde plus les playbooks.
+- **Mode simulation des playbooks** (`playbook_simulation`, désactivé par
+  défaut) : les playbooks sont évalués sur l'activité réelle et consignent ce
+  qu'ils auraient fait, sans rien arrêter, bloquer ni isoler.
+- **Mises à jour** :
+  - manifeste signé liant la version au paquet, exigé dès qu'une clé de
+    signature est embarquée : un ancien paquet authentique ne peut plus être
+    servi sous un nouveau numéro de version (`cargo xtask manifest`,
+    `docs/UPDATE_SIGNING.md`) ;
+  - le résultat réel est signalé au redémarrage (« terminée » si l'agent est
+    dans la version visée, « échouée » sinon) ; l'état « terminée » n'était
+    jamais envoyé, l'agent s'arrêtant avant ;
+  - après un échec, la vérification planifiée attend 24 h avant de retenter la
+    même version, au lieu de télécharger et de s'arrêter à chaque passage.
+- **Linux** :
+  - le service répond au watchdog systemd (`WatchdogSec=120` était déclaré
+    sans qu'aucun signal de vie soit envoyé). Le signal est lié à la boucle
+    principale : il cesse si elle reste muette 30 minutes ;
+  - paquets deb et rpm : le service d'assistance root (pare-feu, isolement) est
+    livré et activé, et il écoute sur un second socket réservé au compte du
+    service, qui n'est pas administrateur ;
+  - droits du service : `CAP_KILL` pour arrêter un processus d'un autre
+    utilisateur, répertoires personnels lisibles pour l'analyse, limite de
+    tâches portée de 64 à 512 ;
+  - scripts de paquet : les arguments numériques de rpm sont compris (la
+    désinstallation d'un rpm échouait) ;
+  - le service packagé ne peut pas lancer `dpkg` ou `rpm` : il signale la
+    version disponible au lieu de tenter l'installation.
+- **Outillage** : compilateur figé (`rust-toolchain.toml`), outils de CI
+  installés avec `--locked`, tests lancés aussi sous macOS et Windows (non
+  bloquants pour l'instant), Dependabot pour Cargo, les actions GitHub et npm.
+- **Non vérifié** : tout a été compilé et testé sous macOS seulement. Les
+  changements Linux et Windows n'ont été ni compilés ni exécutés sur ces
+  systèmes ; les unités systemd, les scripts de paquet et l'étape de signature
+  de `release.yml` n'ont pas tourné.
+- **Reste à faire sous Linux** : le profil AppArmor livré ne correspond pas à
+  ce que fait l'agent (aucune capacité, aucune commande autorisée, `/home`
+  interdit) et bride la plupart des contrôles et des réponses ; la mise en
+  quarantaine reste impossible depuis le service, que son bac à sable empêche
+  d'écrire hors de ses répertoires.
+
 ### 🧬 Détection : règles YARA sur les fichiers créés ou modifiés
 
 - **Analyse YARA** : les fichiers que la surveillance d'intégrité signale

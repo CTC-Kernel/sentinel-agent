@@ -42,7 +42,13 @@ pub(super) struct Blocklist {
 
 // ── Rules and pfctl arguments ───────────────────────────────────────────────
 
-/// pf rules of the blocklist anchor: one per blocked address.
+/// pf rules of the blocklist anchor: two per blocked address, one for each
+/// direction.
+///
+/// The rule on outgoing packets is the one that cuts a command-and-control
+/// channel: pf keeps a state for every connection the host opens and passes
+/// the replies without evaluating the rules, so dropping what comes *from*
+/// the address alone leaves the host free to reach it.
 ///
 /// `quick` ends the evaluation on a match. Without it pf applies the last
 /// matching rule, so a `pass` in an anchor evaluated later would let the
@@ -52,6 +58,7 @@ pub(super) fn pf_rules(blocked: &BTreeSet<IpAddr>) -> String {
         String::from("# Sentinel GRC - blocked IP addresses. Managed by the agent, do not edit.\n");
     for ip in blocked {
         rules.push_str(&format!("block drop quick from {ip} to any\n"));
+        rules.push_str(&format!("block drop quick from any to {ip}\n"));
     }
     rules
 }
@@ -425,8 +432,11 @@ mod tests {
             lines,
             [
                 "block drop quick from 198.51.100.4 to any",
+                "block drop quick from any to 198.51.100.4",
                 "block drop quick from 203.0.113.7 to any",
+                "block drop quick from any to 203.0.113.7",
                 "block drop quick from 2001:db8::10 to any",
+                "block drop quick from any to 2001:db8::10",
             ]
         );
         assert!(
@@ -519,7 +529,10 @@ mod tests {
         );
         assert_eq!(
             rule_lines(&store),
-            ["block drop quick from 203.0.113.7 to any"]
+            [
+                "block drop quick from 203.0.113.7 to any",
+                "block drop quick from any to 203.0.113.7",
+            ]
         );
         assert_eq!(
             store.load().await,
@@ -546,7 +559,9 @@ mod tests {
             rule_lines(&store),
             [
                 "block drop quick from 198.51.100.4 to any",
+                "block drop quick from any to 198.51.100.4",
                 "block drop quick from 203.0.113.7 to any",
+                "block drop quick from any to 203.0.113.7",
             ]
         );
         // The new reference is taken before the previous one is released.
@@ -612,7 +627,10 @@ mod tests {
         assert_eq!(store.load().await, recorded);
         assert_eq!(
             rule_lines(&store),
-            ["block drop quick from 203.0.113.7 to any"]
+            [
+                "block drop quick from 203.0.113.7 to any",
+                "block drop quick from any to 203.0.113.7",
+            ]
         );
         let calls = pf.calls();
         assert!(calls.contains(&"-X 200".to_string()), "new reference freed");
@@ -648,7 +666,10 @@ mod tests {
 
         assert_eq!(
             rule_lines(&store),
-            ["block drop quick from 198.51.100.4 to any"]
+            [
+                "block drop quick from 198.51.100.4 to any",
+                "block drop quick from any to 198.51.100.4",
+            ]
         );
         assert_eq!(
             store.load().await.blocked,
@@ -767,7 +788,10 @@ mod tests {
         );
         assert_eq!(
             rule_lines(&store),
-            ["block drop quick from 203.0.113.7 to any"]
+            [
+                "block drop quick from 203.0.113.7 to any",
+                "block drop quick from any to 203.0.113.7",
+            ]
         );
     }
 }

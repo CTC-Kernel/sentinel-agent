@@ -1066,13 +1066,16 @@ impl From<agent_common::types::FimAlert> for FimAlertPayload {
         }
         .to_string();
 
-        // Default severity based on change type
+        // Default severity based on change type; a change that opens the
+        // file to more accounts is high whatever its type.
         let severity = match alert.change {
+            _ if alert.widens_access() => "high",
             FimChangeType::Deleted | FimChangeType::PermissionChanged => "high",
             FimChangeType::Created | FimChangeType::Renamed => "medium",
             FimChangeType::Modified => "medium",
         }
         .to_string();
+        let metadata = Some(alert.details());
 
         Self {
             path: alert.path.to_string_lossy().to_string(),
@@ -1081,7 +1084,7 @@ impl From<agent_common::types::FimAlert> for FimAlertPayload {
             baseline_hash: alert.old_hash,
             actual_hash: alert.new_hash,
             timestamp: alert.timestamp,
-            metadata: None,
+            metadata,
         }
     }
 }
@@ -1702,15 +1705,16 @@ mod tests {
         use chrono::TimeZone;
         let ts = Utc.timestamp_opt(1_790_000_000, 123_456_789).unwrap();
         let alert = agent_common::types::FimAlert {
-            path: std::path::PathBuf::from("/etc/passwd"),
-            change: agent_common::types::FimChangeType::Modified,
-            old_hash: None,
-            new_hash: None,
-            new_size: None,
             timestamp: ts,
-            acknowledged: false,
+            ..agent_common::types::FimAlert::new(
+                std::path::PathBuf::from("/etc/passwd"),
+                agent_common::types::FimChangeType::Modified,
+                agent_common::types::FimDetection::Startup,
+            )
         };
         let upload = serde_json::to_value(FimAlertPayload::from(alert)).unwrap();
+        // How the change was found travels with the alert.
+        assert_eq!(upload["metadata"]["detection"], "startup");
 
         let body = fim_acknowledge_body("/etc/passwd", &ts);
         assert_eq!(body["acknowledged"], true);
