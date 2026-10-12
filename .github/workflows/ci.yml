@@ -135,6 +135,11 @@ jobs:
       - name: Run tests (Windows)
         if: runner.os == 'Windows'
         run: cargo test --workspace --no-fail-fast --features agent-core/gui
+      - name: "TEMPORARY diagnostic: C runtime of whisper.cpp"
+        if: always() && runner.os == 'Windows'
+        continue-on-error: true
+        shell: bash
+        run: bash .github/scripts/crt-diagnostic.sh debug
 
   # Code coverage
   coverage:
@@ -216,6 +221,11 @@ jobs:
         shell: bash
       - name: Build release binary
         run: cargo build --release --package agent-core --features gui
+      - name: "TEMPORARY diagnostic: C runtime of whisper.cpp and of the binary"
+        if: always()
+        continue-on-error: true
+        shell: bash
+        run: bash .github/scripts/crt-diagnostic.sh release
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
