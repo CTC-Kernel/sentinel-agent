@@ -1353,12 +1353,20 @@ mod tests {
             .await
             .expect("quarantine should succeed");
 
-        // Step 2: Patch the metadata to claim the original path is /bin/evil.
+        // Step 2: Patch the metadata to claim the original path is in a
+        // system directory. It has to be one of the system the tests run on:
+        // a destination whose directory does not exist is refused earlier,
+        // as unresolvable.
+        let system_path = if cfg!(windows) {
+            r"C:\Windows\evil"
+        } else {
+            "/bin/evil"
+        };
         let qdir = super::quarantine_dir();
 
         let meta_path = qdir.join(format!("{}.meta", quarantine_id));
         let patched_metadata = serde_json::json!({
-            "original_path": "/bin/evil",
+            "original_path": system_path,
             "quarantined_at": chrono::Utc::now().to_rfc3339(),
             "file_name": "evil",
         });
@@ -1369,9 +1377,9 @@ mod tests {
         .await
         .unwrap();
 
-        // Step 3: Try to restore -- should be rejected because /bin is system-critical.
+        // Step 3: Try to restore -- should be rejected because the directory is system-critical.
         let result = restore_quarantined_file(&quarantine_id).await;
-        assert!(result.is_err(), "Restore to /bin must be rejected");
+        assert!(result.is_err(), "Restore to {system_path} must be rejected");
         let err_msg = result.unwrap_err().to_string();
         assert!(
             err_msg.contains("system-critical"),

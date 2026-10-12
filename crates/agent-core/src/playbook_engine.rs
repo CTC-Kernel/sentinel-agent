@@ -895,13 +895,15 @@ mod guard_tests {
 
     /// Targets are absolute but non-existent, so every action fails harmlessly
     /// inside `quarantine_file` -- what is under test is the cap, not the EDR
-    /// layer.
+    /// layer. Absolute for the system the tests run on: a path without a
+    /// drive is relative on Windows, and refused before the cap is reached.
     #[tokio::test]
     async fn destructive_actions_are_capped_per_run() {
         let over_cap = MAX_DESTRUCTIVE_ACTIONS_PER_RUN + 3;
+        let root = if cfg!(windows) { r"C:\" } else { "/" };
         let actions: Vec<ResolvedAction> = (0..over_cap)
             .map(|i| ResolvedAction::QuarantineFile {
-                path: format!("/nonexistent-sentinel-cap-test-{}", i),
+                path: format!("{root}nonexistent-sentinel-cap-test-{i}"),
             })
             .collect();
 
@@ -1259,13 +1261,20 @@ mod tests {
 
     #[tokio::test]
     async fn simulation_labels_every_action_and_delivers_none() {
+        // Absolute on the system the tests run on: a relative target is
+        // refused, simulation or not.
+        let dropped = if cfg!(windows) {
+            r"C:\Temp\evil.bin"
+        } else {
+            "/tmp/evil.bin"
+        };
         let actions = vec![
             ResolvedAction::KillProcess {
                 name: "evil_miner".into(),
                 pid: 4242,
             },
             ResolvedAction::QuarantineFile {
-                path: "/tmp/evil.bin".into(),
+                path: dropped.into(),
             },
             ResolvedAction::BlockIp {
                 ip: "203.0.113.7".into(),
@@ -1278,6 +1287,7 @@ mod tests {
         ];
         let results = simulate_playbook_actions("sim", &actions, None).await;
 
+        let quarantine = format!("[Simulation] Quarantine {dropped}");
         assert_eq!(
             results
                 .iter()
@@ -1285,7 +1295,7 @@ mod tests {
                 .collect::<Vec<_>>(),
             [
                 "[Simulation] Kill process evil_miner (PID 4242)",
-                "[Simulation] Quarantine /tmp/evil.bin",
+                quarantine.as_str(),
                 "[Simulation] Block IP 203.0.113.7",
                 "[Simulation] Isolate host until released",
                 "[Simulation] Notify: seen",

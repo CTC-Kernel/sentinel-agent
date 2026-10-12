@@ -480,9 +480,14 @@ mod tests {
     use agent_siem::decode;
 
     /// An analysis with the rules shipped with the agent and no source: the
-    /// events are given by the tests.
+    /// events are given by the tests. Their scenarios are those of a Unix
+    /// endpoint (sshd, sudo): where the tests run on Windows, the rules an
+    /// agent on Linux loads are used.
     fn analysis() -> LogAnalysis {
-        analysis_for(agent_scanner::security::sigma::host_product())
+        match agent_scanner::security::sigma::host_product() {
+            "windows" => analysis_for("linux"),
+            host => analysis_for(host),
+        }
     }
 
     /// The same, with the rules an agent on another system would load: the
@@ -490,9 +495,24 @@ mod tests {
     fn analysis_for(product: &str) -> LogAnalysis {
         let dir = tempfile::tempdir().unwrap();
         let (tailer, _) = LogFileTailer::new(&[], None);
+        // The sources of every system, not only of the one the tests run on.
         let mut coverage = coverage(&tailer);
         coverage.categories.insert("webserver".to_string());
-        for service in ["security", "system", "powershell", "windefend", "kernel"] {
+        for service in [
+            "auth",
+            "syslog",
+            "sshd",
+            "sudo",
+            "su",
+            "cron",
+            "screensharingd",
+            "auditd",
+            "kernel",
+            "security",
+            "system",
+            "powershell",
+            "windefend",
+        ] {
             coverage.services.insert(service.to_string());
         }
         let (loaded, engine) = sigma_logs::load_for(dir.path(), &coverage, product);

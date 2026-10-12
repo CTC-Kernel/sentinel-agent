@@ -134,9 +134,11 @@ jobs:
       # whisper.cpp imports the C runtime from its DLL while the agent links
       # the static one (`+crt-static`), and seven of those imports stay
       # unresolved. The release build, which is what ships, links.
+      # `--no-fail-fast`: these tests had never run on Windows, so a run
+      # reports every crate's failures instead of stopping at the first crate.
       - name: Run tests (Windows, without voice)
         if: runner.os == 'Windows'
-        run: cargo test --workspace --no-default-features --features agent-core/gui,agent-core/tray,agent-gui/render
+        run: cargo test --workspace --no-fail-fast --no-default-features --features agent-core/gui,agent-core/tray,agent-gui/render
 
   # Code coverage
   coverage:
