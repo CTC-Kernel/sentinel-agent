@@ -17,6 +17,7 @@ use std::time::{Duration, Instant};
 
 /// A pass of the main loop may run a compliance scan or wait on several
 /// uploads; only a loop silent for this long is considered stuck.
+#[cfg_attr(not(unix), allow(dead_code))] // Only systemd is sent keepalives.
 const STALL_LIMIT: Duration = Duration::from_secs(30 * 60);
 
 static EPOCH: OnceLock<Instant> = OnceLock::new();
@@ -33,6 +34,7 @@ pub fn beat() {
 }
 
 /// Whether the main loop has turned recently enough to vouch for the agent.
+#[cfg_attr(not(unix), allow(dead_code))]
 fn is_alive(now: u64, last_beat: u64, stall_limit: Duration) -> bool {
     now.saturating_sub(last_beat) < stall_limit.as_secs()
 }
@@ -40,6 +42,7 @@ fn is_alive(now: u64, last_beat: u64, stall_limit: Duration) -> bool {
 /// Interval between keepalives for a watchdog of `watchdog_usec`, or `None`
 /// when the value is not a usable duration. Half the timeout, as systemd
 /// recommends, so one late keepalive does not restart the service.
+#[cfg_attr(not(unix), allow(dead_code))]
 fn keepalive_interval(watchdog_usec: &str) -> Option<Duration> {
     let usec = watchdog_usec.trim().parse::<u64>().ok()?;
     (usec >= 2).then(|| Duration::from_micros(usec / 2))

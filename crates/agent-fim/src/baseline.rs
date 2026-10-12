@@ -948,6 +948,7 @@ mod tests {
         assert!(alert.new_sha256.is_none());
     }
 
+    #[cfg(unix)]
     fn with_store() -> (
         tempfile::TempDir,
         tempfile::TempDir,

@@ -55,6 +55,7 @@ const SWEEP_EVERY: Duration = Duration::from_secs(60 * 60);
 const REPORT_AGAIN_AFTER: Duration = Duration::from_secs(24 * 60 * 60);
 /// Pause between the two readings that confirm a hidden process or port:
 /// what appeared in between is not hidden, only new.
+#[cfg_attr(not(any(target_os = "linux", target_os = "macos")), allow(dead_code))]
 const CONFIRMATION_PAUSE: Duration = Duration::from_millis(300);
 /// Largest process number probed.
 #[cfg_attr(not(target_os = "linux"), allow(dead_code))]

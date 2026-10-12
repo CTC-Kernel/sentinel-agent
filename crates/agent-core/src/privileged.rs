@@ -65,6 +65,7 @@ impl Response {
 }
 
 /// Largest request accepted; real ones are a few hundred bytes.
+#[cfg_attr(not(unix), allow(dead_code))] // The helper only listens on Unix.
 const MAX_REQUEST_BYTES: u64 = 8 * 1024;
 
 /// Run `request` with this process' own privileges.

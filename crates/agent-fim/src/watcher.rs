@@ -459,6 +459,7 @@ mod tests {
         .add_path(path.into())
     }
 
+    #[cfg(unix)]
     fn metadata_changed(path: &Path) -> Event {
         Event::new(EventKind::Modify(notify::event::ModifyKind::Metadata(
             notify::event::MetadataKind::Any,

@@ -42,13 +42,20 @@ use std::sync::mpsc::{Receiver, SyncSender, TrySendError, sync_channel};
 use std::sync::{Arc, Mutex};
 use tracing::{debug, warn};
 
+// Windows has no log stream (its events are asked for at every pass): what
+// follows a stream is only used on macOS and Linux.
+
 /// Events queued at most between two passes of the agent.
+#[cfg_attr(not(any(target_os = "macos", target_os = "linux")), allow(dead_code))]
 const QUEUE: usize = 20_000;
 /// Lines read without one understood before the stream is reported.
+#[cfg_attr(not(any(target_os = "macos", target_os = "linux")), allow(dead_code))]
 const UNREADABLE_LINES_BEFORE_WARNING: u64 = 50;
 /// Time given to a source to fail before it is reported as started.
+#[cfg_attr(not(any(target_os = "macos", target_os = "linux")), allow(dead_code))]
 const STARTUP_GRACE: std::time::Duration = std::time::Duration::from_millis(400);
 /// Largest line accepted from a source.
+#[cfg_attr(not(any(target_os = "macos", target_os = "linux")), allow(dead_code))]
 const MAX_LINE_BYTES: usize = 256 * 1024;
 
 /// The programs whose lines are read unless every program is asked for:
@@ -180,10 +187,7 @@ impl LogStream {
 
     /// Run a program that prints one event per line and queue what `parse`
     /// understands.
-    #[cfg_attr(
-        not(any(target_os = "macos", target_os = "linux", test)),
-        allow(dead_code)
-    )]
+    #[cfg_attr(not(any(target_os = "macos", target_os = "linux")), allow(dead_code))]
     fn from_lines(
         kind: &'static str,
         mut command: std::process::Command,
