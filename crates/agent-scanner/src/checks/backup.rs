@@ -32,7 +32,8 @@ const MAX_BACKUP_AGE_DAYS: i64 = 30;
 
 /// Longest the Windows backup query may take. Shorter than what the runner
 /// allows one check (30 s), so that the check gives its own answer, and not
-/// much shorter: PowerShell alone can need 20 s to start on a cold machine.
+/// much shorter: a PowerShell command that takes a second when the machine
+/// is warm was once seen to take more than 20 s.
 #[cfg(target_os = "windows")]
 const WINDOWS_QUERY_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(25);
 
@@ -1041,8 +1042,8 @@ mod tests {
     async fn the_windows_query_answers_within_its_limit() {
         let check = BackupCheck::new();
 
-        // PowerShell can need longer than the limit the first time it starts
-        // on a machine. A console left open fails every time.
+        // PowerShell is now and then much slower than usual (see
+        // `WINDOWS_QUERY_TIMEOUT`). A console left open fails every time.
         let mut status = check.check_windows().await.expect("PowerShell runs");
         if status.is_none() {
             status = check.check_windows().await.expect("PowerShell runs");

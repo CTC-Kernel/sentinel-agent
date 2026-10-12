@@ -358,9 +358,9 @@ mod tests {
     /// process, then tell whether that process is still there a little later.
     ///
     /// The limit has to pass after the second process exists, and a shell can
-    /// be slow to get there: PowerShell needed more than 20 s the first time
-    /// it started on a CI machine. A run cut short before that point proves
-    /// nothing, so it is done again with more time.
+    /// be slow to get there: on a CI machine, 20 s were once not enough for
+    /// PowerShell. A run cut short before that point proves nothing, so it is
+    /// done again with more time.
     async fn second_process_survives(wait: bool) -> bool {
         for limit in [5, 30, 120].map(Duration::from_secs) {
             let dir = tempfile::tempdir().expect("temporary directory");
