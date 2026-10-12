@@ -245,11 +245,13 @@ impl BackupCheck {
                 status.backup_enabled = true;
                 status.backup_type = Some("Windows Backup".to_string());
 
-                // Parse last backup date
+                // Parse last backup date: wbadmin lists every backup it
+                // knows, from the oldest to the most recent.
                 status.last_backup_date = wbadmin_output
                     .lines()
-                    .find_map(|line| line.split_once("Backup time:"))
-                    .and_then(|(_, date_str)| Self::parse_windows_date(date_str));
+                    .filter_map(|line| line.split_once("Backup time:"))
+                    .filter_map(|(_, date_str)| Self::parse_windows_date(date_str))
+                    .max();
             }
 
             // File History
@@ -1157,6 +1159,44 @@ mod tests {
         assert!(status.backup_configured);
         assert!(status.backup_enabled);
         assert_eq!(status.backup_type.as_deref(), Some("Windows Backup"));
+        assert_eq!(
+            status.last_backup_date,
+            Some("2026-10-12T14:34:00Z".parse().unwrap())
+        );
+    }
+
+    /// wbadmin lists the backups from the oldest to the most recent, and the
+    /// check kept the first: a server backed up every day was measured by
+    /// the oldest backup wbadmin still knew.
+    #[test]
+    fn the_last_backup_is_the_most_recent_one_wbadmin_lists() {
+        // As printed on Windows Server 2025 after two backups.
+        let listing = "wbadmin 1.0 - Backup command-line tool\r\n\
+            (C) Copyright Microsoft Corporation. All rights reserved.\r\n\
+            \r\n\
+            Backup time: 10/12/2026 2:34 PM \r\n\
+            Backup target: Fixed Disk labeled Temporary Storage(D:)\r\n\
+            Version identifier: 10/12/2026-14:34\r\n\
+            Can recover: Volume(s), File(s)\r\n\
+            Snapshot ID: {f761d696-9091-43c3-9aa5-7d26b23516b9}\r\n\
+            \r\n\
+            Backup time: 10/12/2026 2:36 PM \r\n\
+            Backup target: Fixed Disk labeled Temporary Storage(D:)\r\n\
+            Version identifier: 10/12/2026-14:36\r\n\
+            Can recover: Volume(s), File(s)\r\n\
+            Snapshot ID: {ebe7b5ef-be9b-40f4-8262-b88b93b0fcc4}\r\n\
+            \r\n";
+        let status = BackupCheck::parse_windows_query(&windows_answer(listing, 0, &[]));
+
+        assert_eq!(
+            status.last_backup_date,
+            Some("2026-10-12T14:36:00Z".parse().unwrap())
+        );
+
+        // A date that cannot be read does not hide the ones that can.
+        let listing = listing.replace("10/12/2026 2:36 PM", "yesterday");
+        let status = BackupCheck::parse_windows_query(&windows_answer(&listing, 0, &[]));
+
         assert_eq!(
             status.last_backup_date,
             Some("2026-10-12T14:34:00Z".parse().unwrap())
