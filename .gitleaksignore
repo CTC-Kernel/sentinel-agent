@@ -1,0 +1,12 @@
+# Gitleaks findings triaged as false positives and pinned to the exact commit.
+# Format: <commit>:<file>:<rule>:<line>
+#
+# Use this file only for findings in past commits whose line no longer exists in the tree.
+# Fixtures that still live in the tree are allowlisted by content in .gitleaks.toml.
+
+# crates/agent-gui/src/state.rs: old default for `admin_password_sha256`, a SHA-256 digest of
+# the default GUI password documented in the comment above it. A digest, not a credential;
+# the default was removed from the tree since.
+41514cbb6f952029c250c0a7b66abb370a154ceb:crates/agent-gui/src/state.rs:generic-api-key:269
+6873927e0e996fb70900a5bec30535b02f0d234f:crates/agent-gui/src/state.rs:generic-api-key:269
+f43cfab68723838e86886f3f2ece70fa1e2477b3:crates/agent-gui/src/state.rs:generic-api-key:269
