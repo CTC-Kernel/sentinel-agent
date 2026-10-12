@@ -12,18 +12,29 @@ use crate::check::{Check, CheckDefinitionBuilder, CheckOutput};
 #[cfg(target_os = "windows")]
 use crate::error::ScannerError;
 use crate::error::ScannerResult;
+#[cfg(any(target_os = "linux", target_os = "macos"))]
 use agent_common::process::silent_command;
+#[cfg(target_os = "windows")]
+use agent_common::process::{output_within, silent_async_command};
 use agent_common::types::{CheckCategory, CheckDefinition, CheckSeverity};
 use async_trait::async_trait;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use tracing::debug;
+#[cfg(target_os = "windows")]
+use tracing::warn;
 
 /// Check ID for backup configuration.
 pub const CHECK_ID: &str = "backup_configured";
 
 /// Maximum days since last backup for compliance.
 const MAX_BACKUP_AGE_DAYS: i64 = 30;
+
+/// Longest the Windows backup query may take. Shorter than what the runner
+/// allows one check (30 s), so that the check gives its own answer, and not
+/// much shorter: PowerShell alone can need 20 s to start on a cold machine.
+#[cfg(target_os = "windows")]
+const WINDOWS_QUERY_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(25);
 
 /// Backup configuration status.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -101,16 +112,16 @@ impl BackupCheck {
         Self { definition }
     }
 
-    /// Check backup on Windows.
+    /// Check backup on Windows. `None` when the system gave no answer in time.
     #[cfg(target_os = "windows")]
-    async fn check_windows(&self) -> ScannerResult<BackupStatus> {
+    async fn check_windows(&self) -> ScannerResult<Option<BackupStatus>> {
         debug!("Checking Windows backup configuration");
 
-        let output = silent_command("powershell")
-            .args([
-                "-NoProfile",
-                "-Command",
-                r#"
+        let mut command = silent_async_command("powershell");
+        command.args([
+            "-NoProfile",
+            "-Command",
+            r#"
                 $results = @{}
 
                 # Check File History status
@@ -122,17 +133,23 @@ impl BackupCheck {
                 } catch {}
 
                 # Check Windows Backup status (wbadmin)
+                # Only the executable itself: a server without the Windows
+                # Server Backup feature has no wbadmin.exe, and the bare name
+                # 'wbadmin' then opens wbadmin.msc, a console nobody closes.
                 try {
-                    $wbadminOutput = wbadmin get versions 2>&1
-                    $results['WBAdmin_Output'] = $wbadminOutput | Out-String
+                    $wbadmin = Join-Path $env:SystemRoot 'System32\wbadmin.exe'
+                    if (Test-Path -LiteralPath $wbadmin -PathType Leaf) {
+                        $wbadminOutput = & $wbadmin get versions 2>&1
+                        $results['WBAdmin_Output'] = $wbadminOutput | Out-String
 
-                    if ($wbadminOutput -notmatch 'ERROR') {
-                        $results['WindowsBackup_Configured'] = $true
+                        if ($wbadminOutput -notmatch 'ERROR') {
+                            $results['WindowsBackup_Configured'] = $true
 
-                        # Parse last backup date
-                        $versionMatch = $wbadminOutput | Select-String -Pattern 'Backup time: (.+)'
-                        if ($versionMatch) {
-                            $results['LastBackupDate'] = $versionMatch.Matches[0].Groups[1].Value
+                            # Parse last backup date
+                            $versionMatch = $wbadminOutput | Select-String -Pattern 'Backup time: (.+)'
+                            if ($versionMatch) {
+                                $results['LastBackupDate'] = $versionMatch.Matches[0].Groups[1].Value
+                            }
                         }
                     }
                 } catch {
@@ -170,9 +187,19 @@ impl BackupCheck {
 
                 $results | ConvertTo-Json -Depth 3
                 "#,
-            ])
-            .output()
-            .map_err(|e| ScannerError::CheckExecution(format!("Failed to run PowerShell: {}", e)))?;
+        ]);
+        let Some(output) = output_within(command, WINDOWS_QUERY_TIMEOUT)
+            .await
+            .map_err(|e| {
+                ScannerError::CheckExecution(format!("Failed to run PowerShell: {}", e))
+            })?
+        else {
+            warn!(
+                "Windows backup query gave no answer within {}s",
+                WINDOWS_QUERY_TIMEOUT.as_secs()
+            );
+            return Ok(None);
+        };
 
         let raw_output = String::from_utf8_lossy(&output.stdout).to_string();
 
@@ -257,7 +284,7 @@ impl BackupCheck {
         status.issues = self.check_compliance(&status);
         status.compliant = status.issues.is_empty();
 
-        Ok(status)
+        Ok(Some(status))
     }
 
     #[cfg(target_os = "windows")]
@@ -778,6 +805,16 @@ impl BackupCheck {
 
         issues
     }
+
+    /// What the check says when the system gave no answer: that it does not
+    /// know, which is neither a pass nor a claim that nothing is backed up.
+    #[cfg(any(target_os = "windows", test))]
+    fn undetermined(reason: &str) -> CheckOutput {
+        CheckOutput::not_applicable(
+            format!("Backup state could not be determined: {reason}"),
+            serde_json::json!({ "undetermined": reason }),
+        )
+    }
 }
 
 impl Default for BackupCheck {
@@ -794,7 +831,12 @@ impl Check for BackupCheck {
 
     async fn execute(&self) -> ScannerResult<CheckOutput> {
         #[cfg(target_os = "windows")]
-        let status = self.check_windows().await?;
+        let Some(status) = self.check_windows().await? else {
+            return Ok(Self::undetermined(&format!(
+                "the system gave no answer within {} seconds",
+                WINDOWS_QUERY_TIMEOUT.as_secs()
+            )));
+        };
 
         #[cfg(target_os = "linux")]
         let status = self.check_linux().await?;
@@ -979,5 +1021,33 @@ mod tests {
 
         let output = result.unwrap();
         assert!(!output.message.is_empty());
+    }
+
+    #[test]
+    fn a_system_that_gives_no_answer_is_neither_a_pass_nor_a_failure() {
+        let output = BackupCheck::undetermined("the system gave no answer within 25 seconds");
+
+        assert!(output.is_not_applicable());
+        assert!(!output.passed);
+        assert!(output.message.contains("could not be determined"));
+        assert!(!output.message.contains("No backup"));
+    }
+
+    /// On a server without the Windows Server Backup feature there is no
+    /// `wbadmin.exe`: the bare name opened the `wbadmin.msc` console, which
+    /// held the output of the query open, and the check never returned.
+    #[cfg(target_os = "windows")]
+    #[tokio::test]
+    async fn the_windows_query_answers_within_its_limit() {
+        let check = BackupCheck::new();
+
+        // PowerShell can need longer than the limit the first time it starts
+        // on a machine. A console left open fails every time.
+        let mut status = check.check_windows().await.expect("PowerShell runs");
+        if status.is_none() {
+            status = check.check_windows().await.expect("PowerShell runs");
+        }
+
+        assert!(status.is_some(), "the query was given up twice in a row");
     }
 }

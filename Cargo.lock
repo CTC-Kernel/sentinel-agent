@@ -159,6 +159,7 @@ dependencies = [
  "tracing-subscriber",
  "url",
  "uuid 1.22.0",
+ "windows 0.61.3",
  "zeroize",
 ]
 
