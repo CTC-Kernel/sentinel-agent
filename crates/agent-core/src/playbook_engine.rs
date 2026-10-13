@@ -1506,10 +1506,7 @@ mod tests {
     #[cfg(unix)]
     #[tokio::test]
     async fn a_simulated_playbook_changes_nothing_on_the_host() {
-        let mut child = std::process::Command::new("sleep")
-            .arg("60")
-            .spawn()
-            .expect("spawn sleep");
+        let mut child = crate::edr_actions::spawn_sleep();
         let mut pb = make_playbook(vec![PlaybookCondition {
             condition_type: PlaybookConditionType::ProcessNameMatch,
             operator: "any".to_string(),

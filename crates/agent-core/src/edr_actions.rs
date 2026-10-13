@@ -201,6 +201,39 @@ fn running_process_names(pid: u32) -> Option<Vec<String>> {
     Some(names)
 }
 
+/// Start `sleep 60` and wait until the system gives it that name.
+///
+/// `spawn` returns while the new process still carries the name of the
+/// thread that started it: for a moment `kill_process("sleep", ..)` refuses
+/// it as another program, which is what it is there for. On busy Linux
+/// machines a test that killed its `sleep` straight away failed that way
+/// in 3 runs of 80.
+#[cfg(all(test, unix))]
+pub(crate) fn spawn_sleep() -> std::process::Child {
+    let is_sleep = |pid: u32| {
+        running_process_names(pid).is_some_and(|names| names_same_process("sleep", &names))
+    };
+
+    let mut child = std::process::Command::new("sleep")
+        .arg("60")
+        .spawn()
+        .expect("spawn sleep");
+
+    let patience = std::time::Instant::now() + std::time::Duration::from_secs(10);
+    while !is_sleep(child.id()) && std::time::Instant::now() < patience {
+        std::thread::sleep(std::time::Duration::from_millis(5));
+    }
+
+    if is_sleep(child.id()) {
+        child
+    } else {
+        let names = running_process_names(child.id());
+        let _ = child.kill();
+        let _ = child.wait();
+        panic!("the process started as sleep is still {names:?}")
+    }
+}
+
 /// Refuse to act on `pid` unless it still is the process `process_name`.
 ///
 /// A PID is only a number the system hands out again once its process has
@@ -992,10 +1025,7 @@ mod tests {
     #[cfg(unix)]
     #[tokio::test]
     async fn test_kill_spares_a_process_with_another_name_then_kills_the_named_one() {
-        let mut child = std::process::Command::new("sleep")
-            .arg("60")
-            .spawn()
-            .expect("spawn sleep");
+        let mut child = spawn_sleep();
         let pid = child.id();
 
         let refused = kill_process("definitely-not-sleep", pid).await;
