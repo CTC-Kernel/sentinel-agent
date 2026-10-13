@@ -36,8 +36,9 @@ jobs:
           grep PRETTY_NAME /etc/os-release
           nproc
           ulimit -n
-          ls -l "$(command -v sleep)" "$(command -v kill)"
-          sleep --version | head -1
+          ls -l /usr/bin/sleep /usr/bin/kill /bin/kill || true
+          sleep --version | head -1 || true
+          /usr/bin/kill --version || true
       - name: Build the tests
         run: |
           cargo test -p agent-core --lib --features gui --no-run 2>&1 | tail -3
