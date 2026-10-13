@@ -108,6 +108,16 @@ opt-level = 3
 [profile.dev.package.blake2]
 opt-level = 3
 
+# whisper-rs-sys's build script, when compiled with debug assertions, asks
+# CMake for RelWithDebInfo yet still builds the Release configuration. With
+# Visual Studio the `cmake` crate then puts /MT on the configuration that is
+# not built: whisper.cpp keeps CMake's default /MD and no unoptimised build
+# links against the static C runtime of `+crt-static` (.cargo/config.toml).
+# Without debug assertions the script asks for Release throughout, as it does
+# in a release build. whisper.cpp is compiled optimised either way.
+[profile.dev.package.whisper-rs-sys]
+debug-assertions = false
+
 [profile.release]
 opt-level = 3
 lto = "thin"
