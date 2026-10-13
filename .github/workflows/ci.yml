@@ -21,7 +21,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        shard: [1, 2, 3, 4]
+        shard: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
     env:
       OPENSSL_DIR: /usr
       OPENSSL_LIB_DIR: /usr/lib/x86_64-linux-gnu
@@ -42,32 +42,19 @@ jobs:
       - name: Build the tests
         run: |
           cargo test -p agent-core --lib --features gui --no-run 2>&1 | tail -3
-      - name: The two tests that start a sleep, 150 times
+      - name: The whole agent-core suite, first run on this machine then three more
         run: |
           set +e
           fail=0
-          for i in $(seq 1 150); do
-            cargo test -p agent-core --lib --features gui -- a_simulated_playbook_changes_nothing test_kill_spares > out.txt 2>&1
-            if [ $? -ne 0 ]; then
-              fail=$((fail+1))
-              echo "=== pair run $i FAILED"
-              grep -n "panicked at" -A3 out.txt | head -20
-            fi
-          done
-          echo "pair runs failed: $fail of 150"
-      - name: The whole agent-core suite, 12 times
-        run: |
-          set +e
-          fail=0
-          for i in $(seq 1 12); do
+          for i in $(seq 1 4); do
             cargo test -p agent-core --lib --features gui > out.txt 2>&1
             if [ $? -ne 0 ]; then
               fail=$((fail+1))
               echo "=== suite run $i FAILED"
               grep -n " \.\.\. FAILED" out.txt | head
-              grep -n "panicked at" -A3 out.txt | head -30
+              grep -n "panicked at" -A6 out.txt | head -40
             else
               echo "suite run $i ok: $(grep 'test result' out.txt | head -1)"
             fi
           done
-          echo "suite runs failed: $fail of 12"
+          echo "suite runs failed: $fail of 4"
