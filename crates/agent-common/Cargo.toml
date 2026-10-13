@@ -26,5 +26,8 @@ toml.workspace = true
 tokio.workspace = true
 base64.workspace = true
 
+[target.'cfg(windows)'.dependencies]
+windows = { workspace = true, features = ["Win32_System_JobObjects"] }
+
 [dev-dependencies]
 tempfile.workspace = true

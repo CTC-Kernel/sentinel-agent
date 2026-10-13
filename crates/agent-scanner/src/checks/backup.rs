@@ -12,18 +12,30 @@ use crate::check::{Check, CheckDefinitionBuilder, CheckOutput};
 #[cfg(target_os = "windows")]
 use crate::error::ScannerError;
 use crate::error::ScannerResult;
+#[cfg(any(target_os = "linux", target_os = "macos"))]
 use agent_common::process::silent_command;
+#[cfg(target_os = "windows")]
+use agent_common::process::{output_within, silent_async_command};
 use agent_common::types::{CheckCategory, CheckDefinition, CheckSeverity};
 use async_trait::async_trait;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use tracing::debug;
+#[cfg(target_os = "windows")]
+use tracing::warn;
 
 /// Check ID for backup configuration.
 pub const CHECK_ID: &str = "backup_configured";
 
 /// Maximum days since last backup for compliance.
 const MAX_BACKUP_AGE_DAYS: i64 = 30;
+
+/// Longest the Windows backup query may take. Shorter than what the runner
+/// allows one check (30 s), so that the check gives its own answer, and not
+/// much shorter: a PowerShell command that takes a second when the machine
+/// is warm was once seen to take more than 20 s.
+#[cfg(target_os = "windows")]
+const WINDOWS_QUERY_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(25);
 
 /// Backup configuration status.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -101,16 +113,16 @@ impl BackupCheck {
         Self { definition }
     }
 
-    /// Check backup on Windows.
+    /// Check backup on Windows. `None` when the system gave no answer in time.
     #[cfg(target_os = "windows")]
-    async fn check_windows(&self) -> ScannerResult<BackupStatus> {
+    async fn check_windows(&self) -> ScannerResult<Option<BackupStatus>> {
         debug!("Checking Windows backup configuration");
 
-        let output = silent_command("powershell")
-            .args([
-                "-NoProfile",
-                "-Command",
-                r#"
+        let mut command = silent_async_command("powershell");
+        command.args([
+            "-NoProfile",
+            "-Command",
+            r#"
                 $results = @{}
 
                 # Check File History status
@@ -122,22 +134,19 @@ impl BackupCheck {
                 } catch {}
 
                 # Check Windows Backup status (wbadmin)
+                # Only the executable itself: a server without the Windows
+                # Server Backup feature has no wbadmin.exe, and the bare name
+                # 'wbadmin' then opens wbadmin.msc, a console nobody closes.
+                # What it printed and its exit code go back as they are:
+                # whether that is a backup is decided in parse_windows_query.
                 try {
-                    $wbadminOutput = wbadmin get versions 2>&1
-                    $results['WBAdmin_Output'] = $wbadminOutput | Out-String
-
-                    if ($wbadminOutput -notmatch 'ERROR') {
-                        $results['WindowsBackup_Configured'] = $true
-
-                        # Parse last backup date
-                        $versionMatch = $wbadminOutput | Select-String -Pattern 'Backup time: (.+)'
-                        if ($versionMatch) {
-                            $results['LastBackupDate'] = $versionMatch.Matches[0].Groups[1].Value
-                        }
+                    $wbadmin = Join-Path $env:SystemRoot 'System32\wbadmin.exe'
+                    if (Test-Path -LiteralPath $wbadmin -PathType Leaf) {
+                        $wbadminOutput = & $wbadmin get versions 2>&1
+                        $results['WBAdmin_ExitCode'] = $LASTEXITCODE
+                        $results['WBAdmin_Output'] = $wbadminOutput | Out-String
                     }
-                } catch {
-                    $results['WindowsBackup_Configured'] = $false
-                }
+                } catch {}
 
                 # Check System Restore
                 try {
@@ -170,12 +179,41 @@ impl BackupCheck {
 
                 $results | ConvertTo-Json -Depth 3
                 "#,
-            ])
-            .output()
-            .map_err(|e| ScannerError::CheckExecution(format!("Failed to run PowerShell: {}", e)))?;
+        ]);
+        let Some(output) = output_within(command, WINDOWS_QUERY_TIMEOUT)
+            .await
+            .map_err(|e| {
+                ScannerError::CheckExecution(format!("Failed to run PowerShell: {}", e))
+            })?
+        else {
+            warn!(
+                "Windows backup query gave no answer within {}s",
+                WINDOWS_QUERY_TIMEOUT.as_secs()
+            );
+            return Ok(None);
+        };
 
         let raw_output = String::from_utf8_lossy(&output.stdout).to_string();
+        let mut status = Self::parse_windows_query(&raw_output);
 
+        // Calculate days since backup
+        if let Some(backup_date) = status.last_backup_date {
+            let days = (Utc::now() - backup_date).num_days();
+            status.days_since_backup = Some(days);
+        }
+
+        // Validate compliance
+        status.issues = self.check_compliance(&status);
+        status.compliant = status.issues.is_empty();
+
+        Ok(Some(status))
+    }
+
+    /// Read the answer of the Windows backup query: the JSON object printed by
+    /// the script of `check_windows`. Not specific to Windows, so that it is
+    /// tested on every system.
+    #[cfg(any(target_os = "windows", test))]
+    fn parse_windows_query(raw_output: &str) -> BackupStatus {
         let mut status = BackupStatus {
             backup_configured: false,
             backup_enabled: false,
@@ -188,25 +226,32 @@ impl BackupCheck {
             includes_system: None,
             compliant: false,
             issues: vec![],
-            raw_output: raw_output.clone(),
+            raw_output: raw_output.to_string(),
         };
 
         // Parse JSON output
-        if let Ok(json) = serde_json::from_str::<serde_json::Value>(&raw_output) {
-            // Windows Backup
-            if json
-                .get("WindowsBackup_Configured")
-                .and_then(agent_common::process::ps_json_as_bool)
-                == Some(true)
-            {
+        if let Ok(json) = serde_json::from_str::<serde_json::Value>(raw_output) {
+            // Windows Backup: `wbadmin get versions` lists the backups it
+            // knows. With none it still prints its banner, then
+            // "ERROR - No backup was found." and ends with a non-zero code.
+            let wbadmin_output = json
+                .get("WBAdmin_Output")
+                .and_then(|v| v.as_str())
+                .unwrap_or_default();
+            let wbadmin_succeeded =
+                json.get("WBAdmin_ExitCode").and_then(|v| v.as_i64()) == Some(0);
+            if wbadmin_succeeded && !wbadmin_output.lines().any(|line| line.contains("ERROR")) {
                 status.backup_configured = true;
                 status.backup_enabled = true;
                 status.backup_type = Some("Windows Backup".to_string());
 
-                if let Some(date_str) = json.get("LastBackupDate").and_then(|v| v.as_str()) {
-                    // Parse Windows date format
-                    status.last_backup_date = Self::parse_windows_date(date_str);
-                }
+                // Parse last backup date: wbadmin lists every backup it
+                // knows, from the oldest to the most recent.
+                status.last_backup_date = wbadmin_output
+                    .lines()
+                    .filter_map(|line| line.split_once("Backup time:"))
+                    .filter_map(|(_, date_str)| Self::parse_windows_date(date_str))
+                    .max();
             }
 
             // File History
@@ -247,20 +292,10 @@ impl BackupCheck {
             }
         }
 
-        // Calculate days since backup
-        if let Some(backup_date) = status.last_backup_date {
-            let days = (Utc::now() - backup_date).num_days();
-            status.days_since_backup = Some(days);
-        }
-
-        // Validate compliance
-        status.issues = self.check_compliance(&status);
-        status.compliant = status.issues.is_empty();
-
-        Ok(status)
+        status
     }
 
-    #[cfg(target_os = "windows")]
+    #[cfg(any(target_os = "windows", test))]
     fn parse_windows_date(date_str: &str) -> Option<DateTime<Utc>> {
         // Try common Windows date formats (varies by locale)
         let formats = [
@@ -778,6 +813,16 @@ impl BackupCheck {
 
         issues
     }
+
+    /// What the check says when the system gave no answer: that it does not
+    /// know, which is neither a pass nor a claim that nothing is backed up.
+    #[cfg(any(target_os = "windows", test))]
+    fn undetermined(reason: &str) -> CheckOutput {
+        CheckOutput::not_applicable(
+            format!("Backup state could not be determined: {reason}"),
+            serde_json::json!({ "undetermined": reason }),
+        )
+    }
 }
 
 impl Default for BackupCheck {
@@ -794,7 +839,12 @@ impl Check for BackupCheck {
 
     async fn execute(&self) -> ScannerResult<CheckOutput> {
         #[cfg(target_os = "windows")]
-        let status = self.check_windows().await?;
+        let Some(status) = self.check_windows().await? else {
+            return Ok(Self::undetermined(&format!(
+                "the system gave no answer within {} seconds",
+                WINDOWS_QUERY_TIMEOUT.as_secs()
+            )));
+        };
 
         #[cfg(target_os = "linux")]
         let status = self.check_linux().await?;
@@ -979,5 +1029,215 @@ mod tests {
 
         let output = result.unwrap();
         assert!(!output.message.is_empty());
+    }
+
+    #[test]
+    fn a_system_that_gives_no_answer_is_neither_a_pass_nor_a_failure() {
+        let output = BackupCheck::undetermined("the system gave no answer within 25 seconds");
+
+        assert!(output.is_not_applicable());
+        assert!(!output.passed);
+        assert!(output.message.contains("could not be determined"));
+        assert!(!output.message.contains("No backup"));
+    }
+
+    /// What `wbadmin get versions` printed with no backup made, on Windows
+    /// Server 2025 with the Windows Server Backup feature and on Windows 11.
+    const WBADMIN_NO_BACKUP: &str = "wbadmin 1.0 - Backup command-line tool\r\n\
+        (C) Copyright Microsoft Corporation. All rights reserved.\r\n\
+        \r\n\
+        ERROR - No backup was found.\r\n\
+        \r\n";
+
+    /// The answer of the Windows query for one run of wbadmin and, in
+    /// `others`, what the other sources found.
+    fn windows_answer(
+        wbadmin_output: &str,
+        exit_code: i64,
+        others: &[(&str, serde_json::Value)],
+    ) -> String {
+        let mut answer = serde_json::json!({
+            "WBAdmin_Output": wbadmin_output,
+            "WBAdmin_ExitCode": exit_code,
+        });
+        for (key, value) in others {
+            answer[*key] = value.clone();
+        }
+        answer.to_string()
+    }
+
+    /// wbadmin prints its banner before the error. The script used to ask
+    /// PowerShell whether the output did `-notmatch 'ERROR'`: on several
+    /// lines that returns the lines without the word, here the banner, and
+    /// the machine was reported as backed up by Windows Backup.
+    #[test]
+    fn wbadmin_finding_no_backup_is_no_backup_solution() {
+        let status = BackupCheck::parse_windows_query(&windows_answer(WBADMIN_NO_BACKUP, -2, &[]));
+
+        assert!(!status.backup_configured);
+        assert!(!status.backup_enabled);
+        assert_eq!(status.backup_type, None);
+        assert_eq!(
+            BackupCheck::new().check_compliance(&status),
+            ["No backup solution configured"]
+        );
+    }
+
+    #[test]
+    fn a_wbadmin_that_fails_is_not_a_backup_whatever_it_prints() {
+        // A failure worded without the word ERROR: the exit code says it.
+        let reworded = "wbadmin 1.0 - Backup command-line tool\r\n\r\n\
+            The operation did not complete.\r\n";
+        let status = BackupCheck::parse_windows_query(&windows_answer(reworded, -2, &[]));
+        assert!(!status.backup_configured);
+
+        // An error line, even from a wbadmin that claims success.
+        let status = BackupCheck::parse_windows_query(&windows_answer(WBADMIN_NO_BACKUP, 0, &[]));
+        assert!(!status.backup_configured);
+
+        // No exit code: wbadmin did not run to its end.
+        let status = BackupCheck::parse_windows_query(
+            r#"{ "WBAdmin_Output": "wbadmin 1.0 - Backup command-line tool\r\n" }"#,
+        );
+        assert!(!status.backup_configured);
+    }
+
+    #[test]
+    fn another_source_still_counts_when_wbadmin_finds_no_backup() {
+        let file_history = [("FileHistory_Enabled", serde_json::json!(1))];
+        let status =
+            BackupCheck::parse_windows_query(&windows_answer(WBADMIN_NO_BACKUP, -2, &file_history));
+        assert!(status.backup_configured && status.backup_enabled);
+        assert_eq!(status.backup_type.as_deref(), Some("File History"));
+
+        let restore_point = [(
+            "SystemRestore_LastPoint",
+            serde_json::json!("2026-10-11T08:30:00.0000000+02:00"),
+        )];
+        let status = BackupCheck::parse_windows_query(&windows_answer(
+            WBADMIN_NO_BACKUP,
+            -2,
+            &restore_point,
+        ));
+        assert!(status.backup_configured && !status.backup_enabled);
+        assert_eq!(status.backup_type.as_deref(), Some("System Restore"));
+        assert_eq!(
+            status.last_backup_date,
+            Some("2026-10-11T06:30:00Z".parse().unwrap())
+        );
+
+        let shadow_copy = [(
+            "VSS_LastCopy",
+            serde_json::json!("20261011083000.000000+120"),
+        )];
+        let status =
+            BackupCheck::parse_windows_query(&windows_answer(WBADMIN_NO_BACKUP, -2, &shadow_copy));
+        assert!(status.backup_configured && !status.backup_enabled);
+        assert_eq!(status.backup_type.as_deref(), Some("Volume Shadow Copy"));
+
+        let third_party = [("ThirdParty_Veeam", serde_json::json!(true))];
+        let status =
+            BackupCheck::parse_windows_query(&windows_answer(WBADMIN_NO_BACKUP, -2, &third_party));
+        assert!(status.backup_configured && status.backup_enabled);
+        assert_eq!(status.backup_type.as_deref(), Some("Veeam"));
+    }
+
+    #[test]
+    fn wbadmin_listing_a_backup_gives_windows_backup_and_its_date() {
+        // As printed on Windows Server 2025 after one backup.
+        let listing = "wbadmin 1.0 - Backup command-line tool\r\n\
+            (C) Copyright Microsoft Corporation. All rights reserved.\r\n\
+            \r\n\
+            Backup time: 10/12/2026 2:34 PM \r\n\
+            Backup target: Fixed Disk labeled Temporary Storage(D:)\r\n\
+            Version identifier: 10/12/2026-14:34\r\n\
+            Can recover: Volume(s), File(s)\r\n\
+            Snapshot ID: {f761d696-9091-43c3-9aa5-7d26b23516b9}\r\n\
+            \r\n";
+        let status = BackupCheck::parse_windows_query(&windows_answer(listing, 0, &[]));
+
+        assert!(status.backup_configured);
+        assert!(status.backup_enabled);
+        assert_eq!(status.backup_type.as_deref(), Some("Windows Backup"));
+        assert_eq!(
+            status.last_backup_date,
+            Some("2026-10-12T14:34:00Z".parse().unwrap())
+        );
+    }
+
+    /// wbadmin lists the backups from the oldest to the most recent, and the
+    /// check kept the first: a server backed up every day was measured by
+    /// the oldest backup wbadmin still knew.
+    #[test]
+    fn the_last_backup_is_the_most_recent_one_wbadmin_lists() {
+        // As printed on Windows Server 2025 after two backups.
+        let listing = "wbadmin 1.0 - Backup command-line tool\r\n\
+            (C) Copyright Microsoft Corporation. All rights reserved.\r\n\
+            \r\n\
+            Backup time: 10/12/2026 2:34 PM \r\n\
+            Backup target: Fixed Disk labeled Temporary Storage(D:)\r\n\
+            Version identifier: 10/12/2026-14:34\r\n\
+            Can recover: Volume(s), File(s)\r\n\
+            Snapshot ID: {f761d696-9091-43c3-9aa5-7d26b23516b9}\r\n\
+            \r\n\
+            Backup time: 10/12/2026 2:36 PM \r\n\
+            Backup target: Fixed Disk labeled Temporary Storage(D:)\r\n\
+            Version identifier: 10/12/2026-14:36\r\n\
+            Can recover: Volume(s), File(s)\r\n\
+            Snapshot ID: {ebe7b5ef-be9b-40f4-8262-b88b93b0fcc4}\r\n\
+            \r\n";
+        let status = BackupCheck::parse_windows_query(&windows_answer(listing, 0, &[]));
+
+        assert_eq!(
+            status.last_backup_date,
+            Some("2026-10-12T14:36:00Z".parse().unwrap())
+        );
+
+        // A date that cannot be read does not hide the ones that can.
+        let listing = listing.replace("10/12/2026 2:36 PM", "yesterday");
+        let status = BackupCheck::parse_windows_query(&windows_answer(&listing, 0, &[]));
+
+        assert_eq!(
+            status.last_backup_date,
+            Some("2026-10-12T14:34:00Z".parse().unwrap())
+        );
+    }
+
+    #[test]
+    fn an_answer_with_nothing_in_it_is_no_backup_solution() {
+        // An empty object as PowerShell prints it, then no output at all.
+        for answer in ["{\r\n\r\n}\r\n", "{}", ""] {
+            let status = BackupCheck::parse_windows_query(answer);
+
+            assert!(!status.backup_configured, "answer {answer:?}");
+            assert!(!status.backup_enabled, "answer {answer:?}");
+            assert_eq!(status.backup_type, None, "answer {answer:?}");
+            assert_eq!(status.last_backup_date, None, "answer {answer:?}");
+            assert_eq!(status.raw_output, answer);
+        }
+    }
+
+    /// On a server without the Windows Server Backup feature there is no
+    /// `wbadmin.exe`: the bare name opened the `wbadmin.msc` console, which
+    /// held the output of the query open, and the check never returned.
+    #[cfg(target_os = "windows")]
+    #[tokio::test]
+    async fn the_windows_query_answers_within_its_limit() {
+        let check = BackupCheck::new();
+
+        // PowerShell is now and then much slower than usual (see
+        // `WINDOWS_QUERY_TIMEOUT`). A console left open fails every time.
+        let mut status = check.check_windows().await.expect("PowerShell runs");
+        if status.is_none() {
+            status = check.check_windows().await.expect("PowerShell runs");
+        }
+
+        let status = status.expect("the query was given up twice in a row");
+
+        // A script PowerShell refuses prints nothing, which reads as a
+        // machine without any backup.
+        let answer: serde_json::Value =
+            serde_json::from_str(&status.raw_output).expect("the script prints JSON");
+        assert!(answer.is_object(), "answer: {answer}");
     }
 }
