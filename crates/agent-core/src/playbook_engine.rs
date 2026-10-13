@@ -1562,7 +1562,11 @@ mod tests {
             armed.playbook_logs[0].actions_executed,
             [format!("Kill process sleep (PID {})", child.id())]
         );
-        assert!(armed.playbook_logs[0].success);
+        assert!(
+            armed.playbook_logs[0].success,
+            "{:?}",
+            armed.playbook_logs[0].error
+        );
         assert!(!child.wait().unwrap().success(), "armed, it is terminated");
     }
 }
