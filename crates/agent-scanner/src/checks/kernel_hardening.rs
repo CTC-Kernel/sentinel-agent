@@ -147,49 +147,33 @@ impl KernelHardeningCheck {
                 .push("Data Execution Prevention (DEP) is not available".to_string());
         }
 
-        // Check ASLR via registry (MoveImages)
+        // Check ASLR via registry (MoveImages). The whole key is listed: for
+        // a value that does not exist, which is the state of a default
+        // installation, `reg` fails exactly as for a key it cannot read.
         let aslr_output = silent_command("reg")
             .args([
                 "query",
                 r"HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management",
-                "/v",
-                "MoveImages",
             ])
             .output()
             .map_err(|e| {
                 ScannerError::CheckExecution(format!("Failed to check ASLR registry: {}", e))
             })?;
 
-        let aslr_result = String::from_utf8_lossy(&aslr_output.stdout).to_string();
-        status
-            .raw_output
-            .push_str(&format!("ASLR Registry: {}\n", aslr_result.trim()));
-
-        // If MoveImages is not present or set to 0xFFFFFFFF, ASLR is enabled (default)
-        // MoveImages = 0 means ASLR is disabled
-        if aslr_output.status.success() {
-            // Parse the hex value from reg query output (e.g., "REG_DWORD    0x0")
-            // Extract the hex value after "0x" and compare numerically
-            let aslr_disabled = aslr_result
-                .split("0x")
-                .last()
-                .and_then(|hex_str| {
-                    let hex_trimmed = hex_str
-                        .trim()
-                        .trim_end_matches(|c: char| !c.is_ascii_hexdigit());
-                    u64::from_str_radix(hex_trimmed, 16).ok()
-                })
-                .map(|val| val == 0)
-                .ok_or_else(|| {
-                    ScannerError::CheckExecution("Cannot parse ASLR setting".to_string())
-                })?;
-            status.aslr_enabled = !aslr_disabled;
-        } else {
-            // An absent setting or denied read does not prove the effective policy.
+        if !aslr_output.status.success() {
+            // A key that cannot be read does not prove the effective policy.
             return Err(ScannerError::CheckExecution(
                 "Cannot determine ASLR state".to_string(),
             ));
         }
+
+        // Windows randomises images unless MoveImages says not to (0).
+        let move_images = Self::move_images(&String::from_utf8_lossy(&aslr_output.stdout))?;
+        status.raw_output.push_str(&match move_images {
+            Some(value) => format!("ASLR Registry: MoveImages = {:#x}\n", value),
+            None => "ASLR Registry: MoveImages is not set\n".to_string(),
+        });
+        status.aslr_enabled = move_images != Some(0);
 
         if !status.aslr_enabled {
             status
@@ -200,6 +184,28 @@ impl KernelHardeningCheck {
         status.hardened = dep_available && status.aslr_enabled;
 
         Ok(status)
+    }
+
+    /// The `MoveImages` value in what `reg query` lists for the
+    /// `Memory Management` key, `None` when the key does not have it.
+    #[cfg(any(target_os = "windows", test))]
+    fn move_images(key_listing: &str) -> ScannerResult<Option<u64>> {
+        let Some(mut words) = key_listing.lines().find_map(|line| {
+            let mut words = line.split_whitespace();
+            words
+                .next()
+                .is_some_and(|name| name.eq_ignore_ascii_case("MoveImages"))
+                .then_some(words)
+        }) else {
+            return Ok(None);
+        };
+
+        // The type, then the value: "MoveImages    REG_DWORD    0x0".
+        words
+            .nth(1)
+            .and_then(|value| u64::from_str_radix(value.trim_start_matches("0x"), 16).ok())
+            .map(Some)
+            .ok_or_else(|| ScannerError::CheckExecution("Cannot parse ASLR setting".to_string()))
     }
 
     /// Check kernel hardening on Linux.
@@ -517,6 +523,62 @@ mod tests {
 
         assert!(!status.hardened);
         assert_eq!(status.issues.len(), 2);
+    }
+
+    /// What `reg query` listed for the key on a default Windows Server 2025,
+    /// without its long binary value.
+    const MEMORY_MANAGEMENT_KEY: &str = "\r\n\
+        HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Memory Management\r\n\
+        \x20   ClearPageFileAtShutdown    REG_DWORD    0x0\r\n\
+        \x20   DisablePagingExecutive    REG_DWORD    0x0\r\n\
+        \x20   FeatureSettings    REG_DWORD    0x1\r\n\
+        \x20   PagingFiles    REG_MULTI_SZ    D:\\pagefile.sys 0 0\r\n\
+        \x20   PhysicalAddressExtension    REG_DWORD    0x1\r\n\
+        \x20   ExistingPageFiles    REG_MULTI_SZ    \\??\\C:\\pagefile.sys\r\n\
+        \r\n\
+        HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Memory Management\\PrefetchParameters\r\n";
+
+    /// The same key with one more value.
+    fn key_with(value_line: &str) -> String {
+        format!("{MEMORY_MANAGEMENT_KEY}    {value_line}\r\n")
+    }
+
+    /// A default installation has no `MoveImages`: the check answered
+    /// "Cannot determine ASLR state" on every such machine.
+    #[test]
+    fn a_default_windows_key_has_no_move_images() {
+        assert_eq!(
+            KernelHardeningCheck::move_images(MEMORY_MANAGEMENT_KEY).unwrap(),
+            None
+        );
+        assert_eq!(KernelHardeningCheck::move_images("").unwrap(), None);
+    }
+
+    #[test]
+    fn move_images_is_read_from_its_own_line() {
+        let read = |line: &str| KernelHardeningCheck::move_images(&key_with(line)).unwrap();
+
+        assert_eq!(read("MoveImages    REG_DWORD    0x0"), Some(0));
+        assert_eq!(read("MoveImages    REG_DWORD    0x1"), Some(1));
+        assert_eq!(
+            read("MoveImages    REG_DWORD    0xffffffff"),
+            Some(0xffff_ffff)
+        );
+        assert_eq!(read("moveimages    REG_DWORD    0x0"), Some(0));
+
+        // Other values, whatever they are called or contain.
+        assert_eq!(read("MoveImagesToo    REG_DWORD    0x0"), None);
+        assert_eq!(read("Notes    REG_SZ    MoveImages 0x0"), None);
+    }
+
+    #[test]
+    fn a_move_images_that_cannot_be_read_is_an_error_not_a_guess() {
+        for line in ["MoveImages    REG_SZ    off", "MoveImages    REG_DWORD"] {
+            assert!(
+                KernelHardeningCheck::move_images(&key_with(line)).is_err(),
+                "{line}"
+            );
+        }
     }
 
     #[tokio::test]
