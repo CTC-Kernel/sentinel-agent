@@ -107,6 +107,9 @@ jobs:
     runs-on: ${{ matrix.os }}
     needs: [clippy, deny]
     continue-on-error: true
+    # A test that never returns must cost minutes, not the six hours GitHub
+    # allows by default. A cold Windows run takes about 30 minutes.
+    timeout-minutes: 60
     strategy:
       fail-fast: false
       matrix:
