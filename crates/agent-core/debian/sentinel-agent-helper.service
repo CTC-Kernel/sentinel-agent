@@ -1,0 +1,23 @@
+[Unit]
+Description=Sentinel GRC Agent - privileged helper (firewall actions)
+PartOf=sentinel-agent.service
+After=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/sentinel-agent privileged-helper
+Restart=always
+RestartSec=5
+User=root
+Group=root
+ReadWritePaths=/run /var/lib/sentinel-grc /var/log/sentinel-grc
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+NoNewPrivileges=true
+CapabilityBoundingSet=CAP_NET_ADMIN CAP_NET_RAW CAP_CHOWN CAP_FOWNER CAP_DAC_OVERRIDE
+RestrictSUIDSGID=true
+LockPersonality=true
+
+[Install]
+WantedBy=multi-user.target

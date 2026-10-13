@@ -32,6 +32,8 @@ mod unix;
 #[cfg(unix)]
 pub use unix::*;
 
+pub mod watchdog;
+
 /// Service name used for registration.
 pub const SERVICE_NAME: &str = "SentinelGRCAgent";
 

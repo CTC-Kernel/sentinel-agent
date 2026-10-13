@@ -191,9 +191,36 @@ impl AgentRuntime {
         info!("Log collector initialized");
     }
 
+    /// Record events for the platform's SIEM tab and, when an external SIEM
+    /// is configured, forward them there.
+    pub(crate) async fn record_siem_events(&self, events: &[agent_siem::SiemEvent]) {
+        let siem_guard = self.siem_forwarder.read().await;
+        if let Some(siem) = siem_guard.as_ref() {
+            for event in events {
+                siem.record_event(event.clone()).await;
+                if siem.is_enabled()
+                    && let Err(e) = siem.send_event(event).await
+                {
+                    warn!("Failed to forward {} to external SIEM: {}", event.name, e);
+                }
+            }
+        }
+    }
+
     /// Create the correlation engine with its default rules.
     pub(crate) async fn init_correlation_engine(&self) {
-        let engine = agent_siem::CorrelationEngine::with_default_rules();
+        // With the logs analysed by the detection rules, the two coarse
+        // counters they replace are left out: "five lines saying failed"
+        // and "three lines saying sudo" would report the same activity a
+        // second time, and much that is not an attack.
+        let engine = if self.config.log_analysis {
+            agent_siem::CorrelationEngine::with_default_rules_except(&[
+                "brute_force",
+                "privilege_escalation",
+            ])
+        } else {
+            agent_siem::CorrelationEngine::with_default_rules()
+        };
         let mut guard = self.correlation_engine.write().await;
         *guard = Some(engine);
         info!("Correlation engine initialized");

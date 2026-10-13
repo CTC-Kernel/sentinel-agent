@@ -62,9 +62,12 @@ mod compliance;
 mod configure_cmd;
 pub mod edr_actions;
 mod enrollment;
+mod fim_attribution;
 mod gui_bridge;
 mod heartbeat;
 pub mod host_isolation;
+mod inventory_watch;
+mod log_analysis;
 pub mod mdm;
 mod network_ops;
 pub mod playbook_engine;
@@ -121,7 +124,7 @@ use resources::ResourceMonitor;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex};
 use tokio::sync::{RwLock, mpsc};
-use tracing::{error, info, warn};
+use tracing::{debug, error, info, warn};
 
 // Import orphaned modules
 use agent_fim::FimEngine;
@@ -257,6 +260,8 @@ const DEFAULT_SECURITY_SCAN_INTERVAL_SECS: u64 = 5 * 60;
 
 /// Interval between background checks of the release catalog (6 hours).
 const UPDATE_CHECK_INTERVAL_SECS: u64 = 6 * 60 * 60;
+/// How often incidents the platform has not received yet are sent again.
+const INCIDENT_FLUSH_INTERVAL_SECS: u64 = 60;
 
 /// Delay before the first background update check after start-up, so a
 /// freshly installed or relaunched agent settles before looking again.
@@ -352,10 +357,18 @@ pub struct AgentRuntime {
     feed_threat_intel: RwLock<Option<agent_network::ThreatIntelligence>>,
     /// Fresh feed intelligence waiting for the main loop to apply it.
     pending_feed_intel: threat_intel_feeds::PendingIntel,
+    /// SHA-256 of the files the indicator feeds list as malicious.
+    malicious_file_hashes: RwLock<Arc<std::collections::BTreeSet<String>>>,
     /// YARA helper (`None`: not installed, or no rules).
     yara: std::sync::Mutex<Option<agent_scanner::security::yara::YaraScanner>>,
     /// Source of process start events (`None`: option off or unavailable).
     process_telemetry: std::sync::Mutex<Option<process_telemetry::ProcessTelemetry>>,
+    /// Log sources and the rules evaluated on them (`None`: option off).
+    log_analysis: std::sync::Mutex<Option<log_analysis::LogAnalysis>>,
+    /// What was recently seen that can say who changed a file.
+    fim_attribution: std::sync::Mutex<fim_attribution::Attribution>,
+    /// The inventory of the system and when it was taken (`None`: option off).
+    inventory: std::sync::Mutex<Option<inventory_watch::InventoryWatch>>,
     /// Tampered ransomware canary folders (`None`: protection off).
     canary_rx: tokio::sync::Mutex<Option<mpsc::Receiver<agent_fim::canary::CanaryIncident>>>,
     /// Stops the current ransomware canary watcher (one flag per start).
@@ -603,15 +616,32 @@ impl AgentRuntime {
                 .join("exploit-intel"),
         );
         let mut security_monitor = SecurityMonitor::new();
-        let sigma =
-            security_monitor.load_sigma_rules(&AgentConfig::platform_data_dir().join("sigma.d"));
-        if sigma.loaded > 0 || !sigma.errors.is_empty() {
-            info!(
-                "Sigma rules: {} loaded, {} for another log source or system, {} refused",
-                sigma.loaded,
-                sigma.not_applicable,
-                sigma.errors.len()
+        // One reading of the rules directory gives the rules for processes
+        // and, when the logs are analysed, the rules for log events (with
+        // the ones shipped with the agent).
+        let rules_dir = AgentConfig::platform_data_dir().join("sigma.d");
+        let (log_analysis, sigma) = if config.log_analysis {
+            let (analysis, loaded) = log_analysis::LogAnalysis::load(&config, &rules_dir);
+            (Some(analysis), loaded)
+        } else {
+            let loaded = agent_scanner::security::sigma::load_rules(
+                &rules_dir,
+                &agent_scanner::security::sigma::LogCoverage::default(),
             );
+            (None, loaded)
+        };
+        security_monitor.set_sigma_rules(sigma.processes);
+        security_monitor.set_rootkit_detection(config.rootkit_detection);
+        security_monitor.watch_registry(AgentConfig::platform_data_dir().join("registry.json"));
+        let sigma = sigma.report;
+        if sigma.loaded + sigma.log_rules + sigma.correlations > 0 || !sigma.errors.is_empty() {
+            info!(
+                "Sigma rules: {}",
+                agent_scanner::security::sigma_logs::summary(&sigma)
+            );
+        }
+        for (reason, count) in &sigma.not_applicable_reasons {
+            debug!("Sigma rules not evaluated here: {} ({})", reason, count);
         }
         for error in &sigma.errors {
             warn!("Sigma rule not loaded: {}", error);
@@ -636,6 +666,19 @@ impl AgentRuntime {
             &mut registry,
             &AgentConfig::platform_data_dir().join("checks.d"),
         );
+        // Policies in the SCA format: the organisation's own, and the
+        // hardening policy shipped with the agent when it is asked for.
+        {
+            use agent_scanner::checks::sca;
+            let host = sca::SystemHost::shared();
+            let policies_dir = AgentConfig::platform_data_dir().join("sca.d");
+            let report = sca::register_policies(&mut registry, &policies_dir, &host);
+            sca::log_report(&report, &policies_dir.display().to_string());
+            if config.hardening_benchmark {
+                let report = sca::register_builtin_policies(&mut registry, &host);
+                sca::log_report(&report, "the shipped hardening policy");
+            }
+        }
 
         let check_registry = Arc::new(registry);
 
@@ -647,6 +690,9 @@ impl AgentRuntime {
         info!("Initialized network manager with smart scheduling");
 
         let active_frameworks = config.active_frameworks.clone();
+        let inventory = config
+            .system_inventory
+            .then(inventory_watch::InventoryWatch::new);
 
         Self {
             config,
@@ -691,8 +737,12 @@ impl AgentRuntime {
             platform_threat_intel: RwLock::new(None),
             feed_threat_intel: RwLock::new(None),
             pending_feed_intel: Arc::new(std::sync::Mutex::new(None)),
+            malicious_file_hashes: RwLock::new(Arc::default()),
             yara: std::sync::Mutex::new(None),
             process_telemetry: std::sync::Mutex::new(None),
+            log_analysis: std::sync::Mutex::new(log_analysis),
+            fim_attribution: std::sync::Mutex::new(fim_attribution::Attribution::default()),
+            inventory: std::sync::Mutex::new(inventory),
             canary_rx: tokio::sync::Mutex::new(None),
             canary_shutdown: std::sync::Mutex::new(Arc::new(std::sync::atomic::AtomicBool::new(
                 false,
@@ -907,6 +957,8 @@ impl AgentRuntime {
 
         info!("Agent main loop started");
         loop {
+            crate::service::watchdog::beat();
+
             // Check for shutdown signal
             if self.state.shutdown.load(Ordering::Acquire) {
                 info!("Shutdown requested, stopping main loop");

@@ -68,6 +68,26 @@ impl AgentRuntime {
             .try_iter()
             .take(MAX_EVENTS_PER_PASS)
             .collect();
+        // A program started with a file on its command line is the probable
+        // author of the change to that file that follows.
+        {
+            let now = std::time::Instant::now();
+            let mut attribution = self
+                .fim_attribution
+                .lock()
+                .unwrap_or_else(|e| e.into_inner());
+            for start in &starts {
+                if let Some(command) = &start.process.cmdline {
+                    attribution.started(
+                        start.process.pid,
+                        &start.process.name,
+                        start.process.user.as_deref(),
+                        command,
+                        now,
+                    );
+                }
+            }
+        }
         let incidents = starts
             .iter()
             .flat_map(|start| self.security_monitor.analyze_process_start(start))

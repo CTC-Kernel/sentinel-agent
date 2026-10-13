@@ -19,12 +19,15 @@ use std::time::{Duration, Instant};
 use agent_common::types::{FimAlert, UsbEvent};
 use agent_network::{NetworkSecurityAlert, NetworkSnapshot};
 use agent_scanner::SecurityIncident;
+use agent_siem::SiemEvent;
 use agent_siem::correlation::CorrelationAlert;
 use tokio::sync::mpsc;
 use tracing::{debug, error, warn};
 
+use super::LoopState;
 use super::fim::FimBatch;
 use crate::AgentRuntime;
+use crate::INCIDENT_FLUSH_INTERVAL_SECS;
 use crate::supervised_tasks::TaskSet;
 use crate::threat_pipeline::PipelineResult;
 
@@ -73,6 +76,11 @@ pub(crate) enum Outbound {
         incidents: Vec<SecurityIncident>,
         network_alerts: Vec<NetworkSecurityAlert>,
     },
+    /// Events already written for the SIEM (log detections, inventory
+    /// changes), to record as they are.
+    SiemEvents(Vec<SiemEvent>),
+    /// Another attempt at the incidents the platform has not received yet.
+    QueuedIncidents,
 }
 
 impl Outbound {
@@ -88,6 +96,8 @@ impl Outbound {
             Self::PipelineResult(_) => "detection matches and playbook logs",
             Self::SiemFileChange { .. } => "SIEM file change",
             Self::SiemFindings { .. } => "SIEM findings",
+            Self::SiemEvents(_) => "SIEM events",
+            Self::QueuedIncidents => "incidents waiting for the platform",
         }
     }
 }
@@ -232,6 +242,10 @@ impl AgentRuntime {
                 self.forward_findings_to_siem(&incidents, &network_alerts)
                     .await
             }
+            Outbound::SiemEvents(events) => self.record_siem_events(&events).await,
+            Outbound::QueuedIncidents => {
+                self.flush_queued_incidents().await;
+            }
         }
     }
 
@@ -244,6 +258,25 @@ impl AgentRuntime {
                 what,
             })
             .await;
+    }
+
+    /// Queue events already written for the SIEM, when there are any.
+    pub(crate) async fn queue_siem_events(&self, events: Vec<SiemEvent>) {
+        if !events.is_empty() {
+            self.outbox.push(Outbound::SiemEvents(events)).await;
+        }
+    }
+
+    /// Incidents kept while the platform was unreachable: another attempt
+    /// when its time has come. Queued behind the other uploads, so that it
+    /// never overlaps the upload of a new incident.
+    pub(crate) async fn incident_retry_stage(&self, st: &mut LoopState) {
+        if !self.config.standalone
+            && st.last_incident_flush.elapsed().as_secs() >= INCIDENT_FLUSH_INTERVAL_SECS
+        {
+            st.last_incident_flush = Instant::now();
+            self.outbox.push(Outbound::QueuedIncidents).await;
+        }
     }
 
     /// Give the queued uploads a last chance to leave before shutdown.
@@ -313,6 +346,36 @@ mod tests {
                 .await;
             }
         });
+    }
+
+    #[tokio::test]
+    async fn undelivered_incidents_are_tried_again_every_minute_unless_standalone() {
+        let due = || {
+            let mut st = LoopState::starting_at(Instant::now(), 3600, 3600);
+            st.last_incident_flush = Instant::now()
+                .checked_sub(Duration::from_secs(INCIDENT_FLUSH_INTERVAL_SECS))
+                .expect("a clock older than the retry interval");
+            st
+        };
+
+        let test = crate::main_loop::testing::unenrolled_runtime();
+        let mut not_due = LoopState::starting_at(Instant::now(), 3600, 3600);
+        test.runtime.incident_retry_stage(&mut not_due).await;
+        assert_eq!(test.runtime.outbox.unsent(), 0);
+
+        let mut st = due();
+        test.runtime.incident_retry_stage(&mut st).await;
+        // The timer restarts: the next pass does not queue a second attempt.
+        test.runtime.incident_retry_stage(&mut st).await;
+        assert!(matches!(
+            test.runtime.outbox.take_queued().await.as_slice(),
+            [Outbound::QueuedIncidents]
+        ));
+
+        // A standalone agent has no platform to send them to.
+        let standalone = standalone_runtime();
+        standalone.runtime.incident_retry_stage(&mut due()).await;
+        assert_eq!(standalone.runtime.outbox.unsent(), 0);
     }
 
     #[tokio::test]

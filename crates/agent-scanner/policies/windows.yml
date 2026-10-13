@@ -1,0 +1,578 @@
+# Politique de conformité livrée avec l'agent Sentinel GRC.
+#
+# Même format que les politiques SCA de Wazuh : vos propres politiques, ou
+# celles écrites pour Wazuh, se déposent dans le dossier « sca.d » du dossier
+# de données de l'agent. Champs propres à Sentinel : « severity »,
+# « category » (par contrôle) et « platforms » (par politique).
+
+policy:
+  id: sentinel_windows
+  name: "Durcissement Windows — socle Sentinel"
+  description: "Protocoles hérités, identifiants en mémoire, élévation de privilèges, accès à distance, journalisation et antivirus."
+  platforms: [windows]
+
+checks:
+  - id: 3001
+    title: "SMBv1 désactivé côté serveur"
+    description: "SMBv1 est le protocole exploité par WannaCry et NotPetya."
+    remediation: "Stratégie de groupe ou registre : HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Services\\LanmanServer\\Parameters\\SMB1 ne doit pas valoir 1"
+    severity: critical
+    category: protocols
+    compliance:
+      - iso_27001: ["A.8.20"]
+      - cis_csc_v8: ["4"]
+    condition: none
+    rules:
+      - 'r:HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\LanmanServer\Parameters -> SMB1 -> 1'
+  - id: 3002
+    title: "Signature SMB exigée côté serveur"
+    description: "Sans signature, un attaquant placé sur le réseau modifie ou relaie les échanges SMB."
+    remediation: "Stratégie de groupe ou registre : HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Services\\LanmanServer\\Parameters\\RequireSecuritySignature = 1"
+    severity: high
+    category: protocols
+    compliance:
+      - iso_27001: ["A.8.20"]
+      - cis_csc_v8: ["12"]
+    condition: all
+    rules:
+      - 'r:HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\LanmanServer\Parameters -> RequireSecuritySignature -> 1'
+  - id: 3003
+    title: "Signature SMB exigée côté client"
+    description: "Sans signature, un attaquant placé sur le réseau modifie ou relaie les échanges SMB."
+    remediation: "Stratégie de groupe ou registre : HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Services\\LanmanWorkstation\\Parameters\\RequireSecuritySignature = 1"
+    severity: high
+    category: protocols
+    compliance:
+      - iso_27001: ["A.8.20"]
+      - cis_csc_v8: ["12"]
+    condition: all
+    rules:
+      - 'r:HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\LanmanWorkstation\Parameters -> RequireSecuritySignature -> 1'
+  - id: 3004
+    title: "Empreintes LM non conservées"
+    description: "L'empreinte LM d'un mot de passe se casse en quelques secondes."
+    remediation: "Stratégie de groupe ou registre : HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Control\\Lsa\\NoLMHash = 1"
+    severity: high
+    category: authentication
+    compliance:
+      - iso_27001: ["A.8.5"]
+      - cis_csc_v8: ["3"]
+    condition: all
+    rules:
+      - 'r:HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Lsa -> NoLMHash -> 1'
+  - id: 3005
+    title: "NTLMv2 seul accepté"
+    description: "LM et NTLMv1 se cassent ou se relaient facilement."
+    remediation: "Stratégie de groupe ou registre : HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Control\\Lsa\\LmCompatibilityLevel = n:^(\\d+) compare >= 5"
+    severity: high
+    category: authentication
+    compliance:
+      - iso_27001: ["A.8.5"]
+      - cis_csc_v8: ["3"]
+    condition: all
+    rules:
+      - 'r:HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Lsa -> LmCompatibilityLevel -> n:^(\d+) compare >= 5'
+  - id: 3006
+    title: "Énumération anonyme des comptes interdite"
+    description: "Une session anonyme ne doit pas pouvoir lister les comptes du poste."
+    remediation: "Stratégie de groupe ou registre : HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Control\\Lsa\\RestrictAnonymousSAM = 1"
+    severity: medium
+    category: access_control
+    compliance:
+      - iso_27001: ["A.8.3"]
+      - cis_csc_v8: ["6"]
+    condition: all
+    rules:
+      - 'r:HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Lsa -> RestrictAnonymousSAM -> 1'
+  - id: 3007
+    title: "Énumération anonyme des partages interdite"
+    description: "Une session anonyme ne doit pas pouvoir lister les partages du poste."
+    remediation: "Stratégie de groupe ou registre : HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Control\\Lsa\\RestrictAnonymous = 1"
+    severity: medium
+    category: access_control
+    compliance:
+      - iso_27001: ["A.8.3"]
+      - cis_csc_v8: ["6"]
+    condition: all
+    rules:
+      - 'r:HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Lsa -> RestrictAnonymous -> 1'
+  - id: 3008
+    title: "Les droits de « Tout le monde » ne s'appliquent pas aux anonymes"
+    description: "Sinon toute ressource ouverte à « Tout le monde » l'est aussi sans authentification."
+    remediation: "Stratégie de groupe ou registre : HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Control\\Lsa\\EveryoneIncludesAnonymous ne doit pas valoir 1"
+    severity: medium
+    category: access_control
+    compliance:
+      - iso_27001: ["A.8.3"]
+      - cis_csc_v8: ["6"]
+    condition: none
+    rules:
+      - 'r:HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Lsa -> EveryoneIncludesAnonymous -> 1'
+  - id: 3009
+    title: "Comptes sans mot de passe limités à la console"
+    description: "Un compte sans mot de passe ne doit pas ouvrir de session par le réseau."
+    remediation: "Stratégie de groupe ou registre : HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Control\\Lsa\\LimitBlankPasswordUse = 1"
+    severity: high
+    category: authentication
+    compliance:
+      - iso_27001: ["A.8.5"]
+      - cis_csc_v8: ["5"]
+    condition: all
+    rules:
+      - 'r:HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Lsa -> LimitBlankPasswordUse -> 1'
+  - id: 3010
+    title: "Protection du processus LSA active"
+    description: "LSA protégé, les outils comme Mimikatz ne lisent plus les identifiants en mémoire."
+    remediation: "Stratégie de groupe ou registre : HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Control\\Lsa\\RunAsPPL = n:^(\\d+) compare >= 1"
+    severity: high
+    category: authentication
+    compliance:
+      - iso_27001: ["A.8.5"]
+      - cis_csc_v8: ["3"]
+    condition: all
+    rules:
+      - 'r:HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Lsa -> RunAsPPL -> n:^(\d+) compare >= 1'
+  - id: 3011
+    title: "Mots de passe en clair absents de la mémoire (WDigest)"
+    description: "Avec WDigest actif, le mot de passe de chaque session reste en clair en mémoire."
+    remediation: "Stratégie de groupe ou registre : HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Control\\SecurityProviders\\WDigest\\UseLogonCredential ne doit pas valoir 1"
+    severity: critical
+    category: authentication
+    compliance:
+      - iso_27001: ["A.8.5"]
+      - cis_csc_v8: ["3"]
+    condition: none
+    rules:
+      - 'r:HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\SecurityProviders\WDigest -> UseLogonCredential -> 1'
+  - id: 3012
+    title: "Sécurité basée sur la virtualisation active"
+    description: "Elle isole les identifiants et le noyau du reste du système."
+    remediation: "Stratégie de groupe ou registre : HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Control\\DeviceGuard\\EnableVirtualizationBasedSecurity = 1"
+    severity: low
+    category: kernel_security
+    compliance:
+      - iso_27001: ["A.8.9"]
+      - cis_csc_v8: ["4"]
+    condition: all
+    rules:
+      - 'r:HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\DeviceGuard -> EnableVirtualizationBasedSecurity -> 1'
+  - id: 3020
+    title: "Contrôle de compte d'utilisateur (UAC) actif"
+    description: "Sans UAC, tout programme lancé par un administrateur a d'emblée tous les droits."
+    remediation: "Stratégie de groupe ou registre : HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System\\EnableLUA = 1"
+    severity: critical
+    category: privileged_access
+    compliance:
+      - iso_27001: ["A.8.2"]
+      - cis_csc_v8: ["6"]
+    condition: all
+    rules:
+      - 'r:HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System -> EnableLUA -> 1'
+  - id: 3021
+    title: "Demande d'élévation sur le bureau sécurisé"
+    description: "Sur le bureau sécurisé, un programme ne peut pas cliquer à la place de l'utilisateur."
+    remediation: "Stratégie de groupe ou registre : HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System\\PromptOnSecureDesktop = 1"
+    severity: medium
+    category: privileged_access
+    compliance:
+      - iso_27001: ["A.8.2"]
+      - cis_csc_v8: ["6"]
+    condition: all
+    rules:
+      - 'r:HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System -> PromptOnSecureDesktop -> 1'
+  - id: 3022
+    title: "Élévation des administrateurs soumise à confirmation"
+    description: "La valeur 0 élève sans rien demander."
+    remediation: "Stratégie de groupe ou registre : HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System\\ConsentPromptBehaviorAdmin ne doit pas valoir 0"
+    severity: high
+    category: privileged_access
+    compliance:
+      - iso_27001: ["A.8.2"]
+      - cis_csc_v8: ["6"]
+    condition: none
+    rules:
+      - 'r:HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System -> ConsentPromptBehaviorAdmin -> 0'
+  - id: 3023
+    title: "Mode d'approbation pour le compte Administrateur intégré"
+    description: "Le compte Administrateur intégré doit lui aussi confirmer ses élévations."
+    remediation: "Stratégie de groupe ou registre : HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System\\FilterAdministratorToken = 1"
+    severity: low
+    category: privileged_access
+    compliance:
+      - iso_27001: ["A.8.2"]
+      - cis_csc_v8: ["6"]
+    condition: all
+    rules:
+      - 'r:HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System -> FilterAdministratorToken -> 1'
+  - id: 3024
+    title: "Verrouillage après inactivité"
+    description: "La session se verrouille après quinze minutes au plus sans activité."
+    remediation: "Stratégie de groupe ou registre : HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System\\InactivityTimeoutSecs = n:^(\\d+) compare <= 900 && n:^(\\d+) compare > 0"
+    severity: medium
+    category: session_lock
+    compliance:
+      - iso_27001: ["A.8.1"]
+      - cis_csc_v8: ["4"]
+    condition: all
+    rules:
+      - 'r:HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System -> InactivityTimeoutSecs -> n:^(\d+) compare <= 900 && n:^(\d+) compare > 0'
+  - id: 3025
+    title: "Dernier nom d'utilisateur masqué à l'ouverture de session"
+    description: "L'écran d'ouverture de session ne doit pas révéler un nom de compte."
+    remediation: "Stratégie de groupe ou registre : HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System\\DontDisplayLastUserName = 1"
+    severity: low
+    category: authentication
+    compliance:
+      - iso_27001: ["A.8.5"]
+      - cis_csc_v8: ["6"]
+    condition: all
+    rules:
+      - 'r:HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System -> DontDisplayLastUserName -> 1'
+  - id: 3026
+    title: "Ctrl+Alt+Suppr exigé avant l'ouverture de session"
+    description: "Cette séquence garantit que l'écran de saisie est bien celui de Windows."
+    remediation: "Stratégie de groupe ou registre : HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System\\DisableCAD ne doit pas valoir 1"
+    severity: low
+    category: authentication
+    compliance:
+      - iso_27001: ["A.8.5"]
+      - cis_csc_v8: ["6"]
+    condition: none
+    rules:
+      - 'r:HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System -> DisableCAD -> 1'
+  - id: 3027
+    title: "Ligne de commande incluse dans l'audit des processus"
+    description: "Sans la ligne de commande, l'événement 4688 dit qu'un programme a été lancé, pas ce qu'il a fait."
+    remediation: "Stratégie de groupe ou registre : HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System\\Audit\\ProcessCreationIncludeCmdLine_Enabled = 1"
+    severity: medium
+    category: audit_logging
+    compliance:
+      - iso_27001: ["A.8.15"]
+      - cis_csc_v8: ["8"]
+    condition: all
+    rules:
+      - 'r:HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System\Audit -> ProcessCreationIncludeCmdLine_Enabled -> 1'
+  - id: 3030
+    title: "Ouverture de session automatique désactivée"
+    description: "Avec l'ouverture automatique, quiconque allume le poste est dans la session."
+    remediation: "Stratégie de groupe ou registre : HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon\\AutoAdminLogon ne doit pas valoir 1"
+    severity: high
+    category: authentication
+    compliance:
+      - iso_27001: ["A.8.5"]
+      - cis_csc_v8: ["6"]
+    condition: none
+    rules:
+      - 'r:HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon -> AutoAdminLogon -> 1'
+  - id: 3031
+    title: "Aucun mot de passe en clair dans Winlogon"
+    description: "DefaultPassword garde en clair dans le registre le mot de passe de l'ouverture automatique."
+    remediation: "Supprimer la valeur HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon\\DefaultPassword."
+    severity: critical
+    category: authentication
+    compliance:
+      - iso_27001: ["A.8.5"]
+      - cis_csc_v8: ["3"]
+    condition: none
+    rules:
+      - 'r:HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon -> DefaultPassword'
+  - id: 3032
+    title: "Ouvertures de session en cache limitées"
+    description: "Chaque identifiant mis en cache peut être attaqué hors ligne sur un poste volé."
+    remediation: "Stratégie de groupe ou registre : HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon\\CachedLogonsCount = n:^(\\d+) compare <= 4"
+    severity: low
+    category: authentication
+    compliance:
+      - iso_27001: ["A.8.5"]
+      - cis_csc_v8: ["3"]
+    condition: all
+    rules:
+      - 'r:HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon -> CachedLogonsCount -> n:^(\d+) compare <= 4'
+  - id: 3040
+    title: "Authentification au niveau du réseau exigée pour le Bureau à distance"
+    description: "Sans elle, l'écran d'ouverture de session est exposé à quiconque atteint le port."
+    remediation: "Stratégie de groupe ou registre : HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Control\\Terminal Server\\WinStations\\RDP-Tcp\\UserAuthentication = 1"
+    severity: high
+    category: remote_access
+    compliance:
+      - iso_27001: ["A.8.5"]
+      - cis_csc_v8: ["4"]
+    condition: all
+    rules:
+      - 'r:HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp -> UserAuthentication -> 1'
+  - id: 3041
+    title: "Chiffrement fort du Bureau à distance"
+    description: "Le niveau de chiffrement doit être « élevé » au moins."
+    remediation: "Stratégie de groupe ou registre : HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Control\\Terminal Server\\WinStations\\RDP-Tcp\\MinEncryptionLevel = n:^(\\d+) compare >= 3"
+    severity: medium
+    category: remote_access
+    compliance:
+      - iso_27001: ["A.8.24"]
+      - cis_csc_v8: ["3"]
+    condition: all
+    rules:
+      - 'r:HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp -> MinEncryptionLevel -> n:^(\d+) compare >= 3'
+  - id: 3042
+    title: "Bureau à distance désactivé"
+    description: "À n'activer que sur les postes administrés à distance."
+    remediation: "Stratégie de groupe ou registre : HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Control\\Terminal Server\\fDenyTSConnections = 1"
+    severity: low
+    category: remote_access
+    compliance:
+      - iso_27001: ["A.8.20"]
+      - cis_csc_v8: ["4"]
+    condition: all
+    rules:
+      - 'r:HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Terminal Server -> fDenyTSConnections -> 1'
+  - id: 3043
+    title: "Assistance à distance désactivée"
+    description: "L'assistance à distance donne la main sur la session à un tiers."
+    remediation: "Stratégie de groupe ou registre : HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Control\\Remote Assistance\\fAllowToGetHelp ne doit pas valoir 1"
+    severity: low
+    category: remote_access
+    compliance:
+      - iso_27001: ["A.8.20"]
+      - cis_csc_v8: ["4"]
+    condition: none
+    rules:
+      - 'r:HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Remote Assistance -> fAllowToGetHelp -> 1'
+  - id: 3044
+    title: "Service Registre à distance désactivé"
+    description: "Le registre du poste ne doit pas être lisible par le réseau."
+    remediation: "Stratégie de groupe ou registre : HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Services\\RemoteRegistry\\Start = 4"
+    severity: medium
+    category: remote_access
+    compliance:
+      - iso_27001: ["A.8.20"]
+      - cis_csc_v8: ["4"]
+    condition: all
+    rules:
+      - 'r:HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\RemoteRegistry -> Start -> 4'
+  - id: 3045
+    title: "Serveur telnet absent"
+    description: "Telnet transmet les mots de passe en clair."
+    remediation: "Désinstaller la fonctionnalité Serveur Telnet."
+    severity: high
+    category: protocols
+    compliance:
+      - iso_27001: ["A.8.20"]
+      - cis_csc_v8: ["4"]
+    condition: none
+    rules:
+      - 'r:HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\TlntSvr'
+  - id: 3046
+    title: "Authentification de base refusée par WinRM"
+    description: "L'authentification de base transmet le mot de passe à peine encodé."
+    remediation: "Stratégie de groupe ou registre : HKEY_LOCAL_MACHINE\\SOFTWARE\\Policies\\Microsoft\\Windows\\WinRM\\Service\\AllowBasic ne doit pas valoir 1"
+    severity: high
+    category: remote_access
+    compliance:
+      - iso_27001: ["A.8.5"]
+      - cis_csc_v8: ["4"]
+    condition: none
+    rules:
+      - 'r:HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\WinRM\Service -> AllowBasic -> 1'
+  - id: 3047
+    title: "Trafic WinRM chiffré"
+    description: "Les commandes d'administration à distance ne doivent pas circuler en clair."
+    remediation: "Stratégie de groupe ou registre : HKEY_LOCAL_MACHINE\\SOFTWARE\\Policies\\Microsoft\\Windows\\WinRM\\Service\\AllowUnencryptedTraffic ne doit pas valoir 1"
+    severity: high
+    category: remote_access
+    compliance:
+      - iso_27001: ["A.8.24"]
+      - cis_csc_v8: ["3"]
+    condition: none
+    rules:
+      - 'r:HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\WinRM\Service -> AllowUnencryptedTraffic -> 1'
+  - id: 3050
+    title: "Pare-feu Windows actif (profil domaine)"
+    description: "Le pare-feu doit filtrer les connexions entrantes sur chaque profil réseau."
+    remediation: "Stratégie de groupe ou registre : HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Services\\SharedAccess\\Parameters\\FirewallPolicy\\DomainProfile\\EnableFirewall = 1"
+    severity: high
+    category: firewall
+    compliance:
+      - iso_27001: ["A.8.20"]
+      - cis_csc_v8: ["12"]
+    condition: all
+    rules:
+      - 'r:HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\SharedAccess\Parameters\FirewallPolicy\DomainProfile -> EnableFirewall -> 1'
+  - id: 3051
+    title: "Pare-feu Windows actif (profil privé)"
+    description: "Le pare-feu doit filtrer les connexions entrantes sur chaque profil réseau."
+    remediation: "Stratégie de groupe ou registre : HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Services\\SharedAccess\\Parameters\\FirewallPolicy\\StandardProfile\\EnableFirewall = 1"
+    severity: high
+    category: firewall
+    compliance:
+      - iso_27001: ["A.8.20"]
+      - cis_csc_v8: ["12"]
+    condition: all
+    rules:
+      - 'r:HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\SharedAccess\Parameters\FirewallPolicy\StandardProfile -> EnableFirewall -> 1'
+  - id: 3052
+    title: "Pare-feu Windows actif (profil public)"
+    description: "Le pare-feu doit filtrer les connexions entrantes sur chaque profil réseau."
+    remediation: "Stratégie de groupe ou registre : HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Services\\SharedAccess\\Parameters\\FirewallPolicy\\PublicProfile\\EnableFirewall = 1"
+    severity: high
+    category: firewall
+    compliance:
+      - iso_27001: ["A.8.20"]
+      - cis_csc_v8: ["12"]
+    condition: all
+    rules:
+      - 'r:HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\SharedAccess\Parameters\FirewallPolicy\PublicProfile -> EnableFirewall -> 1'
+  - id: 3060
+    title: "Journalisation des blocs de script PowerShell"
+    description: "L'événement 4104 garde le texte des scripts exécutés, même obscurcis : c'est la trace principale d'une attaque par PowerShell."
+    remediation: "Stratégie de groupe ou registre : HKEY_LOCAL_MACHINE\\SOFTWARE\\Policies\\Microsoft\\Windows\\PowerShell\\ScriptBlockLogging\\EnableScriptBlockLogging = 1"
+    severity: medium
+    category: audit_logging
+    compliance:
+      - iso_27001: ["A.8.15"]
+      - cis_csc_v8: ["8"]
+    condition: all
+    rules:
+      - 'r:HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\PowerShell\ScriptBlockLogging -> EnableScriptBlockLogging -> 1'
+  - id: 3061
+    title: "Transcription des sessions PowerShell"
+    description: "La transcription garde les commandes saisies et leurs résultats."
+    remediation: "Stratégie de groupe ou registre : HKEY_LOCAL_MACHINE\\SOFTWARE\\Policies\\Microsoft\\Windows\\PowerShell\\Transcription\\EnableTranscripting = 1"
+    severity: low
+    category: audit_logging
+    compliance:
+      - iso_27001: ["A.8.15"]
+      - cis_csc_v8: ["8"]
+    condition: all
+    rules:
+      - 'r:HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\PowerShell\Transcription -> EnableTranscripting -> 1'
+  - id: 3070
+    title: "Exécution automatique désactivée sur tous les lecteurs"
+    description: "Une clé USB ne doit rien lancer à son insertion."
+    remediation: "Stratégie de groupe ou registre : HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\Explorer\\NoDriveTypeAutoRun = 255"
+    severity: medium
+    category: device_control
+    compliance:
+      - iso_27001: ["A.8.7"]
+      - cis_csc_v8: ["10"]
+    condition: all
+    rules:
+      - 'r:HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer -> NoDriveTypeAutoRun -> 255'
+  - id: 3071
+    title: "Résolution de noms LLMNR désactivée"
+    description: "LLMNR laisse n'importe quelle machine du réseau répondre à la place du serveur cherché et capter des identifiants."
+    remediation: "Stratégie de groupe ou registre : HKEY_LOCAL_MACHINE\\SOFTWARE\\Policies\\Microsoft\\Windows NT\\DNSClient\\EnableMulticast = 0"
+    severity: medium
+    category: network_hardening
+    compliance:
+      - iso_27001: ["A.8.20"]
+      - cis_csc_v8: ["12"]
+    condition: all
+    rules:
+      - 'r:HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows NT\DNSClient -> EnableMulticast -> 0'
+  - id: 3080
+    title: "Microsoft Defender non désactivé par stratégie"
+    description: "Une stratégie qui désactive l'antivirus est ce que pose un attaquant avant de déployer ses outils."
+    remediation: "Stratégie de groupe ou registre : HKEY_LOCAL_MACHINE\\SOFTWARE\\Policies\\Microsoft\\Windows Defender\\DisableAntiSpyware ne doit pas valoir 1"
+    severity: critical
+    category: antivirus
+    compliance:
+      - iso_27001: ["A.8.7"]
+      - cis_csc_v8: ["10"]
+    condition: none
+    rules:
+      - 'r:HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows Defender -> DisableAntiSpyware -> 1'
+  - id: 3081
+    title: "Protection en temps réel non désactivée par stratégie"
+    description: "Sans protection en temps réel, un programme malveillant n'est vu qu'à la prochaine analyse."
+    remediation: "Stratégie de groupe ou registre : HKEY_LOCAL_MACHINE\\SOFTWARE\\Policies\\Microsoft\\Windows Defender\\Real-Time Protection\\DisableRealtimeMonitoring ne doit pas valoir 1"
+    severity: critical
+    category: antivirus
+    compliance:
+      - iso_27001: ["A.8.7"]
+      - cis_csc_v8: ["10"]
+    condition: none
+    rules:
+      - 'r:HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows Defender\Real-Time Protection -> DisableRealtimeMonitoring -> 1'
+  - id: 3082
+    title: "Blocage des applications potentiellement indésirables"
+    description: "Les logiciels publicitaires et les mineurs embarqués dans des installateurs sont bloqués."
+    remediation: "Stratégie de groupe ou registre : HKEY_LOCAL_MACHINE\\SOFTWARE\\Policies\\Microsoft\\Windows Defender\\PUAProtection = 1"
+    severity: low
+    category: antivirus
+    compliance:
+      - iso_27001: ["A.8.7"]
+      - cis_csc_v8: ["10"]
+    condition: all
+    rules:
+      - 'r:HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows Defender -> PUAProtection -> 1'
+  - id: 3083
+    title: "SmartScreen non désactivé par stratégie"
+    description: "SmartScreen avertit avant de lancer un programme téléchargé inconnu."
+    remediation: "Stratégie de groupe ou registre : HKEY_LOCAL_MACHINE\\SOFTWARE\\Policies\\Microsoft\\Windows\\System\\EnableSmartScreen ne doit pas valoir 0"
+    severity: medium
+    category: antivirus
+    compliance:
+      - iso_27001: ["A.8.7"]
+      - cis_csc_v8: ["10"]
+    condition: none
+    rules:
+      - 'r:HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\System -> EnableSmartScreen -> 0'
+  - id: 3084
+    title: "Mises à jour automatiques non désactivées par stratégie"
+    description: "Un poste qui ne se met plus à jour accumule les failles publiées."
+    remediation: "Stratégie de groupe ou registre : HKEY_LOCAL_MACHINE\\SOFTWARE\\Policies\\Microsoft\\Windows\\WindowsUpdate\\AU\\NoAutoUpdate ne doit pas valoir 1"
+    severity: high
+    category: updates
+    compliance:
+      - iso_27001: ["A.8.8"]
+      - cis_csc_v8: ["7"]
+    condition: none
+    rules:
+      - 'r:HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU -> NoAutoUpdate -> 1'
+  - id: 3085
+    title: "Installation de pilotes d'imprimante réservée aux administrateurs"
+    description: "Autoriser les utilisateurs à installer des pilotes d'imprimante rouvre la faille PrintNightmare."
+    remediation: "Stratégie de groupe ou registre : HKEY_LOCAL_MACHINE\\SOFTWARE\\Policies\\Microsoft\\Windows NT\\Printers\\PointAndPrint\\RestrictDriverInstallationToAdministrators ne doit pas valoir 0"
+    severity: high
+    category: privileged_access
+    compliance:
+      - iso_27001: ["A.8.2"]
+      - cis_csc_v8: ["6"]
+    condition: none
+    rules:
+      - 'r:HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows NT\Printers\PointAndPrint -> RestrictDriverInstallationToAdministrators -> 0'
+  - id: 3090
+    title: "SSL 2.0 désactivé côté serveur"
+    description: "SSL 2.0 n'assure plus la confidentialité d'une connexion."
+    remediation: "Stratégie de groupe ou registre : HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Control\\SecurityProviders\\SCHANNEL\\Protocols\\SSL 2.0\\Server\\Enabled = 0"
+    severity: medium
+    category: protocols
+    compliance:
+      - iso_27001: ["A.8.24"]
+      - cis_csc_v8: ["3"]
+    condition: all
+    rules:
+      - 'r:HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\SSL 2.0\Server -> Enabled -> 0'
+  - id: 3091
+    title: "SSL 3.0 désactivé côté serveur"
+    description: "SSL 3.0 n'assure plus la confidentialité d'une connexion."
+    remediation: "Stratégie de groupe ou registre : HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Control\\SecurityProviders\\SCHANNEL\\Protocols\\SSL 3.0\\Server\\Enabled = 0"
+    severity: medium
+    category: protocols
+    compliance:
+      - iso_27001: ["A.8.24"]
+      - cis_csc_v8: ["3"]
+    condition: all
+    rules:
+      - 'r:HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\SSL 3.0\Server -> Enabled -> 0'
+  - id: 3092
+    title: "TLS 1.0 désactivé côté serveur"
+    description: "TLS 1.0 n'assure plus la confidentialité d'une connexion."
+    remediation: "Stratégie de groupe ou registre : HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Control\\SecurityProviders\\SCHANNEL\\Protocols\\TLS 1.0\\Server\\Enabled = 0"
+    severity: medium
+    category: protocols
+    compliance:
+      - iso_27001: ["A.8.24"]
+      - cis_csc_v8: ["3"]
+    condition: all
+    rules:
+      - 'r:HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.0\Server -> Enabled -> 0'

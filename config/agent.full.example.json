@@ -29,8 +29,8 @@
 
   "fim_watched_paths": [
     "/etc",
-    "/var/log",
-    "/home"
+    "/usr/local/bin",
+    "/opt/app/config"
   ],
 
   "fim_ignore_patterns": [
@@ -46,6 +46,28 @@
   "active_frameworks": ["ISO27001", "NIST-CSF"],
 
   "ransomware_canaries": false,
+  "playbook_simulation": false,
+
+  "rootkit_detection": true,
+  "system_inventory": true,
+  "hardening_benchmark": false,
+  "fim_report_changes": true,
+
+  "response_commands": [
+    {
+      "name": "open-ticket",
+      "program": "/usr/local/bin/sentinel-ticket",
+      "args": ["--queue", "soc"],
+      "timeout_secs": 30
+    }
+  ],
+
+  "log_analysis": true,
+  "log_analysis_all_programs": false,
+  "log_files": [
+    { "path": "/var/log/nginx/access.log", "format": "web", "service": "nginx" },
+    { "path": "/var/log/myapp/app.json", "format": "json" }
+  ],
 
   "threat_intel_feeds": [
     {

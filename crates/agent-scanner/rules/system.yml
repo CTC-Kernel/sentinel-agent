@@ -1,0 +1,92 @@
+# Règles Sigma livrées avec l'agent Sentinel GRC.
+#
+# Elles s'appuient sur les champs que l'agent extrait des journaux (voir
+# crates/agent-siem/src/decode.rs). Pour en ajuster une, copiez-la dans le
+# dossier « sigma.d » avec le même `id` : votre version la remplace. Pour en
+# désactiver une, ajoutez son `id` à « sigma.d/disabled-rules.txt ».
+title: Interface réseau passée en mode promiscuité
+id: 95c5ea44-4c05-5d9b-8e66-c940435d5fa2
+status: stable
+description: Une interface réseau reçoit désormais tout le trafic du segment, ce que fait un outil de capture. Les interfaces virtuelles des conteneurs et des machines virtuelles sont ignorées.
+author: Sentinel GRC
+tags:
+    - attack.credential_access
+    - attack.discovery
+    - attack.t1040
+logsource:
+    product: linux
+    service: kernel
+detection:
+    selection:
+        action: promiscuous_mode
+    filter_virtual:
+        interface|startswith:
+            - veth
+            - docker
+            - br-
+            - virbr
+            - vnet
+            - tap
+            - cali
+            - flannel
+            - cni
+            - lxc
+            - vmnet
+    condition: selection and not filter_virtual
+level: medium
+---
+title: Paquet bloqué par le pare-feu depuis le réseau interne
+id: 8eb9c110-4415-512c-923f-4cd9c61cf837
+name: firewall_block_internal
+status: stable
+description: Le pare-feu du poste a bloqué un paquet venant d'une adresse privée.
+author: Sentinel GRC
+logsource:
+    product: linux
+    service: kernel
+detection:
+    selection:
+        action: firewall_block
+        src_ip|cidr:
+            - 10.0.0.0/8
+            - 172.16.0.0/12
+            - 192.168.0.0/16
+            - fc00::/7
+    condition: selection
+level: informational
+---
+title: Balayage de ports depuis le réseau interne
+id: c312dbfb-4148-5236-8114-e1ae5ec675c2
+status: stable
+description: Une machine du réseau interne a sondé de nombreux ports de ce poste en peu de temps, ce que fait un attaquant qui cherche à se déplacer dans le réseau.
+author: Sentinel GRC
+tags:
+    - attack.discovery
+    - attack.t1046
+correlation:
+    type: value_count
+    rules:
+        - firewall_block_internal
+    group-by:
+        - src_ip
+    timespan: 2m
+    condition:
+        field: dst_port
+        gte: 15
+level: medium
+---
+title: Table cron modifiée
+id: 36d6ee01-43fa-5cf3-9a17-78ae1fe6ba42
+status: stable
+description: La table cron d'un compte a été remplacée.
+author: Sentinel GRC
+tags:
+    - attack.persistence
+    - attack.t1053.003
+logsource:
+    service: cron
+detection:
+    keywords:
+        - '* REPLACE (*'
+    condition: keywords
+level: low

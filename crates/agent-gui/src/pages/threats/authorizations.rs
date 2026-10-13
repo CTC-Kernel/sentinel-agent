@@ -473,6 +473,11 @@ mod tests {
             timestamp: chrono::Utc::now(),
             acknowledged: false,
             allowlisted: false,
+            detection: Default::default(),
+            sha256: None,
+            detail: None,
+            diff: None,
+            actor: None,
         });
         let id = state.add_allowlist_rule_global(
             AllowlistRuleType::FilePath,

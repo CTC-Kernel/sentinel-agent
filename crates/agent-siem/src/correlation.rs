@@ -164,6 +164,17 @@ impl CorrelationEngine {
         Self::new(default_rules())
     }
 
+    /// The built-in rules without the ones named: those a more precise
+    /// detection replaces, so one attack is not reported twice.
+    pub fn with_default_rules_except(replaced: &[&str]) -> Self {
+        Self::new(
+            default_rules()
+                .into_iter()
+                .filter(|rule| !replaced.contains(&rule.id.as_str()))
+                .collect(),
+        )
+    }
+
     /// Process a single event against all rules.
     ///
     /// Returns any alerts triggered by this event.
@@ -556,6 +567,18 @@ mod tests {
                 rule.id
             );
         }
+    }
+
+    #[test]
+    fn replaced_rules_are_left_out() {
+        let all = CorrelationEngine::with_default_rules().rule_count();
+        let fewer =
+            CorrelationEngine::with_default_rules_except(&["brute_force", "privilege_escalation"]);
+        assert_eq!(fewer.rule_count(), all - 2);
+        assert_eq!(
+            CorrelationEngine::with_default_rules_except(&["no_such_rule"]).rule_count(),
+            all
+        );
     }
 
     #[test]

@@ -544,6 +544,11 @@ mod tests {
                 timestamp: chrono::Utc::now(),
                 acknowledged: false,
                 allowlisted: false,
+                detection: Default::default(),
+                sha256: None,
+                detail: None,
+                diff: None,
+                actor: None,
             });
         }
         assert_eq!(state.security_attention_counts(), (20, 0));

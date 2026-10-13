@@ -1026,6 +1026,11 @@ pub fn seed(state: &mut AppState) {
             timestamp: ago(*mins),
             acknowledged: *ack,
             allowlisted: false,
+            detection: Default::default(),
+            sha256: None,
+            detail: None,
+            diff: None,
+            actor: None,
         });
     }
 

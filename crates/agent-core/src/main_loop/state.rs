@@ -25,6 +25,8 @@ fn already_due(now: Instant, interval_secs: u64) -> Instant {
 /// Schedule, running jobs and last results of the main loop.
 pub(crate) struct LoopState {
     pub last_heartbeat: Instant,
+    /// Last attempt at the incidents the platform has not received yet.
+    pub last_incident_flush: Instant,
     /// Background heartbeat; `Some` from its start to the pass that takes
     /// note of its end. It hands back the number of items waiting for
     /// synchronisation when the platform accepted it.
@@ -89,6 +91,7 @@ impl LoopState {
     ) -> Self {
         Self {
             last_heartbeat: now,
+            last_incident_flush: now,
             heartbeat_task: None,
             last_vuln_scan: already_due(now, vuln_scan_interval_secs),
             vuln_scan_task: None,

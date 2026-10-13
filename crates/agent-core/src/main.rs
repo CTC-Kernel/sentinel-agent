@@ -92,6 +92,9 @@ enum Commands {
     Stop,
     /// Show the agent service status
     Status,
+    /// Print the inventory of this system (accounts, groups, services,
+    /// listening ports) as JSON
+    Inventory,
     /// Run the privileged helper (root): executes the firewall and isolation
     /// actions requested by the desktop app, which runs as the user.
     PrivilegedHelper,
@@ -246,6 +249,7 @@ fn main() -> ExitCode {
         Some(Commands::Start) => handle_start(),
         Some(Commands::Stop) => handle_stop(),
         Some(Commands::Status) => handle_status(),
+        Some(Commands::Inventory) => handle_inventory(),
         Some(Commands::PrivilegedHelper) => handle_privileged_helper(&cli.log_level),
         Some(Commands::Run { no_tray }) => handle_run(cli.config, no_tray, &cli.log_level),
         None => handle_run(cli.config, false, &cli.log_level),
@@ -743,6 +747,7 @@ fn handle_privileged_helper(log_level: &str) -> ExitCode {
     };
     runtime.block_on(async {
         agent_core::edr_actions::reconcile_pending_blocks().await;
+        agent_core::edr_actions::account::reconcile_pending_locks().await;
         agent_core::host_isolation::reconcile_host_isolation().await;
         match agent_core::privileged::serve().await {
             Ok(()) => ExitCode::SUCCESS,
@@ -777,6 +782,20 @@ fn handle_stop() -> ExitCode {
 }
 
 /// Show service status.
+fn handle_inventory() -> ExitCode {
+    let inventory = agent_scanner::inventory::collect();
+    match serde_json::to_string_pretty(&inventory) {
+        Ok(json) => {
+            println!("{json}");
+            ExitCode::SUCCESS
+        }
+        Err(e) => {
+            error!("Failed to print the inventory: {}", e);
+            ExitCode::FAILURE
+        }
+    }
+}
+
 fn handle_status() -> ExitCode {
     match service::get_service_state() {
         Ok(state) => {

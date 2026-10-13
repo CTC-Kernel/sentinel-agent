@@ -14,7 +14,7 @@ Expert en souveraineté numérique et cyber-défense
 [![CI Status](https://github.com/CTC-Kernel/sentinel-agent/actions/workflows/ci.yml/badge.svg)](https://github.com/CTC-Kernel/sentinel-agent/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 ![Rust 2024](https://img.shields.io/badge/rust-2024%20edition-orange.svg)
-![Version](https://img.shields.io/badge/version-2.0.219-green.svg)
+![Version](https://img.shields.io/github/v/tag/CTC-Kernel/sentinel-agent?label=version&color=green)
 
 ---
 
@@ -28,13 +28,14 @@ Sentinel GRC Agent est un agent d'endpoint souverain et ultra-performant, conçu
 ## 🛡️ Fonctionnalités Premium AAA
 
 ### 1. Gouvernance & Conformité (Compliance)
-- **Frameworks Critiques** : 21 contrôles natifs alignés sur **CIS, NIS2, ISO 27001, DORA et SOC2**.
+- **Frameworks Critiques** : 34 contrôles natifs alignés sur **CIS, NIS2, ISO 27001, DORA et SOC2**.
 - **Scan de Vulnérabilités** : Analyse temps réel de plus de 151 paquets système contre les bases CVE.
 - **Priorisation par exploitation réelle** : chaque CVE est croisée avec le catalogue **CISA KEV** (failles déjà exploitées) et le score **EPSS** (probabilité d'exploitation), sans envoyer de donnée du poste.
 - **Auto-Remédiation** : Correction intelligente des écarts de conformité sans intervention humaine.
 
 ### 2. Sécurité Offensive & Détection (Detection)
-- **FIM (File Integrity Monitoring)** : Moteur de surveillance d'intégrité basé sur BLAKE3/SHA2 pour les fichiers système critiques.
+- **FIM (File Integrity Monitoring)** : surveillance temps réel, comparaison au démarrage avec la base conservée (changements faits agent arrêté) et analyse complète périodique ; contenu (BLAKE3, SHA-256), permissions et propriétaire, emplacements de persistance compris.
+- **Fichiers malveillants connus** : SHA-256 des fichiers créés ou modifiés comparé aux flux d'indicateurs (texte, CSV, STIX, TAXII).
 - **Détection de Menaces** : Pipeline autonome de détection → classification → réponse avec scoring IA (threat_pipeline).
 - **Analyse Réseau** : Cartographie OSI Couches 2/3, découverte passive (mDNS, SSDP, ARP) et détection de rogue devices.
 - **Actions EDR** : Réponse automatisée — `kill_process`, `quarantine_file`, `block_ip` avec protection anti-tamper.
@@ -140,12 +141,23 @@ graph TD
 
 ### Installation
 
-#### Option 1: Binaires Pré-compilés
+#### Option 1: Paquets pré-compilés
+Téléchargez le paquet de votre système depuis la page des
+[releases](https://github.com/CTC-Kernel/sentinel-agent/releases/latest), vérifiez-le
+avec le fichier `SHA256SUMS-*.txt` publié à côté, puis installez-le :
+
 ```bash
-# Téléchargement depuis GitHub Releases
-wget https://github.com/CTC-Kernel/sentinel-agent/releases/latest/download/sentinel-agent-linux-x64.tar.gz
-tar -xzf sentinel-agent-linux-x64.tar.gz
-sudo ./install.sh
+# Debian / Ubuntu
+sudo dpkg -i sentinel-agent_*.deb
+
+# RHEL / Fedora
+sudo rpm -i sentinel-agent-*.rpm
+
+# macOS (ou double-clic sur le .pkg)
+sudo installer -pkg SentinelAgent-*.pkg -target /
+
+# Windows
+msiexec /i SentinelAgentSetup-<version>.msi
 ```
 
 #### Option 2: Compilation Source
@@ -189,15 +201,16 @@ sentinel-agent standalone --disable  # puis `sentinel-agent enroll` pour rejoind
 ### Configuration Initiale
 
 ```bash
-# Génération de la configuration par défaut
-sentinel-agent --init-config
+# Rejoindre une plateforme : le jeton est demandé à l'invite (ou lu dans
+# SENTINEL_ENROLLMENT_TOKEN), ce qui évite de l'exposer dans la ligne de commande
+sudo sentinel-agent enroll
 
-# Édition de la configuration
-nano config/agent.json
+# Édition de la configuration (créée à l'installation du paquet ;
+# référence des options : config/README.md)
+sudo nano /etc/sentinel/agent.json
 
-# Démarrage du service
-sudo systemctl start sentinel-agent
-sudo systemctl enable sentinel-agent
+# Prise en compte
+sudo systemctl restart sentinel-agent
 ```
 
 ---
@@ -228,7 +241,7 @@ Chaque crate dispose de sa propre documentation detaillee :
 |-------|---------------|-------------|
 | [agent-common](crates/agent-common/README.md) | Types & utilitaires | Fondation partagee : types, config, erreurs, frameworks |
 | [agent-core](crates/agent-core/README.md) | Orchestrateur | Runtime principal, service, lifecycle, EDR, playbooks |
-| [agent-scanner](crates/agent-scanner/README.md) | Conformite | 21 controles, scan CVE, generation de preuves |
+| [agent-scanner](crates/agent-scanner/README.md) | Conformite | 34 controles, scan CVE, generation de preuves |
 | [agent-network](crates/agent-network/README.md) | Reseau | Decouverte L2/L3, detection de menaces, cartographie |
 | [agent-fim](crates/agent-fim/README.md) | FIM | Surveillance d'integrite BLAKE3/SHA2 |
 | [agent-storage](crates/agent-storage/README.md) | Stockage | SQLCipher AES-256, repositories, migrations |
@@ -306,33 +319,35 @@ export SENTINEL_SIEM_ENDPOINT="https://splunk.company.com:8088"
 # Logs en temps réel
 sudo journalctl -u sentinel-agent -f
 
-# Logs détaillés
-sentinel-agent --log-level debug
+# Lancement au premier plan avec des logs détaillés
+sentinel-agent --log-level debug run
 
-# Export des logs pour analyse
-sentinel-agent --export-logs /tmp/sentinel-logs.tar.gz
+# Fichiers de logs du service (Linux)
+ls /var/log/sentinel-grc/
 ```
 
-### Métriques de Performance
+### Service
 ```bash
 # État du service
-sentinel-agent --status
+sentinel-agent status
 
-# Statistiques détaillées
-sentinel-agent --stats
+# Installation, démarrage et arrêt du service système
+sudo sentinel-agent install
+sudo sentinel-agent start
+sudo sentinel-agent stop
 
-# Test de connectivité
-sentinel-agent --test-connectivity
+# Toutes les commandes
+sentinel-agent --help
 ```
 
 ---
 
-## � Sécurité par Conception
+## 🔒 Sécurité par Conception
 
 - **Zero-Trust Communication** : mTLS 1.3 avec certificats forcés.
-- **Chiffrement Militaire** : AES-256 GCM (SQLCipher) pour toutes les données persistantes.
+- **Chiffrement au repos** : SQLCipher (AES-256-CBC, intégrité HMAC-SHA256 par page, clé dérivée par PBKDF2 à 256 000 itérations) pour la base locale.
 - **Souveraineté IA** : Les modèles de langage s'exécutent LOCALEMENT, aucune donnée de sécurité ne quitte l'infrastructure.
-- **Intégrité Logicielle** : Signature Authenticode/GPG et vérification de chaîne de confiance.
+- **Intégrité Logicielle** : paquet macOS signé et notarisé, MSI signé Authenticode (SignPath, certificat auto-signé à défaut), SBOM CycloneDX et attestation de provenance à chaque release, mises à jour vérifiées par manifeste signé ed25519 une fois la clé configurée ([docs/UPDATE_SIGNING.md](docs/UPDATE_SIGNING.md)).
 
 ---
 
@@ -348,7 +363,7 @@ sentinel-agent --test-connectivity
 
 ### Standards de Qualité
 - **Code Style** : `cargo fmt` et `cargo clippy` obligatoires
-- **Tests** : Couverture minimale de 80%
+- **Tests** : la CI refuse toute baisse sous le plancher de couverture (34 % aujourd'hui, relevé à mesure vers 70 %)
 - **Documentation** : Comments `///` pour toutes les APIs publiques
 - **Sécurité** : Validation `cargo-deny` avant merge
 

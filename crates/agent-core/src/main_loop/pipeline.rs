@@ -170,6 +170,7 @@ impl AgentRuntime {
                     self.llm_service.as_ref().map(|s| s.as_ref()),
                     self.audit_trail.as_ref(),
                     siem_delivery.as_ref(),
+                    self.config.playbook_simulation,
                 )
                 .await;
                 drop(siem_delivery);

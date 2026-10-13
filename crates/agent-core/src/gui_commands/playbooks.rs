@@ -137,6 +137,28 @@ fn resolve_manual_actions(playbook: &agent_gui::dto::Playbook) -> Vec<ResolvedAc
                     message: action.parameters.clone(),
                 });
             }
+            agent_gui::dto::PlaybookActionType::DisableAccount => {
+                // parameters format: "account" or "account:duration_secs"
+                let parts: Vec<&str> = action.parameters.splitn(2, ':').collect();
+                let user = parts.first().unwrap_or(&"").trim().to_string();
+                if !user.is_empty() {
+                    resolved_actions.push(ResolvedAction::DisableAccount {
+                        user,
+                        duration_secs: agent_core::playbook_engine::account_lock_duration(
+                            parts.get(1).unwrap_or(&""),
+                        ),
+                    });
+                }
+            }
+            agent_gui::dto::PlaybookActionType::RunCommand => {
+                resolved_actions.push(ResolvedAction::RunCommand {
+                    name: action.parameters.trim().to_string(),
+                    context: serde_json::json!({
+                        "playbook": playbook.name,
+                        "manual": true,
+                    }),
+                });
+            }
         }
     }
     resolved_actions
@@ -519,6 +541,24 @@ mod tests {
                 ResolvedAction::BlockIp { ip, duration_secs: 600 },
                 ResolvedAction::Notify { message },
             ] if name == "xmrig" && path == "/tmp/xmrig" && ip == "203.0.113.7" && message == "Poste contenu"
+        ));
+    }
+
+    #[test]
+    fn a_manual_run_locks_the_named_account_and_asks_for_the_named_command() {
+        let resolved = resolve_manual_actions(&playbook(&[
+            (PlaybookActionType::DisableAccount, "mallory:600"),
+            (PlaybookActionType::DisableAccount, " : 600"),
+            (PlaybookActionType::RunCommand, " open-ticket "),
+        ]));
+
+        // An action naming no account is left out.
+        assert!(matches!(
+            resolved.as_slice(),
+            [
+                ResolvedAction::DisableAccount { user, duration_secs: 600 },
+                ResolvedAction::RunCommand { name, context },
+            ] if user == "mallory" && name == "open-ticket" && context["manual"] == true
         ));
     }
 

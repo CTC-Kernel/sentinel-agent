@@ -37,6 +37,7 @@ ExecStart={executable_path} --service
 Restart=always
 RestartSec=10
 WatchdogSec=120
+NotifyAccess=main
 
 # Dedicated service user
 User=sentinel-grc
@@ -50,7 +51,7 @@ ReadWritePaths=/var/lib/sentinel-grc /var/log/sentinel-grc /etc/sentinel
 # Security hardening
 NoNewPrivileges=true
 ProtectSystem=strict
-ProtectHome=true
+ProtectHome=read-only
 PrivateTmp=true
 PrivateDevices=true
 ProtectKernelModules=true
@@ -66,9 +67,10 @@ LockPersonality=true
 RemoveIPC=true
 SystemCallArchitectures=native
 
-# Capabilities (network discovery, filesystem scanning)
-CapabilityBoundingSet=CAP_NET_RAW CAP_DAC_READ_SEARCH
-AmbientCapabilities=CAP_NET_RAW CAP_DAC_READ_SEARCH
+# Capabilities (network discovery, filesystem scanning, stopping a malicious
+# process of another user)
+CapabilityBoundingSet=CAP_NET_RAW CAP_DAC_READ_SEARCH CAP_KILL
+AmbientCapabilities=CAP_NET_RAW CAP_DAC_READ_SEARCH CAP_KILL
 
 # System call filter (allowlist)
 SystemCallFilter=@system-service
@@ -78,7 +80,9 @@ SystemCallFilter=~@mount @reboot @swap @debug @obsolete
 MemoryMax=150M
 MemoryHigh=100M
 CPUQuota=10%
-TasksMax=64
+# One worker thread per core plus the blocking pool: 64 is reached on a
+# large server before the agent does any work.
+TasksMax=512
 LimitNOFILE=4096
 
 [Install]
@@ -493,5 +497,39 @@ mod tests {
         assert!(content.contains("ExecStart=/opt/sentinel/agent"));
         assert!(content.contains("Restart=always"));
         assert!(content.contains("MemoryMax=150M"));
+    }
+
+    /// Directives of a unit, without the two that legitimately depend on
+    /// where the binary was installed.
+    fn directives(unit: &str) -> Vec<&str> {
+        unit.lines()
+            .map(str::trim)
+            .filter(|line| !line.is_empty() && !line.starts_with('#'))
+            .filter(|line| {
+                !line.starts_with("ExecStart=") && !line.starts_with("WorkingDirectory=")
+            })
+            .collect()
+    }
+
+    /// `sentinel-agent install` and the deb/rpm packages must set the service
+    /// up the same way: a hardening or watchdog fix made in one only would
+    /// silently miss the other installations.
+    #[test]
+    fn packaged_units_match_the_installed_ones() {
+        assert_eq!(
+            directives(SYSTEMD_UNIT_TEMPLATE),
+            directives(include_str!("../../debian/sentinel-agent.service")),
+        );
+        assert_eq!(
+            directives(HELPER_UNIT_TEMPLATE),
+            directives(include_str!("../../debian/sentinel-agent-helper.service")),
+        );
+    }
+
+    /// A unit that asks for a watchdog must let the agent answer it.
+    #[test]
+    fn watchdog_unit_accepts_keepalives() {
+        assert!(SYSTEMD_UNIT_TEMPLATE.contains("WatchdogSec="));
+        assert!(SYSTEMD_UNIT_TEMPLATE.contains("NotifyAccess=main"));
     }
 }

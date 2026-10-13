@@ -23,6 +23,11 @@
 //! - `SENTINEL_STANDALONE` → `standalone` (`true`: no platform, local protection only)
 //! - `SENTINEL_RANSOMWARE_CANARIES` → `ransomware_canaries` (`true`: decoy files in user directories)
 //! - `SENTINEL_PROCESS_EVENT_TELEMETRY` → `process_event_telemetry` (`true`: evaluate every process as it starts)
+//! - `SENTINEL_LOG_ANALYSIS` → `log_analysis` (`false`: do not evaluate the detection rules on the logs)
+//! - `SENTINEL_ROOTKIT_DETECTION` → `rootkit_detection` (`false`: no rootkit checks)
+//! - `SENTINEL_HARDENING_BENCHMARK` → `hardening_benchmark` (`true`: run the shipped hardening policy)
+//! - `SENTINEL_SYSTEM_INVENTORY` → `system_inventory` (`false`: no inventory of accounts, services and ports)
+//! - `SENTINEL_FIM_REPORT_CHANGES` → `fim_report_changes` (`false`: report that a file changed, not which lines)
 //!
 //! Nested fields are mapped explicitly (see [`NESTED_ENV_KEYS`]):
 //!
@@ -190,11 +195,126 @@ pub struct AgentConfig {
     #[serde(default)]
     pub process_event_telemetry: bool,
 
+    /// Run the response playbooks in simulation: their conditions are
+    /// evaluated on real activity and every action they would take is
+    /// recorded, but nothing is killed, quarantined, blocked or isolated.
+    /// Meant for trying playbooks before arming them. Off by default; a
+    /// playbook run by hand from the console always acts.
+    #[serde(default)]
+    pub playbook_simulation: bool,
+
     /// Indicator-of-compromise feeds (block lists, STIX bundles, TAXII
     /// collections) whose malicious addresses and domains are added to the
     /// network detector. None by default: no feed is contacted unless listed.
     #[serde(default)]
     pub threat_intel_feeds: Vec<ThreatIntelFeed>,
+
+    /// Evaluate the detection rules on the system logs (journal, unified
+    /// log, event log) and on the declared log files, as they are written.
+    /// On by default.
+    #[serde(default = "default_log_analysis")]
+    pub log_analysis: bool,
+
+    /// Read every program's lines from the system journal instead of the
+    /// ones of the programs that matter for security. Needed for rules
+    /// written for other programs (`service: syslog`); costs more on a busy
+    /// server. Off by default.
+    #[serde(default)]
+    pub log_analysis_all_programs: bool,
+
+    /// Log files to follow besides the system logs: a web server's access
+    /// log, an application's JSON log… None by default.
+    #[serde(default)]
+    pub log_files: Vec<LogFileConfig>,
+
+    /// Look for the signs of a rootkit: hidden processes, ports and kernel
+    /// modules, libraries forced on every program, interfaces capturing
+    /// traffic. On by default; once an hour every port is bound for an
+    /// instant, which this turns off.
+    #[serde(default = "default_true")]
+    pub rootkit_detection: bool,
+
+    /// Run the hardening policy shipped with the agent for this system
+    /// (about 90 checks on Linux, 30 on macOS, 45 on Windows) besides the
+    /// built-in compliance checks. Off by default: these checks count in
+    /// the compliance score, which turning them on therefore changes. The
+    /// policies placed in `sca.d` are always run.
+    #[serde(default)]
+    pub hardening_benchmark: bool,
+
+    /// Take the inventory of the system every ten minutes (accounts,
+    /// groups, services, listening ports) and report what changes in it:
+    /// an account created, a service installed, a new listening port. On by
+    /// default.
+    #[serde(default = "default_true")]
+    pub system_inventory: bool,
+
+    /// Say which lines changed in a watched file, by keeping the last
+    /// contents of the small text files every account may read (never those
+    /// of a file whose permissions keep it from some accounts). On by
+    /// default.
+    #[serde(default = "default_true")]
+    pub fim_report_changes: bool,
+
+    /// Programs of the organisation a playbook may ask for by name (open a
+    /// ticket, call the on-call engineer…). None by default. A playbook can
+    /// only name one of these: nothing it carries is executed.
+    #[serde(default)]
+    pub response_commands: Vec<ResponseCommandConfig>,
+}
+
+/// A program a playbook may ask for by name.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct ResponseCommandConfig {
+    /// The name playbooks ask for (lower-case letters, digits, `-`, `_`).
+    pub name: String,
+    /// Absolute path of the program, run without a shell.
+    pub program: String,
+    /// Arguments given to it, as declared here.
+    #[serde(default)]
+    pub args: Vec<String>,
+    /// Seconds it is given before being stopped (60 by default, 600 at most).
+    #[serde(default = "default_response_timeout_secs")]
+    pub timeout_secs: u64,
+}
+
+fn default_response_timeout_secs() -> u64 {
+    60
+}
+
+fn default_log_analysis() -> bool {
+    true
+}
+
+/// How the lines of a followed log file are read.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum LogFileFormat {
+    /// `Oct 11 22:14:15 host program[pid]: text`, or the same with an
+    /// ISO 8601 time.
+    #[default]
+    Syslog,
+    /// One JSON object per line.
+    Json,
+    /// A web server access log, common or combined format.
+    Web,
+    /// The Linux audit log (`type=… msg=audit(…): …`).
+    Audit,
+    /// Any text: only keyword rules apply.
+    Text,
+}
+
+/// One log file to follow.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct LogFileConfig {
+    /// Absolute path of the file.
+    pub path: String,
+    #[serde(default)]
+    pub format: LogFileFormat,
+    /// The Sigma `service` rules name this file by (`nginx`, `myapp`).
+    /// The file name without its extension by default.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub service: Option<String>,
 }
 
 /// Layout of an indicator feed.
@@ -424,7 +544,16 @@ impl Default for AgentConfig {
             standalone: false,
             ransomware_canaries: false,
             process_event_telemetry: false,
+            playbook_simulation: false,
             threat_intel_feeds: Vec::new(),
+            log_analysis: true,
+            log_analysis_all_programs: false,
+            log_files: Vec::new(),
+            rootkit_detection: true,
+            hardening_benchmark: false,
+            system_inventory: true,
+            fim_report_changes: true,
+            response_commands: Vec::new(),
         }
     }
 }
@@ -960,7 +1089,16 @@ mod tests {
             standalone: false,
             ransomware_canaries: false,
             process_event_telemetry: false,
+            playbook_simulation: false,
             threat_intel_feeds: Vec::new(),
+            log_analysis: true,
+            log_analysis_all_programs: false,
+            log_files: Vec::new(),
+            rootkit_detection: true,
+            hardening_benchmark: false,
+            system_inventory: true,
+            fim_report_changes: true,
+            response_commands: Vec::new(),
         };
 
         let json = serde_json::to_string(&config).unwrap();
@@ -1321,6 +1459,31 @@ mod tests {
             ThreatIntelFeedFormat::Taxii
         );
         assert!(!config.ransomware_canaries);
+        assert!(config.log_analysis);
+        assert_eq!(config.log_files.len(), 2);
+        assert_eq!(config.log_files[0].format, LogFileFormat::Web);
+        assert_eq!(config.log_files[0].service.as_deref(), Some("nginx"));
+        assert_eq!(config.log_files[1].format, LogFileFormat::Json);
+    }
+
+    #[test]
+    fn log_analysis_is_on_unless_turned_off() {
+        let env = env_map(&[]);
+        let default = load_with_env("{}", &env);
+        assert!(default.log_analysis && !default.log_analysis_all_programs);
+        assert!(default.log_files.is_empty());
+
+        let config = load_with_env(
+            r#"{ "log_analysis": false,
+                 "log_files": [ { "path": "/var/log/app.log" } ] }"#,
+            &env,
+        );
+        assert!(!config.log_analysis);
+        assert_eq!(config.log_files[0].format, LogFileFormat::Syslog);
+        assert_eq!(config.log_files[0].service, None);
+
+        let off = load_with_env("{}", &env_map(&[("SENTINEL_LOG_ANALYSIS", "false")]));
+        assert!(!off.log_analysis);
     }
 
     #[test]

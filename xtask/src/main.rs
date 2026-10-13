@@ -57,6 +57,22 @@ enum Cmd {
         #[arg(long)]
         key: Option<String>,
     },
+    /// Write the signed manifest of a release package: `<file>.manifest.json`
+    /// (version, file name, SHA-256, size) and `<file>.manifest.json.sig`.
+    ///
+    /// Agents built with SENTINEL_UPDATE_PUBKEY install an update only when
+    /// this manifest is signed, names the version the release server
+    /// announces and matches the package they downloaded.
+    Manifest {
+        /// Path to the package file, named as it is published.
+        file: String,
+        /// Version of the release (as in release-info.json).
+        #[arg(long)]
+        version: String,
+        /// Path to the PKCS#8 private key (hex), or set SENTINEL_UPDATE_KEY.
+        #[arg(long)]
+        key: Option<String>,
+    },
 }
 
 fn main() -> Result<()> {
@@ -68,6 +84,7 @@ fn main() -> Result<()> {
         Cmd::Clean => cmd_clean(),
         Cmd::Keygen { out } => cmd_keygen(&out),
         Cmd::Sign { file, key } => cmd_sign(&file, key.as_deref()),
+        Cmd::Manifest { file, version, key } => cmd_manifest(&file, &version, key.as_deref()),
     }
 }
 
@@ -292,8 +309,8 @@ fn cmd_keygen(out: &str) -> Result<()> {
     Ok(())
 }
 
-/// Sign `file` with the PKCS#8 private key, writing `<file>.sig` (hex ed25519).
-fn cmd_sign(file: &str, key: Option<&str>) -> Result<()> {
+/// Load the signing key from `key` (a file) or SENTINEL_UPDATE_KEY.
+fn signing_key(key: Option<&str>) -> Result<ring::signature::Ed25519KeyPair> {
     let private_hex = match key {
         Some(path) => std::fs::read_to_string(path)
             .with_context(|| format!("failed to read key file {path}"))?,
@@ -301,8 +318,55 @@ fn cmd_sign(file: &str, key: Option<&str>) -> Result<()> {
             .context("no --key given and SENTINEL_UPDATE_KEY is not set")?,
     };
     let pkcs8 = hex::decode(private_hex.trim()).context("private key is not valid hex")?;
-    let key_pair = ring::signature::Ed25519KeyPair::from_pkcs8(&pkcs8)
-        .map_err(|_| anyhow::anyhow!("invalid PKCS#8 ed25519 private key"))?;
+    ring::signature::Ed25519KeyPair::from_pkcs8(&pkcs8)
+        .map_err(|_| anyhow::anyhow!("invalid PKCS#8 ed25519 private key"))
+}
+
+/// Describe the package `file` as release `version`.
+fn build_manifest(file: &str, version: &str) -> Result<agent_common::types::UpdateManifest> {
+    use sha2::{Digest, Sha256};
+
+    let package = std::fs::read(file).with_context(|| format!("failed to read {file}"))?;
+    let name = std::path::Path::new(file)
+        .file_name()
+        .and_then(|name| name.to_str())
+        .with_context(|| format!("{file} has no usable file name"))?;
+    let manifest = agent_common::types::UpdateManifest {
+        version: version.trim().trim_start_matches('v').to_string(),
+        package: name.to_string(),
+        sha256: format!("{:x}", Sha256::digest(&package)),
+        size: package.len() as u64,
+    };
+    manifest
+        .validate()
+        .map_err(|why| anyhow::anyhow!("cannot describe {file}: {why}"))?;
+    Ok(manifest)
+}
+
+/// Write `<file>.manifest.json` and its signature `<file>.manifest.json.sig`.
+fn cmd_manifest(file: &str, version: &str, key: Option<&str>) -> Result<()> {
+    let key_pair = signing_key(key)?;
+    let manifest = build_manifest(file, version)?;
+
+    let manifest_path = format!("{file}.manifest.json");
+    std::fs::write(&manifest_path, serde_json::to_string_pretty(&manifest)?)
+        .with_context(|| format!("failed to write {manifest_path}"))?;
+
+    // The signature covers the fields, not the text of the file.
+    let signature = key_pair.sign(&manifest.signed_message());
+    let sig_path = format!("{manifest_path}.sig");
+    std::fs::write(&sig_path, hex::encode(signature.as_ref()))
+        .with_context(|| format!("failed to write signature to {sig_path}"))?;
+
+    println!("Manifest of {file} (version {})", manifest.version);
+    println!("  -> {manifest_path}");
+    println!("  -> {sig_path}");
+    Ok(())
+}
+
+/// Sign `file` with the PKCS#8 private key, writing `<file>.sig` (hex ed25519).
+fn cmd_sign(file: &str, key: Option<&str>) -> Result<()> {
+    let key_pair = signing_key(key)?;
 
     let package = std::fs::read(file).with_context(|| format!("failed to read {file}"))?;
     let signature = key_pair.sign(&package);
@@ -314,4 +378,64 @@ fn cmd_sign(file: &str, key: Option<&str>) -> Result<()> {
     println!("Signed {file}");
     println!("  -> {sig_path}");
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use ring::signature::KeyPair;
+
+    /// What `keygen` writes, and its public half.
+    fn key_file(dir: &std::path::Path) -> (String, Vec<u8>) {
+        let rng = ring::rand::SystemRandom::new();
+        let pkcs8 = ring::signature::Ed25519KeyPair::generate_pkcs8(&rng).unwrap();
+        let key_pair = ring::signature::Ed25519KeyPair::from_pkcs8(pkcs8.as_ref()).unwrap();
+        let path = dir.join("key.hex");
+        std::fs::write(&path, hex::encode(pkcs8.as_ref())).unwrap();
+        (
+            path.to_string_lossy().into_owned(),
+            key_pair.public_key().as_ref().to_vec(),
+        )
+    }
+
+    /// The files written here are the ones the agent reads: its own type
+    /// parses the manifest and its message is what the signature covers.
+    #[test]
+    fn manifest_is_signed_over_the_message_the_agent_checks() {
+        let dir = tempfile::tempdir().unwrap();
+        let (key, public) = key_file(dir.path());
+        let package = dir.path().join("SentinelAgent-latest.pkg");
+        std::fs::write(&package, b"package bytes").unwrap();
+        let package = package.to_string_lossy().into_owned();
+
+        cmd_manifest(&package, "v4.0.44", Some(&key)).unwrap();
+
+        let manifest: agent_common::types::UpdateManifest = serde_json::from_str(
+            &std::fs::read_to_string(format!("{package}.manifest.json")).unwrap(),
+        )
+        .unwrap();
+        assert_eq!(manifest.version, "4.0.44", "the tag prefix is dropped");
+        assert_eq!(manifest.package, "SentinelAgent-latest.pkg");
+        assert_eq!(manifest.size, 13);
+        assert_eq!(manifest.validate(), Ok(()));
+
+        let signature =
+            hex::decode(std::fs::read_to_string(format!("{package}.manifest.json.sig")).unwrap())
+                .unwrap();
+        ring::signature::UnparsedPublicKey::new(&ring::signature::ED25519, &public)
+            .verify(&manifest.signed_message(), &signature)
+            .expect("the agent's check must pass");
+    }
+
+    #[test]
+    fn a_package_that_cannot_be_described_is_refused() {
+        let dir = tempfile::tempdir().unwrap();
+        let empty = dir.path().join("empty.pkg");
+        std::fs::write(&empty, b"").unwrap();
+        assert!(build_manifest(&empty.to_string_lossy(), "4.0.44").is_err());
+
+        let package = dir.path().join("ok.pkg");
+        std::fs::write(&package, b"x").unwrap();
+        assert!(build_manifest(&package.to_string_lossy(), "not a version!").is_err());
+    }
 }

@@ -3,6 +3,7 @@
 
 //! What the agent sets up once, before the first pass of the main loop.
 
+use agent_common::config::AgentConfig;
 use agent_common::constants::AGENT_VERSION;
 use agent_common::error::CommonError;
 use agent_fim::FimEngine;
@@ -72,7 +73,26 @@ impl AgentRuntime {
         let mut fim_rx_guard = self.fim_rx.lock().await;
         *fim_rx_guard = Some(fim_rx);
 
-        let engine = FimEngine::with_defaults(fim_tx);
+        // The configured paths and exclusions, or the defaults. The
+        // baseline is kept beside the agent's data so that a change made
+        // while the agent is stopped is found at the next start.
+        let policy = agent_fim::policy::build_policy(
+            self.config.fim_watched_paths.as_deref(),
+            self.config.fim_ignore_patterns.as_deref(),
+        );
+        // The default paths include places that may not exist (yet);
+        // only a path the configuration names is worth a warning.
+        if self.config.fim_watched_paths.is_some() {
+            for warning in agent_fim::policy::validate_policy(&policy) {
+                warn!("FIM policy: {}", warning);
+            }
+        }
+        let fim_dir = AgentConfig::platform_data_dir().join("fim");
+        let mut engine = FimEngine::new(policy, fim_tx);
+        if self.config.fim_report_changes {
+            engine = engine.with_content_dir(fim_dir.join("content"));
+        }
+        let engine = engine.with_state_file(fim_dir.join("baseline.json"));
 
         if let Err(e) = engine.start().await {
             error!("Failed to start FIM engine: {}", e);
@@ -108,6 +128,14 @@ impl AgentRuntime {
         // Honor timed IP unblocks whose in-memory timers died with the previous
         // process: expired blocks are lifted now, the rest are rescheduled.
         crate::edr_actions::reconcile_pending_blocks().await;
+        // And for an account lock: unlocked if its time passed while the
+        // agent was stopped.
+        crate::edr_actions::account::reconcile_pending_locks().await;
+        // The organisation's response programs, which playbooks ask for by name.
+        for error in crate::edr_actions::response_command::configure(&self.config.response_commands)
+        {
+            warn!("Response command not usable: {}", error);
+        }
         // Same for a host isolation: lifted if it expired, applied again if not.
         crate::host_isolation::reconcile_host_isolation().await;
 
@@ -122,6 +150,16 @@ impl AgentRuntime {
             self.seed_builtin_check_rules().await;
         } else {
             self.run_platform_startup().await?;
+        }
+
+        // What became of an update started by the previous process.
+        self.report_previous_update_outcome().await;
+
+        if self.config.playbook_simulation {
+            warn!(
+                "Playbook simulation is on: automatic response actions are recorded, \
+                 not executed (\"playbook_simulation\" in the configuration)"
+            );
         }
 
         // Last network monitoring consent received from the platform: must be
@@ -189,6 +227,9 @@ impl AgentRuntime {
         // Reset startup timer so it measures from run() start, not from
         // AgentRuntime construction (which may include a failed GUI attempt).
         self.resource_monitor.reset_startup_time();
+
+        // The service manager's watchdog already counts down.
+        crate::service::watchdog::start();
 
         info!("Starting Sentinel GRC Agent v{}", AGENT_VERSION);
         info!("Server URL: https://cyber-threat-consulting.com [redacted]");

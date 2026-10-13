@@ -69,11 +69,139 @@ La configuration est chargee dans cet ordre (les sources ulterieures ecrasent le
 2. **Fichier JSON** - Chemin specifique a la plateforme ou chemin personnalise
 3. **Variables d'environnement** - Prefixe `SENTINEL_*`
 
+## Reponse : verrouillage de compte et commandes de reponse
+
+Deux actions de playbook s'ajoutent a l'arret de processus, a la quarantaine,
+au blocage d'adresse et a l'isolement :
+
+- **Verrouiller le compte** : verrouille le compte designe par l'alerte (le
+  compte d'une session ouverte apres une force brute), pour la duree donnee en
+  parametre (secondes ; vide : une heure ; `0` : jusqu'a intervention). root,
+  les comptes systeme, le compte de l'agent et le dernier administrateur sont
+  refuses.
+- **Commande de reponse** : lance un programme declare ici, que le playbook
+  demande par son nom (parametre de l'action).
+
+```json
+"response_commands": [
+  { "name": "open-ticket", "program": "/usr/local/bin/sentinel-ticket",
+    "args": ["--queue", "soc"], "timeout_secs": 30 }
+]
+```
+
+| Champ | Role | Defaut |
+|-------|------|--------|
+| `name` | Nom demande par les playbooks (minuscules, chiffres, `-`, `_`) | requis |
+| `program` | Chemin absolu du programme, lance sans interpreteur | requis |
+| `args` | Arguments, tels que declares | aucun |
+| `timeout_secs` | Secondes accordees avant arret (600 au plus) | `60` |
+
+Le programme recoit sur son entree standard un document JSON (playbook,
+conditions reconnues, processus, adresses, fichiers et comptes vises) et
+reussit en sortant avec le code 0. Sous Unix il doit appartenir a root ou au
+compte de l'agent et n'etre modifiable par personne d'autre. Un playbook ne
+peut que nommer une commande declaree : rien de ce qu'il contient n'est execute.
+
+## Inventaire du poste
+
+`"system_inventory": true` (defaut) releve toutes les dix minutes les comptes,
+les groupes, les services et les ports en ecoute, et signale ce qui change :
+compte cree, compte ajoute a un groupe d'administration, service installe, port
+ouvert sur le reseau. Le premier inventaire sert de reference. `sentinel-agent
+inventory` affiche l'inventaire courant en JSON.
+
+## Politiques de conformite (SCA)
+
+- Les politiques YAML deposees dans `sca.d` (dossier de donnees de l'agent)
+  sont toujours executees. Le format est celui des politiques SCA de Wazuh ;
+  voir `config/sca.example.yml`.
+- `"hardening_benchmark": true` execute en plus le socle de durcissement livre
+  avec l'agent pour le systeme du poste (environ 90 controles sous Linux, 30
+  sous macOS, 45 sous Windows). Desactive par defaut : ces controles entrent
+  dans le score de conformite.
+- Un controle qui ne peut pas etre evalue (fichier absent, outil non installe)
+  est « non applicable » et ne compte pas dans le score.
+
+## Detection de rootkits
+
+`"rootkit_detection": true` (defaut) recherche ce que le systeme cache :
+processus, ports d'ecoute et modules noyau caches, bibliotheque imposee a tous
+les programmes, interface en mode promiscuite, fichiers ordinaires dans `/dev`,
+programmes masques dans les dossiers temporaires. Une fois par heure, chaque
+port TCP est lie un instant pour verifier qu'il n'est pas occupe a l'insu du
+systeme ; `false` desactive l'ensemble. Linux et macOS seulement.
+
+## Analyse de journaux
+
+Les regles de detection (celles livrees avec l'agent et celles de `sigma.d`)
+sont evaluees sur les journaux du systeme, lus en temps reel, et sur les
+fichiers declares.
+
+| Champ | Role | Defaut |
+|-------|------|--------|
+| `log_analysis` | Evalue les regles sur les journaux | `true` |
+| `log_analysis_all_programs` | Lit les lignes de tous les programmes du journal systeme, et non des seuls programmes lies a la securite (connexion, sudo, comptes, cron). Necessaire aux regles `service: syslog` ecrites pour d'autres programmes ; plus couteux sur un serveur bavard | `false` |
+| `log_files` | Fichiers de journaux a suivre en plus | aucun |
+
+```json
+"log_files": [
+  { "path": "/var/log/nginx/access.log", "format": "web", "service": "nginx" },
+  { "path": "/var/log/myapp/app.json", "format": "json" }
+]
+```
+
+| Champ | Role | Defaut |
+|-------|------|--------|
+| `path` | Chemin absolu du fichier | requis |
+| `format` | `syslog`, `json` (un objet par ligne), `web` (journal d'acces commun ou combine), `audit` (journal auditd), `text` | `syslog` |
+| `service` | Nom que les regles donnent a ce fichier (`service: nginx`) | nom du fichier sans extension |
+
+- Un fichier suivi pour la premiere fois est lu depuis sa fin ; sa position est
+  ensuite conservee, y compris pendant l'arret de l'agent.
+- Ne declarez pas un fichier dont le journal systeme contient deja les lignes
+  (`/var/log/auth.log` sur un systeme a journal systemd) : chaque ligne serait
+  comptee deux fois.
+- Sous Linux, le compte du service doit pouvoir lire le journal (groupe
+  `systemd-journal`). Sous macOS, `log stream` demande un compte administrateur.
+- Pour ajuster une regle livree, deposez dans `sigma.d` une regle portant le
+  meme `id`. Pour la desactiver, inscrivez son `id` dans
+  `sigma.d/disabled-rules.txt`.
+- Champs disponibles dans les regles : voir `crates/agent-siem/src/decode.rs`.
+
+## Integrite des fichiers
+
+| Champ | Role | Defaut |
+|-------|------|--------|
+| `fim_watched_paths` | Dossiers ou fichiers surveilles. **Remplace** la liste par defaut : reprenez-y `/etc` et les autres chemins systeme que vous voulez garder | configuration systeme, programmes systeme et emplacements de demarrage automatique |
+| `fim_ignore_patterns` | Exclusions (`*.log`, `cache/**`, ou un fragment de chemin), ajoutees aux exclusions par defaut | `*.log`, `*.tmp`, `*.swp`, `.git/**` |
+
+- La base de reference est conservee dans `fim/baseline.json` du dossier de
+  donnees. Au demarrage, les fichiers sont compares a cette base : ce qui a
+  change pendant l'arret de l'agent est signale.
+- Une analyse complete a lieu toutes les 6 heures, en plus de la surveillance
+  temps reel.
+- Un chemin surveille pour la premiere fois est adopte sans alerte ; ses
+  fichiers ne sont signales comme nouveaux qu'a partir du demarrage suivant.
+- Evitez les arborescences volumineuses ou tres actives (`/home`, `/var/log`) :
+  100 000 fichiers sont suivis au plus, et chaque changement leve une alerte.
+- `"fim_report_changes": true` (defaut) donne les lignes retirees et ajoutees
+  d'un petit fichier texte. Le dernier contenu est conserve pour cela, mais
+  jamais celui d'un fichier que ses droits reservent a certains comptes.
+- L'auteur d'un changement est indique quand l'audit du systeme le donne
+  (Linux : `auditctl -w /etc -p wa -k sentinel` ; Windows : audit d'acces aux
+  objets sur le fichier) ou, a defaut et s'il y a lieu, d'apres les processus
+  vus demarrer (`process_event_telemetry`).
+- Sous Windows, les valeurs de registre de demarrage automatique (`Run`,
+  `Winlogon`, `Image File Execution Options`...) sont surveillees de la meme
+  facon.
+
 ## Flux d'indicateurs de compromission
 
-`threat_intel_feeds` liste des sources d'adresses et de domaines malveillants,
-ajoutés à ce que le détecteur réseau connaît déjà (y compris ce que la
-plateforme pousse). Aucune source n'est contactée par défaut.
+`threat_intel_feeds` liste des sources d'adresses, de domaines et de fichiers
+malveillants. Adresses et domaines sont ajoutés à ce que le détecteur réseau
+connaît déjà (y compris ce que la plateforme pousse) ; les SHA-256 sont
+comparés aux fichiers que la surveillance d'intégrité signale comme créés ou
+modifiés. Aucune source n'est contactée par défaut.
 
 ```json
 "threat_intel_feeds": [
@@ -89,7 +217,7 @@ plateforme pousse). Aucune source n'est contactée par défaut.
 |-------|------|--------|
 | `name` | Nom du flux (journaux, copie locale) ; unique | requis |
 | `url` | Adresse HTTPS du flux | requis |
-| `format` | `text` (une adresse, un domaine ou une URL par ligne ; CSV et fichiers hosts acceptes), `stix` (bundle STIX 2.1), `taxii` (objets d'une collection TAXII 2.1) | `text` |
+| `format` | `text` (une adresse, un domaine, une URL ou un SHA-256 par ligne ; CSV et fichiers hosts acceptes), `stix` (bundle STIX 2.1), `taxii` (objets d'une collection TAXII 2.1) | `text` |
 | `authorization` | Valeur de l'en-tete `Authorization` (`Bearer …`, `Basic …`, cle MISP) | aucun |
 | `refresh_hours` | Heures entre deux telechargements (1 au minimum) | `12` |
 
@@ -99,6 +227,10 @@ plateforme pousse). Aucune source n'est contactée par défaut.
 - Un flux en echec garde ses derniers indicateurs, aussi conserves sur disque
   pour le prochain demarrage.
 - MISP : utilisez son export texte ou STIX avec la cle dans `authorization`.
+- Fichiers : seul le SHA-256 est compare (pas le MD5 ni le SHA-1). Un fichier
+  dont l'empreinte est listee leve un incident critique ; un playbook peut y
+  repondre avec une condition « changement de fichier » de valeur
+  `malicious_hash`.
 
 ## Fichiers leurres anti-ransomware
 
@@ -107,6 +239,21 @@ reglage dans Parametres) depose un dossier masque de faux documents dans le
 dossier personnel et le dossier Documents de chaque utilisateur. Un leurre
 reecrit ou renomme leve un incident critique. Desactive par defaut ; la
 desactivation supprime les leurres intacts.
+
+## Simulation des playbooks
+
+`"playbook_simulation": true` fait tourner les playbooks de reponse a blanc :
+leurs conditions sont evaluees sur l'activite reelle du poste et chaque action
+qu'ils auraient menee est consignee, prefixee par `[Simulation]`, dans le
+journal des playbooks et la piste d'audit. Rien n'est arrete, mis en
+quarantaine, bloque ni isole, et aucune notification ou alerte SIEM ne part.
+Les cibles sont controlees et la limite d'actions destructrices s'applique
+comme lors d'une execution reelle : le journal montre aussi ce qui serait
+refuse.
+
+A utiliser pour eprouver un playbook quelques jours avant de l'armer, puis
+repasser a `false`. Desactive par defaut. Un playbook lance a la main depuis la
+console agit toujours.
 
 ## Detection des processus en temps reel
 

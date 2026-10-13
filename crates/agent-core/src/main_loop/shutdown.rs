@@ -96,6 +96,7 @@ impl AgentRuntime {
         }
         self.stop_ransomware_canaries();
         self.stop_process_telemetry();
+        self.stop_log_analysis();
 
         // 4. Close database handle (implicit by Drop, but we can log it)
         info!("Closing database and terminating runtime.");

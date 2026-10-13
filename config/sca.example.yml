@@ -1,0 +1,70 @@
+# Politique de conformité au format SCA — exemple.
+#
+# Copiez ce fichier dans le dossier « sca.d » du dossier de données de
+# l'agent, puis redémarrez l'agent :
+#   Linux    /var/lib/sentinel-grc/sca.d/
+#   macOS    ~/Library/Application Support/SentinelGRC/sca.d/
+#   Windows  C:\ProgramData\Sentinel\sca.d\
+#
+# Le format est celui des politiques SCA de Wazuh : une politique écrite pour
+# Wazuh se dépose telle quelle. Chaque contrôle est exécuté, noté et remonté
+# comme les contrôles intégrés.
+#
+# Règles (une par ligne, « not » devant pour l'inverser) :
+#   f:/chemin                       le fichier existe
+#   f:/chemin -> contenu            une ligne du fichier satisfait « contenu »
+#   d:/dossier                      le dossier existe
+#   d:/dossier -> nom               une entrée du dossier satisfait « nom »
+#   d:/dossier -> nom -> contenu    une ligne d'une telle entrée satisfait « contenu »
+#   p:nom                           un processus de ce nom tourne
+#   c:commande -> contenu           une ligne de la sortie de la commande satisfait « contenu »
+#   r:CLÉ -> valeur -> contenu      registre Windows (nombres en décimal)
+#
+# « contenu » : un ou plusieurs termes reliés par « && », que la même ligne
+# doit tous satisfaire ; « ! » inverse un terme. Un terme est un texte exact
+# (la ligne entière), « r: » suivi d'une expression régulière, ou « n: » suivi
+# d'une expression à un groupe, de « compare », d'un opérateur et d'un nombre.
+#
+# Expressions régulières : dialecte OSSEC par défaut (\w \d \s \p, « \. » pour
+# un caractère quelconque, « . » pour un point) ; ajoutez « regex_type: pcre2 »
+# à la politique ou au contrôle pour la syntaxe habituelle.
+#
+# Un contrôle dont une règle ne peut pas être évaluée (fichier absent, outil
+# non installé) est « non applicable » : il ne compte ni pour ni contre le
+# score. Une commande est lancée sans interpréteur, avec les droits de l'agent :
+# sous Unix, le fichier et son dossier doivent appartenir à root (ou à
+# l'utilisateur de l'agent) et n'être modifiables par personne d'autre.
+policy:
+  id: exemple_ssh
+  name: "Durcissement de SSH — exemple"
+  platforms: [linux, macos]          # propre à Sentinel, facultatif
+
+requirements:                         # facultatif : quand la politique s'applique
+  condition: any
+  rules:
+    - 'f:$sshd'
+
+variables:
+  $sshd: /etc/ssh/sshd_config
+
+checks:
+  - id: 1
+    title: "Connexion root interdite"
+    description: "sshd ne doit pas accepter de connexion directe en root."
+    remediation: "Écrire « PermitRootLogin no » dans sshd_config."
+    severity: high                    # propre à Sentinel : critical, high, medium, low, info
+    category: remote_access           # propre à Sentinel, « general » par défaut
+    compliance:
+      - iso_27001: ["A.8.5"]
+      - cis: ["5.2.10"]
+    condition: all                    # all, any ou none
+    rules:
+      - 'f:$sshd -> !r:^\s*# && r:PermitRootLogin\s+no'
+
+  - id: 2
+    title: "Quatre tentatives d'authentification au plus"
+    description: "Limite le nombre de mots de passe essayés par connexion."
+    remediation: "Écrire « MaxAuthTries 4 » dans sshd_config."
+    condition: all
+    rules:
+      - 'f:$sshd -> n:^\s*MaxAuthTries\s+(\d+) compare <= 4'

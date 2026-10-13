@@ -10,19 +10,25 @@
 //!
 //! # What is supported
 //!
-//! - Log source: `category: process_creation`, for the endpoint's own
-//!   operating system (rules for another product are skipped). Rules for
-//!   other log sources are skipped and reported.
+//! - Log source: `category: process_creation`, evaluated on the processes of
+//!   the endpoint; and the log sources the agent reads (`service: sshd`,
+//!   `auth`, `sudo`, `syslog`, `security`…, `category: webserver`), evaluated
+//!   on its log events by [`super::sigma_logs`]. A rule written for another
+//!   operating system, or for a log source that is not read, is skipped and
+//!   counted.
 //! - Detection: field maps, lists of maps, keyword lists; values with `*`
 //!   and `?` wildcards; `null`; numbers.
 //! - Modifiers: `contains`, `startswith`, `endswith`, `all`, `re`, `cased`,
 //!   `exists`, `windash`, `base64`, `base64offset`, `wide` / `utf16le` /
-//!   `utf16`, `lt`, `lte`, `gt`, `gte`, `fieldref`.
+//!   `utf16`, `lt`, `lte`, `gt`, `gte`, `fieldref`, `cidr`.
 //! - Condition: `and`, `or`, `not`, parentheses, `1 of`, `all of`, `any of`,
 //!   a number `of`, with `them` or a `name*` pattern; a list of conditions.
+//! - Several documents in one file, and correlation rules (`correlation:`),
+//!   see [`super::sigma_logs`].
 //!
-//! A rule using anything else (aggregations, `cidr`, placeholders…) is
-//! refused with the reason rather than loaded with a different meaning.
+//! A rule using anything else (aggregations in the condition,
+//! placeholders…) is refused with the reason rather than loaded with a
+//! different meaning.
 //!
 //! # Fields
 //!
@@ -53,7 +59,7 @@ pub enum SigmaLevel {
 }
 
 impl SigmaLevel {
-    fn parse(level: &str) -> Self {
+    pub(super) fn parse(level: &str) -> Self {
         match level.trim().to_ascii_lowercase().as_str() {
             "informational" | "info" => Self::Informational,
             "low" => Self::Low,
@@ -76,6 +82,62 @@ enum Matcher {
     Compare(Comparison, f64),
     /// Equal to the value of another field.
     FieldRef(String),
+    /// An address inside a network (`cidr`).
+    Cidr(Network),
+}
+
+/// An IPv4 or IPv6 network: an address and the number of leading bits that
+/// count.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(super) struct Network {
+    address: std::net::IpAddr,
+    prefix: u8,
+}
+
+impl Network {
+    pub(super) fn parse(text: &str) -> Result<Self, String> {
+        let text = text.trim();
+        let (address, prefix) = match text.split_once('/') {
+            Some((address, prefix)) => (address, Some(prefix)),
+            None => (text, None),
+        };
+        let address: std::net::IpAddr = address
+            .parse()
+            .map_err(|_| format!("'{text}' is not a network"))?;
+        let width = if address.is_ipv4() { 32 } else { 128 };
+        let prefix = match prefix {
+            None => width,
+            Some(prefix) => prefix
+                .parse::<u8>()
+                .ok()
+                .filter(|prefix| *prefix <= width)
+                .ok_or_else(|| format!("'{text}' is not a network"))?,
+        };
+        Ok(Self { address, prefix })
+    }
+
+    fn bits(address: std::net::IpAddr) -> u128 {
+        match address {
+            std::net::IpAddr::V4(v4) => u128::from(u32::from(v4)) << 96,
+            std::net::IpAddr::V6(v6) => u128::from(v6),
+        }
+    }
+
+    pub(super) fn contains(&self, address: std::net::IpAddr) -> bool {
+        // An IPv4 address written as IPv6 (`::ffff:192.0.2.1`) is that address.
+        let address = match address {
+            std::net::IpAddr::V6(v6) => v6.to_ipv4_mapped().map_or(address, std::net::IpAddr::V4),
+            v4 => v4,
+        };
+        if address.is_ipv4() != self.address.is_ipv4() {
+            return false;
+        }
+        if self.prefix == 0 {
+            return true;
+        }
+        let mask = u128::MAX << (128 - u32::from(self.prefix));
+        Self::bits(address) & mask == Self::bits(self.address) & mask
+    }
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -103,6 +165,9 @@ impl Matcher {
                 (Some(value), Some(other)) => value.eq_ignore_ascii_case(other),
                 _ => false,
             },
+            Self::Cidr(network) => value
+                .and_then(|value| value.trim().parse::<std::net::IpAddr>().ok())
+                .is_some_and(|address| network.contains(address)),
         }
     }
 }
@@ -360,6 +425,7 @@ struct Modifiers {
     base64_offset: bool,
     comparison: Option<Comparison>,
     fieldref: bool,
+    cidr: bool,
 }
 
 impl Modifiers {
@@ -376,6 +442,7 @@ impl Modifiers {
             base64_offset: false,
             comparison: None,
             fieldref: false,
+            cidr: false,
         };
         for name in names {
             match name.to_ascii_lowercase().as_str() {
@@ -395,6 +462,7 @@ impl Modifiers {
                 "gt" => modifiers.comparison = Some(Comparison::Gt),
                 "gte" => modifiers.comparison = Some(Comparison::Gte),
                 "fieldref" => modifiers.fieldref = true,
+                "cidr" => modifiers.cidr = true,
                 other => return Err(format!("modifier '{other}' is not supported")),
             }
         }
@@ -528,7 +596,7 @@ fn string_matchers(value: &str, modifiers: &Modifiers) -> Result<Vec<Matcher>, S
         .collect()
 }
 
-fn scalar_text(value: &Yaml) -> Option<String> {
+pub(super) fn scalar_text(value: &Yaml) -> Option<String> {
     match value {
         Yaml::String(text) => Some(text.clone()),
         Yaml::Integer(number) => Some(number.to_string()),
@@ -582,6 +650,10 @@ fn field_match(key: &str, value: &Yaml) -> Result<FieldMatch, String> {
             matchers.push(Matcher::Compare(comparison, number));
         } else if modifiers.fieldref {
             matchers.push(Matcher::FieldRef(text.trim().to_ascii_lowercase()));
+        } else if modifiers.cidr {
+            matchers.push(Matcher::Cidr(
+                Network::parse(&text).map_err(|e| format!("{key}: {e}"))?,
+            ));
         } else {
             matchers.extend(string_matchers(&text, &modifiers).map_err(|e| format!("{key}: {e}"))?);
         }
@@ -644,6 +716,11 @@ pub struct SigmaRule {
     pub category: Option<String>,
     /// `logsource.product`.
     pub product: Option<String>,
+    /// `logsource.service`.
+    pub service: Option<String>,
+    /// `name`: what a correlation rule refers to this rule by (its `id`
+    /// works as well).
+    pub name: Option<String>,
     searches: HashMap<String, Search>,
     /// Alternatives: the rule matches when any condition does.
     conditions: Vec<Expr>,
@@ -659,33 +736,77 @@ impl SigmaRule {
 
     /// MITRE ATT&CK technique identifiers among the tags (`T1059.001`).
     pub fn attack_techniques(&self) -> Vec<String> {
-        self.tags
-            .iter()
-            .filter_map(|tag| {
-                tag.to_ascii_lowercase()
-                    .strip_prefix("attack.t")
-                    .map(str::to_string)
-            })
-            .filter(|rest| rest.chars().next().is_some_and(|c| c.is_ascii_digit()))
-            .map(|rest| format!("T{}", rest.to_ascii_uppercase()))
-            .collect()
+        attack_techniques(&self.tags)
     }
 }
 
-fn text_field(document: &Yaml, key: &str) -> Option<String> {
+/// MITRE ATT&CK technique identifiers among Sigma tags (`T1059.001`).
+pub fn attack_techniques(tags: &[String]) -> Vec<String> {
+    tags.iter()
+        .filter_map(|tag| {
+            tag.to_ascii_lowercase()
+                .strip_prefix("attack.t")
+                .map(str::to_string)
+        })
+        .filter(|rest| rest.chars().next().is_some_and(|c| c.is_ascii_digit()))
+        .map(|rest| format!("T{}", rest.to_ascii_uppercase()))
+        .collect()
+}
+
+pub(super) fn tags_of(document: &Yaml) -> Vec<String> {
+    document["tags"]
+        .as_vec()
+        .map(|tags| tags.iter().filter_map(scalar_text).collect())
+        .unwrap_or_default()
+}
+
+pub(super) fn text_field(document: &Yaml, key: &str) -> Option<String> {
     scalar_text(&document[key])
         .map(|text| text.trim().to_string())
         .filter(|text| !text.is_empty())
 }
 
-/// Parse one Sigma rule document.
-pub fn parse_rule(yaml: &str) -> Result<SigmaRule, String> {
+/// One document of a rule file.
+#[derive(Debug)]
+pub enum SigmaDocument {
+    Rule(SigmaRule),
+    Correlation(super::sigma_logs::CorrelationRule),
+}
+
+/// Parse a rule file: one rule, or several documents separated by `---`
+/// (rules and the correlation rules that refer to them).
+pub fn parse_documents(yaml: &str) -> Result<Vec<SigmaDocument>, String> {
     let documents = YamlLoader::load_from_str(yaml).map_err(|e| format!("invalid YAML: {e}"))?;
-    let document = match documents.as_slice() {
-        [document] => document,
-        [] => return Err("empty file".to_string()),
-        _ => return Err("rule collections (several documents) are not supported".to_string()),
-    };
+    if documents.is_empty() {
+        return Err("empty file".to_string());
+    }
+    documents
+        .iter()
+        .map(|document| {
+            if !document["action"].is_badvalue() {
+                Err("rule collections using `action:` are not supported".to_string())
+            } else if !document["correlation"].is_badvalue() {
+                super::sigma_logs::parse_correlation(document).map(SigmaDocument::Correlation)
+            } else {
+                rule_from_document(document).map(SigmaDocument::Rule)
+            }
+        })
+        .collect()
+}
+
+/// Parse a file holding one Sigma rule.
+pub fn parse_rule(yaml: &str) -> Result<SigmaRule, String> {
+    let mut documents = parse_documents(yaml)?;
+    match (documents.pop(), documents.is_empty()) {
+        (Some(SigmaDocument::Rule(rule)), true) => Ok(rule),
+        (Some(SigmaDocument::Correlation(_)), true) => {
+            Err("a correlation rule, not a detection rule".to_string())
+        }
+        _ => Err("several documents where one rule is expected".to_string()),
+    }
+}
+
+fn rule_from_document(document: &Yaml) -> Result<SigmaRule, String> {
     let title = text_field(document, "title").ok_or_else(|| "rule has no title".to_string())?;
 
     let detection = document["detection"]
@@ -699,7 +820,11 @@ pub fn parse_rule(yaml: &str) -> Result<SigmaRule, String> {
             .ok_or_else(|| "detection has a non-text key".to_string())?;
         match name {
             "condition" => condition_source = Some(value),
-            "timeframe" => return Err("'timeframe' (correlation) is not supported".to_string()),
+            "timeframe" => {
+                return Err(
+                    "'timeframe' is not supported: write a correlation rule instead".to_string(),
+                );
+            }
             _ => {
                 searches.insert(name.to_string(), compile_search(name, value)?);
             }
@@ -735,12 +860,11 @@ pub fn parse_rule(yaml: &str) -> Result<SigmaRule, String> {
         level: text_field(document, "level")
             .map(|level| SigmaLevel::parse(&level))
             .unwrap_or(SigmaLevel::Medium),
-        tags: document["tags"]
-            .as_vec()
-            .map(|tags| tags.iter().filter_map(scalar_text).collect())
-            .unwrap_or_default(),
+        tags: tags_of(document),
         category: lower("category"),
         product: lower("product"),
+        service: lower("service"),
+        name: text_field(document, "name"),
         title,
         searches,
         conditions,
@@ -748,7 +872,7 @@ pub fn parse_rule(yaml: &str) -> Result<SigmaRule, String> {
 }
 
 /// The Sigma product name of the endpoint's operating system.
-fn host_product() -> &'static str {
+pub fn host_product() -> &'static str {
     if cfg!(target_os = "windows") {
         "windows"
     } else if cfg!(target_os = "macos") {
@@ -758,16 +882,46 @@ fn host_product() -> &'static str {
     }
 }
 
-/// Why a parsed rule is not evaluated on this endpoint, if so.
-fn not_applicable(rule: &SigmaRule, product: &str) -> Option<String> {
-    match rule.category.as_deref() {
-        Some("process_creation") => {}
-        Some(other) => return Some(format!("log source '{other}' is not collected")),
-        None => return Some("no log source category".to_string()),
+/// The log sources the agent reads, which decide the log rules it keeps.
+#[derive(Debug, Clone, Default)]
+pub struct LogCoverage {
+    /// `logsource.service` values read on this endpoint (lower case).
+    pub services: std::collections::HashSet<String>,
+    /// `logsource.category` values read on this endpoint, besides
+    /// `process_creation` (lower case).
+    pub categories: std::collections::HashSet<String>,
+}
+
+/// What a rule is evaluated on.
+enum RuleTarget {
+    Processes,
+    Logs,
+    /// Not evaluated on this endpoint, and why.
+    Nothing(String),
+}
+
+fn target_of(rule: &SigmaRule, product: &str, coverage: &LogCoverage) -> RuleTarget {
+    if let Some(wanted) = rule.product.as_deref()
+        && wanted != product
+    {
+        return RuleTarget::Nothing(format!("written for {wanted}"));
     }
-    match rule.product.as_deref() {
-        Some(wanted) if wanted != product => Some(format!("written for {wanted}")),
-        _ => None,
+    match (rule.category.as_deref(), rule.service.as_deref()) {
+        (Some("process_creation"), _) => RuleTarget::Processes,
+        // A product alone: every log of this operating system.
+        (None, None) if rule.product.is_some() => RuleTarget::Logs,
+        (None, None) => RuleTarget::Nothing("no log source".to_string()),
+        (category, service) => {
+            let missing = category
+                .filter(|category| !coverage.categories.contains(*category))
+                .or_else(|| service.filter(|service| !coverage.services.contains(*service)));
+            match missing {
+                Some(source) => {
+                    RuleTarget::Nothing(format!("log source '{source}' is not collected"))
+                }
+                None => RuleTarget::Logs,
+            }
+        }
     }
 }
 
@@ -799,8 +953,15 @@ pub fn process_event(process: &ProcessInfo, parent: Option<&ProcessInfo>) -> Sig
 /// Outcome of loading a rules directory.
 #[derive(Debug, Default)]
 pub struct SigmaLoadReport {
-    /// Rules that will be evaluated.
+    /// Rules that will be evaluated on processes.
     pub loaded: usize,
+    /// Rules that will be evaluated on log events.
+    pub log_rules: usize,
+    /// Correlation rules that will be evaluated.
+    pub correlations: usize,
+    /// Why rules are not evaluated on this endpoint, and how many for each
+    /// reason.
+    pub not_applicable_reasons: std::collections::BTreeMap<String, usize>,
     /// Rules parsed but not evaluated on this endpoint (another log source
     /// or operating system).
     pub not_applicable: usize,
@@ -820,65 +981,10 @@ impl SigmaEngine {
         Self { rules }
     }
 
-    /// Load the `*.yml` / `*.yaml` rules found under `dir` (sub-directories
-    /// included, as in the SigmaHQ repository). A missing directory gives an
-    /// empty engine.
+    /// Load the process rules found under `dir`; see [`load_rules`].
     pub fn load_dir(dir: &Path) -> (Self, SigmaLoadReport) {
-        let mut engine = Self::default();
-        let mut report = SigmaLoadReport::default();
-        if !dir.is_dir() {
-            return (engine, report);
-        }
-        if let Err(reason) = crate::checks::custom::is_trusted(dir) {
-            report
-                .errors
-                .push(format!("{}: directory ignored, it {reason}", dir.display()));
-            return (engine, report);
-        }
-
-        let mut files: Vec<std::path::PathBuf> = walkdir::WalkDir::new(dir)
-            .max_depth(8)
-            .follow_links(false)
-            .into_iter()
-            .flatten()
-            .filter(|entry| entry.file_type().is_file())
-            .map(walkdir::DirEntry::into_path)
-            .filter(|path| {
-                path.extension()
-                    .is_some_and(|ext| ext == "yml" || ext == "yaml")
-            })
-            .take(MAX_RULE_FILES)
-            .collect();
-        files.sort();
-
-        let product = host_product();
-        for file in files {
-            let label = file.display();
-            if let Err(reason) = crate::checks::custom::is_trusted(&file) {
-                report
-                    .errors
-                    .push(format!("{label}: file ignored, it {reason}"));
-                continue;
-            }
-            if std::fs::metadata(&file).is_ok_and(|m| m.len() > MAX_RULE_FILE_BYTES) {
-                report
-                    .errors
-                    .push(format!("{label}: file ignored, it is too large"));
-                continue;
-            }
-            let rule = std::fs::read_to_string(&file)
-                .map_err(|e| e.to_string())
-                .and_then(|yaml| parse_rule(&yaml));
-            match rule {
-                Ok(rule) => match not_applicable(&rule, product) {
-                    None => engine.rules.push(rule),
-                    Some(_) => report.not_applicable += 1,
-                },
-                Err(e) => report.errors.push(format!("{label}: {e}")),
-            }
-        }
-        report.loaded = engine.rules.len();
-        (engine, report)
+        let loaded = load_rules(dir, &LogCoverage::default());
+        (loaded.processes, loaded.report)
     }
 
     pub fn rule_count(&self) -> usize {
@@ -894,9 +1000,146 @@ impl SigmaEngine {
     }
 }
 
+/// The rules of a directory, by what they are evaluated on.
+#[derive(Debug, Default)]
+pub struct LoadedRules {
+    pub processes: SigmaEngine,
+    pub logs: Vec<SigmaRule>,
+    pub correlations: Vec<super::sigma_logs::CorrelationRule>,
+    /// Names and identifiers of the rules read but not evaluated on this
+    /// endpoint: a correlation listing one of them is not for this endpoint
+    /// either, which is not an error.
+    pub absent: std::collections::HashSet<String>,
+    pub report: SigmaLoadReport,
+}
+
+/// Identifiers listed in `disabled-rules.txt` at the root of a rules
+/// directory: one per line, `#` comments. A rule or correlation with one of
+/// these identifiers is not loaded, whether it is the agent's or a file's.
+pub fn disabled_rules(dir: &Path) -> std::collections::HashSet<String> {
+    std::fs::read_to_string(dir.join("disabled-rules.txt"))
+        .map(|text| {
+            text.lines()
+                .map(|line| line.split('#').next().unwrap_or("").trim().to_string())
+                .filter(|id| !id.is_empty())
+                .collect()
+        })
+        .unwrap_or_default()
+}
+
+/// Load the `*.yml` / `*.yaml` rules found under `dir` (sub-directories
+/// included, as in the SigmaHQ repository). A missing directory gives no
+/// rule.
+pub fn load_rules(dir: &Path, coverage: &LogCoverage) -> LoadedRules {
+    load_rules_for(dir, coverage, host_product())
+}
+
+/// [`load_rules`] for the operating system `product` names (`linux`,
+/// `macos`, `windows`) instead of the one the agent runs on.
+pub fn load_rules_for(dir: &Path, coverage: &LogCoverage, product: &str) -> LoadedRules {
+    let mut loaded = LoadedRules::default();
+    if !dir.is_dir() {
+        return loaded;
+    }
+    if let Err(reason) = crate::checks::custom::is_trusted(dir) {
+        loaded
+            .report
+            .errors
+            .push(format!("{}: directory ignored, it {reason}", dir.display()));
+        return loaded;
+    }
+
+    let mut files: Vec<std::path::PathBuf> = walkdir::WalkDir::new(dir)
+        .max_depth(8)
+        .follow_links(false)
+        .into_iter()
+        .flatten()
+        .filter(|entry| entry.file_type().is_file())
+        .map(walkdir::DirEntry::into_path)
+        .filter(|path| {
+            path.extension()
+                .is_some_and(|ext| ext == "yml" || ext == "yaml")
+        })
+        .take(MAX_RULE_FILES)
+        .collect();
+    files.sort();
+
+    let disabled = disabled_rules(dir);
+    for file in files {
+        let label = file.display();
+        if let Err(reason) = crate::checks::custom::is_trusted(&file) {
+            loaded
+                .report
+                .errors
+                .push(format!("{label}: file ignored, it {reason}"));
+            continue;
+        }
+        if std::fs::metadata(&file).is_ok_and(|m| m.len() > MAX_RULE_FILE_BYTES) {
+            loaded
+                .report
+                .errors
+                .push(format!("{label}: file ignored, it is too large"));
+            continue;
+        }
+        let documents = std::fs::read_to_string(&file)
+            .map_err(|e| e.to_string())
+            .and_then(|yaml| parse_documents(&yaml));
+        match documents {
+            Ok(documents) => loaded.add(documents, coverage, &disabled, product),
+            Err(e) => loaded.report.errors.push(format!("{label}: {e}")),
+        }
+    }
+    loaded
+}
+
+impl LoadedRules {
+    /// Sort documents by what they are evaluated on, on the operating system
+    /// `product` names.
+    pub fn add(
+        &mut self,
+        documents: Vec<SigmaDocument>,
+        coverage: &LogCoverage,
+        disabled: &std::collections::HashSet<String>,
+        product: &str,
+    ) {
+        for document in documents {
+            match document {
+                SigmaDocument::Rule(rule) if disabled.contains(&rule.id) => {}
+                SigmaDocument::Correlation(rule) if disabled.contains(&rule.id) => {}
+                SigmaDocument::Rule(rule) => match target_of(&rule, product, coverage) {
+                    RuleTarget::Processes => self.processes.rules.push(rule),
+                    RuleTarget::Logs => self.logs.push(rule),
+                    RuleTarget::Nothing(reason) => {
+                        self.report.not_applicable += 1;
+                        *self
+                            .report
+                            .not_applicable_reasons
+                            .entry(reason)
+                            .or_default() += 1;
+                        self.absent.extend(rule.name);
+                        self.absent.insert(rule.id);
+                    }
+                },
+                SigmaDocument::Correlation(rule) => self.correlations.push(rule),
+            }
+        }
+        self.report.loaded = self.processes.rules.len();
+        self.report.log_rules = self.logs.len();
+        self.report.correlations = self.correlations.len();
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// Why a rule is evaluated on nothing when no log source is read.
+    fn not_applicable(rule: &SigmaRule, product: &str) -> Option<String> {
+        match target_of(rule, product, &LogCoverage::default()) {
+            RuleTarget::Nothing(reason) => Some(reason),
+            RuleTarget::Processes | RuleTarget::Logs => None,
+        }
+    }
 
     fn event(fields: &[(&str, &str)]) -> SigmaEvent {
         fields
@@ -1198,8 +1441,12 @@ level: high
         assert!(refused(&format!("{sel}  condition: sel sel")).contains("unexpected 'sel'"));
         assert!(refused(sel).contains("no condition"));
         assert!(
-            refused("  sel:\n    SourceIp|cidr: '10.0.0.0/8'\n  condition: sel")
-                .contains("modifier 'cidr' is not supported")
+            refused("  sel:\n    SourceIp|cidr: '10.0.0.0/40'\n  condition: sel")
+                .contains("is not a network")
+        );
+        assert!(
+            refused("  sel:\n    Image|expand: '%x%'\n  condition: sel")
+                .contains("modifier 'expand' is not supported")
         );
         assert!(
             refused("  sel:\n    CommandLine|re: '('\n  condition: sel")
@@ -1219,11 +1466,64 @@ level: high
                 .unwrap_err()
                 .contains("invalid YAML")
         );
+        let one = "title: A\ndetection:\n  sel:\n    Image: a\n  condition: sel\n";
         assert!(
-            parse_rule("title: A\n---\ntitle: B")
+            parse_rule(&format!("{one}---\n{one}"))
                 .unwrap_err()
-                .contains("collections")
+                .contains("several documents")
         );
+        assert!(
+            parse_documents(&format!("action: global\n{one}"))
+                .unwrap_err()
+                .contains("`action:`")
+        );
+    }
+
+    #[test]
+    fn an_address_is_matched_against_a_network() {
+        let rule = rule(
+            "  sel:\n    src_ip|cidr:\n      - '10.0.0.0/8'\n      - '2001:db8::/32'\n      - '192.0.2.7'\n  condition: sel",
+        );
+        for inside in [
+            "10.200.3.4",
+            "2001:db8:1::5",
+            "192.0.2.7",
+            "::ffff:10.1.2.3",
+        ] {
+            assert!(rule.matches(&event(&[("src_ip", inside)])), "{inside}");
+        }
+        for outside in ["11.0.0.1", "2001:db9::1", "192.0.2.8", "not an address", ""] {
+            assert!(!rule.matches(&event(&[("src_ip", outside)])), "{outside}");
+        }
+        assert!(
+            Network::parse("0.0.0.0/0")
+                .unwrap()
+                .contains("203.0.113.9".parse().unwrap())
+        );
+        assert!(
+            !Network::parse("0.0.0.0/0")
+                .unwrap()
+                .contains("::1".parse().unwrap())
+        );
+    }
+
+    #[test]
+    fn a_file_may_hold_several_rules_with_the_names_correlations_use() {
+        let documents = parse_documents(
+            "title: Failed login\nname: failed_login\nlogsource:\n  product: linux\n  service: sshd\n\
+             detection:\n  sel:\n    - 'Failed password'\n  condition: sel\n\
+             ---\n\
+             title: Many failed logins\ncorrelation:\n  type: event_count\n  rules:\n    - failed_login\n\
+             \x20 group-by:\n    - src_ip\n  timespan: 5m\n  condition:\n    gte: 5\n",
+        )
+        .unwrap();
+        assert_eq!(documents.len(), 2);
+        let SigmaDocument::Rule(rule) = &documents[0] else {
+            panic!("the first document is a rule");
+        };
+        assert_eq!(rule.name.as_deref(), Some("failed_login"));
+        assert_eq!(rule.service.as_deref(), Some("sshd"));
+        assert!(matches!(documents[1], SigmaDocument::Correlation(_)));
     }
 
     #[test]
@@ -1252,8 +1552,47 @@ level: high
         assert!(
             not_applicable(&service, "windows")
                 .unwrap()
-                .contains("no log source category")
+                .contains("'security' is not collected")
         );
+    }
+
+    #[test]
+    fn a_log_rule_is_kept_when_its_source_is_read() {
+        let parse = |logsource: &str| {
+            parse_rule(&format!(
+                "title: T\nlogsource:\n{logsource}detection:\n  sel:\n    - 'x'\n  condition: sel"
+            ))
+            .unwrap()
+        };
+        let coverage = LogCoverage {
+            services: ["sshd".to_string()].into(),
+            categories: ["webserver".to_string()].into(),
+        };
+        let is_log = |rule: &SigmaRule, product: &str| {
+            matches!(target_of(rule, product, &coverage), RuleTarget::Logs)
+        };
+        assert!(is_log(
+            &parse("  product: linux\n  service: sshd\n"),
+            "linux"
+        ));
+        assert!(is_log(&parse("  service: sshd\n"), "macos"));
+        assert!(is_log(&parse("  category: webserver\n"), "linux"));
+        // A product alone is every log of that system.
+        assert!(is_log(&parse("  product: linux\n"), "linux"));
+        assert!(!is_log(
+            &parse("  product: linux\n  service: sshd\n"),
+            "windows"
+        ));
+        assert!(!is_log(
+            &parse("  product: linux\n  service: auditd\n"),
+            "linux"
+        ));
+        assert!(!is_log(&parse("  category: dns_query\n"), "linux"));
+        // Process rules stay with the processes, whatever is read.
+        assert!(matches!(
+            target_of(&parse("  category: process_creation\n"), "linux", &coverage),
+            RuleTarget::Processes
+        ));
     }
 
     fn process(pid: u32, ppid: Option<u32>, path: &str, cmdline: Option<&str>) -> ProcessInfo {

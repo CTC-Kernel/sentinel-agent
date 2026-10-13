@@ -2713,6 +2713,11 @@ mod voice_workflow_tests {
                 timestamp: chrono::Utc::now(),
                 acknowledged: false,
                 allowlisted: false,
+                detection: Default::default(),
+                sha256: None,
+                detail: None,
+                diff: None,
+                actor: None,
             },
         });
         assert!(state.threats.selected_threat.is_none());

@@ -55,6 +55,7 @@ pub mod check;
 pub mod checks;
 pub mod directory;
 pub mod error;
+pub mod inventory;
 pub mod mdm_software;
 pub mod proof;
 pub mod runner;

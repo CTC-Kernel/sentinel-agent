@@ -6,7 +6,7 @@ Moteur d'analyse de conformite pour le Sentinel GRC Agent.
 
 Cette crate fournit les capacites d'analyse de conformite et de securite :
 
-- **Controles de conformite** : 21 controles integres pour NIS2, DORA et d'autres referentiels
+- **Controles de conformite** : 34 controles integres pour NIS2, DORA et d'autres referentiels
 - **Scan de vulnerabilites** : Detection de vulnerabilites sur les paquets (apt, brew, Windows)
 - **Surveillance de securite** : Surveillance des processus, USB et evenements systeme
 - **Generation de preuves** : Preuves de conformite horodatees avec verification d'integrite

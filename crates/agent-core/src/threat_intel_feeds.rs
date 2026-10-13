@@ -1,7 +1,8 @@
 // Copyright (c) 2024-2026 Cyber Threat Consulting
 // SPDX-License-Identifier: MIT
 
-//! Indicator-of-compromise feeds for the network detector.
+//! Indicator-of-compromise feeds: malicious addresses and domains for the
+//! network detector, and the SHA-256 of known malicious files.
 //!
 //! The platform can push threat intelligence through configuration sync, but
 //! a standalone agent has no platform, and an organisation may run its own
@@ -9,13 +10,20 @@
 //! `threat_intel_feeds` are downloaded on their own schedule and their
 //! malicious addresses and domains are added to what the detector knows.
 //!
+//! A file the integrity monitor reports as created or changed is compared
+//! with the listed SHA-256: a match is a known malicious file
+//! ([`known_malware_incident`]). Only SHA-256 is compared; a feed giving
+//! MD5 or SHA-1 alone contributes no file indicator.
+//!
 //! # Formats
 //!
-//! - `text`: one indicator per line (address, domain or URL), `#` comments,
-//!   CSV and hosts-file layouts accepted. Covers most public block lists and
-//!   MISP's text export.
+//! - `text`: one indicator per line (address, domain, URL or SHA-256), `#`
+//!   comments, CSV and hosts-file layouts accepted. Covers most public block
+//!   lists, hash lists and MISP's text export. In a CSV line a SHA-256 is
+//!   read from any column.
 //! - `stix`: a STIX 2.1 bundle. `indicator` objects with a STIX pattern are
-//!   read; revoked or expired ones are left out.
+//!   read (addresses, domains, URLs, `file:hashes.'SHA-256'`); revoked or
+//!   expired ones are left out.
 //! - `taxii`: the objects endpoint of a TAXII 2.1 collection, paginated.
 //!
 //! # Guarantees
@@ -28,6 +36,7 @@
 
 use agent_common::config::{AgentConfig, ThreatIntelFeed, ThreatIntelFeedFormat};
 use agent_network::ThreatIntelligence;
+use agent_scanner::{IncidentSeverity, IncidentType, SecurityIncident};
 use regex::Regex;
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet};
@@ -54,16 +63,37 @@ static STIX_COMPARISON: LazyLock<Regex> = LazyLock::new(|| {
         .expect("static pattern is valid")
 });
 
-/// Malicious addresses and domains of one feed.
+/// `file:hashes.'SHA-256' = '…'` inside a STIX pattern (the key is also
+/// written `SHA256`, with or without quotes).
+static STIX_FILE_SHA256: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(r#"(?i)\bfile:hashes\.['"]?SHA-?256['"]?\s*=\s*'([0-9a-f]{64})'"#)
+        .expect("static pattern is valid")
+});
+
+/// FIM change type carried to the playbook engine for a file whose SHA-256
+/// is listed, so a playbook can quarantine it with a "file change" condition.
+pub const PLAYBOOK_CHANGE_TYPE: &str = "malicious_hash";
+
+/// Malicious addresses, domains and file hashes of one feed.
 #[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Indicators {
     pub ips: BTreeSet<String>,
     pub domains: BTreeSet<String>,
+    /// SHA-256 of malicious files, lower-case hexadecimal.
+    #[serde(default)]
+    pub hashes: BTreeSet<String>,
+}
+
+/// `raw` as a SHA-256 in lower case, when it is one.
+fn sha256_indicator(raw: &str) -> Option<String> {
+    let value = raw.trim().trim_matches(['"', '\'']);
+    (value.len() == 64 && value.bytes().all(|b| b.is_ascii_hexdigit()))
+        .then(|| value.to_ascii_lowercase())
 }
 
 impl Indicators {
     pub fn len(&self) -> usize {
-        self.ips.len() + self.domains.len()
+        self.ips.len() + self.domains.len() + self.hashes.len()
     }
 
     pub fn is_empty(&self) -> bool {
@@ -74,11 +104,14 @@ impl Indicators {
         self.len() >= MAX_INDICATORS_PER_FEED
     }
 
-    /// Add one raw indicator (address, `address:port`, domain or URL).
-    /// Returns whether it was accepted.
+    /// Add one raw indicator (address, `address:port`, domain, URL or
+    /// SHA-256). Returns whether it was accepted.
     pub fn add(&mut self, raw: &str) -> bool {
         if self.is_full() {
             return false;
+        }
+        if let Some(hash) = sha256_indicator(raw) {
+            return self.hashes.insert(hash);
         }
         let Some(host) = host_of(raw) else {
             return false;
@@ -95,6 +128,7 @@ impl Indicators {
     fn merge(&mut self, other: &Indicators) {
         self.ips.extend(other.ips.iter().cloned());
         self.domains.extend(other.domains.iter().cloned());
+        self.hashes.extend(other.hashes.iter().cloned());
     }
 }
 
@@ -175,7 +209,8 @@ fn normalize_domain(raw: &str) -> Option<String> {
 
 /// Parse a plain list: one indicator per line, `#` comments. For CSV lines
 /// the first field is used; for hosts-file lines (`0.0.0.0 bad.example`) the
-/// name after the sink address.
+/// name after the sink address. A SHA-256 is read from any field: hash lists
+/// in CSV put it after a date or a file name.
 pub fn parse_text(body: &str) -> Indicators {
     let mut indicators = Indicators::default();
     for line in body.lines() {
@@ -194,6 +229,11 @@ pub fn parse_text(body: &str) -> Indicators {
             _ => first,
         };
         indicators.add(value);
+        for field in fields {
+            if sha256_indicator(field).is_some() {
+                indicators.add(field);
+            }
+        }
         if indicators.is_full() {
             break;
         }
@@ -232,6 +272,9 @@ fn add_stix_objects(
         };
         for comparison in STIX_COMPARISON.captures_iter(pattern) {
             indicators.add(&comparison[2]);
+        }
+        for comparison in STIX_FILE_SHA256.captures_iter(pattern) {
+            indicators.add(&comparison[1]);
         }
         if indicators.is_full() {
             break;
@@ -433,9 +476,17 @@ async fn store_cache(path: &Path, cache: &FeedCache) {
     }
 }
 
+/// What the feeds provide: network indicators for the detector, and the
+/// SHA-256 of known malicious files for the integrity monitor's findings.
+#[derive(Debug, Clone, Default)]
+pub struct FeedIntel {
+    pub network: ThreatIntelligence,
+    pub file_hashes: Arc<BTreeSet<String>>,
+}
+
 /// Indicators of the configured feeds only (a feed removed from the
 /// configuration stops contributing), as threat intelligence.
-fn intel_of(cache: &FeedCache, feeds: &[ThreatIntelFeed]) -> ThreatIntelligence {
+fn intel_of(cache: &FeedCache, feeds: &[ThreatIntelFeed]) -> FeedIntel {
     let mut merged = Indicators::default();
     let mut last_updated = None;
     for feed in feeds {
@@ -444,13 +495,35 @@ fn intel_of(cache: &FeedCache, feeds: &[ThreatIntelFeed]) -> ThreatIntelligence 
             last_updated = last_updated.max(Some(cached.fetched_at));
         }
     }
-    ThreatIntelligence {
-        malicious_ips: merged.ips.into_iter().collect(),
-        malicious_domains: merged.domains.into_iter().collect(),
-        c2_ports: Vec::new(),
-        mining_pools: Vec::new(),
-        last_updated: last_updated.and_then(|secs| chrono::DateTime::from_timestamp(secs, 0)),
+    FeedIntel {
+        network: ThreatIntelligence {
+            malicious_ips: merged.ips.into_iter().collect(),
+            malicious_domains: merged.domains.into_iter().collect(),
+            c2_ports: Vec::new(),
+            mining_pools: Vec::new(),
+            last_updated: last_updated.and_then(|secs| chrono::DateTime::from_timestamp(secs, 0)),
+        },
+        file_hashes: Arc::new(merged.hashes),
     }
+}
+
+/// The incident for a file whose SHA-256 is listed by a feed.
+pub fn known_malware_incident(path: &str, sha256: &str) -> SecurityIncident {
+    SecurityIncident::new(
+        IncidentType::Malware,
+        IncidentSeverity::Critical,
+        format!("Known malicious file: {path}"),
+        format!(
+            "{path} is a file listed as malicious by the threat intelligence feeds \
+             (SHA-256 {sha256})."
+        ),
+    )
+    .with_confidence(95)
+    .with_evidence(serde_json::json!({
+        "detection": "threat_intel_hash",
+        "path": path,
+        "sha256": sha256,
+    }))
 }
 
 /// Union of what the platform pushed and what the feeds provide.
@@ -495,7 +568,7 @@ fn is_due(cache: &FeedCache, feed: &ThreatIntelFeed, now: i64) -> bool {
 
 /// Slot the background task leaves fresh intelligence in, for the main loop
 /// to apply.
-pub type PendingIntel = Arc<Mutex<Option<ThreatIntelligence>>>;
+pub type PendingIntel = Arc<Mutex<Option<FeedIntel>>>;
 
 /// Keep the configured feeds up to date until shutdown.
 ///
@@ -546,10 +619,11 @@ pub async fn run(
             match fetch_feed(&client, feed).await {
                 Ok(indicators) => {
                     info!(
-                        "Threat intelligence feed '{}': {} addresses, {} domains",
+                        "Threat intelligence feed '{}': {} addresses, {} domains, {} file hashes",
                         feed.name,
                         indicators.ips.len(),
-                        indicators.domains.len()
+                        indicators.domains.len(),
+                        indicators.hashes.len()
                     );
                     cache.feeds.insert(
                         feed.name.clone(),
@@ -761,8 +835,79 @@ mod tests {
             indicators: Indicators {
                 ips: set(ips),
                 domains: set(domains),
+                hashes: BTreeSet::new(),
             },
         }
+    }
+
+    const EICAR: &str = "275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f";
+    const OTHER: &str = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855";
+
+    #[test]
+    fn a_sha256_is_a_file_indicator_whatever_its_case_or_column() {
+        let indicators = parse_text(&format!(
+            "# sha256 list\n\
+             {upper}\n\
+             \"2026-10-01 09:00:00\",\"{OTHER}\",\"d41d8cd98f00b204e9800998ecf8427e\",\"exe\"\n\
+             198.51.100.7,{EICAR}\n\
+             d41d8cd98f00b204e9800998ecf8427e\n\
+             {EICAR}0\n",
+            upper = EICAR.to_ascii_uppercase(),
+        ));
+        assert_eq!(indicators.hashes, set(&[EICAR, OTHER]));
+        // The address of the line that also carries a hash is kept.
+        assert_eq!(indicators.ips, set(&["198.51.100.7"]));
+        // An MD5, or 65 hexadecimal characters, is not a SHA-256.
+        assert!(indicators.domains.is_empty());
+        assert_eq!(indicators.len(), 3);
+    }
+
+    #[test]
+    fn stix_file_hashes_are_read_in_their_usual_spellings() {
+        let bundle = serde_json::json!({
+            "type": "bundle",
+            "objects": [
+                {"type": "indicator", "pattern_type": "stix",
+                 "pattern": format!("[file:hashes.'SHA-256' = '{EICAR}']")},
+                {"type": "indicator", "pattern_type": "stix",
+                 "pattern": format!("[file:hashes.SHA256 = '{OTHER}' OR file:hashes.MD5 = 'd41d8cd98f00b204e9800998ecf8427e']")},
+                {"type": "indicator", "pattern_type": "stix", "revoked": true,
+                 "pattern": "[file:hashes.'SHA-256' = '0000000000000000000000000000000000000000000000000000000000000000']"},
+            ]
+        });
+        let (indicators, _) = parse_stix(&bundle.to_string(), chrono::Utc::now()).unwrap();
+        assert_eq!(indicators.hashes, set(&[EICAR, OTHER]));
+    }
+
+    #[test]
+    fn file_hashes_follow_the_configured_feeds_and_an_older_cache_is_still_read() {
+        let mut cache = FeedCache::default();
+        let mut kept = cached(2_000, &[], &[]);
+        kept.indicators.hashes = set(&[EICAR]);
+        let mut removed = cached(3_000, &[], &[]);
+        removed.indicators.hashes = set(&[OTHER]);
+        cache.feeds.insert("kept".to_string(), kept);
+        cache.feeds.insert("removed".to_string(), removed);
+
+        let intel = intel_of(&cache, &[feed("kept", 12)]);
+        assert!(intel.file_hashes.contains(EICAR));
+        assert!(!intel.file_hashes.contains(OTHER));
+
+        // A cache written before file hashes existed.
+        let older: FeedCache = serde_json::from_str(
+            r#"{"feeds":{"kept":{"fetched_at":1,"indicators":{"ips":["198.51.100.7"],"domains":[]}}}}"#,
+        )
+        .unwrap();
+        assert!(older.feeds["kept"].indicators.hashes.is_empty());
+    }
+
+    #[test]
+    fn a_listed_file_is_a_critical_malware_incident() {
+        let incident = known_malware_incident("/tmp/invoice.pdf.exe", EICAR);
+        assert_eq!(incident.incident_type, IncidentType::Malware);
+        assert_eq!(incident.severity, IncidentSeverity::Critical);
+        assert_eq!(incident.evidence["sha256"], EICAR);
+        assert_eq!(incident.evidence["detection"], "threat_intel_hash");
     }
 
     #[test]
@@ -810,7 +955,7 @@ mod tests {
             .feeds
             .insert("removed".to_string(), cached(3_000, &["203.0.113.9"], &[]));
 
-        let intel = intel_of(&cache, &[feed("kept", 12), feed("never-fetched", 12)]);
+        let intel = intel_of(&cache, &[feed("kept", 12), feed("never-fetched", 12)]).network;
         assert_eq!(intel.malicious_ips, ["198.51.100.7"]);
         assert_eq!(intel.malicious_domains, ["bad.example"]);
         assert_eq!(intel.last_updated.map(|t| t.timestamp()), Some(2_000));

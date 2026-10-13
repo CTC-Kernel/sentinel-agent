@@ -29,6 +29,7 @@ pub mod mfa;
 pub mod obsolete_protocols;
 pub mod password_policy;
 pub mod remote_access;
+pub mod sca;
 pub mod session_lock;
 pub mod ssh_hardening;
 pub mod system_updates;
