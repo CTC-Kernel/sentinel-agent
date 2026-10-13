@@ -8,24 +8,26 @@ title = "Sentinel Agent Gitleaks Configuration"
 useDefault = true
 
 # Custom rules for Stripe API keys
+# No capture groups: gitleaks takes the first group as the secret, so `(sk)_...` made
+# "sk" the secret and --redact left the rest of the key readable in the CI log.
 [[rules]]
 id = "stripe-secret-key"
 description = "Stripe Secret Key"
-regex = '''(sk)_(live|test)_[a-zA-Z0-9]{10,}'''
+regex = '''sk_(?:live|test)_[a-zA-Z0-9]{10,}'''
 tags = ["stripe", "secret"]
 keywords = ["sk_live_", "sk_test_"]
 
 [[rules]]
 id = "stripe-publishable-key"
 description = "Stripe Publishable Key"
-regex = '''(pk)_(live|test)_[a-zA-Z0-9]{10,}'''
+regex = '''pk_(?:live|test)_[a-zA-Z0-9]{10,}'''
 tags = ["stripe", "secret"]
 keywords = ["pk_live_", "pk_test_"]
 
 [[rules]]
 id = "stripe-restricted-key"
 description = "Stripe Restricted Key"
-regex = '''(rk)_(live|test)_[a-zA-Z0-9]{10,}'''
+regex = '''rk_(?:live|test)_[a-zA-Z0-9]{10,}'''
 tags = ["stripe", "secret"]
 keywords = ["rk_live_", "rk_test_"]
 
@@ -46,18 +48,21 @@ tags = ["firebase", "secret"]
 keywords = ["APPCHECK_DEBUG_TOKEN"]
 
 # Sentinel enrollment tokens (ent_XXXX format)
+# \b keeps the rule off identifiers that merely contain "ent_" (windows-sys feature
+# names like Win32_NetworkManagement_*, minified three.js `_setValue_arrayElement_*`).
 [[rules]]
 id = "sentinel-enrollment-token"
 description = "Sentinel Agent Enrollment Token"
-regex = '''ent_[a-zA-Z0-9]{16,}'''
+regex = '''\bent_[a-zA-Z0-9]{16,}'''
 tags = ["sentinel", "secret"]
 keywords = ["ent_"]
 
 # Block Playwright network trace files (may contain captured API keys)
+# The match runs to the end of the token so that --redact hides all of it, not just the prefix.
 [[rules]]
 id = "playwright-network-trace"
 description = "Playwright network trace file (may contain API keys)"
-regex = '''(AIzaSy|sk_live_|sk_test_|pk_live_|pk_test_|Bearer\s+ey)'''
+regex = '''(?:AIzaSy|sk_live_|sk_test_|pk_live_|pk_test_|Bearer\s+ey)[a-zA-Z0-9_.-]*'''
 tags = ["playwright", "trace", "secret"]
 path = '''\.network$'''
 
@@ -71,4 +76,22 @@ paths = [
     '''crates/agent-common/src/sensitive_filter\.rs$''',
     '''config/agent\.example\.json$''',
     '''config/agent\.full\.example\.json$''',
+    # Generated files that only hold checksums (CocoaPods SHA-1, BMAD installer SHA-256).
+    '''(^|/)Podfile\.lock$''',
+    '''^_bmad/_config/files-manifest\.csv$''',
+    # History only (old web app, files no longer in the tree):
+    # i18n lookup keys (`key: '...'`) matched by generic-api-key.
+    '''^(coverage/sentinel-grc-v2-prod/)?src/data/sectorTemplates\.ts(\.html)?$''',
+    # Migration scripts with a placeholder Firebase config, and their coverage copies.
+    '''^(coverage/sentinel-grc-v2-prod/)?(fix-org-now\.mjs|run-migration-now\.mjs|scripts/run-migrations\.js)(\.html)?$''',
+]
+# Test fixtures and placeholders, matched on the detected secret itself so that the
+# files they live in stay scanned. (regexTarget is left at its default, "secret".)
+regexes = [
+    # Truncated PEM stub in the enrollment (de)serialization tests (agent-sync types.rs).
+    '''^-----BEGIN PRIVATE KEY-----\\nMIIE\.\.\."''',
+    # Hex alphabet repeated four times, dummy log-signing key (agent-sync security.rs tests).
+    '''^(?:0123456789abcdef){4}$''',
+    # Stripe placeholders made only of "x" (.env.example files).
+    '''^[spr]k_(?:live|test)_[xX]+$''',
 ]
