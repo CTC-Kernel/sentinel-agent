@@ -43,6 +43,16 @@ pub fn ps_json_as_bool(value: &serde_json::Value) -> Option<bool> {
     }
 }
 
+/// The variable that tells PowerShell where its modules are.
+const PS_MODULE_PATH: &str = "PSModulePath";
+
+/// Whether `program` is Windows PowerShell: `powershell`, `powershell.exe`,
+/// or a path to it.
+fn is_windows_powershell(program: &str) -> bool {
+    let name = program.rsplit(['\\', '/']).next().unwrap_or(program);
+    name.eq_ignore_ascii_case("powershell") || name.eq_ignore_ascii_case("powershell.exe")
+}
+
 /// Create a [`Command`] that will **not** flash a console window on Windows.
 ///
 /// On non-Windows platforms this is identical to [`Command::new`].
@@ -51,9 +61,18 @@ pub fn ps_json_as_bool(value: &serde_json::Value) -> Option<bool> {
 /// - `CREATE_NO_WINDOW` creation flag to suppress console windows
 /// - Explicit `Stdio` pipes for stdout/stderr so output is always captured
 /// - Null stdin to prevent child processes from blocking on input
+///
+/// Windows PowerShell is started without the `PSModulePath` of the agent.
+/// Under a program started from PowerShell 7 that path begins with the
+/// modules of PowerShell 7, and Windows PowerShell then fails to load its
+/// own (`Get-AuthenticodeSignature`: "the module could not be loaded")
+/// while the rest of the script goes on and ends with exit code 0. Without
+/// the variable it builds the path of the machine itself.
 pub fn silent_command(program: &str) -> Command {
-    #[allow(unused_mut)]
     let mut cmd = Command::new(program);
+    if is_windows_powershell(program) {
+        cmd.env_remove(PS_MODULE_PATH);
+    }
 
     #[cfg(windows)]
     {
@@ -74,8 +93,10 @@ pub fn silent_command(program: &str) -> Command {
 ///
 /// Use this inside `async fn` blocks where you need `.output().await`.
 pub fn silent_async_command(program: &str) -> tokio::process::Command {
-    #[allow(unused_mut)]
     let mut cmd = tokio::process::Command::new(program);
+    if is_windows_powershell(program) {
+        cmd.env_remove(PS_MODULE_PATH);
+    }
 
     #[cfg(windows)]
     {
@@ -402,6 +423,68 @@ mod tests {
             // SAFETY: signal 0 only asks whether the process exists.
             unsafe { libc::kill(pid as libc::pid_t, 0) == 0 }
         }
+    }
+
+    /// Whether `command` starts its program without the module path of the
+    /// agent's own environment.
+    fn leaves_the_module_path_out(command: &Command) -> bool {
+        command
+            .get_envs()
+            .any(|(name, value)| name == PS_MODULE_PATH && value.is_none())
+    }
+
+    #[test]
+    fn windows_powershell_is_started_without_the_inherited_module_path() {
+        for program in [
+            "powershell",
+            "powershell.exe",
+            "PowerShell.EXE",
+            r"C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe",
+        ] {
+            assert!(
+                leaves_the_module_path_out(&silent_command(program)),
+                "{program}"
+            );
+            assert!(
+                leaves_the_module_path_out(silent_async_command(program).as_std()),
+                "{program}, async"
+            );
+        }
+
+        // Nothing else loses a variable: PowerShell 7 needs its own path.
+        for program in ["pwsh", "cmd", "reg", "powershell-preview"] {
+            assert!(
+                !leaves_the_module_path_out(&silent_command(program)),
+                "{program}"
+            );
+            assert!(
+                !leaves_the_module_path_out(silent_async_command(program).as_std()),
+                "{program}, async"
+            );
+        }
+    }
+
+    /// Started by a program that PowerShell 7 started, as the tests are on
+    /// CI, Windows PowerShell could not load the module of this command: it
+    /// printed nothing and still ended with exit code 0.
+    #[cfg(windows)]
+    #[test]
+    fn windows_powershell_loads_its_own_modules_whatever_started_the_agent() {
+        let output = silent_command("powershell")
+            .args([
+                "-NoProfile",
+                "-NonInteractive",
+                "-Command",
+                "(Get-AuthenticodeSignature -FilePath $PSHOME\\powershell.exe).Status.ToString()",
+            ])
+            .output()
+            .expect("PowerShell runs");
+
+        assert!(
+            !String::from_utf8_lossy(&output.stdout).trim().is_empty(),
+            "stderr: {}",
+            String::from_utf8_lossy(&output.stderr)
+        );
     }
 
     #[tokio::test]
