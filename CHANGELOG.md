@@ -121,9 +121,16 @@ Tous les changements notables apportés au projet **Sentinel GRC Agent** sont co
   Sigma et YARA restent ceux des règles.
 - **Une seule formulation des changements d'inventaire** : l'interface, le
   SIEM et la plateforme reçoivent la même phrase française.
+- **Autoriser un incident n'autorise plus tout son type** : depuis la fiche
+  d'un incident système, « Autoriser cet incident » crée une règle sur son
+  titre. Elle portait sur son type, qui couvre bien plus : autoriser un
+  compte de sauvegarde créé faisait taire toute valeur de registre ajoutée,
+  toute bibliothèque imposée aux programmes, tout nouvel administrateur
+  (tous « changement non autorisé »). Une règle pour un type entier reste
+  possible, écrite dans les autorisations.
 - **À reprendre** : une autorisation saisie à la main qui citait un titre
-  anglais d'incident ne le reconnaît plus ; celles créées depuis la fiche
-  d'un incident portent sur son type et ne changent pas.
+  anglais d'incident ne le reconnaît plus ; celles qui portent sur un type
+  ne changent pas.
 
 ### 🏁 Détection et réponse : chaînes vérifiées de bout en bout, tout se règle dans l'interface
 

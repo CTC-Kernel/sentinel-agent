@@ -2888,6 +2888,41 @@ mod triage_persistence_tests {
         assert!(!state.threats.system_incidents[0].allowlisted);
     }
 
+    /// The authorization made from an incident's drawer names the incident:
+    /// another incident of the same type stays in triage.
+    #[test]
+    fn an_incident_authorized_by_its_title_leaves_the_others_of_its_type() {
+        let mut state = AppState::default();
+        let mut account = firewall_incident();
+        account.incident_type = "unauthorized_change".into();
+        account.title = "Compte créé : backup".into();
+        let mut registry = account.clone();
+        registry.title = "Valeur de registre ajoutée : HKLM\\...\\Run\\Updater".into();
+        for incident in [account.clone(), registry] {
+            state.apply_event(AgentEvent::SystemIncident { incident });
+        }
+        state.add_allowlist_rule_global(
+            crate::dto::AllowlistRuleType::SystemIncident,
+            account.title.clone(),
+            "Compte de sauvegarde".into(),
+            "Test".into(),
+        );
+        let allowlisted: Vec<bool> = state
+            .threats
+            .system_incidents
+            .iter()
+            .map(|incident| incident.allowlisted)
+            .collect();
+        assert_eq!(allowlisted.iter().filter(|a| **a).count(), 1);
+        assert!(
+            state
+                .threats
+                .system_incidents
+                .iter()
+                .any(|incident| incident.title.starts_with("Valeur") && !incident.allowlisted)
+        );
+    }
+
     #[test]
     fn every_rule_change_is_pushed_once_to_the_agent_core() {
         let mut state = AppState::default();
