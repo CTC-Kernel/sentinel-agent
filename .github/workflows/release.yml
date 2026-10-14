@@ -694,10 +694,11 @@ jobs:
     steps:
       # Before the checkout: without git in the container, actions/checkout
       # downloads a tarball instead of cloning. perl-IPC-Cmd is for
-      # OpenSSL's Configure (rusqlite compiles OpenSSL in).
+      # OpenSSL's Configure (rusqlite compiles OpenSSL in); rpm-build for
+      # the rpm requirements (see Build packages).
       - name: Install dependencies
         run: |
-          dnf install -y git gcc gcc-c++ make cmake perl perl-IPC-Cmd pkgconf-pkg-config binutils gtk3-devel libxkbcommon-devel libxcb-devel systemd-devel
+          dnf install -y git gcc gcc-c++ make cmake perl perl-IPC-Cmd pkgconf-pkg-config binutils rpm-build gtk3-devel libxkbcommon-devel libxcb-devel systemd-devel
 
       - uses: actions/checkout@v4
         with:
@@ -735,10 +736,15 @@ jobs:
           fi
           objdump -p target/release/agent-core | grep NEEDED
 
+      # --auto-req find-requires: rpm's own generator (elfdeps), which
+      # requires only the libraries the binary links. cargo-generate-rpm's
+      # builtin one walks ldd, so the rpm also required GTK's own
+      # dependencies under AlmaLinux 8's sonames (libffi.so.6,
+      # libnettle.so.6...), which RHEL 9 and Fedora do not have.
       - name: Build packages
         run: |
           cargo deb --package agent-core --no-build --deb-revision 1
-          cargo generate-rpm -p crates/agent-core
+          cargo generate-rpm -p crates/agent-core --auto-req find-requires
           mkdir -p dist
           cp target/debian/sentinel-agent_*.deb target/generate-rpm/sentinel-agent-*.rpm dist/
           cd dist

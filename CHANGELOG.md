@@ -36,6 +36,9 @@ Tous les changements notables apportés au projet **Sentinel GRC Agent** sont co
 - **Installation** : `sudo apt install ./sentinel-agent_*.deb` ou
   `sudo dnf install ./sentinel-agent-*.rpm`, qui installent aussi les
   dépendances, au lieu de `dpkg -i` / `rpm -i`.
+- **Conteneurs et images système** : l'installation n'échoue plus sans
+  systemd en marche (conteneur, chroot de construction d'image) ; le service
+  est activé et démarre au prochain boot.
 
 ### 🔒 Réponse : verrouillage de compte et commande de réponse
 
