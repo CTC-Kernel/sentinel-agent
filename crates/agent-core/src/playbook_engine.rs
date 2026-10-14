@@ -9,6 +9,7 @@
 
 #[cfg(feature = "llm")]
 use tracing::debug;
+use tracing::info;
 use tracing::warn;
 
 /// Playbook condition evaluation result.
@@ -74,6 +75,85 @@ pub fn block_duration(parameters: &str) -> u64 {
         .trim()
         .parse::<u64>()
         .unwrap_or(DEFAULT_BLOCK_SECS)
+}
+
+/// Automatic blocks of one address within this window are repeated
+/// offences.
+const OFFENCE_WINDOW_SECS: i64 = 24 * 3600;
+/// Blocks this close together are the same offence (two playbooks acting on
+/// one alert), not a repeated one.
+const SAME_OFFENCE_SECS: i64 = 60;
+/// The longest a repeated offence makes a timed block: a week.
+const MAX_REPEATED_BLOCK_SECS: u64 = 7 * 24 * 3600;
+
+/// One address's automatic blocks: how many in the window, the last when.
+#[derive(Debug, Clone, Copy)]
+struct Offence {
+    count: u32,
+    last: i64,
+}
+
+static OFFENCES: std::sync::LazyLock<std::sync::Mutex<std::collections::HashMap<String, Offence>>> =
+    std::sync::LazyLock::new(Default::default);
+
+/// The duration of an automatic block of an address blocked before: doubled
+/// for each block of it in the past day, up to a week, so that an address
+/// that comes back once its block ends is shut out longer each time (Wazuh's
+/// "repeated offenders"). Returns the duration and the number of the
+/// offence (1 for the first). A block until unblocked (`0`) stays so.
+fn escalate_block(
+    offences: &mut std::collections::HashMap<String, Offence>,
+    ip: &str,
+    requested_secs: u64,
+    now: i64,
+) -> (u64, u32) {
+    offences.retain(|_, offence| now - offence.last < OFFENCE_WINDOW_SECS);
+    let offence = offences.entry(ip.to_string()).or_insert(Offence {
+        count: 0,
+        last: i64::MIN,
+    });
+    if offence.count == 0 || now - offence.last >= SAME_OFFENCE_SECS {
+        offence.count += 1;
+    }
+    offence.last = now;
+    let number = offence.count;
+    if requested_secs == 0 {
+        return (0, number);
+    }
+    let factor = 1u64 << (number - 1).min(16);
+    (
+        requested_secs
+            .saturating_mul(factor)
+            .min(MAX_REPEATED_BLOCK_SECS.max(requested_secs)),
+        number,
+    )
+}
+
+/// Lengthen the automatic blocks of `actions` for the addresses blocked in
+/// the past day (see [`escalate_block`]). For automatic runs only: a block
+/// an operator asks for lasts what they asked.
+pub fn escalate_repeated_blocks(actions: &[ResolvedAction]) -> Vec<ResolvedAction> {
+    let now = chrono::Utc::now().timestamp();
+    let mut offences = OFFENCES.lock().unwrap_or_else(|e| e.into_inner());
+    actions
+        .iter()
+        .map(|action| match action {
+            ResolvedAction::BlockIp { ip, duration_secs } => {
+                let (escalated, number) = escalate_block(&mut offences, ip, *duration_secs, now);
+                if number > 1 {
+                    info!(
+                        "Address {} blocked again within a day (offence {}): {}s instead of {}s",
+                        ip, number, escalated, duration_secs
+                    );
+                }
+                ResolvedAction::BlockIp {
+                    ip: ip.clone(),
+                    duration_secs: escalated,
+                }
+            }
+            other => other.clone(),
+        })
+        .collect()
 }
 
 /// An account lock lasts this long when the playbook action gives no duration.
@@ -916,6 +996,53 @@ mod guard_tests {
             })
             .is_ok(),
             "a well-formed IP must still be allowed"
+        );
+    }
+
+    /// An address that comes back after its block is shut out longer each
+    /// time, as Wazuh's repeated offenders option does.
+    #[test]
+    fn a_repeated_offender_is_blocked_longer_each_time() {
+        let mut offences = std::collections::HashMap::new();
+        let ip = "203.0.113.9";
+        let t0 = 1_000_000;
+        assert_eq!(escalate_block(&mut offences, ip, 3600, t0), (3600, 1));
+        // Two playbooks acting on the same alert: one offence.
+        assert_eq!(escalate_block(&mut offences, ip, 3600, t0 + 5), (3600, 1));
+        assert_eq!(escalate_block(&mut offences, ip, 3600, t0 + 600), (7200, 2));
+        assert_eq!(
+            escalate_block(&mut offences, ip, 3600, t0 + 7200),
+            (14_400, 3)
+        );
+        // Another address starts from the beginning.
+        assert_eq!(
+            escalate_block(&mut offences, "198.51.100.7", 3600, t0 + 7200),
+            (3600, 1)
+        );
+        // A day without coming back: forgotten.
+        assert_eq!(
+            escalate_block(&mut offences, ip, 3600, t0 + 7200 + 25 * 3600),
+            (3600, 1)
+        );
+    }
+
+    #[test]
+    fn a_repeated_block_stays_under_a_week_and_a_permanent_one_permanent() {
+        let mut offences = std::collections::HashMap::new();
+        let mut last = (0, 0);
+        for n in 0..20 {
+            last = escalate_block(&mut offences, "203.0.113.9", 3600, 1_000 + n * 120);
+        }
+        assert_eq!(last, (MAX_REPEATED_BLOCK_SECS, 20));
+        assert_eq!(
+            escalate_block(&mut offences, "203.0.113.9", 0, 9_000),
+            (0, 21)
+        );
+        // A block asked longer than the cap is not shortened.
+        let month = 30 * 24 * 3600;
+        assert_eq!(
+            escalate_block(&mut offences, "192.0.2.1", month, 9_000),
+            (month, 1)
         );
     }
 

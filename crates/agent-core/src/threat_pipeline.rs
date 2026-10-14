@@ -433,9 +433,11 @@ pub async fn run_threat_pipeline(
                 )
                 .await
             } else {
+                // An address blocked again within a day is blocked longer.
+                let actions = crate::playbook_engine::escalate_repeated_blocks(&evaluation.actions);
                 crate::playbook_engine::execute_playbook_actions_with_delivery(
                     &evaluation.playbook_name,
-                    &evaluation.actions,
+                    &actions,
                     audit_trail,
                     gui_tx.as_ref(),
                     siem,

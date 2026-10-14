@@ -239,7 +239,7 @@ fn action_parameter(action_type: PlaybookActionType) -> Option<(&'static str, &'
         )),
         PlaybookActionType::BlockIp => Some((
             "Dur\u{00e9}e en secondes (3600)",
-            "Automatique : dur\u{00e9}e du blocage, 0 sans fin. \u{00c0} la main : adresse:dur\u{00e9}e.",
+            "Automatique : dur\u{00e9}e du blocage, doubl\u{00e9}e \u{00e0} chaque r\u{00e9}cidive dans la journ\u{00e9}e, 0 sans fin. \u{00c0} la main : adresse:dur\u{00e9}e.",
         )),
         PlaybookActionType::IsolateHost => Some((
             "Dur\u{00e9}e en secondes (3600)",
