@@ -38,6 +38,37 @@ Tous les changements notables apportés au projet **Sentinel GRC Agent** sont co
   dérobée en écoute ». La sortie conservée est en `0600`, l'agent s'arrête
   en 4 s.
 
+### 🧾 Inventaire : système, matériel et correctifs Windows
+
+- **Fiche du système** (premier onglet de Système & comptes), comme le
+  syscollector de Wazuh : nom de la machine, système et version, noyau,
+  architecture, date de démarrage ; fabricant, modèle, numéro de série
+  (copiable), processeur, cœurs physiques et logiques, mémoire. Sources :
+  `/etc/os-release` et DMI (ou l'arbre de périphériques d'une carte ARM) sous
+  Linux, `system_profiler` sous macOS, CIM sous Windows.
+- **Correctifs Windows** (`Get-HotFix`) : onglet « Correctifs » (KB, type,
+  date d'installation), le plus récent rappelé sur la fiche du système.
+- **Changements enregistrés** : système mis à jour, noyau, matériel, numéro
+  de série (une autre machine sous la même identité d'agent), mémoire
+  (comptée en Gio entiers : les quelques Mo que réserve un nouveau noyau ne
+  sont pas un changement), correctif installé ou plus installé. Ils vont au
+  SIEM et à la liste des changements, sans incident : un correctif cumulatif
+  remplacé par le suivant quitte aussi la liste. Un champ que le système ne
+  donne pas cette fois (le numéro de série d'un agent lancé sans root) garde
+  sa valeur précédente.
+- **Corrigé** : une partie de l'inventaire que le premier relevé n'avait pas
+  pu lire (un outil en échec) faisait paraître tout son contenu nouveau au
+  relevé suivant, jusqu'à 15 incidents « compte créé » ou « port en
+  écoute ». Sa première liste lue lui sert désormais de référence.
+- **Vérifié** sur macOS (MacBook Pro M2 Pro : système, modèle, numéro de
+  série, processeur, mémoire) et sur une Ubuntu 24.04 ARM sous OrbStack
+  (« Ubuntu 24.04.5 LTS », noyau, processeurs, mémoire, en root comme sous un
+  compte ordinaire ; cette machine virtuelle n'a ni DMI ni arbre de
+  périphériques, fabricant et modèle restent inconnus et la fiche le
+  montre). **Non vérifié** sur un vrai Windows : le script PowerShell est
+  couvert par un test de lecture de sa sortie et par un test lancé sur le
+  Windows de la CI.
+
 ### 🏁 Détection et réponse : chaînes vérifiées de bout en bout, tout se règle dans l'interface
 
 - **Le modèle de playbook « Brute-force » se déclenche enfin** : sa condition
@@ -75,7 +106,7 @@ Tous les changements notables apportés au projet **Sentinel GRC Agent** sont co
 - **Fiche d'un contrôle de conformité** : elle montre ce qui est vérifié,
   pourquoi, et comment corriger (description, justification et correction
   des politiques SCA), la correction en premier quand le contrôle échoue.
-- **Comptes & services** (Actifs & inventaire) : l'inventaire du poste a son
+- **Système & comptes** (Actifs & inventaire) : l'inventaire du poste a son
   écran. Comptes (qui peut ouvrir une session, qui est administrateur),
   groupes et membres, services, ports en écoute (locaux ou exposés au
   réseau), et les changements depuis le démarrage de l'agent avec l'incident

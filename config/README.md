@@ -136,11 +136,15 @@ minute et 256 Kio de sortie au plus. La derniere sortie est gardee dans
 
 ## Inventaire du poste
 
-`"system_inventory": true` (defaut) releve toutes les dix minutes les comptes,
-les groupes, les services et les ports en ecoute, et signale ce qui change :
-compte cree, compte ajoute a un groupe d'administration, service installe, port
-ouvert sur le reseau. Le premier inventaire sert de reference. `sentinel-agent
-inventory` affiche l'inventaire courant en JSON.
+`"system_inventory": true` (defaut) releve toutes les dix minutes le systeme
+et le materiel (version, noyau, fabricant, modele, numero de serie,
+processeur, memoire), les comptes, les groupes, les services, les ports en
+ecoute et, sous Windows, les correctifs installes (`Get-HotFix`). Il signale ce
+qui change : compte cree, compte ajoute a un groupe d'administration, service
+installe, port ouvert sur le reseau leve un incident ; un changement du
+systeme, du materiel ou des correctifs est enregistre. Le premier inventaire
+sert de reference. `sentinel-agent inventory` affiche l'inventaire courant en
+JSON. Sous Linux, le numero de serie n'est lisible que par root.
 
 ## Politiques de conformite (SCA)
 

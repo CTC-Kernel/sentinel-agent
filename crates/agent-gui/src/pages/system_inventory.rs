@@ -1,8 +1,9 @@
 // Copyright (c) 2024-2026 Cyber Threat Consulting
 // SPDX-License-Identifier: MIT
 
-//! Inventory of the endpoint: accounts, groups, services and listening
-//! ports as the agent last collected them, and what changed in them.
+//! Inventory of the endpoint: the machine and its system, accounts, groups,
+//! services, listening ports and Windows updates as the agent last
+//! collected them, and what changed in them.
 //!
 //! The agent takes the inventory every ten minutes (`system_inventory`
 //! option); a change an intruder leaves behind (an account, an
@@ -11,8 +12,8 @@
 
 use crate::app::AppState;
 use crate::dto::{
-    GuiInventoryAccount, GuiInventoryChange, GuiInventoryGroup, GuiInventoryPort,
-    GuiInventoryService, GuiSystemInventory,
+    GuiInventoryAccount, GuiInventoryChange, GuiInventoryGroup, GuiInventoryHotfix,
+    GuiInventoryPort, GuiInventoryService, GuiSystemDescription, GuiSystemInventory,
 };
 use crate::events::GuiCommand;
 use crate::icons;
@@ -23,14 +24,71 @@ use egui::Ui;
 /// Rows of one table page.
 const ROWS_PER_PAGE: usize = 25;
 
-/// The tabs of the page, in order.
-const TABS: [&str; 5] = [
-    "Comptes",
-    "Groupes",
-    "Services",
-    "Ports en écoute",
-    "Changements",
-];
+/// The tabs of the page.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum Tab {
+    System,
+    Accounts,
+    Groups,
+    Services,
+    Ports,
+    Hotfixes,
+    Changes,
+}
+
+impl Tab {
+    fn label(self) -> &'static str {
+        match self {
+            Self::System => "Système",
+            Self::Accounts => "Comptes",
+            Self::Groups => "Groupes",
+            Self::Services => "Services",
+            Self::Ports => "Ports en écoute",
+            Self::Hotfixes => "Correctifs",
+            Self::Changes => "Changements",
+        }
+    }
+
+    fn icon(self) -> &'static str {
+        match self {
+            Self::System => icons::DESKTOP,
+            Self::Accounts => icons::USER,
+            Self::Groups => icons::USERS,
+            Self::Services => icons::SERVER,
+            Self::Ports => icons::NETWORK,
+            Self::Hotfixes => icons::DOWNLOAD,
+            Self::Changes => icons::CLOCK,
+        }
+    }
+
+    fn placeholder(self) -> &'static str {
+        match self {
+            Self::System => "",
+            Self::Accounts => "Rechercher un compte, un identifiant, un shell…",
+            Self::Groups => "Rechercher un groupe ou un membre…",
+            Self::Services => "Rechercher un service ou une commande…",
+            Self::Ports => "Rechercher un port, une adresse ou un programme…",
+            Self::Hotfixes => "Rechercher un correctif (KB…) ou un type…",
+            Self::Changes => "Rechercher un changement…",
+        }
+    }
+}
+
+/// The tabs of this inventory: the updates are listed on Windows only.
+fn tabs_of(inventory: &GuiSystemInventory) -> Vec<Tab> {
+    let mut tabs = vec![
+        Tab::System,
+        Tab::Accounts,
+        Tab::Groups,
+        Tab::Services,
+        Tab::Ports,
+    ];
+    if !inventory.hotfixes.is_empty() {
+        tabs.push(Tab::Hotfixes);
+    }
+    tabs.push(Tab::Changes);
+    tabs
+}
 
 pub struct SystemInventoryPage;
 
@@ -98,21 +156,75 @@ fn filtered_ports(ports: &[GuiInventoryPort], needle: &str) -> Vec<usize> {
         .collect()
 }
 
+fn filtered_hotfixes(hotfixes: &[GuiInventoryHotfix], needle: &str) -> Vec<usize> {
+    (0..hotfixes.len())
+        .filter(|&i| {
+            let h = &hotfixes[i];
+            found(
+                needle,
+                &[
+                    &h.id,
+                    h.description.as_deref().unwrap_or(""),
+                    h.installed_on.as_deref().unwrap_or(""),
+                ],
+            )
+        })
+        .collect()
+}
+
 fn filtered_changes(changes: &[GuiInventoryChange], needle: &str) -> Vec<usize> {
     (0..changes.len())
         .filter(|&i| found(needle, &[&changes[i].label]))
         .collect()
 }
 
-/// The rows of the active tab that match the search.
-fn rows_of(inventory: &GuiSystemInventory, tab: usize, needle: &str) -> Vec<usize> {
+/// The rows of a table tab that match the search.
+fn rows_of(inventory: &GuiSystemInventory, tab: Tab, needle: &str) -> Vec<usize> {
     match tab {
-        0 => filtered_accounts(&inventory.accounts, needle),
-        1 => filtered_groups(&inventory.groups, needle),
-        2 => filtered_services(&inventory.services, needle),
-        3 => filtered_ports(&inventory.ports, needle),
-        _ => filtered_changes(&inventory.changes, needle),
+        Tab::System => Vec::new(),
+        Tab::Accounts => filtered_accounts(&inventory.accounts, needle),
+        Tab::Groups => filtered_groups(&inventory.groups, needle),
+        Tab::Services => filtered_services(&inventory.services, needle),
+        Tab::Ports => filtered_ports(&inventory.ports, needle),
+        Tab::Hotfixes => filtered_hotfixes(&inventory.hotfixes, needle),
+        Tab::Changes => filtered_changes(&inventory.changes, needle),
     }
+}
+
+/// The memory in binary units, as the systems count it: `16 Gio`,
+/// `7,8 Gio`.
+fn memory_label(bytes: u64) -> String {
+    let gib = bytes as f64 / f64::from(1u32 << 30);
+    let decimals = if (gib * 10.0).round() % 10.0 == 0.0 {
+        0
+    } else {
+        1
+    };
+    format!("{} Gio", crate::format::decimal(gib, decimals))
+}
+
+/// `16 physiques · 32 logiques`, or what of it the system says.
+fn cores_label(system: &GuiSystemDescription) -> Option<String> {
+    match (system.cores, system.threads) {
+        (Some(cores), Some(threads)) if cores != threads => {
+            Some(format!("{cores} physiques · {threads} logiques"))
+        }
+        (Some(cores), _) => Some(cores.to_string()),
+        (None, Some(threads)) => Some(format!("{threads} logiques")),
+        (None, None) => None,
+    }
+}
+
+/// `2026-10-08` as `08/10/2026`; anything else as it is.
+fn day_label(day: &str) -> String {
+    chrono::NaiveDate::parse_from_str(day, "%Y-%m-%d")
+        .map(|day| day.format("%d/%m/%Y").to_string())
+        .unwrap_or_else(|_| day.to_string())
+}
+
+/// One field of the system cards; `—` for what the system does not say.
+fn field(ui: &mut Ui, label: &str, value: Option<&str>) {
+    widgets::detail_field(ui, label, value.unwrap_or("—"));
 }
 
 impl SystemInventoryPage {
@@ -120,13 +232,17 @@ impl SystemInventoryPage {
         ui.add_space(theme::SPACE_XS);
         widgets::page_header_nav(
             ui,
-            &["Actifs & inventaire", "Comptes & services"],
+            &["Actifs & inventaire", "Système & comptes"],
             "Inventaire du poste",
-            Some("Comptes, groupes, services et ports en écoute de cet hôte, et ce qui y change."),
+            Some(
+                "Système et matériel, comptes, groupes, services et ports en écoute de cet hôte, \
+                 et ce qui y change.",
+            ),
             Some(
                 "L'agent relève l'inventaire toutes les dix minutes. Un compte créé, un membre \
                  ajouté à un groupe d'administration, un service installé ou un port qui se met \
-                 à écouter lève en plus un incident, visible dans Menaces.",
+                 à écouter lève en plus un incident, visible dans Menaces. Un changement du \
+                 système, du matériel ou des correctifs Windows est enregistré.",
             ),
         );
         ui.add_space(theme::SPACE_LG);
@@ -153,45 +269,37 @@ impl SystemInventoryPage {
         Self::summary(ui, state, &inventory);
         ui.add_space(theme::SPACE_MD);
 
-        let tabs: Vec<widgets::Tab> = TABS
+        let tabs = tabs_of(&inventory);
+        let bar: Vec<widgets::Tab> = tabs
             .iter()
-            .zip([
-                icons::USER,
-                icons::USERS,
-                icons::SERVER,
-                icons::NETWORK,
-                icons::CLOCK,
-            ])
-            .map(|(label, icon)| widgets::Tab::new(label).icon(icon))
+            .map(|tab| widgets::Tab::new(tab.label()).icon(tab.icon()))
             .collect();
-        if let Some(tab) = widgets::TabBar::new(tabs, state.system_inventory.active_tab).show(ui)
-            && tab != state.system_inventory.active_tab
+        if let Some(index) = widgets::TabBar::new(bar, state.system_inventory.active_tab).show(ui)
+            && index != state.system_inventory.active_tab
         {
-            state.system_inventory.active_tab = tab;
+            state.system_inventory.active_tab = index;
             state.system_inventory.page = 0;
         }
         ui.add_space(theme::SPACE_MD);
 
-        let tab = state.system_inventory.active_tab.min(TABS.len() - 1);
+        let tab = tabs[state.system_inventory.active_tab.min(tabs.len() - 1)];
+        if tab == Tab::System {
+            Self::system(ui, &inventory);
+            return None;
+        }
         let needle = state.system_inventory.search.trim().to_uppercase();
         let rows = rows_of(&inventory, tab, &needle);
-        let placeholder = match tab {
-            0 => "Rechercher un compte, un identifiant, un shell…",
-            1 => "Rechercher un groupe ou un membre…",
-            2 => "Rechercher un service ou une commande…",
-            3 => "Rechercher un port, une adresse ou un programme…",
-            _ => "Rechercher un changement…",
-        };
-        let _ = widgets::SearchFilterBar::new(&mut state.system_inventory.search, placeholder)
-            .result_count(rows.len())
-            .show(ui);
+        let _ =
+            widgets::SearchFilterBar::new(&mut state.system_inventory.search, tab.placeholder())
+                .result_count(rows.len())
+                .show(ui);
         ui.add_space(theme::SPACE_SM);
 
-        widgets::data_card(ui, TABS[tab], |ui: &mut egui::Ui| {
+        widgets::data_card(ui, tab.label(), |ui: &mut egui::Ui| {
             if rows.is_empty() {
                 let (title, detail) = if needle.is_empty() {
                     match tab {
-                        4 => (
+                        Tab::Changes => (
                             "Aucun changement",
                             "Rien n'a changé dans l'inventaire depuis le démarrage de l'agent.",
                         ),
@@ -210,11 +318,13 @@ impl SystemInventoryPage {
                 widgets::page_window(rows.len(), ROWS_PER_PAGE, &mut state.system_inventory.page);
             let page = &rows[start..start + len];
             match tab {
-                0 => Self::accounts_table(ui, &inventory.accounts, page),
-                1 => Self::groups_table(ui, &inventory.groups, page),
-                2 => Self::services_table(ui, &inventory.services, page),
-                3 => Self::ports_table(ui, &inventory.ports, page),
-                _ => Self::changes_table(ui, &inventory.changes, page),
+                Tab::System => {}
+                Tab::Accounts => Self::accounts_table(ui, &inventory.accounts, page),
+                Tab::Groups => Self::groups_table(ui, &inventory.groups, page),
+                Tab::Services => Self::services_table(ui, &inventory.services, page),
+                Tab::Ports => Self::ports_table(ui, &inventory.ports, page),
+                Tab::Hotfixes => Self::hotfixes_table(ui, &inventory.hotfixes, page),
+                Tab::Changes => Self::changes_table(ui, &inventory.changes, page),
             }
             widgets::paginate_controls(
                 ui,
@@ -228,6 +338,8 @@ impl SystemInventoryPage {
 
     /// One card per part of the inventory; a click opens its tab.
     fn summary(ui: &mut Ui, state: &mut AppState, inventory: &GuiSystemInventory) {
+        let tabs = tabs_of(inventory);
+        let index = |tab: Tab| tabs.iter().position(|t| *t == tab).unwrap_or(0);
         let privileged = inventory.accounts.iter().filter(|a| a.privileged).count();
         let exposed = inventory.ports.iter().filter(|p| !p.local_only).count();
         let raised = inventory
@@ -237,7 +349,7 @@ impl SystemInventoryPage {
             .count();
         let items: Vec<(usize, &str, String, egui::Color32, &str)> = vec![
             (
-                0,
+                index(Tab::Accounts),
                 "COMPTES",
                 format!(
                     "{} · {} admin.",
@@ -248,14 +360,14 @@ impl SystemInventoryPage {
                 icons::USER,
             ),
             (
-                2,
+                index(Tab::Services),
                 "SERVICES",
                 crate::format::int(inventory.services.len() as u64),
                 theme::ACCENT,
                 icons::SERVER,
             ),
             (
-                3,
+                index(Tab::Ports),
                 "PORTS EXPOSÉS",
                 format!("{exposed} / {}", inventory.ports.len()),
                 if exposed > 0 {
@@ -266,9 +378,13 @@ impl SystemInventoryPage {
                 icons::NETWORK,
             ),
             (
-                4,
+                index(Tab::Changes),
                 "CHANGEMENTS",
-                format!("{} · {raised} incident(s)", inventory.changes.len()),
+                format!(
+                    "{} · {}",
+                    inventory.changes.len(),
+                    crate::format::count(raised, "incident")
+                ),
                 if raised > 0 {
                     theme::ERROR
                 } else {
@@ -296,6 +412,79 @@ impl SystemInventoryPage {
                 .color(theme::text_secondary()),
             );
         }
+    }
+
+    /// The machine and its system, in two cards side by side when there is
+    /// room.
+    fn system(ui: &mut Ui, inventory: &GuiSystemInventory) {
+        let Some(system) = &inventory.system else {
+            widgets::data_card(ui, "Système", |ui: &mut egui::Ui| {
+                widgets::empty_state(
+                    ui,
+                    icons::DESKTOP,
+                    "Système pas encore décrit",
+                    Some(
+                        "La description du système et du matériel arrive avec le prochain relevé.",
+                    ),
+                );
+            });
+            return;
+        };
+        // The most recent update, by the day it was installed.
+        let latest =
+            inventory
+                .hotfixes
+                .first()
+                .map(|hotfix| match hotfix.installed_on.as_deref() {
+                    Some(day) => format!("{} · {}", hotfix.id, day_label(day)),
+                    None => hotfix.id.clone(),
+                });
+        let os = |ui: &mut Ui| {
+            widgets::detail_section(ui, "SYSTÈME D'EXPLOITATION");
+            field(ui, "Nom de la machine", system.hostname.as_deref());
+            field(ui, "Système", system.os_label.as_deref());
+            field(ui, "Noyau", system.kernel.as_deref());
+            field(ui, "Architecture", system.architecture.as_deref());
+            let booted = system.booted_at.map(|at| {
+                format!(
+                    "{} · {}",
+                    crate::format::local_datetime(at),
+                    crate::format::ago(chrono::Utc::now(), at)
+                )
+            });
+            field(ui, "Démarré le", booted.as_deref());
+            if let Some(latest) = &latest {
+                field(ui, "Dernier correctif", Some(latest));
+            }
+        };
+        let hardware = |ui: &mut Ui| {
+            widgets::detail_section(ui, "MATÉRIEL");
+            field(ui, "Fabricant", system.manufacturer.as_deref());
+            field(ui, "Modèle", system.model.as_deref());
+            match &system.serial_number {
+                Some(serial) => widgets::detail_mono(ui, "Numéro de série", serial),
+                None => field(ui, "Numéro de série", None),
+            }
+            field(ui, "Processeur", system.processor.as_deref());
+            field(ui, "Cœurs", cores_label(system).as_deref());
+            field(
+                ui,
+                "Mémoire",
+                system.memory_bytes.map(memory_label).as_deref(),
+            );
+        };
+        // One card, its two halves side by side when there is room.
+        widgets::card(ui, |ui: &mut egui::Ui| {
+            if ui.available_width() >= 760.0 {
+                ui.columns(2, |columns| {
+                    os(&mut columns[0]);
+                    hardware(&mut columns[1]);
+                });
+            } else {
+                os(ui);
+                hardware(ui);
+            }
+        });
     }
 
     fn accounts_table(ui: &mut Ui, accounts: &[GuiInventoryAccount], page: &[usize]) {
@@ -483,6 +672,47 @@ impl SystemInventoryPage {
         });
     }
 
+    fn hotfixes_table(ui: &mut Ui, hotfixes: &[GuiInventoryHotfix], page: &[usize]) {
+        use widgets::table;
+        table::fluid_clickable(
+            ui,
+            &[
+                table::Col::fluid(150.0, 1.0),
+                table::Col::fluid(220.0, 3.0),
+                table::Col::fluid(130.0, 0.0),
+            ],
+        )
+        .header(theme::TABLE_HEADER_HEIGHT, |mut header| {
+            for title in ["CORRECTIF", "TYPE", "INSTALLÉ LE"] {
+                header.col(|ui| {
+                    table::header_cell(ui, title);
+                });
+            }
+        })
+        .body(|body| {
+            body.rows(theme::TABLE_DATA_ROW_HEIGHT, page.len(), |mut row| {
+                let Some(hotfix) = page.get(row.index()).and_then(|&i| hotfixes.get(i)) else {
+                    return;
+                };
+                row.col(|ui| {
+                    table::cell_mono_muted(ui, &hotfix.id);
+                });
+                row.col(|ui| {
+                    table::cell(ui, hotfix.description.as_deref().unwrap_or("—"));
+                });
+                row.col(|ui| {
+                    table::cell_muted(
+                        ui,
+                        &hotfix
+                            .installed_on
+                            .as_deref()
+                            .map_or_else(|| "—".to_string(), day_label),
+                    );
+                });
+            });
+        });
+    }
+
     fn changes_table(ui: &mut Ui, changes: &[GuiInventoryChange], page: &[usize]) {
         use widgets::table;
         table::fluid_clickable(
@@ -563,13 +793,54 @@ mod tests {
             }],
             ..Default::default()
         };
-        assert_eq!(rows_of(&inventory, 0, ""), [0, 1]);
-        assert_eq!(rows_of(&inventory, 0, "VAR/BACKUP"), [1]);
+        assert_eq!(rows_of(&inventory, Tab::Accounts, ""), [0, 1]);
+        assert_eq!(rows_of(&inventory, Tab::Accounts, "VAR/BACKUP"), [1]);
         // A group is found by one of its members.
-        assert_eq!(rows_of(&inventory, 1, "ALICE"), [0]);
-        assert_eq!(rows_of(&inventory, 3, "22"), [0]);
-        assert_eq!(rows_of(&inventory, 3, "SSHD"), [0]);
-        assert!(rows_of(&inventory, 3, "HTTPD").is_empty());
-        assert!(rows_of(&inventory, 4, "").is_empty());
+        assert_eq!(rows_of(&inventory, Tab::Groups, "ALICE"), [0]);
+        assert_eq!(rows_of(&inventory, Tab::Ports, "22"), [0]);
+        assert_eq!(rows_of(&inventory, Tab::Ports, "SSHD"), [0]);
+        assert!(rows_of(&inventory, Tab::Ports, "HTTPD").is_empty());
+        assert!(rows_of(&inventory, Tab::Changes, "").is_empty());
+    }
+
+    /// The updates tab is there when the system lists updates: on Windows.
+    #[test]
+    fn the_updates_tab_comes_with_the_updates() {
+        let mut inventory = GuiSystemInventory::default();
+        assert!(!tabs_of(&inventory).contains(&Tab::Hotfixes));
+        inventory.hotfixes.push(GuiInventoryHotfix {
+            id: "KB5034441".to_string(),
+            description: Some("Security Update".to_string()),
+            installed_on: Some("2026-10-08".to_string()),
+        });
+        let tabs = tabs_of(&inventory);
+        assert_eq!(tabs.first(), Some(&Tab::System));
+        assert_eq!(tabs.last(), Some(&Tab::Changes));
+        assert!(tabs.contains(&Tab::Hotfixes));
+        assert_eq!(rows_of(&inventory, Tab::Hotfixes, "SECURITY"), [0]);
+        assert_eq!(day_label("2026-10-08"), "08/10/2026");
+        assert_eq!(day_label("8/10/2026"), "8/10/2026");
+    }
+
+    #[test]
+    fn memory_and_cores_read_as_the_system_counts_them() {
+        assert_eq!(memory_label(16 * (1 << 30)), "16 Gio");
+        assert_eq!(memory_label(8_392_605_696), "7,8 Gio");
+        let system = GuiSystemDescription {
+            cores: Some(16),
+            threads: Some(32),
+            ..Default::default()
+        };
+        assert_eq!(
+            cores_label(&system).as_deref(),
+            Some("16 physiques · 32 logiques")
+        );
+        let apple = GuiSystemDescription {
+            cores: Some(10),
+            threads: Some(10),
+            ..Default::default()
+        };
+        assert_eq!(cores_label(&apple).as_deref(), Some("10"));
+        assert_eq!(cores_label(&GuiSystemDescription::default()), None);
     }
 }

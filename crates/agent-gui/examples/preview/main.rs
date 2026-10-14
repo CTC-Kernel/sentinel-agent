@@ -611,7 +611,7 @@ fn location(page: &str) -> (&'static str, &'static str, &'static str) {
             "Détection & réponse",
         ),
         "software" => (icons::SOFTWARE, "Logiciels & MDM", "Actifs & inventaire"),
-        "system_inventory" => (icons::USERS, "Comptes & services", "Actifs & inventaire"),
+        "system_inventory" => (icons::DESKTOP, "Système & comptes", "Actifs & inventaire"),
         "sync" => (icons::SYNC, "Synchronisation", "Système"),
         _ => (icons::DASHBOARD, "Tableau de bord", "Vue d'ensemble"),
     }

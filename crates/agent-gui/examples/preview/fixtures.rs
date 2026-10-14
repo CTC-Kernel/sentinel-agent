@@ -378,8 +378,8 @@ pub fn seed(state: &mut AppState) {
     // ── Inventory of the endpoint ────────────────────────────────────
     {
         use agent_gui::dto::{
-            GuiInventoryAccount, GuiInventoryChange, GuiInventoryGroup, GuiInventoryPort,
-            GuiInventoryService, GuiSystemInventory,
+            GuiInventoryAccount, GuiInventoryChange, GuiInventoryGroup, GuiInventoryHotfix,
+            GuiInventoryPort, GuiInventoryService, GuiSystemDescription, GuiSystemInventory,
         };
         let account = |name: &str, id: &str, home: &str, shell: &str, log_in: bool, admin: bool| {
             GuiInventoryAccount {
@@ -458,6 +458,38 @@ pub fn seed(state: &mut AppState) {
                 port("tcp", "127.0.0.1", 5432, "postgres", true),
                 port("udp", "127.0.0.53", 53, "systemd-resolved", true),
             ],
+            system: Some(GuiSystemDescription {
+                hostname: Some("web-01".into()),
+                os_label: Some("Ubuntu 24.04.1 LTS".into()),
+                kernel: Some("6.8.0-47-generic".into()),
+                architecture: Some("x86_64".into()),
+                manufacturer: Some("Dell Inc.".into()),
+                model: Some("PowerEdge R650".into()),
+                serial_number: Some("7XK2QD3".into()),
+                processor: Some("Intel(R) Xeon(R) Silver 4314 CPU @ 2.40GHz".into()),
+                cores: Some(16),
+                threads: Some(32),
+                memory_bytes: Some(64 * (1 << 30) - 310 * (1 << 20)),
+                booted_at: Some(ago(6 * 24 * 60 + 135)),
+            }),
+            // The updates tab is Windows'; `PREVIEW_HOTFIXES` shows it.
+            hotfixes: if std::env::var("PREVIEW_HOTFIXES").is_ok() {
+                [
+                    ("KB5044284", "Security Update", Some("2026-10-08")),
+                    ("KB5043937", "Update", Some("2026-09-24")),
+                    ("KB5042098", "Update", Some("2026-09-10")),
+                    ("KB5040442", "Security Update", None),
+                ]
+                .into_iter()
+                .map(|(id, description, day)| GuiInventoryHotfix {
+                    id: id.into(),
+                    description: Some(description.into()),
+                    installed_on: day.map(Into::into),
+                })
+                .collect()
+            } else {
+                Vec::new()
+            },
             changes: vec![
                 GuiInventoryChange {
                     at: ago(4),
@@ -472,6 +504,11 @@ pub fn seed(state: &mut AppState) {
                 GuiInventoryChange {
                     at: ago(34),
                     label: "Service modifié : cups.service (enabled → disabled)".into(),
+                    severity: None,
+                },
+                GuiInventoryChange {
+                    at: ago(6 * 24 * 60 + 130),
+                    label: "Noyau : 6.8.0-45-generic → 6.8.0-47-generic".into(),
                     severity: None,
                 },
             ],

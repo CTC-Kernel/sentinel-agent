@@ -119,6 +119,35 @@ fn label_fr(change: &InventoryChange) -> String {
             if *known { ", déjà vu" } else { "" }
         ),
         InventoryChange::PortClosed(closed) => format!("Port fermé : {}", port(closed)),
+        InventoryChange::SystemChanged {
+            field,
+            before,
+            after,
+        } => {
+            use agent_scanner::inventory::SystemField;
+            let what = match field {
+                SystemField::Hostname => "Nom de la machine",
+                SystemField::OperatingSystem => "Système d'exploitation",
+                SystemField::Kernel => "Noyau",
+                SystemField::Hardware => "Matériel",
+                SystemField::SerialNumber => "Numéro de série",
+                SystemField::Processor => "Processeur",
+                SystemField::Memory => "Mémoire",
+            };
+            // The memory is counted in GiB, « Gio » in French.
+            let french = |value: &str| {
+                if *field == SystemField::Memory {
+                    value.replace(" GiB", " Gio")
+                } else {
+                    value.to_string()
+                }
+            };
+            format!("{what} : {} → {}", french(before), french(after))
+        }
+        InventoryChange::HotfixInstalled(hotfix) => format!("Correctif installé : {}", hotfix.id),
+        InventoryChange::HotfixRemoved(hotfix) => {
+            format!("Correctif plus installé : {}", hotfix.id)
+        }
     }
 }
 
@@ -206,6 +235,7 @@ impl AgentRuntime {
             return (Vec::new(), Vec::new());
         };
         let first = watch.state.inventory.is_none();
+        let system = current.system.as_ref().and_then(|system| system.os_label());
         let (users, services, ports) = (
             current.users.len(),
             current.services.len(),
@@ -223,8 +253,11 @@ impl AgentRuntime {
         }
         if first {
             info!(
-                "First inventory taken: {} accounts, {} services, {} listening ports",
-                users, services, ports
+                "First inventory taken: {}, {} accounts, {} services, {} listening ports",
+                system.as_deref().unwrap_or("system not described"),
+                users,
+                services,
+                ports
             );
         } else if !changes.is_empty() {
             info!("Inventory: {} change(s)", changes.len());
@@ -309,6 +342,38 @@ impl InventoryWatch {
                     severity: change.severity.map(severity),
                 })
                 .collect(),
+            system: inventory
+                .system
+                .as_ref()
+                .map(|system| dto::GuiSystemDescription {
+                    hostname: system.hostname.clone(),
+                    os_label: system.os_label(),
+                    kernel: system.kernel.clone(),
+                    architecture: system.architecture.clone(),
+                    manufacturer: system.manufacturer.clone(),
+                    model: system.model.clone(),
+                    serial_number: system.serial_number.clone(),
+                    processor: system.processor.clone(),
+                    cores: system.cores,
+                    threads: system.threads,
+                    memory_bytes: system.memory_bytes,
+                    booted_at: system.booted_at,
+                }),
+            hotfixes: {
+                let mut hotfixes: Vec<dto::GuiInventoryHotfix> = inventory
+                    .hotfixes
+                    .iter()
+                    .map(|hotfix| dto::GuiInventoryHotfix {
+                        id: hotfix.id.clone(),
+                        description: hotfix.description.clone(),
+                        installed_on: hotfix.installed_on.clone(),
+                    })
+                    .collect();
+                // The days are written `2026-10-08`: their order is that of
+                // the text. The ones without a day come last.
+                hotfixes.sort_by(|a, b| b.installed_on.cmp(&a.installed_on));
+                hotfixes
+            },
         })
     }
 }
@@ -356,6 +421,40 @@ mod tests {
             shell: Some("/bin/bash".to_string()),
             can_log_in: true,
         })
+    }
+
+    #[test]
+    fn system_and_update_changes_are_labelled_in_french() {
+        use agent_scanner::inventory::{Hotfix, SystemField};
+        let changes = [
+            InventoryChange::SystemChanged {
+                field: SystemField::Memory,
+                before: "16 GiB".to_string(),
+                after: "32 GiB".to_string(),
+            },
+            InventoryChange::SystemChanged {
+                field: SystemField::Kernel,
+                before: "6.8.0-45".to_string(),
+                after: "6.8.0-47".to_string(),
+            },
+            InventoryChange::HotfixRemoved(Hotfix {
+                id: "KB5031356".to_string(),
+                description: None,
+                installed_on: None,
+            }),
+        ];
+        let labels: Vec<String> = changes.iter().map(label_fr).collect();
+        assert_eq!(
+            labels,
+            [
+                "Mémoire : 16 Gio → 32 Gio",
+                "Noyau : 6.8.0-45 → 6.8.0-47",
+                "Correctif plus installé : KB5031356"
+            ]
+        );
+        let (incidents, records) = report(&changes, "host");
+        assert!(incidents.is_empty());
+        assert_eq!(records[2].name, "inventory_hotfix_removed");
     }
 
     #[test]

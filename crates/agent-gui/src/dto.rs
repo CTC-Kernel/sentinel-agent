@@ -432,8 +432,9 @@ impl GuiDetectionOptions {
     }
 }
 
-/// The inventory of this endpoint: accounts, groups, services and listening
-/// ports as last collected, and what changed since the agent started.
+/// The inventory of this endpoint: the system, accounts, groups, services,
+/// listening ports and Windows updates as last collected, and what changed
+/// since the agent started.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 pub struct GuiSystemInventory {
     pub collected_at: Option<DateTime<Utc>>,
@@ -443,6 +444,43 @@ pub struct GuiSystemInventory {
     pub ports: Vec<GuiInventoryPort>,
     /// Most recent first.
     pub changes: Vec<GuiInventoryChange>,
+    /// The machine and its operating system.
+    #[serde(default)]
+    pub system: Option<GuiSystemDescription>,
+    /// Windows updates, the most recently installed first.
+    #[serde(default)]
+    pub hotfixes: Vec<GuiInventoryHotfix>,
+}
+
+/// The machine and its operating system; what the system does not say is
+/// `None`.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
+pub struct GuiSystemDescription {
+    pub hostname: Option<String>,
+    /// Name and version, the version once: `Ubuntu 24.04.1 LTS`.
+    pub os_label: Option<String>,
+    pub kernel: Option<String>,
+    pub architecture: Option<String>,
+    pub manufacturer: Option<String>,
+    pub model: Option<String>,
+    pub serial_number: Option<String>,
+    pub processor: Option<String>,
+    /// Physical cores.
+    pub cores: Option<u32>,
+    /// Logical processors.
+    pub threads: Option<u32>,
+    pub memory_bytes: Option<u64>,
+    pub booted_at: Option<DateTime<Utc>>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct GuiInventoryHotfix {
+    /// `KB5034441`.
+    pub id: String,
+    /// `Security Update`, `Update`…
+    pub description: Option<String>,
+    /// `2026-10-08`.
+    pub installed_on: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]

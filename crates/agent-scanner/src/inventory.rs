@@ -1,8 +1,9 @@
 // Copyright (c) 2024-2026 Cyber Threat Consulting
 // SPDX-License-Identifier: MIT
 
-//! Inventory of the system: accounts, groups, services, listening ports —
-//! and what changes in it.
+//! Inventory of the system: the machine and its operating system, accounts,
+//! groups, services, listening ports, Windows updates — and what changes in
+//! it.
 //!
 //! Knowing what a machine holds answers the questions an incident raises:
 //! which accounts exist, what starts by itself, what listens on the network.
@@ -12,14 +13,21 @@
 //!
 //! | What            | Linux                               | macOS                                   | Windows                 |
 //! |-----------------|-------------------------------------|-----------------------------------------|-------------------------|
+//! | System          | `/etc/os-release`, DMI or device tree | `system_profiler SPHardwareDataType`  | `Win32_OperatingSystem`, `Win32_ComputerSystem`, `Win32_BIOS` |
 //! | Accounts        | `/etc/passwd`                       | `dscacheutil -q user`                   | `Get-LocalUser`         |
 //! | Groups          | `/etc/group`                        | `dscacheutil -q group`                  | `Get-LocalGroup`        |
 //! | Services        | `systemctl list-unit-files`         | launch daemons and agents of `/Library` | `Win32_Service`         |
 //! | Listening ports | `ss -lntup`                         | `lsof`, completed by `netstat`          | `Get-NetTCPConnection`  |
+//! | Updates         | (the packages, in the software inventory) | (idem)                            | `Get-HotFix`            |
+//!
+//! The processor, memory, kernel and start time come from `sysinfo` on
+//! every system.
 //!
 //! # What is reported
 //!
-//! The first inventory is the reference: nothing in it is new. After that:
+//! The first inventory is the reference: nothing in it is new. So is the
+//! first list of each part that could be collected, when an earlier
+//! inventory had none (a tool that failed then). After that:
 //!
 //! | Change                                             | Reported as        |
 //! |----------------------------------------------------|--------------------|
@@ -29,6 +37,7 @@
 //! | Account created; account given a login shell       | medium incident    |
 //! | Service installed, or its command changed          | medium incident    |
 //! | Port listening on the network, not seen for a week | medium incident    |
+//! | System, hardware or update changed                 | recorded only      |
 //! | Anything else (removals, local ports, known ports) | recorded only      |
 //!
 //! # Limits, stated plainly
@@ -42,6 +51,12 @@
 //!   has the Local Network permission: since macOS 15, `netstat` answers
 //!   nothing to a program without it.
 //! - On Windows the collection is done through PowerShell.
+//! - A Windows update that leaves the list is recorded, not raised: a
+//!   cumulative update replaced by the next one leaves it too, once Windows
+//!   cleans up its components.
+//! - The serial number of a Linux machine is readable by root only; on a
+//!   virtual machine without DMI (ARM, some hosts) the manufacturer and
+//!   model are those of the device tree, or unknown.
 
 use crate::security::{IncidentSeverity, IncidentType, SecurityIncident};
 use chrono::{DateTime, Utc};
@@ -145,11 +160,154 @@ impl ListeningPort {
     }
 }
 
+/// The machine and its operating system. What the system does not say is
+/// left empty.
+#[derive(Debug, Clone, PartialEq, Eq, Default, Serialize, Deserialize)]
+pub struct SystemDescription {
+    #[serde(default)]
+    pub hostname: Option<String>,
+    /// As the system names itself: `Ubuntu 24.04.1 LTS`, `macOS 15.6`,
+    /// `Microsoft Windows 11 Pro`.
+    #[serde(default)]
+    pub os_name: Option<String>,
+    /// `24.04`, `15.6`, `10.0.26100`.
+    #[serde(default)]
+    pub os_version: Option<String>,
+    #[serde(default)]
+    pub kernel: Option<String>,
+    /// `x86_64`, `aarch64`, `arm64`.
+    #[serde(default)]
+    pub architecture: Option<String>,
+    #[serde(default)]
+    pub manufacturer: Option<String>,
+    #[serde(default)]
+    pub model: Option<String>,
+    #[serde(default)]
+    pub serial_number: Option<String>,
+    #[serde(default)]
+    pub processor: Option<String>,
+    /// Physical cores.
+    #[serde(default)]
+    pub cores: Option<u32>,
+    /// Logical processors.
+    #[serde(default)]
+    pub threads: Option<u32>,
+    #[serde(default)]
+    pub memory_bytes: Option<u64>,
+    #[serde(default)]
+    pub booted_at: Option<DateTime<Utc>>,
+}
+
+/// What of the description is compared from one inventory to the next.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum SystemField {
+    Hostname,
+    OperatingSystem,
+    Kernel,
+    Hardware,
+    SerialNumber,
+    Processor,
+    Memory,
+}
+
+impl SystemField {
+    const ALL: [Self; 7] = [
+        Self::Hostname,
+        Self::OperatingSystem,
+        Self::Kernel,
+        Self::Hardware,
+        Self::SerialNumber,
+        Self::Processor,
+        Self::Memory,
+    ];
+
+    /// Its name, for the evidence and the SIEM.
+    pub fn name(self) -> &'static str {
+        match self {
+            Self::Hostname => "hostname",
+            Self::OperatingSystem => "operating system",
+            Self::Kernel => "kernel",
+            Self::Hardware => "hardware",
+            Self::SerialNumber => "serial number",
+            Self::Processor => "processor",
+            Self::Memory => "memory",
+        }
+    }
+}
+
+impl SystemDescription {
+    /// The name and version of the system, the version once.
+    pub fn os_label(&self) -> Option<String> {
+        match (&self.os_name, &self.os_version) {
+            (Some(name), Some(version)) if !name.contains(version.as_str()) => {
+                Some(format!("{name} {version}"))
+            }
+            (Some(name), _) => Some(name.clone()),
+            (None, version) => version.clone(),
+        }
+    }
+
+    /// The value of `field` as it is compared and shown.
+    pub fn value(&self, field: SystemField) -> Option<String> {
+        match field {
+            SystemField::Hostname => self.hostname.clone(),
+            SystemField::OperatingSystem => self.os_label(),
+            SystemField::Kernel => self.kernel.clone(),
+            SystemField::Hardware => match (&self.manufacturer, &self.model) {
+                (Some(manufacturer), Some(model)) => Some(format!("{manufacturer} {model}")),
+                (manufacturer, model) => model.clone().or_else(|| manufacturer.clone()),
+            },
+            SystemField::SerialNumber => self.serial_number.clone(),
+            SystemField::Processor => self.processor.clone(),
+            // In whole GiB: the memory the kernel reserves for itself moves
+            // by a few megabytes from one version to the next.
+            SystemField::Memory => self
+                .memory_bytes
+                .map(|bytes| format!("{} GiB", (bytes + (1 << 29)) >> 30)),
+        }
+    }
+
+    /// Each field of `self`, or of `other` where `self` says nothing.
+    #[must_use]
+    pub fn or(self, other: Self) -> Self {
+        Self {
+            hostname: self.hostname.or(other.hostname),
+            os_name: self.os_name.or(other.os_name),
+            os_version: self.os_version.or(other.os_version),
+            kernel: self.kernel.or(other.kernel),
+            architecture: self.architecture.or(other.architecture),
+            manufacturer: self.manufacturer.or(other.manufacturer),
+            model: self.model.or(other.model),
+            serial_number: self.serial_number.or(other.serial_number),
+            processor: self.processor.or(other.processor),
+            cores: self.cores.or(other.cores),
+            threads: self.threads.or(other.threads),
+            memory_bytes: self.memory_bytes.or(other.memory_bytes),
+            booted_at: self.booted_at.or(other.booted_at),
+        }
+    }
+}
+
+/// An update installed on Windows.
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+pub struct Hotfix {
+    /// `KB5034441`.
+    pub id: String,
+    /// `Security Update`, `Update`…
+    #[serde(default)]
+    pub description: Option<String>,
+    /// The day it was installed, `2026-10-08`.
+    #[serde(default)]
+    pub installed_on: Option<String>,
+}
+
 /// What the system holds at one moment.
 #[derive(Debug, Clone, PartialEq, Eq, Default, Serialize, Deserialize)]
 pub struct SystemInventory {
     #[serde(default)]
     pub collected_at: Option<DateTime<Utc>>,
+    #[serde(default)]
+    pub system: Option<SystemDescription>,
     #[serde(default)]
     pub users: Vec<UserAccount>,
     #[serde(default)]
@@ -158,15 +316,20 @@ pub struct SystemInventory {
     pub services: Vec<ServiceEntry>,
     #[serde(default)]
     pub listening_ports: Vec<ListeningPort>,
+    /// Windows only.
+    #[serde(default)]
+    pub hotfixes: Vec<Hotfix>,
 }
 
 impl SystemInventory {
     /// Whether nothing at all was collected (every source failed).
     pub fn is_empty(&self) -> bool {
-        self.users.is_empty()
+        self.system.is_none()
+            && self.users.is_empty()
             && self.groups.is_empty()
             && self.services.is_empty()
             && self.listening_ports.is_empty()
+            && self.hotfixes.is_empty()
     }
 }
 
@@ -201,6 +364,16 @@ pub enum InventoryChange {
         known: bool,
     },
     PortClosed(ListeningPort),
+    /// The system, the hardware or the name of the machine changed.
+    SystemChanged {
+        field: SystemField,
+        before: String,
+        after: String,
+    },
+    HotfixInstalled(Hotfix),
+    /// An update no longer listed: removed, or replaced by a newer
+    /// cumulative update.
+    HotfixRemoved(Hotfix),
 }
 
 /// Whether membership of the group gives administration rights (`wheel`,
@@ -271,6 +444,13 @@ impl InventoryChange {
                     port.port, port.protocol
                 )
             }
+            Self::SystemChanged {
+                field,
+                before,
+                after,
+            } => format!("The {} changed: {before} -> {after}", field.name()),
+            Self::HotfixInstalled(hotfix) => format!("Update {} was installed", hotfix.id),
+            Self::HotfixRemoved(hotfix) => format!("Update {} is no longer installed", hotfix.id),
         }
     }
 
@@ -287,6 +467,9 @@ impl InventoryChange {
             Self::ServiceChanged { .. } => "service_changed",
             Self::PortOpened { .. } => "port_opened",
             Self::PortClosed(_) => "port_closed",
+            Self::SystemChanged { .. } => "system_changed",
+            Self::HotfixInstalled(_) => "hotfix_installed",
+            Self::HotfixRemoved(_) => "hotfix_removed",
         }
     }
 
@@ -386,15 +569,24 @@ impl InventoryChange {
             }
             Self::PortOpened { port, known } => serde_json::json!({ "port": port, "known": known }),
             Self::PortClosed(port) => serde_json::json!(port),
+            Self::SystemChanged {
+                field,
+                before,
+                after,
+            } => serde_json::json!({ "field": field.name(), "before": before, "after": after }),
+            Self::HotfixInstalled(hotfix) | Self::HotfixRemoved(hotfix) => {
+                serde_json::json!(hotfix)
+            }
         }
     }
 }
 
 /// The differences between two inventories.
 ///
-/// A kind of entry that `after` could not collect at all (its list is empty
-/// while `before` had some) is skipped: a command that failed is not the
-/// removal of every account.
+/// A kind of entry that one of them could not collect at all (its list is
+/// empty) is skipped: a command that failed is not the removal of every
+/// account, nor is its first answer the creation of every account. A field
+/// of the description that one of them does not know is skipped too.
 pub fn diff(
     before: &SystemInventory,
     after: &SystemInventory,
@@ -402,7 +594,21 @@ pub fn diff(
 ) -> Vec<InventoryChange> {
     let mut changes = Vec::new();
 
-    if !after.users.is_empty() || before.users.is_empty() {
+    if let (Some(old), Some(new)) = (&before.system, &after.system) {
+        for field in SystemField::ALL {
+            if let (Some(before), Some(after)) = (old.value(field), new.value(field))
+                && before != after
+            {
+                changes.push(InventoryChange::SystemChanged {
+                    field,
+                    before,
+                    after,
+                });
+            }
+        }
+    }
+
+    if !before.users.is_empty() && !after.users.is_empty() {
         let old: BTreeMap<&str, &UserAccount> =
             before.users.iter().map(|u| (u.name.as_str(), u)).collect();
         let new: BTreeMap<&str, &UserAccount> =
@@ -426,7 +632,7 @@ pub fn diff(
         }
     }
 
-    if !after.groups.is_empty() || before.groups.is_empty() {
+    if !before.groups.is_empty() && !after.groups.is_empty() {
         let members = |inventory: &SystemInventory| -> BTreeSet<(String, String)> {
             inventory
                 .groups
@@ -454,7 +660,7 @@ pub fn diff(
         }
     }
 
-    if !after.services.is_empty() || before.services.is_empty() {
+    if !before.services.is_empty() && !after.services.is_empty() {
         let old: BTreeMap<&str, &ServiceEntry> = before
             .services
             .iter()
@@ -484,7 +690,7 @@ pub fn diff(
         }
     }
 
-    if !after.listening_ports.is_empty() || before.listening_ports.is_empty() {
+    if !before.listening_ports.is_empty() && !after.listening_ports.is_empty() {
         let keys = |inventory: &SystemInventory| -> BTreeMap<String, ListeningPort> {
             inventory
                 .listening_ports
@@ -504,6 +710,27 @@ pub fn diff(
         for (key, port) in &old {
             if !new.contains_key(key) {
                 changes.push(InventoryChange::PortClosed(port.clone()));
+            }
+        }
+    }
+
+    if !before.hotfixes.is_empty() && !after.hotfixes.is_empty() {
+        let ids = |inventory: &SystemInventory| -> BTreeMap<String, Hotfix> {
+            inventory
+                .hotfixes
+                .iter()
+                .map(|hotfix| (hotfix.id.to_ascii_uppercase(), hotfix.clone()))
+                .collect()
+        };
+        let (old, new) = (ids(before), ids(after));
+        for (id, hotfix) in &new {
+            if !old.contains_key(id) {
+                changes.push(InventoryChange::HotfixInstalled(hotfix.clone()));
+            }
+        }
+        for (id, hotfix) in &old {
+            if !new.contains_key(id) {
+                changes.push(InventoryChange::HotfixRemoved(hotfix.clone()));
             }
         }
     }
@@ -581,6 +808,15 @@ impl InventoryState {
                     .listening_ports
                     .clone_from(&previous.listening_ports);
             }
+            if current.hotfixes.is_empty() {
+                current.hotfixes.clone_from(&previous.hotfixes);
+            }
+            // A field the system did not give this time (the serial number
+            // of an agent started without root) keeps its previous value.
+            current.system = match (current.system.take(), &previous.system) {
+                (Some(system), Some(previous)) => Some(system.or(previous.clone())),
+                (system, previous) => system.or_else(|| previous.clone()),
+            };
         }
         self.inventory = Some(current);
         changes
@@ -863,8 +1099,8 @@ pub fn launch_item_command(plist_json: &str) -> Option<String> {
     plist["Program"].as_str().map(str::to_string)
 }
 
-/// Local accounts, groups, services and listeners as PowerShell prints them
-/// (see [`WINDOWS_INVENTORY_SCRIPT`]).
+/// Local accounts, groups, services, listeners, the system and the updates
+/// as PowerShell prints them (see [`WINDOWS_INVENTORY_SCRIPT`]).
 pub fn parse_windows_inventory(json: &str) -> SystemInventory {
     let Ok(document) = serde_json::from_str::<serde_json::Value>(json) else {
         return SystemInventory::default();
@@ -941,11 +1177,129 @@ pub fn parse_windows_inventory(json: &str) -> SystemInventory {
             .into_iter()
             .take(MAX_ENTRIES)
             .collect(),
+        system: document
+            .get("System")
+            .filter(|system| system.is_object())
+            .map(|system| SystemDescription {
+                os_name: text(&system["Caption"]).and_then(meaningful),
+                os_version: text(&system["Version"]).and_then(meaningful),
+                manufacturer: text(&system["Manufacturer"]).and_then(meaningful),
+                model: text(&system["Model"]).and_then(meaningful),
+                serial_number: text(&system["Serial"]).and_then(meaningful),
+                ..SystemDescription::default()
+            }),
+        hotfixes: items("Hotfixes")
+            .iter()
+            .filter_map(|hotfix| {
+                Some(Hotfix {
+                    id: text(&hotfix["Id"]).and_then(meaningful)?,
+                    description: text(&hotfix["Description"]).and_then(meaningful),
+                    installed_on: text(&hotfix["InstalledOn"]).and_then(meaningful),
+                })
+            })
+            .collect::<BTreeSet<_>>()
+            .into_iter()
+            .take(MAX_ENTRIES)
+            .collect(),
     }
 }
 
-/// Prints the local accounts, groups with their members, services and TCP
-/// listeners as one JSON object.
+/// Values firmwares put where they have nothing to say.
+const PLACEHOLDERS: &[&str] = &[
+    "to be filled by o.e.m.",
+    "default string",
+    "system manufacturer",
+    "system product name",
+    "system serial number",
+    "chassis serial number",
+    "not specified",
+    "not applicable",
+    "not available",
+    "unknown",
+    "invalid",
+    "none",
+    "n/a",
+    "o.e.m.",
+    "0",
+    "0123456789",
+];
+
+/// `value` trimmed, unless it says nothing (empty, a firmware placeholder,
+/// zeros).
+pub fn meaningful(value: impl AsRef<str>) -> Option<String> {
+    let value = value
+        .as_ref()
+        .trim_matches(|c: char| c.is_whitespace() || c == '\0');
+    let lower = value.to_ascii_lowercase();
+    if value.is_empty()
+        || PLACEHOLDERS.contains(&lower.as_str())
+        || value.chars().all(|c| c == '0' || c == '-' || c == ' ')
+    {
+        return None;
+    }
+    Some(value.to_string())
+}
+
+/// The name of the distribution in `/etc/os-release` (`PRETTY_NAME`).
+pub fn parse_os_release(content: &str) -> Option<String> {
+    content.lines().find_map(|line| {
+        let value = line.trim().strip_prefix("PRETTY_NAME=")?;
+        meaningful(value.trim_matches(['"', '\'']))
+    })
+}
+
+/// The hardware as `system_profiler SPHardwareDataType -json` describes a
+/// Mac.
+pub fn parse_mac_hardware(json: &str) -> SystemDescription {
+    let document: serde_json::Value = serde_json::from_str(json).unwrap_or_default();
+    let hardware = &document["SPHardwareDataType"][0];
+    let text = |key: &str| hardware[key].as_str().and_then(meaningful);
+    let model = match (text("machine_name"), text("machine_model")) {
+        (Some(name), Some(identifier)) => Some(format!("{name} ({identifier})")),
+        (name, identifier) => name.or(identifier),
+    };
+    SystemDescription {
+        manufacturer: model.as_ref().map(|_| "Apple".to_string()),
+        model,
+        serial_number: text("serial_number"),
+        processor: text("chip_type").or_else(|| text("cpu_type")),
+        ..SystemDescription::default()
+    }
+}
+
+/// What every system says through `sysinfo`: name and version, kernel,
+/// processor, memory, start time.
+fn sysinfo_description() -> SystemDescription {
+    use sysinfo::{CpuRefreshKind, System};
+    let mut system = System::new();
+    system.refresh_cpu_list(CpuRefreshKind::nothing());
+    system.refresh_memory();
+    let cpu = system.cpus().first();
+    SystemDescription {
+        hostname: System::host_name().and_then(meaningful),
+        os_name: System::long_os_version().and_then(meaningful),
+        os_version: System::os_version().and_then(meaningful),
+        kernel: System::kernel_version().and_then(meaningful),
+        architecture: meaningful(System::cpu_arch()),
+        manufacturer: None,
+        model: None,
+        serial_number: None,
+        // ARM processors under Linux have no brand: their vendor is all.
+        processor: cpu
+            .and_then(|cpu| meaningful(cpu.brand()).or_else(|| meaningful(cpu.vendor_id()))),
+        cores: System::physical_core_count().and_then(|n| u32::try_from(n).ok()),
+        threads: u32::try_from(system.cpus().len()).ok().filter(|n| *n > 0),
+        memory_bytes: Some(system.total_memory()).filter(|bytes| *bytes > 0),
+        booted_at: i64::try_from(System::boot_time())
+            .ok()
+            .filter(|seconds| *seconds > 0)
+            .and_then(|seconds| DateTime::from_timestamp(seconds, 0)),
+    }
+}
+
+/// Prints the local accounts, groups with their members, services, TCP
+/// listeners, the system and its hardware, and the installed updates as one
+/// JSON object.
 pub const WINDOWS_INVENTORY_SCRIPT: &str = r#"$ErrorActionPreference = 'SilentlyContinue'
 $users = @(Get-LocalUser | ForEach-Object { @{ Name = $_.Name; SID = $_.SID.Value; Enabled = [bool]$_.Enabled } })
 $groups = @(Get-LocalGroup | ForEach-Object {
@@ -958,7 +1312,16 @@ Get-Process | ForEach-Object { $names[[int]$_.Id] = $_.ProcessName }
 $ports = @(Get-NetTCPConnection -State Listen | ForEach-Object {
     @{ Address = $_.LocalAddress; Port = [int]$_.LocalPort; Process = $names[[int]$_.OwningProcess] }
 })
-@{ Users = $users; Groups = $groups; Services = $services; Ports = $ports } | ConvertTo-Json -Depth 4 -Compress
+$os = Get-CimInstance Win32_OperatingSystem
+$computer = Get-CimInstance Win32_ComputerSystem
+$bios = Get-CimInstance Win32_BIOS
+$system = @{ Caption = $os.Caption; Version = $os.Version; Manufacturer = $computer.Manufacturer; Model = $computer.Model; Serial = $bios.SerialNumber }
+$hotfixes = @(Get-HotFix | ForEach-Object {
+    $day = $null
+    try { if ($_.InstalledOn) { $day = $_.InstalledOn.ToString('yyyy-MM-dd') } } catch {}
+    @{ Id = $_.HotFixID; Description = $_.Description; InstalledOn = $day }
+})
+@{ Users = $users; Groups = $groups; Services = $services; Ports = $ports; System = $system; Hotfixes = $hotfixes } | ConvertTo-Json -Depth 4 -Compress
 "#;
 
 #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
@@ -976,6 +1339,9 @@ fn run(program: &str, arguments: &[&str]) -> Option<String> {
 pub fn collect() -> SystemInventory {
     let mut inventory = collect_platform();
     inventory.collected_at = Some(Utc::now());
+    let platform = inventory.system.take().unwrap_or_default();
+    inventory.system = Some(platform.or(sysinfo_description()));
+    inventory.hotfixes.sort();
     inventory.users.sort_by(|a, b| a.name.cmp(&b.name));
     inventory.groups.sort_by(|a, b| a.name.cmp(&b.name));
     inventory.services.sort_by(|a, b| a.name.cmp(&b.name));
@@ -983,11 +1349,32 @@ pub fn collect() -> SystemInventory {
     inventory
 }
 
+/// The distribution and the hardware: DMI on a PC or a server, the device
+/// tree on an ARM board.
+#[cfg(target_os = "linux")]
+fn linux_description() -> SystemDescription {
+    let read = |path: &str| std::fs::read_to_string(path).ok().and_then(meaningful);
+    let dmi = |name: &str| read(&format!("/sys/class/dmi/id/{name}"));
+    SystemDescription {
+        os_name: std::fs::read_to_string("/etc/os-release")
+            .ok()
+            .as_deref()
+            .and_then(parse_os_release),
+        manufacturer: dmi("sys_vendor"),
+        model: dmi("product_name").or_else(|| read("/sys/firmware/devicetree/base/model")),
+        // Readable by root only.
+        serial_number: dmi("product_serial")
+            .or_else(|| read("/sys/firmware/devicetree/base/serial-number")),
+        ..SystemDescription::default()
+    }
+}
+
 #[cfg(target_os = "linux")]
 fn collect_platform() -> SystemInventory {
     let read = |path: &str| std::fs::read_to_string(path).unwrap_or_default();
     SystemInventory {
         collected_at: None,
+        system: Some(linux_description()),
         users: parse_passwd(&read("/etc/passwd")),
         groups: parse_group(&read("/etc/group")),
         services: run(
@@ -1004,6 +1391,7 @@ fn collect_platform() -> SystemInventory {
         listening_ports: run("ss", &["-H", "-lntup"])
             .map(|output| parse_ss_listeners(&output))
             .unwrap_or_default(),
+        hotfixes: Vec::new(),
     }
 }
 
@@ -1052,6 +1440,11 @@ fn collect_platform() -> SystemInventory {
         .unwrap_or_default();
     SystemInventory {
         collected_at: None,
+        system: run(
+            "/usr/sbin/system_profiler",
+            &["SPHardwareDataType", "-json"],
+        )
+        .map(|json| parse_mac_hardware(&json)),
         users: run("/usr/bin/dscacheutil", &["-q", "user"])
             .map(|output| parse_dscache_users(&output))
             .unwrap_or_default(),
@@ -1060,6 +1453,7 @@ fn collect_platform() -> SystemInventory {
             .unwrap_or_default(),
         services,
         listening_ports: merge_listeners(named, unnamed),
+        hotfixes: Vec::new(),
     }
 }
 
@@ -1136,6 +1530,34 @@ mod tests {
             groups: vec![group("sudo", &["alice"]), group("audio", &[])],
             services: vec![service("ssh", "/usr/sbin/sshd -D")],
             listening_ports: vec![port(22, "0.0.0.0", "sshd")],
+            system: None,
+            hotfixes: Vec::new(),
+        }
+    }
+
+    fn description() -> SystemDescription {
+        SystemDescription {
+            hostname: Some("web-01".to_string()),
+            os_name: Some("Ubuntu 24.04.1 LTS".to_string()),
+            os_version: Some("24.04".to_string()),
+            kernel: Some("6.8.0-45-generic".to_string()),
+            architecture: Some("x86_64".to_string()),
+            manufacturer: Some("Dell Inc.".to_string()),
+            model: Some("PowerEdge R650".to_string()),
+            serial_number: Some("7XK2QD3".to_string()),
+            processor: Some("Intel(R) Xeon(R) Silver 4314".to_string()),
+            cores: Some(16),
+            threads: Some(32),
+            memory_bytes: Some(64 * (1 << 30) - 300 * (1 << 20)),
+            booted_at: Some(DateTime::from_timestamp(1_799_000_000, 0).unwrap()),
+        }
+    }
+
+    fn hotfix(id: &str) -> Hotfix {
+        Hotfix {
+            id: id.to_string(),
+            description: Some("Security Update".to_string()),
+            installed_on: Some("2026-10-08".to_string()),
         }
     }
 
@@ -1292,6 +1714,187 @@ mod tests {
         );
         assert_eq!(inventory.listening_ports.len(), 1);
         assert!(parse_windows_inventory("not json").is_empty());
+    }
+
+    #[test]
+    fn the_system_and_its_updates_are_read() {
+        assert_eq!(
+            parse_os_release("NAME=\"Ubuntu\"\nPRETTY_NAME=\"Ubuntu 24.04.1 LTS\"\nID=ubuntu\n")
+                .as_deref(),
+            Some("Ubuntu 24.04.1 LTS")
+        );
+        assert_eq!(parse_os_release("ID=alpine\n"), None);
+        for placeholder in [
+            "",
+            "  ",
+            "To Be Filled By O.E.M.",
+            "Default string",
+            "0",
+            "00000000-0000",
+            "None",
+        ] {
+            assert_eq!(meaningful(placeholder), None, "{placeholder:?}");
+        }
+        // The device tree ends its strings with a NUL.
+        assert_eq!(
+            meaningful("Raspberry Pi 4 Model B Rev 1.4\0").as_deref(),
+            Some("Raspberry Pi 4 Model B Rev 1.4")
+        );
+
+        let mac = parse_mac_hardware(
+            r#"{"SPHardwareDataType":[{"_name":"hardware_overview","chip_type":"Apple M2 Pro",
+                "machine_model":"Mac14,9","machine_name":"MacBook Pro","serial_number":"C02XL0TEST"}]}"#,
+        );
+        assert_eq!(mac.manufacturer.as_deref(), Some("Apple"));
+        assert_eq!(mac.model.as_deref(), Some("MacBook Pro (Mac14,9)"));
+        assert_eq!(mac.serial_number.as_deref(), Some("C02XL0TEST"));
+        assert_eq!(mac.processor.as_deref(), Some("Apple M2 Pro"));
+        assert_eq!(parse_mac_hardware("not json"), SystemDescription::default());
+
+        let windows = parse_windows_inventory(
+            r#"{"System":{"Caption":"Microsoft Windows 11 Pro","Version":"10.0.26100",
+                "Manufacturer":"LENOVO","Model":"20XW0026FR","Serial":"To be filled by O.E.M."},
+                "Hotfixes":{"Id":"KB5034441","Description":"Security Update","InstalledOn":"2026-10-08"}}"#,
+        );
+        let system = windows.system.unwrap();
+        assert_eq!(
+            system.os_label().as_deref(),
+            Some("Microsoft Windows 11 Pro 10.0.26100")
+        );
+        assert_eq!(
+            system.value(SystemField::Hardware).as_deref(),
+            Some("LENOVO 20XW0026FR")
+        );
+        assert_eq!(system.serial_number, None);
+        assert_eq!(windows.hotfixes, [hotfix("KB5034441")]);
+    }
+
+    #[test]
+    fn a_change_of_system_or_hardware_is_recorded_not_raised() {
+        let mut state = InventoryState::default();
+        let mut before = baseline();
+        before.system = Some(description());
+        state.update(before, at(0));
+
+        let mut after = baseline();
+        let mut upgraded = description();
+        upgraded.kernel = Some("6.8.0-47-generic".to_string());
+        upgraded.os_name = Some("Ubuntu 24.04.2 LTS".to_string());
+        // A few megabytes less for the new kernel: the same memory.
+        upgraded.memory_bytes = upgraded.memory_bytes.map(|bytes| bytes - 20 * (1 << 20));
+        // Not readable this time: neither a change nor forgotten.
+        upgraded.serial_number = None;
+        upgraded.booted_at = Some(DateTime::from_timestamp(1_800_000_000, 0).unwrap());
+        after.system = Some(upgraded);
+
+        let changes = state.update(after, at(0));
+        let fields: Vec<(SystemField, &str, &str)> = changes
+            .iter()
+            .filter_map(|change| match change {
+                InventoryChange::SystemChanged {
+                    field,
+                    before,
+                    after,
+                } => Some((*field, before.as_str(), after.as_str())),
+                _ => None,
+            })
+            .collect();
+        assert_eq!(
+            fields,
+            [
+                (
+                    SystemField::OperatingSystem,
+                    "Ubuntu 24.04.1 LTS",
+                    "Ubuntu 24.04.2 LTS"
+                ),
+                (SystemField::Kernel, "6.8.0-45-generic", "6.8.0-47-generic"),
+            ]
+        );
+        assert_eq!(changes.len(), 2);
+        assert!(changes.iter().all(|change| change.incident().is_none()));
+        assert!(changes[1].describe().contains("kernel changed"));
+        let kept = state.inventory.as_ref().unwrap().system.as_ref().unwrap();
+        assert_eq!(kept.serial_number.as_deref(), Some("7XK2QD3"));
+        assert_eq!(kept.kernel.as_deref(), Some("6.8.0-47-generic"));
+
+        // Other hardware: another machine under the same agent.
+        let mut moved = baseline();
+        let mut other = description();
+        other.serial_number = Some("9ZZ1AB2".to_string());
+        other.memory_bytes = Some(128 * (1 << 30));
+        moved.system = Some(other);
+        let kinds: Vec<String> = state
+            .update(moved, at(0))
+            .iter()
+            .map(|change| change.describe())
+            .collect();
+        assert_eq!(
+            kinds,
+            [
+                "The operating system changed: Ubuntu 24.04.2 LTS -> Ubuntu 24.04.1 LTS",
+                "The kernel changed: 6.8.0-47-generic -> 6.8.0-45-generic",
+                "The serial number changed: 7XK2QD3 -> 9ZZ1AB2",
+                "The memory changed: 64 GiB -> 128 GiB",
+            ]
+        );
+    }
+
+    #[test]
+    fn updates_installed_and_removed_are_recorded_not_raised() {
+        let mut state = InventoryState::default();
+        let mut before = baseline();
+        before.hotfixes = vec![hotfix("KB5031356"), hotfix("KB5032189")];
+        state.update(before, at(0));
+
+        let mut after = baseline();
+        after.hotfixes = vec![hotfix("kb5032189"), hotfix("KB5034441")];
+        let changes = state.update(after, at(0));
+        let kinds: Vec<(&str, String)> = changes
+            .iter()
+            .map(|change| (change.kind(), change.describe()))
+            .collect();
+        assert_eq!(
+            kinds,
+            [
+                (
+                    "hotfix_installed",
+                    "Update KB5034441 was installed".to_string()
+                ),
+                (
+                    "hotfix_removed",
+                    "Update KB5031356 is no longer installed".to_string()
+                ),
+            ]
+        );
+        assert!(changes.iter().all(|change| change.incident().is_none()));
+
+        // Get-HotFix that fails is not the removal of every update.
+        let mut failed = baseline();
+        failed.hotfixes.clear();
+        assert!(state.update(failed, at(0)).is_empty());
+        assert_eq!(state.inventory.as_ref().unwrap().hotfixes.len(), 2);
+    }
+
+    /// A part that the first inventory could not collect (the tool failed)
+    /// is not new in full when it comes: its first list is its reference.
+    #[test]
+    fn a_part_collected_late_is_its_own_reference() {
+        let mut state = InventoryState::default();
+        let mut first = baseline();
+        first.listening_ports.clear();
+        first.services.clear();
+        state.update(first, at(0));
+
+        assert!(state.update(baseline(), at(0)).is_empty());
+        let mut after = baseline();
+        after
+            .listening_ports
+            .push(port(31337, "0.0.0.0", "update-helper"));
+        let changes = state.update(after, at(0));
+        assert_eq!(
+            severities(&changes),
+            [("port_opened", Some(IncidentSeverity::Medium))]
+        );
     }
 
     #[test]
@@ -1464,11 +2067,48 @@ mod tests {
     fn the_real_system_has_accounts_and_groups() {
         let inventory = collect();
         assert!(inventory.collected_at.is_some());
+        let system = inventory.system.as_ref().unwrap();
+        assert!(system.os_label().is_some(), "{system:?}");
+        assert!(system.kernel.is_some() && system.architecture.is_some());
+        assert!(system.memory_bytes.is_some_and(|bytes| bytes > 0));
+        assert!(system.threads.is_some_and(|threads| threads > 0));
+        assert!(system.booted_at.is_some_and(|at| at < Utc::now()));
         assert!(inventory.users.iter().any(|user| user.name == "root"));
         assert!(!inventory.groups.is_empty());
         let names: Vec<&String> = inventory.users.iter().map(|user| &user.name).collect();
         let mut sorted = names.clone();
         sorted.sort();
         assert_eq!(names, sorted);
+    }
+
+    /// The real Windows: the PowerShell script runs, and gives the accounts
+    /// and the system.
+    #[cfg(target_os = "windows")]
+    #[test]
+    fn the_real_windows_has_accounts_and_a_system() {
+        let inventory = collect();
+        assert!(!inventory.users.is_empty(), "{inventory:?}");
+        assert!(!inventory.services.is_empty());
+        let system = inventory.system.as_ref().unwrap();
+        assert!(
+            system
+                .os_name
+                .as_deref()
+                .is_some_and(|name| name.contains("Windows")),
+            "{system:?}"
+        );
+        assert!(
+            system.manufacturer.is_some() || system.model.is_some(),
+            "{system:?}"
+        );
+        eprintln!(
+            "{} updates listed, the latest: {:?}",
+            inventory.hotfixes.len(),
+            inventory
+                .hotfixes
+                .iter()
+                .filter_map(|hotfix| hotfix.installed_on.as_deref())
+                .max()
+        );
     }
 }
