@@ -107,6 +107,33 @@ reussit en sortant avec le code 0. Sous Unix il doit appartenir a root ou au
 compte de l'agent et n'etre modifiable par personne d'autre. Un playbook ne
 peut que nommer une commande declaree : rien de ce qu'il contient n'est execute.
 
+## Commandes surveillees
+
+Des programmes lances a intervalle regulier, dont la sortie est surveillee
+(comme les sources `command` et `full_command` de Wazuh) :
+
+```json
+"command_monitors": [
+  { "name": "listening-ports", "program": "/usr/bin/ss", "args": ["-tlnH"],
+    "interval_secs": 600 }
+]
+```
+
+| Champ | Role | Defaut |
+|-------|------|--------|
+| `name` | Nom de la commande, et du service Sigma de ses lignes (minuscules, chiffres, `-`, `_`) | requis |
+| `program` | Chemin absolu du programme, lance sans interpreteur | requis |
+| `args` | Arguments, tels que declares | aucun |
+| `interval_secs` | Secondes entre deux lancements (60 au moins) | `300` |
+| `report_changes` | Signaler un changement de la sortie, avec les lignes changees | `true` |
+
+Chaque ligne de la sortie passe aux regles des journaux comme un evenement du
+service `name` : une regle Sigma `logsource: service: listening-ports` s'y
+applique. Le programme suit les regles des commandes de reponse (proprietaire
+root ou le compte de l'agent, modifiable par personne d'autre) ; il a une
+minute et 256 Kio de sortie au plus. La derniere sortie est gardee dans
+`commands/` du dossier de donnees.
+
 ## Inventaire du poste
 
 `"system_inventory": true` (defaut) releve toutes les dix minutes les comptes,

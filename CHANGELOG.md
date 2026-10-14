@@ -10,6 +10,34 @@ Tous les changements notables apportés au projet **Sentinel GRC Agent** sont co
 
 ## 🚀 [Non publié]
 
+### 🖥️ Journaux : sortie de commandes surveillée
+
+- **Commandes surveillées** (`command_monitors`), comme les sources
+  `command` et `full_command` de Wazuh : un programme déclaré (les ports en
+  écoute, les dernières connexions, un contrôle maison) est lancé à
+  intervalle régulier (5 minutes par défaut, 1 minute au plus souvent).
+- **Règles sur la sortie** : chaque ligne devient un événement du service
+  qui porte le nom de la commande ; une règle Sigma `logsource: service:
+  <nom>` s'y applique comme à un journal.
+- **Changement de sortie** : quand la sortie diffère du passage précédent,
+  un incident donne les lignes retirées et ajoutées (`report_changes`, actif
+  par défaut). La dernière sortie est conservée dans le dossier de données,
+  lisible par l'agent seul : un changement fait pendant l'arrêt de l'agent
+  est signalé à son premier passage.
+- **Mêmes garde-fous que les commandes de réponse** : nom en minuscules,
+  chemin absolu, lancé sans interpréteur, programme appartenant à root ou au
+  compte de l'agent et modifiable par personne d'autre, vérifié de nouveau
+  avant chaque lancement ; une minute et 256 Kio de sortie au plus, dans une
+  tâche de fond qui ne retarde jamais la réponse.
+- **Vérifié** sur une Ubuntu 24.04 réelle, avec `ss -tlnH` surveillé toutes
+  les minutes et une règle Sigma maison (`logsource: service:
+  listening-ports`, `message|contains: ':4444 '`) : la première sortie sert
+  de référence ; un écouteur ouvert ensuite sur le port 4444 donne, au
+  passage suivant, l'incident « Sortie de commande modifiée :
+  listening-ports » puis, une seconde après, l'alerte Sigma « Port de porte
+  dérobée en écoute ». La sortie conservée est en `0600`, l'agent s'arrête
+  en 4 s.
+
 ### 🏁 Détection et réponse : chaînes vérifiées de bout en bout, tout se règle dans l'interface
 
 - **Le modèle de playbook « Brute-force » se déclenche enfin** : sa condition
