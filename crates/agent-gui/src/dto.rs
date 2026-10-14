@@ -450,6 +450,25 @@ pub struct GuiSystemInventory {
     /// Windows updates, the most recently installed first.
     #[serde(default)]
     pub hotfixes: Vec<GuiInventoryHotfix>,
+    /// The containers of the host's Docker (Linux).
+    #[serde(default)]
+    pub containers: Vec<GuiInventoryContainer>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct GuiInventoryContainer {
+    /// Twelve characters, as Docker shows it.
+    pub id: String,
+    pub name: String,
+    pub image: String,
+    /// `running`, `exited`, `created`…
+    pub state: String,
+    /// The account it runs as.
+    pub user: String,
+    /// What weakens its isolation, in French, the worst first.
+    pub risks: Vec<String>,
+    /// One of the risks alone lets it take the host.
+    pub can_take_host: bool,
 }
 
 /// The machine and its operating system; what the system does not say is

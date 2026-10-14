@@ -56,6 +56,12 @@ Tous les changements notables apportés au projet **Sentinel GRC Agent** sont co
   direct, dans l'espace des processus de l'hôte, sans profil de sécurité
   (incidents, T1610/T1611) ; shell interactif ouvert dans un conteneur
   (événement SIEM, T1609). Deux conteneurs privilégiés font deux incidents.
+- **Onglet « Conteneurs »** (Système & comptes, quand Docker tourne) : chaque
+  conteneur de l'hôte, en cours ou arrêté, avec son image, son état, le
+  compte qui l'exécute et ce qui affaiblit son isolation ; l'onglet compte
+  ceux qui peuvent prendre l'hôte. Il couvre ce que les événements ne voient
+  pas : un conteneur dangereux démarré avant l'agent. Les événements et
+  l'inventaire lisent `docker inspect` au même endroit et jugent pareil.
 - **Vérifié** sur une Ubuntu 24.04 réelle (noyau 6.8 sous QEMU) avec
   Docker 27 : l'agent suit les événements une minute après son démarrage ;
   un conteneur ordinaire (`docker run alpine sleep`, puis `docker exec
@@ -63,7 +69,9 @@ Tous les changements notables apportés au projet **Sentinel GRC Agent** sont co
   /:/host` lève « Conteneur privilégié démarré », « Conteneur qui monte la
   racine de l'hôte » et « Conteneur dans l'espace des processus de l'hôte » ;
   l'agent s'arrête en 2 s. Le shell interactif, qui ne donne qu'un événement
-  SIEM, n'est vérifié que par les tests.
+  SIEM, n'est vérifié que par les tests. L'inventaire du même hôte liste ses
+  quatre conteneurs (en cours et créé) : `--privileged --pid=host -v /:/host`
+  d'un côté, `--cap-add SYS_ADMIN` et le socket Docker monté de l'autre.
 
 ### 🧾 Inventaire : système, matériel et correctifs Windows
 
@@ -92,7 +100,9 @@ Tous les changements notables apportés au projet **Sentinel GRC Agent** sont co
   (« Ubuntu 24.04.5 LTS », noyau, processeurs, mémoire, en root comme sous un
   compte ordinaire ; cette machine virtuelle n'a ni DMI ni arbre de
   périphériques, fabricant et modèle restent inconnus et la fiche le
-  montre), et sur le Windows Server de la CI : le script PowerShell, lancé
+  montre), sur une Ubuntu 24.04 sous QEMU, qui a un DMI (fabricant « QEMU »,
+  modèle « QEMU Virtual Machine », pas de numéro de série, comme QEMU), et
+  sur le Windows Server de la CI : le script PowerShell, lancé
   pour de vrai, donne les comptes, les services, le nom du système et le
   fabricant ou le modèle. **Non vérifié** : la liste des correctifs sur un
   vrai Windows (lue par un test sur une sortie d'exemple, pas contrôlée

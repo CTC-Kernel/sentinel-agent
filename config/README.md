@@ -220,7 +220,8 @@ moteur de conteneurs, dote de capacites qui permettent d'en sortir, avec un
 disque de l'hote en acces direct, dans l'espace des processus de l'hote, sans
 profil de securite (incidents), et shell interactif ouvert dans un conteneur
 (evenement SIEM seulement). Docker sans root (socket d'un utilisateur) n'est
-pas suivi.
+pas suivi. L'inventaire du poste liste aussi les conteneurs, avec ce qui
+affaiblit leur isolation (onglet « Conteneurs » de Systeme & comptes).
 
 ## Integrite des fichiers
 

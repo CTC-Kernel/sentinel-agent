@@ -822,82 +822,31 @@ pub fn decode_docker_event(line: &str) -> Option<DecodedLog> {
     Some(log)
 }
 
-/// Sockets whose mount gives a container the control of the host's
-/// containers, hence of the host.
-const RUNTIME_SOCKETS: &[&str] = &["docker.sock", "containerd.sock", "crio.sock", "podman.sock"];
-
 /// Add to the event of a container's start the settings that weaken its
 /// isolation, from `docker inspect --type container <id>`.
 pub fn add_docker_settings(log: &mut DecodedLog, inspect: &str) {
-    let Ok(document) = serde_json::from_str::<serde_json::Value>(inspect) else {
+    use agent_common::containers::{ContainerSettings, inspected};
+    let Some(container) = inspected(inspect).into_iter().next() else {
         return;
     };
-    let container = match &document {
-        serde_json::Value::Array(items) => match items.first() {
-            Some(container) => container,
-            None => return,
-        },
-        container => container,
-    };
-    let host = &container["HostConfig"];
-    if let Some(privileged) = host["Privileged"].as_bool() {
-        log.set("privileged", privileged.to_string());
-    }
-    for (field, key) in [
-        ("pid_mode", "PidMode"),
-        ("network_mode", "NetworkMode"),
-        ("ipc_mode", "IpcMode"),
-        ("userns_mode", "UsernsMode"),
-    ] {
-        if let Some(mode) = host[key].as_str() {
-            log.set(field, mode);
-        }
-    }
-    let list = |value: &serde_json::Value, key: Option<&str>| -> Vec<String> {
-        value
-            .as_array()
-            .map(|items| {
-                items
-                    .iter()
-                    .filter_map(|item| match key {
-                        Some(key) => item[key].as_str(),
-                        None => item.as_str(),
-                    })
-                    .map(str::to_string)
-                    .collect()
-            })
-            .unwrap_or_default()
-    };
-    log.set("cap_add", list(&host["CapAdd"], None).join(","));
-    log.set("security_opt", list(&host["SecurityOpt"], None).join(","));
+    let settings = ContainerSettings::from_inspect(&container);
+    log.set("privileged", settings.privileged.to_string());
+    log.set("pid_mode", &settings.pid_mode);
+    log.set("network_mode", &settings.network_mode);
+    log.set("ipc_mode", &settings.ipc_mode);
+    log.set("userns_mode", &settings.userns_mode);
+    log.set("cap_add", settings.cap_add.join(","));
+    log.set("security_opt", settings.security_opt.join(","));
+    log.set("devices", settings.devices.join(","));
+    log.set("host_paths", settings.host_paths.join(","));
+    log.set("mounts_host_root", settings.mounts_host_root().to_string());
     log.set(
-        "devices",
-        list(&host["Devices"], Some("PathOnHost")).join(","),
+        "mounts_docker_socket",
+        settings.mounts_engine_socket().to_string(),
     );
-    // Bind mounts and volumes alike: `Mounts` lists both, with their source
-    // on the host.
-    let sources: Vec<String> = list(&container["Mounts"], Some("Source"))
-        .into_iter()
-        .filter(|source| !source.is_empty())
-        .collect();
-    log.set("host_paths", sources.join(","));
-    let root = sources
-        .iter()
-        .any(|source| source.trim_end_matches('/').is_empty());
-    log.set("mounts_host_root", root.to_string());
-    let socket = sources.iter().any(|source| {
-        let name = source.rsplit('/').next().unwrap_or(source);
-        RUNTIME_SOCKETS.contains(&name)
-    });
-    log.set("mounts_docker_socket", socket.to_string());
-    // Empty: the user of the image, root unless the image says otherwise.
-    let user = container["Config"]["User"].as_str().unwrap_or("");
     // Not `user`: that is an account of this host, which a response may
     // act on.
-    log.set(
-        "container_user",
-        if user.is_empty() { "root" } else { user },
-    );
+    log.set("container_user", &settings.user);
 }
 
 /// Decode an entry of the macOS unified log as `log stream --style ndjson`

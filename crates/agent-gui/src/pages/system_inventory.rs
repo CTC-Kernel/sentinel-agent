@@ -12,8 +12,9 @@
 
 use crate::app::AppState;
 use crate::dto::{
-    GuiInventoryAccount, GuiInventoryChange, GuiInventoryGroup, GuiInventoryHotfix,
-    GuiInventoryPort, GuiInventoryService, GuiSystemDescription, GuiSystemInventory,
+    GuiInventoryAccount, GuiInventoryChange, GuiInventoryContainer, GuiInventoryGroup,
+    GuiInventoryHotfix, GuiInventoryPort, GuiInventoryService, GuiSystemDescription,
+    GuiSystemInventory,
 };
 use crate::events::GuiCommand;
 use crate::icons;
@@ -32,6 +33,7 @@ enum Tab {
     Groups,
     Services,
     Ports,
+    Containers,
     Hotfixes,
     Changes,
 }
@@ -44,6 +46,7 @@ impl Tab {
             Self::Groups => "Groupes",
             Self::Services => "Services",
             Self::Ports => "Ports en écoute",
+            Self::Containers => "Conteneurs",
             Self::Hotfixes => "Correctifs",
             Self::Changes => "Changements",
         }
@@ -56,6 +59,7 @@ impl Tab {
             Self::Groups => icons::USERS,
             Self::Services => icons::SERVER,
             Self::Ports => icons::NETWORK,
+            Self::Containers => icons::CUBE,
             Self::Hotfixes => icons::DOWNLOAD,
             Self::Changes => icons::CLOCK,
         }
@@ -68,13 +72,15 @@ impl Tab {
             Self::Groups => "Rechercher un groupe ou un membre…",
             Self::Services => "Rechercher un service ou une commande…",
             Self::Ports => "Rechercher un port, une adresse ou un programme…",
+            Self::Containers => "Rechercher un conteneur, une image ou un risque…",
             Self::Hotfixes => "Rechercher un correctif (KB…) ou un type…",
             Self::Changes => "Rechercher un changement…",
         }
     }
 }
 
-/// The tabs of this inventory: the updates are listed on Windows only.
+/// The tabs of this inventory: the containers are listed when Docker runs,
+/// the updates on Windows.
 fn tabs_of(inventory: &GuiSystemInventory) -> Vec<Tab> {
     let mut tabs = vec![
         Tab::System,
@@ -83,6 +89,9 @@ fn tabs_of(inventory: &GuiSystemInventory) -> Vec<Tab> {
         Tab::Services,
         Tab::Ports,
     ];
+    if !inventory.containers.is_empty() {
+        tabs.push(Tab::Containers);
+    }
     if !inventory.hotfixes.is_empty() {
         tabs.push(Tab::Hotfixes);
     }
@@ -156,6 +165,16 @@ fn filtered_ports(ports: &[GuiInventoryPort], needle: &str) -> Vec<usize> {
         .collect()
 }
 
+fn filtered_containers(containers: &[GuiInventoryContainer], needle: &str) -> Vec<usize> {
+    (0..containers.len())
+        .filter(|&i| {
+            let c = &containers[i];
+            found(needle, &[&c.name, &c.image, &c.id, &c.state, &c.user])
+                || c.risks.iter().any(|risk| found(needle, &[risk]))
+        })
+        .collect()
+}
+
 fn filtered_hotfixes(hotfixes: &[GuiInventoryHotfix], needle: &str) -> Vec<usize> {
     (0..hotfixes.len())
         .filter(|&i| {
@@ -186,6 +205,7 @@ fn rows_of(inventory: &GuiSystemInventory, tab: Tab, needle: &str) -> Vec<usize>
         Tab::Groups => filtered_groups(&inventory.groups, needle),
         Tab::Services => filtered_services(&inventory.services, needle),
         Tab::Ports => filtered_ports(&inventory.ports, needle),
+        Tab::Containers => filtered_containers(&inventory.containers, needle),
         Tab::Hotfixes => filtered_hotfixes(&inventory.hotfixes, needle),
         Tab::Changes => filtered_changes(&inventory.changes, needle),
     }
@@ -235,14 +255,16 @@ impl SystemInventoryPage {
             &["Actifs & inventaire", "Système & comptes"],
             "Inventaire du poste",
             Some(
-                "Système et matériel, comptes, groupes, services et ports en écoute de cet hôte, \
-                 et ce qui y change.",
+                "Système et matériel, comptes, groupes, services, ports en écoute et conteneurs \
+                 de cet hôte, et ce qui y change.",
             ),
             Some(
                 "L'agent relève l'inventaire toutes les dix minutes. Un compte créé, un membre \
                  ajouté à un groupe d'administration, un service installé ou un port qui se met \
                  à écouter lève en plus un incident, visible dans Menaces. Un changement du \
-                 système, du matériel ou des correctifs Windows est enregistré.",
+                 système, du matériel ou des correctifs Windows est enregistré. Un conteneur qui peut \
+                 prendre l'hôte (privilégié, racine ou socket du moteur montés…) est signalé sur \
+                 son onglet.",
             ),
         );
         ui.add_space(theme::SPACE_LG);
@@ -270,9 +292,22 @@ impl SystemInventoryPage {
         ui.add_space(theme::SPACE_MD);
 
         let tabs = tabs_of(&inventory);
+        // The containers that can take the host, on their tab.
+        let risky = inventory
+            .containers
+            .iter()
+            .filter(|c| c.can_take_host)
+            .count();
         let bar: Vec<widgets::Tab> = tabs
             .iter()
-            .map(|tab| widgets::Tab::new(tab.label()).icon(tab.icon()))
+            .map(|tab| {
+                let bar_tab = widgets::Tab::new(tab.label()).icon(tab.icon());
+                if *tab == Tab::Containers && risky > 0 {
+                    bar_tab.urgent_badge(u32::try_from(risky).unwrap_or(u32::MAX))
+                } else {
+                    bar_tab
+                }
+            })
             .collect();
         if let Some(index) = widgets::TabBar::new(bar, state.system_inventory.active_tab).show(ui)
             && index != state.system_inventory.active_tab
@@ -323,6 +358,7 @@ impl SystemInventoryPage {
                 Tab::Groups => Self::groups_table(ui, &inventory.groups, page),
                 Tab::Services => Self::services_table(ui, &inventory.services, page),
                 Tab::Ports => Self::ports_table(ui, &inventory.ports, page),
+                Tab::Containers => Self::containers_table(ui, &inventory.containers, page),
                 Tab::Hotfixes => Self::hotfixes_table(ui, &inventory.hotfixes, page),
                 Tab::Changes => Self::changes_table(ui, &inventory.changes, page),
             }
@@ -672,6 +708,74 @@ impl SystemInventoryPage {
         });
     }
 
+    fn containers_table(ui: &mut Ui, containers: &[GuiInventoryContainer], page: &[usize]) {
+        use widgets::table;
+        table::fluid_clickable(
+            ui,
+            &[
+                table::Col::fluid(200.0, 2.0),
+                table::Col::fluid(110.0, 0.0),
+                table::Col::fluid(110.0, 0.0),
+                table::Col::fluid(230.0, 2.5),
+            ],
+        )
+        .header(theme::TABLE_HEADER_HEIGHT, |mut header| {
+            for title in ["CONTENEUR", "ÉTAT", "COMPTE", "ISOLATION"] {
+                header.col(|ui| {
+                    table::header_cell(ui, title);
+                });
+            }
+        })
+        .body(|body| {
+            body.rows(theme::TABLE_DATA_ROW_HEIGHT, page.len(), |mut row| {
+                let Some(container) = page.get(row.index()).and_then(|&i| containers.get(i)) else {
+                    return;
+                };
+                row.col(|ui| {
+                    table::cell_stack(ui, &container.name, &container.image)
+                        .on_hover_text(format!("{} · {}", container.id, container.image));
+                });
+                row.col(|ui| {
+                    let (label, color) = match container.state.as_str() {
+                        "running" => ("EN COURS", theme::SUCCESS),
+                        "exited" => ("ARRÊTÉ", theme::text_tertiary()),
+                        "paused" => ("EN PAUSE", theme::INFO),
+                        "restarting" => ("REDÉMARRE", theme::WARNING),
+                        _ => ("CRÉÉ", theme::INFO),
+                    };
+                    widgets::status_badge(ui, label, color);
+                });
+                row.col(|ui| {
+                    table::cell_mono_muted(ui, &container.user);
+                });
+                row.col(|ui| match container.risks.first() {
+                    None => {
+                        table::cell_muted(ui, "Isolé");
+                    }
+                    Some(first) => {
+                        let color = if container.can_take_host {
+                            theme::SEVERITY_HIGH
+                        } else {
+                            theme::WARNING
+                        };
+                        let response = ui
+                            .horizontal(|ui| {
+                                widgets::status_badge(ui, &first.to_uppercase(), color);
+                                if container.risks.len() > 1 {
+                                    table::cell_muted(
+                                        ui,
+                                        &format!("+{}", container.risks.len() - 1),
+                                    );
+                                }
+                            })
+                            .response;
+                        response.on_hover_text(container.risks.join("\n"));
+                    }
+                });
+            });
+        });
+    }
+
     fn hotfixes_table(ui: &mut Ui, hotfixes: &[GuiInventoryHotfix], page: &[usize]) {
         use widgets::table;
         table::fluid_clickable(
@@ -820,6 +924,32 @@ mod tests {
         assert_eq!(rows_of(&inventory, Tab::Hotfixes, "SECURITY"), [0]);
         assert_eq!(day_label("2026-10-08"), "08/10/2026");
         assert_eq!(day_label("8/10/2026"), "8/10/2026");
+    }
+
+    #[test]
+    fn the_containers_tab_comes_with_docker_and_finds_a_risk() {
+        let mut inventory = GuiSystemInventory::default();
+        assert!(!tabs_of(&inventory).contains(&Tab::Containers));
+        inventory.containers.push(GuiInventoryContainer {
+            id: "4f2a9c0d1e2b".to_string(),
+            name: "escape".to_string(),
+            image: "alpine:3.20".to_string(),
+            state: "running".to_string(),
+            user: "root".to_string(),
+            risks: vec![
+                "Privilégié".to_string(),
+                "Racine de l'hôte montée".to_string(),
+            ],
+            can_take_host: true,
+        });
+        let tabs = tabs_of(&inventory);
+        assert_eq!(
+            tabs.iter().position(|t| *t == Tab::Containers),
+            Some(tabs.iter().position(|t| *t == Tab::Ports).unwrap() + 1)
+        );
+        assert_eq!(rows_of(&inventory, Tab::Containers, "RACINE"), [0]);
+        assert_eq!(rows_of(&inventory, Tab::Containers, "ALPINE"), [0]);
+        assert!(rows_of(&inventory, Tab::Containers, "NGINX").is_empty());
     }
 
     #[test]

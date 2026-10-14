@@ -156,15 +156,6 @@ pub fn journalctl_arguments(all_programs: bool) -> Vec<String> {
     arguments
 }
 
-/// Where the Docker command may be installed.
-const DOCKER_PROGRAMS: &[&str] = &[
-    "/usr/bin/docker",
-    "/usr/local/bin/docker",
-    "/snap/bin/docker",
-];
-/// Where the daemon of a Docker run by the system listens.
-const DOCKER_SOCKETS: &[&str] = &["/var/run/docker.sock", "/run/docker.sock"];
-
 /// The container events read: not the health checks, which come every few
 /// seconds and say nothing of an attack.
 pub const DOCKER_EVENTS: &[&str] = &[
@@ -181,18 +172,7 @@ pub const DOCKER_EVENTS: &[&str] = &[
 
 /// The Docker command, when Docker is installed and its daemon has a
 /// socket.
-pub fn docker_program() -> Option<&'static str> {
-    if !DOCKER_SOCKETS
-        .iter()
-        .any(|socket| Path::new(socket).exists())
-    {
-        return None;
-    }
-    DOCKER_PROGRAMS
-        .iter()
-        .copied()
-        .find(|program| Path::new(program).is_file())
-}
+pub use agent_common::containers::docker_program;
 
 /// The arguments given to `docker events`.
 pub fn docker_events_arguments() -> Vec<String> {

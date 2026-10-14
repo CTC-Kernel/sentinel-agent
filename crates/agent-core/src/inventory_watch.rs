@@ -291,6 +291,25 @@ impl InventoryWatch {
                 hotfixes.sort_by(|a, b| b.installed_on.cmp(&a.installed_on));
                 hotfixes
             },
+            containers: inventory
+                .containers
+                .iter()
+                .map(|container| {
+                    let risks = container.settings.risks();
+                    dto::GuiInventoryContainer {
+                        id: container.id.clone(),
+                        name: container.name.clone(),
+                        image: container.image.clone(),
+                        state: container.state.clone(),
+                        user: container.settings.user.clone(),
+                        risks: risks
+                            .iter()
+                            .map(|risk| risk.label_fr().to_string())
+                            .collect(),
+                        can_take_host: risks.iter().any(|risk| risk.is_escape()),
+                    }
+                })
+                .collect(),
         })
     }
 }

@@ -19,6 +19,7 @@
 //! | Services        | `systemctl list-unit-files`         | launch daemons and agents of `/Library` | `Win32_Service`         |
 //! | Listening ports | `ss -lntup`                         | `lsof`, completed by `netstat`          | `Get-NetTCPConnection`  |
 //! | Updates         | (the packages, in the software inventory) | (idem)                            | `Get-HotFix`            |
+//! | Containers      | `docker ps`, `docker inspect`       |                                         |                         |
 //!
 //! The processor, memory, kernel and start time come from `sysinfo` on
 //! every system.
@@ -54,6 +55,9 @@
 //! - A Windows update that leaves the list is recorded, not raised: a
 //!   cumulative update replaced by the next one leaves it too, once Windows
 //!   cleans up its components.
+//! - The containers are listed with their settings, not compared: a
+//!   container is started and removed all day on some hosts, and the start
+//!   of a risky one is raised by the log analysis as it happens.
 //! - The serial number of a Linux machine is readable by root only; on a
 //!   virtual machine without DMI (ARM, some hosts) the manufacturer and
 //!   model are those of the device tree, or unknown.
@@ -314,6 +318,19 @@ pub struct Hotfix {
     pub installed_on: Option<String>,
 }
 
+/// A container of the host's Docker, running or not.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct ContainerEntry {
+    /// The first twelve characters of its identifier, as Docker shows it.
+    pub id: String,
+    pub name: String,
+    pub image: String,
+    /// `running`, `exited`, `created`…
+    pub state: String,
+    #[serde(default)]
+    pub settings: agent_common::containers::ContainerSettings,
+}
+
 /// What the system holds at one moment.
 #[derive(Debug, Clone, PartialEq, Eq, Default, Serialize, Deserialize)]
 pub struct SystemInventory {
@@ -332,6 +349,9 @@ pub struct SystemInventory {
     /// Windows only.
     #[serde(default)]
     pub hotfixes: Vec<Hotfix>,
+    /// Linux, when Docker runs.
+    #[serde(default)]
+    pub containers: Vec<ContainerEntry>,
 }
 
 impl SystemInventory {
@@ -343,6 +363,7 @@ impl SystemInventory {
             && self.services.is_empty()
             && self.listening_ports.is_empty()
             && self.hotfixes.is_empty()
+            && self.containers.is_empty()
     }
 }
 
@@ -1218,6 +1239,7 @@ pub fn parse_windows_inventory(json: &str) -> SystemInventory {
             .into_iter()
             .take(MAX_ENTRIES)
             .collect(),
+        containers: Vec::new(),
     }
 }
 
@@ -1282,6 +1304,58 @@ pub fn parse_mac_hardware(json: &str) -> SystemDescription {
         processor: text("chip_type").or_else(|| text("cpu_type")),
         ..SystemDescription::default()
     }
+}
+
+/// The containers of what `docker inspect` prints.
+pub fn parse_docker_containers(json: &str) -> Vec<ContainerEntry> {
+    agent_common::containers::inspected(json)
+        .iter()
+        .filter_map(|container| {
+            Some(ContainerEntry {
+                id: container["Id"].as_str()?.chars().take(12).collect(),
+                name: container["Name"]
+                    .as_str()
+                    .unwrap_or("")
+                    .trim_start_matches('/')
+                    .to_string(),
+                image: container["Config"]["Image"]
+                    .as_str()
+                    .unwrap_or("")
+                    .to_string(),
+                state: container["State"]["Status"]
+                    .as_str()
+                    .unwrap_or("")
+                    .to_string(),
+                settings: agent_common::containers::ContainerSettings::from_inspect(container),
+            })
+        })
+        .collect()
+}
+
+/// Containers listed at most.
+#[cfg(target_os = "linux")]
+const MAX_CONTAINERS: usize = 500;
+
+/// The containers of the host's Docker, running or not (Linux, when Docker
+/// runs).
+#[cfg(target_os = "linux")]
+fn docker_containers() -> Vec<ContainerEntry> {
+    let Some(docker) = agent_common::containers::docker_program() else {
+        return Vec::new();
+    };
+    let Some(ids) = run(docker, &["ps", "--all", "--quiet", "--no-trunc"]) else {
+        return Vec::new();
+    };
+    let ids: Vec<&str> = ids.split_whitespace().take(MAX_CONTAINERS).collect();
+    if ids.is_empty() {
+        return Vec::new();
+    }
+    let mut arguments = vec!["inspect", "--type", "container"];
+    arguments.extend(ids);
+    // A container removed meanwhile is left out; the others are printed.
+    run(docker, &arguments)
+        .map(|json| parse_docker_containers(&json))
+        .unwrap_or_default()
 }
 
 /// What every system says through `sysinfo`: name and version, kernel,
@@ -1359,6 +1433,7 @@ pub fn collect() -> SystemInventory {
     let platform = inventory.system.take().unwrap_or_default();
     inventory.system = Some(platform.or(sysinfo_description()));
     inventory.hotfixes.sort();
+    inventory.containers.sort_by(|a, b| a.name.cmp(&b.name));
     inventory.users.sort_by(|a, b| a.name.cmp(&b.name));
     inventory.groups.sort_by(|a, b| a.name.cmp(&b.name));
     inventory.services.sort_by(|a, b| a.name.cmp(&b.name));
@@ -1409,6 +1484,7 @@ fn collect_platform() -> SystemInventory {
             .map(|output| parse_ss_listeners(&output))
             .unwrap_or_default(),
         hotfixes: Vec::new(),
+        containers: docker_containers(),
     }
 }
 
@@ -1471,6 +1547,7 @@ fn collect_platform() -> SystemInventory {
         services,
         listening_ports: merge_listeners(named, unnamed),
         hotfixes: Vec::new(),
+        containers: Vec::new(),
     }
 }
 
@@ -1549,6 +1626,7 @@ mod tests {
             listening_ports: vec![port(22, "0.0.0.0", "sshd")],
             system: None,
             hotfixes: Vec::new(),
+            containers: Vec::new(),
         }
     }
 
@@ -1784,6 +1862,39 @@ mod tests {
         );
         assert_eq!(system.serial_number, None);
         assert_eq!(windows.hotfixes, [hotfix("KB5034441")]);
+    }
+
+    #[test]
+    fn containers_are_listed_with_what_weakens_them_never_compared() {
+        use agent_common::containers::ContainerRisk;
+        let containers = parse_docker_containers(
+            r#"[{"Id":"4f2a9c0d1e2b3a4f5e6d","Name":"/escape","Config":{"Image":"alpine:3.20","User":""},
+                 "State":{"Status":"running"},"HostConfig":{"Privileged":true},"Mounts":[{"Source":"/"}]},
+                {"Id":"9b8a7c6d5e4f","Name":"/web","Config":{"Image":"nginx","User":"nginx"},
+                 "State":{"Status":"exited"},"HostConfig":{"Privileged":false}}]"#,
+        );
+        assert_eq!(containers.len(), 2);
+        assert_eq!(
+            (
+                containers[0].id.as_str(),
+                containers[0].name.as_str(),
+                containers[0].state.as_str()
+            ),
+            ("4f2a9c0d1e2b", "escape", "running")
+        );
+        assert_eq!(
+            containers[0].settings.risks(),
+            [ContainerRisk::Privileged, ContainerRisk::HostRoot]
+        );
+        assert!(containers[1].settings.risks().is_empty());
+
+        // Listed, not compared, not kept: the containers of the moment.
+        let mut state = InventoryState::default();
+        let mut before = baseline();
+        before.containers = containers;
+        state.update(before, at(0));
+        assert!(state.update(baseline(), at(0)).is_empty());
+        assert!(state.inventory.as_ref().unwrap().containers.is_empty());
     }
 
     #[test]

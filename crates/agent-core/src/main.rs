@@ -92,8 +92,9 @@ enum Commands {
     Stop,
     /// Show the agent service status
     Status,
-    /// Print the inventory of this system (accounts, groups, services,
-    /// listening ports) as JSON
+    /// Print the inventory of this system (system and hardware, accounts,
+    /// groups, services, listening ports, Windows updates, containers) as
+    /// JSON
     Inventory,
     /// Run the privileged helper (root): executes the firewall and isolation
     /// actions requested by the desktop app, which runs as the user.

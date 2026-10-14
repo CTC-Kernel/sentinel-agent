@@ -378,8 +378,9 @@ pub fn seed(state: &mut AppState) {
     // ── Inventory of the endpoint ────────────────────────────────────
     {
         use agent_gui::dto::{
-            GuiInventoryAccount, GuiInventoryChange, GuiInventoryGroup, GuiInventoryHotfix,
-            GuiInventoryPort, GuiInventoryService, GuiSystemDescription, GuiSystemInventory,
+            GuiInventoryAccount, GuiInventoryChange, GuiInventoryContainer, GuiInventoryGroup,
+            GuiInventoryHotfix, GuiInventoryPort, GuiInventoryService, GuiSystemDescription,
+            GuiSystemInventory,
         };
         let account = |name: &str, id: &str, home: &str, shell: &str, log_in: bool, admin: bool| {
             GuiInventoryAccount {
@@ -490,6 +491,61 @@ pub fn seed(state: &mut AppState) {
             } else {
                 Vec::new()
             },
+            containers: [
+                (
+                    "4f2a9c0d1e2b",
+                    "debug-shell",
+                    "alpine:3.20",
+                    "running",
+                    "root",
+                    vec![
+                        "Privilégié",
+                        "Racine de l'hôte montée",
+                        "Processus de l'hôte",
+                    ],
+                    true,
+                ),
+                (
+                    "9b8a7c6d5e4f",
+                    "traefik",
+                    "traefik:v3.1",
+                    "running",
+                    "root",
+                    vec!["Socket du moteur monté"],
+                    true,
+                ),
+                (
+                    "1c2d3e4f5a6b",
+                    "web",
+                    "nginx:1.27",
+                    "running",
+                    "nginx",
+                    vec![],
+                    false,
+                ),
+                (
+                    "7e6d5c4b3a29",
+                    "migration",
+                    "app/migrate:2.4",
+                    "exited",
+                    "app",
+                    vec![],
+                    false,
+                ),
+            ]
+            .into_iter()
+            .map(
+                |(id, name, image, state, user, risks, can_take_host)| GuiInventoryContainer {
+                    id: id.into(),
+                    name: name.into(),
+                    image: image.into(),
+                    state: state.into(),
+                    user: user.into(),
+                    risks: risks.into_iter().map(Into::into).collect(),
+                    can_take_host,
+                },
+            )
+            .collect(),
             changes: vec![
                 GuiInventoryChange {
                     at: ago(4),
