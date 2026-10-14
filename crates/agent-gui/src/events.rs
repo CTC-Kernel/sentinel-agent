@@ -107,6 +107,10 @@ pub enum AgentEvent {
         /// List of installed software packages.
         packages: Vec<GuiSoftwarePackage>,
     },
+    /// The inventory of the endpoint was taken again.
+    SystemInventory {
+        inventory: crate::dto::GuiSystemInventory,
+    },
     /// Browser extension inventory updated.
     BrowserExtensions {
         /// Extensions of every user, widest reach first.

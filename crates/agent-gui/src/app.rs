@@ -42,6 +42,7 @@ pub enum Page {
     Monitoring,
     Compliance,
     Software,
+    SystemInventory,
     Vulnerabilities,
     FileIntegrity,
     Threats,
@@ -64,7 +65,7 @@ pub enum Page {
 /// `(page, nav id, icon, label, category)`. Categories follow the product's
 /// domain grouping so palette results read like the navigation. Used both to
 /// build the palette and to resolve a selected `nav:<id>` back to a `Page`.
-fn page_catalog() -> [(Page, &'static str, &'static str, &'static str, &'static str); 20] {
+fn page_catalog() -> [(Page, &'static str, &'static str, &'static str, &'static str); 21] {
     use Page::*;
     [
         (
@@ -149,6 +150,13 @@ fn page_catalog() -> [(Page, &'static str, &'static str, &'static str, &'static 
             "software",
             icons::SOFTWARE,
             "Logiciels & MDM",
+            "Actifs & Inventaire",
+        ),
+        (
+            SystemInventory,
+            "system_inventory",
+            icons::USERS,
+            "Comptes & services",
             "Actifs & Inventaire",
         ),
         (
@@ -1598,6 +1606,12 @@ impl eframe::App for SentinelApp {
                         }
                         Page::Software => {
                             if let Some(cmd) = pages::SoftwarePage::show(ui, &mut self.state) {
+                                self.send_command(cmd);
+                            }
+                        }
+                        Page::SystemInventory => {
+                            if let Some(cmd) = pages::SystemInventoryPage::show(ui, &mut self.state)
+                            {
                                 self.send_command(cmd);
                             }
                         }

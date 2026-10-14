@@ -419,6 +419,71 @@ impl GuiDetectionOptions {
     }
 }
 
+/// The inventory of this endpoint: accounts, groups, services and listening
+/// ports as last collected, and what changed since the agent started.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
+pub struct GuiSystemInventory {
+    pub collected_at: Option<DateTime<Utc>>,
+    pub accounts: Vec<GuiInventoryAccount>,
+    pub groups: Vec<GuiInventoryGroup>,
+    pub services: Vec<GuiInventoryService>,
+    pub ports: Vec<GuiInventoryPort>,
+    /// Most recent first.
+    pub changes: Vec<GuiInventoryChange>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct GuiInventoryAccount {
+    pub name: String,
+    /// Numeric identifier (Unix), or security identifier (Windows).
+    pub id: String,
+    pub home: Option<String>,
+    pub shell: Option<String>,
+    /// Can open a session: a real shell on Unix, an enabled account on Windows.
+    pub can_log_in: bool,
+    /// Has the rights of an administrator: the identifier of root, or a
+    /// member of an administration group.
+    pub privileged: bool,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct GuiInventoryGroup {
+    pub name: String,
+    pub id: Option<String>,
+    pub members: Vec<String>,
+    /// Membership gives administration rights.
+    pub privileged: bool,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct GuiInventoryService {
+    pub name: String,
+    /// `enabled`, `disabled`, `static`… (systemd), `installed` (launchd),
+    /// the start mode (Windows).
+    pub state: String,
+    pub command: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct GuiInventoryPort {
+    /// `tcp` or `udp`.
+    pub protocol: String,
+    pub address: String,
+    pub port: u16,
+    pub process: Option<String>,
+    /// Answers on the machine itself only.
+    pub local_only: bool,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct GuiInventoryChange {
+    pub at: DateTime<Utc>,
+    /// The change in one sentence, in French.
+    pub label: String,
+    /// The severity of the incident it raised (`None`: recorded only).
+    pub severity: Option<Severity>,
+}
+
 /// A single compliance check result for GUI display.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "snake_case")]

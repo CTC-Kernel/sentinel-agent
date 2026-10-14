@@ -374,6 +374,109 @@ pub fn seed(state: &mut AppState) {
         );
     }
 
+    // ── Inventory of the endpoint ────────────────────────────────────
+    {
+        use agent_gui::dto::{
+            GuiInventoryAccount, GuiInventoryChange, GuiInventoryGroup, GuiInventoryPort,
+            GuiInventoryService, GuiSystemInventory,
+        };
+        let account = |name: &str, id: &str, home: &str, shell: &str, log_in: bool, admin: bool| {
+            GuiInventoryAccount {
+                name: name.into(),
+                id: id.into(),
+                home: Some(home.into()),
+                shell: Some(shell.into()),
+                can_log_in: log_in,
+                privileged: admin,
+            }
+        };
+        let service = |name: &str, state: &str, command: &str| GuiInventoryService {
+            name: name.into(),
+            state: state.into(),
+            command: Some(command.into()),
+        };
+        let port = |protocol: &str, address: &str, port: u16, process: &str, local: bool| {
+            GuiInventoryPort {
+                protocol: protocol.into(),
+                address: address.into(),
+                port,
+                process: Some(process.into()),
+                local_only: local,
+            }
+        };
+        state.system_inventory.inventory = Some(GuiSystemInventory {
+            collected_at: Some(ago(4)),
+            accounts: vec![
+                account("root", "0", "/root", "/bin/bash", true, true),
+                account("alice", "1000", "/home/alice", "/bin/zsh", true, true),
+                account("backup", "1001", "/var/backups", "/bin/bash", true, false),
+                account(
+                    "www-data",
+                    "33",
+                    "/var/www",
+                    "/usr/sbin/nologin",
+                    false,
+                    false,
+                ),
+                account(
+                    "sshd",
+                    "110",
+                    "/run/sshd",
+                    "/usr/sbin/nologin",
+                    false,
+                    false,
+                ),
+            ],
+            groups: vec![
+                GuiInventoryGroup {
+                    name: "sudo".into(),
+                    id: Some("27".into()),
+                    members: vec!["alice".into(), "backup".into()],
+                    privileged: true,
+                },
+                GuiInventoryGroup {
+                    name: "docker".into(),
+                    id: Some("998".into()),
+                    members: vec!["alice".into()],
+                    privileged: false,
+                },
+            ],
+            services: vec![
+                service("ssh.service", "enabled", "/usr/sbin/sshd -D"),
+                service("nginx.service", "enabled", "/usr/sbin/nginx -g daemon off;"),
+                service("cups.service", "disabled", "/usr/sbin/cupsd -l"),
+                service(
+                    "sentinel-agent.service",
+                    "enabled",
+                    "/usr/bin/sentinel-agent run",
+                ),
+            ],
+            ports: vec![
+                port("tcp", "0.0.0.0", 22, "sshd", false),
+                port("tcp", "0.0.0.0", 443, "nginx", false),
+                port("tcp", "127.0.0.1", 5432, "postgres", true),
+                port("udp", "127.0.0.53", 53, "systemd-resolved", true),
+            ],
+            changes: vec![
+                GuiInventoryChange {
+                    at: ago(4),
+                    label: "backup ajouté au groupe sudo".into(),
+                    severity: Some(Severity::High),
+                },
+                GuiInventoryChange {
+                    at: ago(14),
+                    label: "Compte créé : backup (identifiant 1001)".into(),
+                    severity: Some(Severity::Medium),
+                },
+                GuiInventoryChange {
+                    at: ago(34),
+                    label: "Service modifié : cups.service (enabled → disabled)".into(),
+                    severity: None,
+                },
+            ],
+        });
+    }
+
     // ── Vulnerabilities ───────────────────────────────────────────────
     state.vulnerability_summary = Some(GuiVulnerabilitySummary {
         critical: 2,
@@ -2197,6 +2300,7 @@ pub fn select_tab(state: &mut AppState, page: &str, tab: usize) {
             state.software.active_tab = SoftwareTab::from_index(u8::try_from(tab).unwrap_or(0));
         }
         "notifications" => state.notifications_active_tab = tab,
+        "system_inventory" => state.system_inventory.active_tab = tab,
         "monitoring" => state.monitoring.active_tab = tab,
         "reports" => state.reports.active_tab = tab,
         "network" => state.network.active_section = tab,

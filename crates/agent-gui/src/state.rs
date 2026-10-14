@@ -1032,6 +1032,17 @@ pub struct VulnerabilityFilter {
 // Software
 // ---------------------------------------------------------------------------
 
+/// The inventory of the endpoint and how its page is browsed.
+#[derive(Debug, Clone, Default)]
+pub struct SystemInventoryState {
+    /// `None` until the agent sends a first inventory.
+    pub inventory: Option<crate::dto::GuiSystemInventory>,
+    /// Accounts, groups, services, ports, changes.
+    pub active_tab: usize,
+    pub search: String,
+    pub page: usize,
+}
+
 /// Software inventory state.
 #[derive(Default)]
 pub struct SoftwareState {
@@ -1233,6 +1244,7 @@ pub struct AppState {
     pub fim: FimState,
     pub threats: ThreatsState,
     pub software: SoftwareState,
+    pub system_inventory: SystemInventoryState,
     pub settings: SettingsState,
     pub security: SecurityState,
     pub compliance: ComplianceFilter,
@@ -1293,6 +1305,7 @@ impl Default for AppState {
             fim: FimState::default(),
             threats: ThreatsState::default(),
             software: SoftwareState::default(),
+            system_inventory: SystemInventoryState::default(),
             settings: SettingsState::default(),
             security: SecurityState::default(),
             compliance: ComplianceFilter::default(),
@@ -1675,6 +1688,9 @@ impl AppState {
             }
             AgentEvent::BrowserExtensions { extensions } => {
                 self.software.browser_extensions = extensions;
+            }
+            AgentEvent::SystemInventory { inventory } => {
+                self.system_inventory.inventory = Some(inventory);
             }
             AgentEvent::VulnerabilityFindings {
                 findings,
