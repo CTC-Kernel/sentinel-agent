@@ -695,6 +695,31 @@ fn describe(action: &ResolvedAction) -> String {
     }
 }
 
+/// A notification of `playbook_name` as a SIEM record, for an endpoint with
+/// no interface to show it.
+fn notification_event(playbook_name: &str, message: &str) -> agent_siem::SiemEvent {
+    agent_siem::SiemEvent {
+        timestamp: chrono::Utc::now(),
+        severity: 5,
+        category: agent_siem::EventCategory::Security,
+        name: format!("Playbook notification: {playbook_name}"),
+        description: message.to_string(),
+        source_host: hostname::get()
+            .map(|h| h.to_string_lossy().into_owned())
+            .unwrap_or_default(),
+        source_ip: None,
+        destination_ip: None,
+        destination_port: None,
+        user: None,
+        process_name: None,
+        process_id: None,
+        file_path: None,
+        custom_fields: serde_json::json!({ "playbook": playbook_name, "notification": true }),
+        event_id: uuid::Uuid::new_v4().to_string(),
+        agent_version: agent_common::constants::AGENT_VERSION.to_string(),
+    }
+}
+
 /// Marks, in results and logs, an action that was simulated and not run.
 pub const SIMULATION_PREFIX: &str = "[Simulation] ";
 
@@ -867,6 +892,19 @@ async fn run_playbook_actions(
                             ),
                         })
                         .map_err(|e| e.to_string())
+                    } else if let Some(forwarder) = siem {
+                        // No interface on this endpoint (a service on a
+                        // server): the notification goes where its operators
+                        // read, the SIEM records the platform receives, and
+                        // the external SIEM when there is one.
+                        let event = notification_event(playbook_name, message);
+                        forwarder.record_event(event.clone()).await;
+                        if forwarder.is_enabled()
+                            && let Err(e) = forwarder.send_event(&event).await
+                        {
+                            warn!("Playbook notification not forwarded to the SIEM: {}", e);
+                        }
+                        Ok(())
                     } else {
                         Err("No notification delivery destination configured".to_string())
                     }
@@ -997,6 +1035,34 @@ mod guard_tests {
             .is_ok(),
             "a well-formed IP must still be allowed"
         );
+    }
+
+    /// A service has no interface: its notifications go to the SIEM records
+    /// the platform receives, instead of failing the playbook.
+    #[tokio::test]
+    async fn without_an_interface_a_notification_goes_to_the_siem_records() {
+        let forwarder = agent_siem::SiemForwarder::new(agent_siem::SiemConfig::default())
+            .expect("default forwarder");
+        let actions = vec![ResolvedAction::Notify {
+            message: "Adresse bloquée".to_string(),
+        }];
+        let results = execute_playbook_actions_with_delivery(
+            "Brute-force",
+            &actions,
+            None,
+            None,
+            Some(&forwarder),
+        )
+        .await;
+        assert!(results[0].success, "{:?}", results[0].error);
+        let recorded = forwarder.take_recent_events().await;
+        assert_eq!(recorded.len(), 1);
+        assert_eq!(recorded[0].name, "Playbook notification: Brute-force");
+        assert_eq!(recorded[0].description, "Adresse bloquée");
+
+        // Nowhere to deliver: still a failure, never a success by logging.
+        let results = execute_playbook_actions_with_delivery("x", &actions, None, None, None).await;
+        assert!(!results[0].success);
     }
 
     /// An address that comes back after its block is shut out longer each

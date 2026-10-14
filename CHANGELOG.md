@@ -10,6 +10,62 @@ Tous les changements notables apportés au projet **Sentinel GRC Agent** sont co
 
 ## 🚀 [Non publié]
 
+### 🏁 Détection et réponse : chaînes vérifiées de bout en bout, tout se règle dans l'interface
+
+- **Le modèle de playbook « Brute-force » se déclenche enfin** : sa condition
+  cherchait le texte `brute_force` dans la description de l'alerte, alors
+  qu'une force brute SSH vue dans les journaux s'intitule « Attaque par force
+  brute SSH ». Il ne pouvait jamais agir. Chaque alerte donnée aux playbooks
+  porte désormais un type stable : celui du détecteur réseau
+  (`data_exfiltration`, `c2_communication`…) et, pour une détection dans les
+  journaux, `brute_force` quand ses techniques ATT&CK sont T1110 (essais de
+  mots de passe, pulvérisation comprise), `log_detection` sinon.
+- **Paramètres des actions** : le formulaire de création de playbook n'avait
+  aucun champ pour eux ; une commande de réponse ne pouvait pas être nommée,
+  ni une durée de blocage ou de verrouillage, ni le texte d'une
+  notification. Chaque action a maintenant son champ et une ligne qui dit ce
+  qu'il signifie en exécution automatique et à la main ; les conditions
+  disent quelles valeurs existent.
+- **Durée de blocage** : celle de l'action s'applique aussi aux exécutions
+  automatiques (c'était toujours une heure). Une adresse nommée par
+  plusieurs alertes est bloquée une fois.
+- **Récidivistes** : une adresse bloquée automatiquement de nouveau dans la
+  journée l'est deux fois plus longtemps que la fois précédente, jusqu'à une
+  semaine (comme l'option `repeated_offenders` de Wazuh). Un blocage sans
+  fin le reste ; un blocage demandé par un opérateur dure ce qu'il a demandé.
+- **Notification** : sans texte, elle dit ce qui a déclenché le playbook (elle
+  arrivait vide).
+- **Deux modèles** : « Compte pris par force brute » (bloque l'adresse et
+  verrouille le compte pris) et « Fichier malveillant connu » (quarantaine du
+  fichier dont un flux liste l'empreinte).
+- **Détection et conformité dans les paramètres** : analyse des journaux,
+  détection de rootkits, inventaire du poste, socle de durcissement, lignes
+  modifiées et auteur exact des changements s'activent depuis l'interface (ils
+  ne se réglaient que dans le fichier de configuration). Le réglage est
+  enregistré et pris en compte au prochain démarrage de l'agent, ce que
+  l'interface dit ; en désactiver un demande le mode administrateur.
+- **Fiche d'un contrôle de conformité** : elle montre ce qui est vérifié,
+  pourquoi, et comment corriger (description, justification et correction
+  des politiques SCA), la correction en premier quand le contrôle échoue.
+- **Comptes & services** (Actifs & inventaire) : l'inventaire du poste a son
+  écran. Comptes (qui peut ouvrir une session, qui est administrateur),
+  groupes et membres, services, ports en écoute (locaux ou exposés au
+  réseau), et les changements depuis le démarrage de l'agent avec l'incident
+  que chacun a levé.
+- **Auteur exact d'un changement de fichier** (`fim_whodata`, Linux,
+  désactivé par défaut) : l'agent ajoute à auditd une règle par chemin
+  surveillé, sous sa propre clé, lit le journal d'audit et retire ses règles à
+  l'arrêt. L'alerte d'intégrité nomme alors le compte et le programme. Sans
+  auditd, rien n'est ajouté et l'alerte garde l'auteur probable. Désactivé
+  par défaut : sur un système très actif, une mise à jour produit beaucoup
+  d'enregistrements, et une politique d'audit qui arrête la machine quand
+  son tampon déborde relève de l'administrateur.
+- **Vérifié** : RÉSULTAT_E2E. Code propre à Windows d'`agent-scanner` et
+  d'`agent-common` contrôlé pour la cible Windows (types et clippy).
+  **Non vérifié** : l'auteur exact sur un vrai auditd (le noyau partagé des
+  machines OrbStack refuse l'audit) ; l'interface n'a été vue que dans son
+  aperçu, avec des données d'exemple.
+
 ### 🔒 Réponse : verrouillage de compte et commande de réponse
 
 - **Verrouiller un compte** (action de playbook « Verrouiller le compte ») :

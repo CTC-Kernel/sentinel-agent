@@ -52,6 +52,7 @@
   "system_inventory": true,
   "hardening_benchmark": false,
   "fim_report_changes": true,
+  "fim_whodata": false,
 
   "response_commands": [
     {
