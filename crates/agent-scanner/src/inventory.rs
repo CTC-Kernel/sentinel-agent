@@ -2232,14 +2232,25 @@ mod tests {
             system.manufacturer.is_some() || system.model.is_some(),
             "{system:?}"
         );
-        eprintln!(
-            "{} updates listed, the latest: {:?}",
-            inventory.hotfixes.len(),
+        // A Windows that is kept up to date lists its updates, with the day
+        // they were installed.
+        assert!(!inventory.hotfixes.is_empty(), "no update listed");
+        assert!(
+            inventory
+                .hotfixes
+                .iter()
+                .all(|hotfix| hotfix.id.to_ascii_uppercase().starts_with("KB")),
+            "{:?}",
+            inventory.hotfixes
+        );
+        assert!(
             inventory
                 .hotfixes
                 .iter()
                 .filter_map(|hotfix| hotfix.installed_on.as_deref())
-                .max()
+                .all(|day| chrono::NaiveDate::parse_from_str(day, "%Y-%m-%d").is_ok()),
+            "{:?}",
+            inventory.hotfixes
         );
     }
 }
