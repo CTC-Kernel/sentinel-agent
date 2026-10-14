@@ -73,8 +73,10 @@ Tous les changements notables apportés au projet **Sentinel GRC Agent** sont co
     était gardé en entier pendant tout le scan, des milliers à la fois, avec
     toutes les versions concernées et, sous Ubuntu, tous les paquets binaires
     de la source. Chaque avis est désormais réduit dès sa réception à ce que
-    le résultat utilise ; les résultats sont inchangés. Mesuré après
-    correction : MÉMOIRE_APRÈS ;
+    le résultat utilise, et aux seuls paquets interrogés ; les résultats sont
+    inchangés. Mesuré après correction sur la même machine : le scan va au
+    bout (4120 vulnérabilités sur 831 paquets, en moins de quatre minutes) et
+    la mémoire plafonne vers 280 Mo, stable ensuite ;
   - **notification d'un poste sans interface** : elle échouait faute de
     destination, et chaque déclenchement de playbook était compté en échec
     partiel sur un serveur. Elle part maintenant dans les enregistrements SIEM
@@ -87,21 +89,29 @@ Tous les changements notables apportés au projet **Sentinel GRC Agent** sont co
     `/var/log/messages` qui n'existe pas (un avertissement par minute). Le
     journal fait foi quand il répond ; sans journal, le fichier de la
     distribution est lu depuis l'endroit où la lecture précédente s'était
-    arrêtée.
+    arrêtée ;
+  - **fichiers de verrou des comptes** : verrouiller un compte levait quatre
+    alertes d'intégrité pour `passwd.lock` et `shadow.lock`, créés puis
+    supprimés en une fraction de seconde par les outils de comptes. Ils sont
+    exclus par défaut, par leur nom exact ; la modification de la base de
+    comptes elle-même reste signalée.
 - **Vérifié** : force brute SSH réelle contre l'agent fusionné, en service
   sans interface, sur une Ubuntu 24.04 (OrbStack) : huit mauvais mots de
   passe depuis une adresse de test, « Échecs d'authentification répétés sur
   un compte » puis « Attaque par force brute SSH » levés, le playbook « Compte
   pris par force brute » déclenché, l'adresse bloquée dans iptables (entrée
   et sortie) pour 600 s, le second blocage compté comme la même récidive ;
-  l'attaquant est coupé net. Code propre à Windows d'`agent-scanner` et
+  l'attaquant est coupé net. Second essai, playbook de verrouillage seul :
+  après la force brute, la connexion réussie avec le bon mot de passe lève
+  « Connexion SSH réussie après une attaque par force brute », le compte pris
+  est verrouillé pour 600 s (verrouillé et expiré, ce qui refuse aussi les clés
+  SSH), la session ouverte est fermée, et les notifications de ce poste sans
+  interface sont toutes délivrées. Code propre à Windows d'`agent-scanner` et
   d'`agent-common` contrôlé pour la cible Windows (types et clippy) ; tests de
-  tout l'espace de travail sous macOS. **Non vérifié** : le verrouillage du
-  compte pris dans ce même essai (le blocage a empêché la connexion réussie
-  qui le déclenche ; le verrouillage lui-même avait été exercé sur Ubuntu le
-  11 octobre) ; l'auteur exact sur un vrai auditd (le noyau partagé des
-  machines OrbStack refuse l'audit) ; l'interface n'a été vue que dans son
-  aperçu, avec des données d'exemple.
+  tout l'espace de travail sous macOS. **Non vérifié** : l'auteur exact sur un
+  vrai auditd (le noyau partagé des machines OrbStack refuse l'audit) ; les
+  clés de registre et le reste du code Windows ailleurs que dans la CI ;
+  l'interface n'a été vue que dans son aperçu, avec des données d'exemple.
 
 ### 🔒 Réponse : verrouillage de compte et commande de réponse
 
