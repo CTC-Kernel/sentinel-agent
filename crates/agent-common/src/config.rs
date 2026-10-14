@@ -28,6 +28,7 @@
 //! - `SENTINEL_HARDENING_BENCHMARK` → `hardening_benchmark` (`true`: run the shipped hardening policy)
 //! - `SENTINEL_SYSTEM_INVENTORY` → `system_inventory` (`false`: no inventory of accounts, services and ports)
 //! - `SENTINEL_FIM_REPORT_CHANGES` → `fim_report_changes` (`false`: report that a file changed, not which lines)
+//! - `SENTINEL_FIM_WHODATA` → `fim_whodata` (`true`: ask the Linux audit who changed a watched file)
 //!
 //! Nested fields are mapped explicitly (see [`NESTED_ENV_KEYS`]):
 //!
@@ -255,6 +256,16 @@ pub struct AgentConfig {
     /// default.
     #[serde(default = "default_true")]
     pub fim_report_changes: bool,
+
+    /// Say exactly who changed a watched file (account, program, process),
+    /// from the audit of the system: on Linux, the agent adds a watch rule
+    /// for every watched path to auditd, under its own key, and removes them
+    /// when it stops. Off by default: on a busy system the records of a
+    /// package upgrade add up, and an audit set to stop the machine when its
+    /// backlog overflows is the administrator's to judge. Needs auditd
+    /// running and the agent running as root.
+    #[serde(default)]
+    pub fim_whodata: bool,
 
     /// Programs of the organisation a playbook may ask for by name (open a
     /// ticket, call the on-call engineer…). None by default. A playbook can
@@ -553,6 +564,7 @@ impl Default for AgentConfig {
             hardening_benchmark: false,
             system_inventory: true,
             fim_report_changes: true,
+            fim_whodata: false,
             response_commands: Vec::new(),
         }
     }
@@ -1098,6 +1110,7 @@ mod tests {
             hardening_benchmark: false,
             system_inventory: true,
             fim_report_changes: true,
+            fim_whodata: false,
             response_commands: Vec::new(),
         };
 

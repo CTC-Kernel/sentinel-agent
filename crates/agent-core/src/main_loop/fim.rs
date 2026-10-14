@@ -219,13 +219,22 @@ impl AgentRuntime {
         batch: &mut FimBatch,
         mut alert: FimAlert,
     ) {
-        info!("FIM Alert: {:?} on {}", alert.change, alert.path.display());
         // Who changed the file, when the audit or a process start says so.
         alert.actor = self
             .fim_attribution
             .lock()
             .unwrap_or_else(|e| e.into_inner())
             .actor_for(&alert.path.to_string_lossy(), std::time::Instant::now());
+        match &alert.actor {
+            Some(actor) => info!(
+                "FIM Alert: {:?} on {} by {}{}",
+                alert.change,
+                alert.path.display(),
+                actor.label(),
+                if actor.exact { "" } else { " (probable)" }
+            ),
+            None => info!("FIM Alert: {:?} on {}", alert.change, alert.path.display()),
+        }
         if alert.detection == FimDetection::Startup {
             batch.found_at_start = batch.found_at_start.saturating_add(1);
         }

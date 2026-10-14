@@ -101,6 +101,7 @@ pub fn seed(state: &mut AppState) {
             system_inventory: true,
             hardening_benchmark: false,
             fim_report_changes: true,
+            fim_whodata: false,
             log_rules: Some(
                 "18 règle(s) sur les journaux, 8 corrélation(s), 0 sur les processus".into(),
             ),

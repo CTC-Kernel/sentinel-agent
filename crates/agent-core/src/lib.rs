@@ -63,6 +63,8 @@ mod configure_cmd;
 pub mod edr_actions;
 mod enrollment;
 mod fim_attribution;
+#[cfg(target_os = "linux")]
+mod fim_audit;
 mod gui_bridge;
 mod heartbeat;
 pub mod host_isolation;
@@ -367,6 +369,9 @@ pub struct AgentRuntime {
     log_analysis: std::sync::Mutex<Option<log_analysis::LogAnalysis>>,
     /// What was recently seen that can say who changed a file.
     fim_attribution: std::sync::Mutex<fim_attribution::Attribution>,
+    /// The audit watches added for the watched paths (`fim_whodata`).
+    #[cfg(target_os = "linux")]
+    fim_audit: std::sync::Mutex<Option<fim_audit::AuditWatches>>,
     /// The inventory of the system and when it was taken (`None`: option off).
     inventory: std::sync::Mutex<Option<inventory_watch::InventoryWatch>>,
     /// What the log analysis loaded, for the interface (`None`: option off).
@@ -746,6 +751,8 @@ impl AgentRuntime {
             process_telemetry: std::sync::Mutex::new(None),
             log_analysis: std::sync::Mutex::new(log_analysis),
             fim_attribution: std::sync::Mutex::new(fim_attribution::Attribution::default()),
+            #[cfg(target_os = "linux")]
+            fim_audit: std::sync::Mutex::new(None),
             inventory: std::sync::Mutex::new(inventory),
             log_rules_summary,
             canary_rx: tokio::sync::Mutex::new(None),

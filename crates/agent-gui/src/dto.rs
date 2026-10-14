@@ -328,16 +328,19 @@ pub enum DetectionOption {
     HardeningBenchmark,
     /// The lines that changed in a small text file.
     FimReportChanges,
+    /// Who changed a watched file, from the system audit (Linux).
+    FimWhodata,
 }
 
 impl DetectionOption {
     /// Every option, in the order the settings show them.
-    pub const ALL: [Self; 5] = [
+    pub const ALL: [Self; 6] = [
         Self::LogAnalysis,
         Self::RootkitDetection,
         Self::SystemInventory,
         Self::HardeningBenchmark,
         Self::FimReportChanges,
+        Self::FimWhodata,
     ];
 
     /// The key of the option in the agent's configuration file.
@@ -348,6 +351,7 @@ impl DetectionOption {
             Self::SystemInventory => "system_inventory",
             Self::HardeningBenchmark => "hardening_benchmark",
             Self::FimReportChanges => "fim_report_changes",
+            Self::FimWhodata => "fim_whodata",
         }
     }
 
@@ -358,6 +362,7 @@ impl DetectionOption {
             Self::SystemInventory => "Inventaire du poste",
             Self::HardeningBenchmark => "Socle de durcissement",
             Self::FimReportChanges => "Lignes modifi\u{00e9}es (int\u{00e9}grit\u{00e9})",
+            Self::FimWhodata => "Auteur exact des changements (audit)",
         }
     }
 
@@ -383,6 +388,11 @@ impl DetectionOption {
                 "Pour un petit fichier texte lisible par tous, l'alerte d'int\u{00e9}grit\u{00e9} montre les \
                  lignes retir\u{00e9}es et ajout\u{00e9}es. Les fichiers priv\u{00e9}s ne sont jamais copi\u{00e9}s."
             }
+            Self::FimWhodata => {
+                "Linux : ajoute \u{00e0} auditd une r\u{00e8}gle par dossier surveill\u{00e9}, retir\u{00e9}e \u{00e0} l'arr\u{00ea}t, \
+                 pour nommer le compte et le programme de chaque modification. Demande auditd ; \
+                 sur un syst\u{00e8}me tr\u{00e8}s actif, une mise \u{00e0} jour produit beaucoup d'enregistrements."
+            }
         }
     }
 
@@ -402,6 +412,8 @@ pub struct GuiDetectionOptions {
     pub system_inventory: bool,
     pub hardening_benchmark: bool,
     pub fim_report_changes: bool,
+    #[serde(default)]
+    pub fim_whodata: bool,
     /// What the log analysis loaded, in one line (`None`: off).
     #[serde(default)]
     pub log_rules: Option<String>,
@@ -415,6 +427,7 @@ impl GuiDetectionOptions {
             DetectionOption::SystemInventory => self.system_inventory,
             DetectionOption::HardeningBenchmark => self.hardening_benchmark,
             DetectionOption::FimReportChanges => self.fim_report_changes,
+            DetectionOption::FimWhodata => self.fim_whodata,
         }
     }
 }
