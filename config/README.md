@@ -204,6 +204,24 @@ fichiers declares.
   `sigma.d/disabled-rules.txt`.
 - Champs disponibles dans les regles : voir `crates/agent-siem/src/decode.rs`.
 
+### Conteneurs Docker
+
+Sous Linux, quand Docker tourne (socket `/var/run/docker.sock`), l'agent lit
+aussi les evenements de ses conteneurs (`docker events`, service `docker`) :
+creation, demarrage, `docker exec`, arret, manque de memoire, suppression. Le
+demarrage d'un conteneur est complete par `docker inspect` : mode privilegie,
+espaces de noms de l'hote, capacites ajoutees, profils de securite retires,
+peripheriques et chemins de l'hote montes. Aucun reglage : il suffit que
+l'analyse de journaux soit active, et Docker est suivi des qu'il apparait.
+
+Regles livrees (fichier `crates/agent-scanner/rules/containers.yml`) :
+conteneur privilegie, qui monte la racine de l'hote, qui monte le socket du
+moteur de conteneurs, dote de capacites qui permettent d'en sortir, avec un
+disque de l'hote en acces direct, dans l'espace des processus de l'hote, sans
+profil de securite (incidents), et shell interactif ouvert dans un conteneur
+(evenement SIEM seulement). Docker sans root (socket d'un utilisateur) n'est
+pas suivi.
+
 ## Integrite des fichiers
 
 | Champ | Role | Defaut |

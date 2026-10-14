@@ -75,6 +75,7 @@ const BUILTIN_RULES: &[(&str, &str)] = &[
     ("system.yml", include_str!("../../rules/system.yml")),
     ("web.yml", include_str!("../../rules/web.yml")),
     ("windows.yml", include_str!("../../rules/windows.yml")),
+    ("containers.yml", include_str!("../../rules/containers.yml")),
 ];
 
 /// A log event as the rules see it.
@@ -1253,6 +1254,7 @@ mod tests {
                 "system",
                 "powershell",
                 "windefend",
+                "docker",
             ]
             .iter()
             .map(|service| (*service).to_string())

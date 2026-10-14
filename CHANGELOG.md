@@ -38,6 +38,33 @@ Tous les changements notables apportés au projet **Sentinel GRC Agent** sont co
   dérobée en écoute ». La sortie conservée est en `0600`, l'agent s'arrête
   en 4 s.
 
+### 🐳 Conteneurs Docker surveillés
+
+- **Événements des conteneurs** (Linux), comme le Docker listener de
+  Wazuh : quand Docker tourne, l'agent suit `docker events` (création,
+  démarrage, `docker exec`, arrêt, manque de mémoire, suppression ; pas les
+  contrôles de santé, trop bavards) et les donne aux règles des journaux
+  (service `docker`). Docker est suivi dès qu'il apparaît, et de nouveau
+  après le redémarrage de son démon ; aucun réglage.
+- **Démarrage examiné** : chaque conteneur qui démarre est décrit par
+  `docker inspect` : mode privilégié, espaces de noms de l'hôte, capacités
+  ajoutées, profils seccomp ou AppArmor retirés, périphériques et chemins de
+  l'hôte montés, compte qui l'exécute.
+- **Règles livrées** (`containers.yml`) : conteneur privilégié, qui monte la
+  racine de l'hôte, qui monte le socket du moteur de conteneurs, doté de
+  capacités qui permettent d'en sortir, avec un disque de l'hôte en accès
+  direct, dans l'espace des processus de l'hôte, sans profil de sécurité
+  (incidents, T1610/T1611) ; shell interactif ouvert dans un conteneur
+  (événement SIEM, T1609). Deux conteneurs privilégiés font deux incidents.
+- **Vérifié** sur une Ubuntu 24.04 réelle (noyau 6.8 sous QEMU) avec
+  Docker 27 : l'agent suit les événements une minute après son démarrage ;
+  un conteneur ordinaire (`docker run alpine sleep`, puis `docker exec
+  /bin/sh -c true`) ne lève rien ; `docker run --privileged --pid=host -v
+  /:/host` lève « Conteneur privilégié démarré », « Conteneur qui monte la
+  racine de l'hôte » et « Conteneur dans l'espace des processus de l'hôte » ;
+  l'agent s'arrête en 2 s. Le shell interactif, qui ne donne qu'un événement
+  SIEM, n'est vérifié que par les tests.
+
 ### 🧾 Inventaire : système, matériel et correctifs Windows
 
 - **Fiche du système** (premier onglet de Système & comptes), comme le
@@ -65,9 +92,11 @@ Tous les changements notables apportés au projet **Sentinel GRC Agent** sont co
   (« Ubuntu 24.04.5 LTS », noyau, processeurs, mémoire, en root comme sous un
   compte ordinaire ; cette machine virtuelle n'a ni DMI ni arbre de
   périphériques, fabricant et modèle restent inconnus et la fiche le
-  montre). **Non vérifié** sur un vrai Windows : le script PowerShell est
-  couvert par un test de lecture de sa sortie et par un test lancé sur le
-  Windows de la CI.
+  montre), et sur le Windows Server de la CI : le script PowerShell, lancé
+  pour de vrai, donne les comptes, les services, le nom du système et le
+  fabricant ou le modèle. **Non vérifié** : la liste des correctifs sur un
+  vrai Windows (lue par un test sur une sortie d'exemple, pas contrôlée
+  dans la CI).
 
 ### 🗣️ Incidents et alertes en français
 
@@ -184,10 +213,14 @@ Tous les changements notables apportés au projet **Sentinel GRC Agent** sont co
   SSH), la session ouverte est fermée, et les notifications de ce poste sans
   interface sont toutes délivrées. Code propre à Windows d'`agent-scanner` et
   d'`agent-common` contrôlé pour la cible Windows (types et clippy) ; tests de
-  tout l'espace de travail sous macOS. **Non vérifié** : l'auteur exact sur un
-  vrai auditd (le noyau partagé des machines OrbStack refuse l'audit) ; les
-  clés de registre et le reste du code Windows ailleurs que dans la CI ;
-  l'interface n'a été vue que dans son aperçu, avec des données d'exemple.
+  tout l'espace de travail sous macOS. L'auteur exact (`fim_whodata`) sur un
+  vrai auditd, dans une Ubuntu 24.04 (noyau 6.8) sous QEMU : la règle
+  `-w /srv/whodata -p wa -k sentinel_fim` est posée au démarrage, un ajout
+  fait par le compte `tester` donne « Modified on /srv/whodata/notes.txt by
+  /usr/bin/bash (uid tester) », sans « probable », et la règle est retirée à
+  l'arrêt (en 3 s). **Non vérifié** : les clés de registre et le reste du
+  code Windows ailleurs que dans la CI ; l'interface n'a été vue que dans son
+  aperçu, avec des données d'exemple.
 
 ### 🔒 Réponse : verrouillage de compte et commande de réponse
 

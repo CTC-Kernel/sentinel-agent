@@ -31,6 +31,14 @@
 //!   stream none of whose lines is understood is reported.
 //! - A Linux system without systemd has no journal: declare its log files
 //!   in `log_files` instead (`/var/log/auth.log`, `/var/log/secure`).
+//!
+//! # Docker
+//!
+//! On Linux, when Docker runs, its container events are read the same way
+//! (`docker events`, service `docker`), as Wazuh's Docker listener does. The
+//! start of a container is completed by `docker inspect`: privileged, host
+//! namespaces, added capabilities, host paths mounted. Rootless Docker,
+//! whose socket belongs to a user, is not followed.
 
 use crate::decode::{self, DecodedLog};
 use std::collections::BTreeMap;
@@ -102,7 +110,13 @@ pub fn stream_services() -> Vec<String> {
             .map(|s| (*s).to_string()),
         );
         if cfg!(target_os = "linux") {
-            services.extend(["kernel".to_string(), "auditd".to_string()]);
+            // Docker's events are followed from the moment it runs: its
+            // rules are loaded whether it runs at the start or not.
+            services.extend([
+                "kernel".to_string(),
+                "auditd".to_string(),
+                "docker".to_string(),
+            ]);
         }
     }
     services
@@ -142,6 +156,87 @@ pub fn journalctl_arguments(all_programs: bool) -> Vec<String> {
     arguments
 }
 
+/// Where the Docker command may be installed.
+const DOCKER_PROGRAMS: &[&str] = &[
+    "/usr/bin/docker",
+    "/usr/local/bin/docker",
+    "/snap/bin/docker",
+];
+/// Where the daemon of a Docker run by the system listens.
+const DOCKER_SOCKETS: &[&str] = &["/var/run/docker.sock", "/run/docker.sock"];
+
+/// The container events read: not the health checks, which come every few
+/// seconds and say nothing of an attack.
+pub const DOCKER_EVENTS: &[&str] = &[
+    "create",
+    "start",
+    "restart",
+    "exec_start",
+    "die",
+    "kill",
+    "oom",
+    "destroy",
+    "update",
+];
+
+/// The Docker command, when Docker is installed and its daemon has a
+/// socket.
+pub fn docker_program() -> Option<&'static str> {
+    if !DOCKER_SOCKETS
+        .iter()
+        .any(|socket| Path::new(socket).exists())
+    {
+        return None;
+    }
+    DOCKER_PROGRAMS
+        .iter()
+        .copied()
+        .find(|program| Path::new(program).is_file())
+}
+
+/// The arguments given to `docker events`.
+pub fn docker_events_arguments() -> Vec<String> {
+    let mut arguments: Vec<String> = [
+        "events",
+        "--format",
+        "{{json .}}",
+        "--filter",
+        "type=container",
+    ]
+    .iter()
+    .map(|argument| (*argument).to_string())
+    .collect();
+    // Filters on the same key are alternatives.
+    for event in DOCKER_EVENTS {
+        arguments.push("--filter".to_string());
+        arguments.push(format!("event={event}"));
+    }
+    arguments
+}
+
+/// A container event, and for a start, the settings of the container.
+#[cfg_attr(not(target_os = "linux"), allow(dead_code))]
+fn decode_docker_line(line: &str) -> Option<DecodedLog> {
+    let mut log = decode::decode_docker_event(line)?;
+    if log.get("action") == Some("start")
+        && let (Some(program), Some(id)) = (docker_program(), log.get("container_id"))
+    {
+        let inspect = std::process::Command::new(program)
+            .args(["inspect", "--type", "container", id])
+            .stdin(Stdio::null())
+            .stderr(Stdio::null())
+            .output();
+        match inspect {
+            Ok(output) if output.status.success() => {
+                decode::add_docker_settings(&mut log, &String::from_utf8_lossy(&output.stdout));
+            }
+            // Gone already: a container that ran a command and stopped.
+            _ => debug!("The container {} could not be inspected", id),
+        }
+    }
+    Some(log)
+}
+
 /// A running reader of the system log.
 pub struct LogStream {
     kind: &'static str,
@@ -178,6 +273,15 @@ impl LogStream {
         let mut command = std::process::Command::new("journalctl");
         command.args(journalctl_arguments(all_programs));
         Self::from_lines("journalctl", command, decode::decode_journal_entry)
+    }
+
+    /// Start reading the container events of Docker (Linux).
+    #[cfg(target_os = "linux")]
+    pub fn start_docker() -> Result<Self, String> {
+        let program = docker_program().ok_or_else(|| "Docker is not running".to_string())?;
+        let mut command = std::process::Command::new(program);
+        command.args(docker_events_arguments());
+        Self::from_lines("docker events", command, decode_docker_line)
     }
 
     #[cfg(not(any(target_os = "macos", target_os = "linux")))]

@@ -40,6 +40,14 @@
 //! | `firewall_block`, `firewall_log`           | kernel (iptables, nftables, ufw)       |
 //! | `promiscuous_mode`                         | kernel                                 |
 //!
+//! Docker events (service `docker`) keep Docker's own action (`create`,
+//! `start`, `exec_start`, `die`…) with `container`, `container_id`,
+//! `image`, the `command` of an `exec`, and, for a start, the settings that
+//! weaken the isolation of the container: `privileged`, `pid_mode`,
+//! `network_mode`, `ipc_mode`, `userns_mode`, `cap_add`, `security_opt`,
+//! `devices`, `host_paths` (the host paths mounted), `mounts_host_root`,
+//! `mounts_docker_socket` and `container_user`.
+//!
 //! Web access logs take the field names Sigma gives the `webserver`
 //! category (`c-ip`, `cs-method`, `c-uri`, `cs-uri-query`, `sc-status`,
 //! `c-useragent`, `cs-referer`), audit records the names of auditd, Windows
@@ -755,6 +763,143 @@ pub fn decode_journal_entry(line: &str) -> Option<DecodedLog> {
     Some(log)
 }
 
+/// Decode an event of the Docker daemon as `docker events --format
+/// '{{json .}}'` prints it. Container events only.
+pub fn decode_docker_event(line: &str) -> Option<DecodedLog> {
+    let event: serde_json::Value = serde_json::from_str(line.trim()).ok()?;
+    if event["Type"].as_str()? != "container" {
+        return None;
+    }
+    let raw = event["Action"].as_str()?.trim();
+    // `exec_start: bash -i`: the action, then what it is about.
+    let (action, detail) = match raw.split_once(':') {
+        Some((action, detail)) => (action.trim(), detail.trim()),
+        None => (raw, ""),
+    };
+    let mut log = DecodedLog::default();
+    log.add_service("docker");
+    log.set("program", "dockerd");
+    log.set("action", action);
+    if action.starts_with("exec_") {
+        log.set("command", detail);
+    } else if action == "health_status" {
+        log.set("health", detail);
+    }
+    let actor = &event["Actor"];
+    if let Some(id) = actor["ID"].as_str() {
+        log.set("container_id", id);
+    }
+    let attributes = &actor["Attributes"];
+    let name = attributes["name"].as_str().unwrap_or("");
+    let image = attributes["image"].as_str().unwrap_or("");
+    log.set("container", name);
+    log.set("image", image);
+    if let Some(code) = json_text(&attributes["exitCode"]) {
+        log.set("exit_code", code);
+    }
+    if let Some(signal) = json_text(&attributes["signal"]) {
+        log.set("signal", signal);
+    }
+    log.timestamp = event["timeNano"]
+        .as_i64()
+        .map(DateTime::from_timestamp_nanos)
+        .or_else(|| {
+            event["time"]
+                .as_i64()
+                .and_then(|seconds| DateTime::from_timestamp(seconds, 0))
+        });
+    log.set(
+        "message",
+        format!(
+            "container {action} {name} ({image}){}",
+            if detail.is_empty() {
+                String::new()
+            } else {
+                format!(": {detail}")
+            }
+        ),
+    );
+    Some(log)
+}
+
+/// Sockets whose mount gives a container the control of the host's
+/// containers, hence of the host.
+const RUNTIME_SOCKETS: &[&str] = &["docker.sock", "containerd.sock", "crio.sock", "podman.sock"];
+
+/// Add to the event of a container's start the settings that weaken its
+/// isolation, from `docker inspect --type container <id>`.
+pub fn add_docker_settings(log: &mut DecodedLog, inspect: &str) {
+    let Ok(document) = serde_json::from_str::<serde_json::Value>(inspect) else {
+        return;
+    };
+    let container = match &document {
+        serde_json::Value::Array(items) => match items.first() {
+            Some(container) => container,
+            None => return,
+        },
+        container => container,
+    };
+    let host = &container["HostConfig"];
+    if let Some(privileged) = host["Privileged"].as_bool() {
+        log.set("privileged", privileged.to_string());
+    }
+    for (field, key) in [
+        ("pid_mode", "PidMode"),
+        ("network_mode", "NetworkMode"),
+        ("ipc_mode", "IpcMode"),
+        ("userns_mode", "UsernsMode"),
+    ] {
+        if let Some(mode) = host[key].as_str() {
+            log.set(field, mode);
+        }
+    }
+    let list = |value: &serde_json::Value, key: Option<&str>| -> Vec<String> {
+        value
+            .as_array()
+            .map(|items| {
+                items
+                    .iter()
+                    .filter_map(|item| match key {
+                        Some(key) => item[key].as_str(),
+                        None => item.as_str(),
+                    })
+                    .map(str::to_string)
+                    .collect()
+            })
+            .unwrap_or_default()
+    };
+    log.set("cap_add", list(&host["CapAdd"], None).join(","));
+    log.set("security_opt", list(&host["SecurityOpt"], None).join(","));
+    log.set(
+        "devices",
+        list(&host["Devices"], Some("PathOnHost")).join(","),
+    );
+    // Bind mounts and volumes alike: `Mounts` lists both, with their source
+    // on the host.
+    let sources: Vec<String> = list(&container["Mounts"], Some("Source"))
+        .into_iter()
+        .filter(|source| !source.is_empty())
+        .collect();
+    log.set("host_paths", sources.join(","));
+    let root = sources
+        .iter()
+        .any(|source| source.trim_end_matches('/').is_empty());
+    log.set("mounts_host_root", root.to_string());
+    let socket = sources.iter().any(|source| {
+        let name = source.rsplit('/').next().unwrap_or(source);
+        RUNTIME_SOCKETS.contains(&name)
+    });
+    log.set("mounts_docker_socket", socket.to_string());
+    // Empty: the user of the image, root unless the image says otherwise.
+    let user = container["Config"]["User"].as_str().unwrap_or("");
+    // Not `user`: that is an account of this host, which a response may
+    // act on.
+    log.set(
+        "container_user",
+        if user.is_empty() { "root" } else { user },
+    );
+}
+
 /// Decode an entry of the macOS unified log as `log stream --style ndjson`
 /// prints it.
 pub fn decode_macos_entry(line: &str) -> Option<DecodedLog> {
@@ -862,6 +1007,131 @@ pub fn windows_services() -> Vec<&'static str> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn docker_events_and_container_settings_are_read() {
+        let start = decode_docker_event(
+            r#"{"status":"start","id":"4f2a","from":"alpine:3.20","Type":"container","Action":"start",
+                "Actor":{"ID":"4f2a9c","Attributes":{"image":"alpine:3.20","name":"escape"}},
+                "scope":"local","time":1792020000,"timeNano":1792020000123456789}"#,
+        )
+        .unwrap();
+        assert_eq!(start.services, ["docker"]);
+        assert_eq!(
+            fields(&start, &["action", "container", "image", "container_id"]),
+            [
+                Some("start"),
+                Some("escape"),
+                Some("alpine:3.20"),
+                Some("4f2a9c")
+            ]
+        );
+        assert_eq!(
+            start.timestamp,
+            Some(DateTime::from_timestamp_nanos(1_792_020_000_123_456_789))
+        );
+
+        let exec = decode_docker_event(
+            r#"{"Type":"container","Action":"exec_start: bash -i ","Actor":{"ID":"4f2a9c",
+                "Attributes":{"execID":"77","image":"alpine:3.20","name":"escape"}},"time":1792020005}"#,
+        )
+        .unwrap();
+        assert_eq!(
+            fields(&exec, &["action", "command"]),
+            [Some("exec_start"), Some("bash -i")]
+        );
+        assert_eq!(
+            exec.get("message"),
+            Some("container exec_start escape (alpine:3.20): bash -i")
+        );
+        let health = decode_docker_event(
+            r#"{"Type":"container","Action":"health_status: healthy","Actor":{"ID":"1","Attributes":{}}}"#,
+        )
+        .unwrap();
+        assert_eq!(
+            fields(&health, &["action", "health", "command"]),
+            [Some("health_status"), Some("healthy"), None]
+        );
+        // Images and networks are not containers.
+        assert!(
+            decode_docker_event(r#"{"Type":"image","Action":"pull","Actor":{"ID":"alpine"}}"#)
+                .is_none()
+        );
+        assert!(decode_docker_event("not json").is_none());
+
+        let mut start = start;
+        add_docker_settings(
+            &mut start,
+            r#"[{"Config":{"User":""},
+                 "HostConfig":{"Privileged":true,"PidMode":"host","NetworkMode":"bridge","IpcMode":"private",
+                   "CapAdd":["SYS_ADMIN","NET_ADMIN"],"SecurityOpt":["apparmor=unconfined"],
+                   "Devices":[{"PathOnHost":"/dev/sda","PathInContainer":"/dev/sda"}]},
+                 "Mounts":[{"Type":"bind","Source":"/","Destination":"/host"},
+                           {"Type":"bind","Source":"/run/docker.sock","Destination":"/var/run/docker.sock"},
+                           {"Type":"volume","Source":"/var/lib/docker/volumes/data/_data","Destination":"/data"}]}]"#,
+        );
+        assert_eq!(
+            fields(
+                &start,
+                &[
+                    "privileged",
+                    "pid_mode",
+                    "cap_add",
+                    "security_opt",
+                    "devices",
+                    "mounts_host_root",
+                    "mounts_docker_socket",
+                    "container_user"
+                ]
+            ),
+            [
+                Some("true"),
+                Some("host"),
+                Some("SYS_ADMIN,NET_ADMIN"),
+                Some("apparmor=unconfined"),
+                Some("/dev/sda"),
+                Some("true"),
+                Some("true"),
+                Some("root")
+            ]
+        );
+        assert_eq!(
+            start.get("host_paths"),
+            Some("/,/run/docker.sock,/var/lib/docker/volumes/data/_data")
+        );
+
+        // An ordinary container: nothing weakens it.
+        let mut plain = decode_docker_event(
+            r#"{"Type":"container","Action":"start","Actor":{"ID":"9","Attributes":{"name":"web","image":"nginx"}}}"#,
+        )
+        .unwrap();
+        add_docker_settings(
+            &mut plain,
+            r#"[{"Config":{"User":"nginx"},"HostConfig":{"Privileged":false,"PidMode":"","CapAdd":null},
+                 "Mounts":[{"Type":"bind","Source":"/srv/www","Destination":"/usr/share/nginx/html"}]}]"#,
+        );
+        assert_eq!(
+            fields(
+                &plain,
+                &[
+                    "privileged",
+                    "pid_mode",
+                    "cap_add",
+                    "mounts_host_root",
+                    "mounts_docker_socket",
+                    "container_user"
+                ]
+            ),
+            [
+                Some("false"),
+                None,
+                None,
+                Some("false"),
+                Some("false"),
+                Some("nginx")
+            ]
+        );
+    }
 
     fn decoded(program: &str, message: &str) -> DecodedLog {
         decode_program(program, Some(812), message)

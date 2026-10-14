@@ -3,9 +3,10 @@
 
 //! Detection rules on the logs, as they are written.
 //!
-//! Three things are read: the system log through a stream kept open
-//! ([`agent_siem::stream`]), the declared log files
-//! ([`agent_siem::logfile`]) and, on Windows, the event channels. Every
+//! Four things are read: the system log through a stream kept open
+//! ([`agent_siem::stream`]), the container events of Docker when it runs
+//! (Linux), the declared log files ([`agent_siem::logfile`]) and, on
+//! Windows, the event channels. Every
 //! line is decoded into fields ([`agent_siem::decode`]) and given to the
 //! Sigma rules written for a log source and to the correlation rules
 //! ([`agent_scanner::security::sigma_logs`]).
@@ -52,6 +53,10 @@ const SUPPRESSION: Duration = Duration::minutes(15);
 const MAX_SUPPRESSED: usize = 10_000;
 /// Time between two attempts to start a stream that stopped.
 const STREAM_RETRY: std::time::Duration = std::time::Duration::from_secs(300);
+/// Time between two looks for Docker, or attempts to follow it again
+/// (its daemon restarts when it is updated).
+#[cfg_attr(not(target_os = "linux"), allow(dead_code))]
+const DOCKER_RETRY: std::time::Duration = std::time::Duration::from_secs(60);
 /// Time between two readings of the Windows event channels.
 #[cfg(target_os = "windows")]
 const WINDOWS_READ_EVERY: std::time::Duration = std::time::Duration::from_secs(30);
@@ -77,6 +82,14 @@ pub(crate) struct LogAnalysis {
     all_programs: bool,
     /// When a stream that is not running may be started again.
     next_stream_attempt: Option<Instant>,
+    /// The container events of Docker, while it runs.
+    docker: Option<LogStream>,
+    /// When to look for Docker again.
+    #[cfg_attr(not(target_os = "linux"), allow(dead_code))]
+    next_docker_attempt: Option<Instant>,
+    /// Why Docker could not be followed, told once.
+    #[cfg_attr(not(target_os = "linux"), allow(dead_code))]
+    docker_failure: Option<String>,
     tailer: LogFileTailer,
     /// Events read outside the pass (the Windows channels).
     pending: Vec<DecodedLog>,
@@ -167,6 +180,9 @@ impl LogAnalysis {
             stream: None,
             all_programs: config.log_analysis_all_programs,
             next_stream_attempt: Some(Instant::now()),
+            docker: None,
+            next_docker_attempt: None,
+            docker_failure: None,
             tailer,
             pending: Vec::new(),
             suppressed: HashMap::new(),
@@ -241,16 +257,56 @@ impl LogAnalysis {
         }
     }
 
+    /// Follow the container events of Docker when it runs (Linux): from the
+    /// moment it appears, and again after its daemon restarted.
+    fn ensure_docker(&mut self) {
+        #[cfg(target_os = "linux")]
+        {
+            if self.docker.as_ref().is_some_and(LogStream::is_running) {
+                return;
+            }
+            if self.docker.take().is_some() {
+                info!(
+                    "The Docker events stopped (its daemon restarted?): they will be followed again"
+                );
+            }
+            if self
+                .next_docker_attempt
+                .is_some_and(|at| Instant::now() < at)
+            {
+                return;
+            }
+            self.next_docker_attempt = Some(Instant::now() + DOCKER_RETRY);
+            if agent_siem::stream::docker_program().is_none() {
+                return;
+            }
+            match LogStream::start_docker() {
+                Ok(stream) => {
+                    info!("Docker container events are analysed as they happen");
+                    self.docker = Some(stream);
+                    self.docker_failure = None;
+                }
+                Err(e) => {
+                    if self.docker_failure.as_ref() != Some(&e) {
+                        warn!("Docker container events cannot be followed: {}", e);
+                    }
+                    self.docker_failure = Some(e);
+                }
+            }
+        }
+    }
+
     /// The events written since the last pass.
     fn read(&mut self) -> Vec<DecodedLog> {
         let mut logs = std::mem::take(&mut self.pending);
-        if let Some(stream) = &self.stream {
+        for stream in [&self.stream, &self.docker].into_iter().flatten() {
             logs.extend(stream.drain(MAX_EVENTS_PER_PASS.saturating_sub(logs.len())));
             let dropped = stream.take_dropped();
             if dropped > 0 {
                 warn!(
-                    "{} system log events were dropped: they arrive faster than they are analysed",
-                    dropped
+                    "{} events of {} were dropped: they arrive faster than they are analysed",
+                    dropped,
+                    stream.kind()
                 );
             }
         }
@@ -270,7 +326,8 @@ impl LogAnalysis {
                 }
             }
             None => {
-                for field in ["src_ip", "user", "target_user"] {
+                // Two containers started privileged are two incidents.
+                for field in ["src_ip", "user", "target_user", "container"] {
                     key.push('|');
                     key.push_str(fields.get(field).map_or("", String::as_str));
                 }
@@ -426,6 +483,7 @@ impl LogAnalysis {
     /// rules.
     pub(crate) fn pass(&mut self) -> LogFindings {
         self.ensure_stream();
+        self.ensure_docker();
         let logs = self.read();
         if logs.is_empty() {
             return LogFindings::default();
@@ -434,7 +492,10 @@ impl LogAnalysis {
     }
 
     fn stop(&mut self) {
-        if let Some(stream) = self.stream.take() {
+        for stream in [self.stream.take(), self.docker.take()]
+            .into_iter()
+            .flatten()
+        {
             stream.stop();
         }
     }
@@ -542,6 +603,7 @@ mod tests {
             "screensharingd",
             "auditd",
             "kernel",
+            "docker",
             "security",
             "system",
             "powershell",
@@ -560,6 +622,9 @@ mod tests {
             stream: None,
             all_programs: false,
             next_stream_attempt: None,
+            docker: None,
+            next_docker_attempt: None,
+            docker_failure: None,
             tailer,
             pending: Vec::new(),
             suppressed: HashMap::new(),
@@ -783,6 +848,87 @@ mod tests {
                 .evaluate(scan("203.0.113.9"), later)
                 .incidents
                 .is_empty()
+        );
+    }
+
+    /// A container event, completed by what `docker inspect` says of it.
+    fn container(seconds: i64, name: &str, action: &str, inspect: Option<&str>) -> DecodedLog {
+        let mut log = decode::decode_docker_event(&format!(
+            r#"{{"Type":"container","Action":"{action}","time":{},"Actor":{{"ID":"id-{name}","Attributes":{{"name":"{name}","image":"alpine"}}}}}}"#,
+            now().timestamp() + seconds
+        ))
+        .unwrap();
+        if let Some(inspect) = inspect {
+            decode::add_docker_settings(&mut log, inspect);
+        }
+        log
+    }
+
+    #[test]
+    fn a_container_that_can_take_the_host_is_raised_not_an_ordinary_one() {
+        let mut analysis = analysis_for("linux");
+        let later = now() + Duration::hours(1);
+        let ordinary = r#"[{"Config":{"User":"app"},"HostConfig":{"Privileged":false,"PidMode":"","CapAdd":["NET_BIND_SERVICE"]},
+            "Mounts":[{"Source":"/srv/app","Destination":"/app"}]}]"#;
+        let found = analysis.evaluate(
+            vec![
+                container(0, "web", "create", None),
+                container(1, "web", "start", Some(ordinary)),
+                container(
+                    2,
+                    "web",
+                    "exec_start: /bin/sh -c curl -f http://localhost/",
+                    None,
+                ),
+                container(3, "web", "die", None),
+            ],
+            later,
+        );
+        assert!(found.incidents.is_empty(), "{:?}", titles(&found));
+        assert!(found.records.is_empty());
+
+        let escape = r#"[{"Config":{"User":""},"HostConfig":{"Privileged":true,"PidMode":"host",
+            "CapAdd":["SYS_ADMIN"],"SecurityOpt":["seccomp=unconfined"]},
+            "Mounts":[{"Source":"/","Destination":"/host"},{"Source":"/var/run/docker.sock","Destination":"/var/run/docker.sock"}]}]"#;
+        let mut found = analysis.evaluate(
+            vec![
+                container(10, "escape", "start", Some(escape)),
+                container(
+                    11,
+                    "other",
+                    "start",
+                    Some(r#"[{"HostConfig":{"Privileged":true}}]"#),
+                ),
+            ],
+            later,
+        );
+        let mut raised = titles(&found);
+        raised.sort_unstable();
+        assert_eq!(
+            raised,
+            [
+                "Sigma: Conteneur dans l'espace des processus de l'hôte",
+                "Sigma: Conteneur doté de capacités qui permettent d'en sortir",
+                "Sigma: Conteneur privilégié démarré",
+                "Sigma: Conteneur privilégié démarré",
+                "Sigma: Conteneur qui monte la racine de l'hôte",
+                "Sigma: Conteneur qui monte le socket du moteur de conteneurs",
+                "Sigma: Conteneur sans profil de sécurité",
+            ]
+        );
+        // Two containers started privileged are two incidents.
+        found
+            .incidents
+            .retain(|incident| incident.title.ends_with("privilégié démarré"));
+        assert_eq!(found.incidents.len(), 2);
+
+        // An interactive shell: recorded, not raised.
+        let shell = analysis.evaluate(vec![container(20, "web", "exec_start: bash", None)], later);
+        assert!(shell.incidents.is_empty());
+        assert_eq!(shell.records.len(), 1);
+        assert_eq!(
+            shell.records[0].name,
+            "Shell interactif ouvert dans un conteneur"
         );
     }
 
