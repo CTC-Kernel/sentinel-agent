@@ -63,6 +63,19 @@ pub enum ResolvedAction {
     },
 }
 
+/// An address stays blocked this long when the playbook action gives no
+/// duration.
+pub const DEFAULT_BLOCK_SECS: u64 = 3600;
+
+/// Duration of a "block IP" action of an automatic run, from its parameter
+/// (seconds; `0`: until unblocked; blank or unreadable: [`DEFAULT_BLOCK_SECS`]).
+pub fn block_duration(parameters: &str) -> u64 {
+    parameters
+        .trim()
+        .parse::<u64>()
+        .unwrap_or(DEFAULT_BLOCK_SECS)
+}
+
 /// An account lock lasts this long when the playbook action gives no duration.
 pub const DEFAULT_ACCOUNT_LOCK_SECS: u64 = 3600;
 
@@ -115,6 +128,10 @@ pub struct ProcessInfo {
 
 #[derive(Debug, Clone)]
 pub struct NetworkAlertInfo {
+    /// What kind of alert it is, as a playbook condition names it:
+    /// `brute_force`, `data_exfiltration`, `c2_communication`… Stable, unlike
+    /// the description, which is written for people and may be translated.
+    pub alert_type: String,
     pub remote_ip: Option<String>,
     pub port: Option<u16>,
     pub severity: String,
@@ -205,7 +222,11 @@ pub async fn evaluate_playbook(
             }
             PlaybookConditionType::NetworkAlertType => {
                 for alert in &threat_context.network_alerts {
-                    if alert.description.to_lowercase().contains(&condition_value)
+                    // The type first ("brute_force" names an SSH brute force
+                    // whose title is in French); the description and the
+                    // severity as before, for the playbooks written for them.
+                    if alert.alert_type.to_lowercase().contains(&condition_value)
+                        || alert.description.to_lowercase().contains(&condition_value)
                         || alert.severity.to_lowercase() == condition_value
                     {
                         matched_conditions
@@ -213,7 +234,7 @@ pub async fn evaluate_playbook(
                         if let Some(ref ip) = alert.remote_ip {
                             actions.push(ResolvedAction::BlockIp {
                                 ip: ip.clone(),
-                                duration_secs: 3600,
+                                duration_secs: DEFAULT_BLOCK_SECS,
                             });
                         }
                         if let Some(ref user) = alert.user {
@@ -299,16 +320,21 @@ pub async fn evaluate_playbook(
                 )
             })
     });
-    // The same account named by several alerts is locked once, for the time
-    // the playbook asks.
-    let lock_secs = playbook
-        .actions
-        .iter()
-        .find(|configured| {
-            configured.action_type == agent_gui::dto::PlaybookActionType::DisableAccount
-        })
-        .map(|configured| account_lock_duration(&configured.parameters));
+    // The same account or address named by several alerts is acted on once,
+    // for the time the playbook asks.
+    let configured_parameters = |action_type| {
+        playbook
+            .actions
+            .iter()
+            .find(|configured| configured.action_type == action_type)
+            .map(|configured| configured.parameters.as_str())
+    };
+    let lock_secs = configured_parameters(agent_gui::dto::PlaybookActionType::DisableAccount)
+        .map(account_lock_duration);
+    let block_secs =
+        configured_parameters(agent_gui::dto::PlaybookActionType::BlockIp).map(block_duration);
     let mut locked: Vec<String> = Vec::new();
+    let mut blocked: Vec<String> = Vec::new();
     actions.retain_mut(|action| match action {
         ResolvedAction::DisableAccount {
             user,
@@ -319,15 +345,25 @@ pub async fn evaluate_playbook(
             locked.push(user.clone());
             first
         }
+        ResolvedAction::BlockIp { ip, duration_secs } => {
+            *duration_secs = block_secs.unwrap_or(DEFAULT_BLOCK_SECS);
+            let first = !blocked.contains(ip);
+            blocked.push(ip.clone());
+            first
+        }
         _ => true,
     });
     if actually_triggered {
         for configured in &playbook.actions {
             match configured.action_type {
                 agent_gui::dto::PlaybookActionType::CreateNotification => {
-                    actions.push(ResolvedAction::Notify {
-                        message: configured.parameters.clone(),
-                    })
+                    // A notification with no text of its own says what set
+                    // the playbook off: an empty one tells the operator nothing.
+                    let message = match configured.parameters.trim() {
+                        "" => format!("Déclenché : {}", matched_conditions.join(" ; ")),
+                        text => text.to_string(),
+                    };
+                    actions.push(ResolvedAction::Notify { message })
                 }
                 agent_gui::dto::PlaybookActionType::IsolateHost => {
                     actions.push(ResolvedAction::IsolateHost {
@@ -1007,6 +1043,7 @@ mod tests {
         });
         let ctx = ThreatContext {
             network_alerts: vec![NetworkAlertInfo {
+                alert_type: "connection_anomaly".into(),
                 remote_ip: None,
                 port: None,
                 severity: "high".into(),
@@ -1312,6 +1349,7 @@ mod tests {
             suspicious_processes: vec![],
             network_alerts: vec![
                 NetworkAlertInfo {
+                    alert_type: "brute_force".to_string(),
                     remote_ip: Some("203.0.113.9".to_string()),
                     port: None,
                     severity: "critical".to_string(),
@@ -1321,6 +1359,7 @@ mod tests {
                 },
                 // The burst that came before names no account that was taken.
                 NetworkAlertInfo {
+                    alert_type: "brute_force".to_string(),
                     remote_ip: Some("203.0.113.9".to_string()),
                     port: None,
                     severity: "high".to_string(),
