@@ -1710,12 +1710,12 @@ impl RadarPalette {
                 egui::Color32::from_rgb(222, 225, 232)
             },
             rim: if dark {
-                [theme::BRAND_CYAN, theme::BRAND_BLUE, theme::BRAND_VIOLET]
+                [theme::BRAND_CYAN, theme::BRAND_BLUE, theme::BRAND_SAPPHIRE]
             } else {
                 [
                     egui::Color32::from_rgb(87, 105, 137),
                     egui::Color32::from_rgb(91, 98, 143),
-                    egui::Color32::from_rgb(116, 107, 147),
+                    egui::Color32::from_rgb(70, 108, 158),
                 ]
             },
         }
@@ -1761,14 +1761,15 @@ impl RadarPalette {
                 "critical" => theme::ERROR,
                 "high" => theme::SEVERITY_HIGH,
                 "medium" => theme::SEVERITY_MEDIUM,
-                _ => theme::AI,
+                // Low is azure, as everywhere else on the severity ramp.
+                _ => theme::INFO,
             })
         } else {
             match severity {
                 "critical" => egui::Color32::from_rgb(184, 47, 79),
                 "high" => egui::Color32::from_rgb(184, 87, 39),
                 "medium" => egui::Color32::from_rgb(150, 110, 35),
-                _ => egui::Color32::from_rgb(104, 88, 167),
+                _ => egui::Color32::from_rgb(44, 104, 170),
             }
         }
     }

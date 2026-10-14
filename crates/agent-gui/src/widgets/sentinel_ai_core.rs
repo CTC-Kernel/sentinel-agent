@@ -9,6 +9,18 @@
 use egui::{Color32, Painter, Pos2, Stroke, Ui, Vec2};
 use std::f32::consts::TAU;
 
+/// The motif's own hue. Dark mode keeps the assistant's turquoise; on a light
+/// card the turquoise read as a cold mint wash, so daylight draws the motif
+/// in the brand sapphire instead.
+fn motif_color() -> Color32 {
+    use crate::theme;
+    if theme::is_dark_mode() {
+        theme::chart_color(theme::AI)
+    } else {
+        theme::ACCENT_DEEP
+    }
+}
+
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum VoiceState {
     Idle,
@@ -106,8 +118,8 @@ impl SentinelAICore {
 
     fn draw_aura(&self, painter: &Painter, center: Pos2, radius: f32, t: f32) {
         use crate::theme;
-        // Violet carries the assistant identity; blue denotes live input.
-        let mut base_color = theme::chart_color(theme::AI);
+        // The motif hue carries the assistant identity; azure denotes live input.
+        let mut base_color = motif_color();
 
         match self.voice_state {
             VoiceState::Listening(level) => {
@@ -115,7 +127,7 @@ impl SentinelAICore {
                 base_color = theme::INFO.linear_multiply(1.0 + level.clamp(0.0, 1.0) * 0.35);
             }
             VoiceState::Speaking(vol) => {
-                base_color = theme::chart_color(theme::AI).linear_multiply(1.0 + vol * 0.35);
+                base_color = motif_color().linear_multiply(1.0 + vol * 0.35);
             }
             _ => {}
         }
@@ -126,17 +138,17 @@ impl SentinelAICore {
             painter.circle_filled(
                 center + egui::vec2(0.0, 3.0),
                 radius * 1.05,
-                theme::color_blend(theme::bg_secondary(), theme::AI, 0.20),
+                theme::color_blend(theme::bg_secondary(), motif_color(), 0.12),
             );
             painter.circle_filled(
                 center,
                 radius * 1.04,
-                theme::color_blend(theme::bg_secondary(), theme::AI, 0.12),
+                theme::color_blend(theme::bg_secondary(), motif_color(), 0.06),
             );
             painter.circle_stroke(
                 center,
                 radius * 1.04,
-                Stroke::new(1.0_f32, theme::chart_color(theme::AI).linear_multiply(0.28)),
+                Stroke::new(1.0_f32, motif_color().linear_multiply(0.28)),
             );
         }
 
@@ -190,8 +202,14 @@ impl SentinelAICore {
 
     fn draw_rings(&self, painter: &Painter, center: Pos2, radius: f32, t: f32) {
         use crate::theme;
-        let color_primary = theme::chart_color(theme::AI);
-        let color_secondary = theme::accent_text();
+        let color_primary = motif_color();
+        // Daylight pairs the sapphire with a deeper navy: the accent text
+        // colour is the motif colour itself there, and the rings merged.
+        let color_secondary = if theme::is_dark_mode() {
+            theme::accent_text()
+        } else {
+            theme::ACCENT_PRESSED
+        };
 
         // --- Outer Ring (Many small segments, slow CW) ---
         let outer_r = radius * 1.05;
@@ -255,7 +273,7 @@ impl SentinelAICore {
         // The assistant is an interaction state, not a second security verdict.
         let score_color = match self.voice_state {
             VoiceState::Listening(_) => theme::readable_color(theme::INFO),
-            _ => theme::chart_color(theme::AI),
+            _ => motif_color(),
         };
         let core_r = radius * 0.4;
 
@@ -287,25 +305,22 @@ impl SentinelAICore {
                 + parallax * (i as f32 * 0.3);
 
             // Orbital dot
-            painter.circle_filled(pos, 2.0, theme::chart_color(theme::AI));
+            painter.circle_filled(pos, 2.0, motif_color());
 
             // Sub-glow
-            painter.circle_filled(pos, 4.0, theme::chart_color(theme::AI).linear_multiply(0.2));
+            painter.circle_filled(pos, 4.0, motif_color().linear_multiply(0.2));
 
             // Connector line (subtle)
             painter.line_segment(
                 [center, pos],
-                Stroke::new(
-                    theme::BORDER_HAIRLINE,
-                    theme::chart_color(theme::AI).linear_multiply(0.05),
-                ),
+                Stroke::new(theme::BORDER_HAIRLINE, motif_color().linear_multiply(0.05)),
             );
         }
     }
 
     fn draw_hud(&self, painter: &Painter, center: Pos2, radius: f32) {
         use crate::theme;
-        let color = theme::chart_color(theme::AI).linear_multiply(0.3);
+        let color = motif_color().linear_multiply(0.3);
 
         // Crosshair lines
         let len = radius * 1.2;

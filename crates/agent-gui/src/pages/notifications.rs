@@ -168,7 +168,7 @@ impl NotificationsPage {
             );
             // One card holding a dense list grouped by day: tall standalone
             // cards showed four notifications a screen and repeated "Non
-            // lue" on every one. Unread is a violet dot and a bold title.
+            // lue" on every one. Unread is an accent dot and a bold title.
             let today = chrono::Local::now().date_naive();
             let mut current_day = None;
             widgets::data_card(ui, "Notifications", |ui: &mut egui::Ui| {

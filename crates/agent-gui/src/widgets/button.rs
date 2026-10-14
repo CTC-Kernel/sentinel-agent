@@ -124,7 +124,7 @@ fn draw_premium_button(
 
             // Primary: Filled Accent
             // Disabled: a neutral surface, not the accent at half strength.
-            // Faded violet under faded white text was about 2:1 on a light
+            // A faded accent under faded white text was about 2:1 on a light
             // page, and still looked like something to click.
             let fill = if !enabled && !loading {
                 theme::bg_tertiary()
@@ -182,7 +182,7 @@ fn draw_premium_button(
 
         // ─── Shadows ───
         // Painted before the fill below, so the button sits on its shadow.
-        // Primary actions cast the brand's violet glow, not a grey drop.
+        // Primary actions cast the brand's sapphire glow, not a grey drop.
         if is_primary && enabled && !loading && !is_clicked {
             let glow = theme::accent_glow_shadow(0.20 + 0.35 * hover_t);
             ui.painter()
@@ -191,7 +191,7 @@ fn draw_premium_button(
 
         // ─── Background Paint ───
         if is_primary && (enabled || loading) {
-            // Closely related iris and amethyst keep the action surface coherent.
+            // Royal sapphire into deep ocean blue keeps the action surface coherent.
             // `bg_fill` carries the hover/pressed state; the far stop follows
             // it by the same amount so the whole gradient deepens together.
             let depth = if is_clicked { 1.0 } else { hover_t * 0.6 };
