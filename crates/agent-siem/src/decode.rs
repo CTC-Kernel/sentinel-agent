@@ -686,6 +686,17 @@ pub fn decode_text_line(line: &str) -> DecodedLog {
     log
 }
 
+/// Decode a line of the output of a watched command (`command_monitors`):
+/// the line is the message, and the command's name is its program and its
+/// service, as Sigma rules name it.
+pub fn decode_command_line(command: &str, line: &str) -> DecodedLog {
+    let mut log = decode_text_line(line);
+    log.set("program", command);
+    log.set("command", command);
+    log.add_service(command);
+    log
+}
+
 fn json_text(value: &serde_json::Value) -> Option<String> {
     match value {
         serde_json::Value::String(text) => Some(text.clone()),
@@ -1226,6 +1237,17 @@ mod tests {
         assert_eq!(december.with_timezone(&Local).year(), 2026);
         let yesterday = bsd_time("Jan", "1", "10:00:00", january).unwrap();
         assert_eq!(yesterday.with_timezone(&Local).year(), 2027);
+    }
+
+    #[test]
+    fn a_line_of_a_watched_command_is_an_event_of_its_service() {
+        let log = decode_command_line("listening-ports", "LISTEN 0 128 0.0.0.0:4444 0.0.0.0:*");
+        assert_eq!(log.services, ["listening-ports"]);
+        assert_eq!(log.get("program"), Some("listening-ports"));
+        assert_eq!(
+            log.get("message"),
+            Some("LISTEN 0 128 0.0.0.0:4444 0.0.0.0:*")
+        );
     }
 
     #[test]

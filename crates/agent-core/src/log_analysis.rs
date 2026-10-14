@@ -153,7 +153,15 @@ impl LogAnalysis {
                 service: Some("auditd".to_string()),
             });
         }
-        let (loaded, engine) = sigma_logs::load(rules_dir, &coverage(&tailer));
+        // The watched commands are log sources too, named after them.
+        let mut coverage = coverage(&tailer);
+        coverage.services.extend(
+            config
+                .command_monitors
+                .iter()
+                .map(|command| command.name.to_ascii_lowercase()),
+        );
+        let (loaded, engine) = sigma_logs::load(rules_dir, &coverage);
         let analysis = Self {
             engine,
             stream: None,
@@ -468,6 +476,21 @@ impl AgentRuntime {
                 Err(e) => debug!("Windows event channels not read: {}", e),
             }
             analysis.windows = Some(reader);
+        }
+    }
+
+    /// Give the rules events read elsewhere (the output of the watched
+    /// commands); they are evaluated at the next pass. Nothing happens when
+    /// the log analysis is off.
+    pub(crate) fn add_log_events(&self, events: Vec<DecodedLog>) {
+        if let Some(analysis) = self
+            .log_analysis
+            .lock()
+            .unwrap_or_else(|e| e.into_inner())
+            .as_mut()
+        {
+            let room = MAX_EVENTS_PER_PASS.saturating_sub(analysis.pending.len());
+            analysis.pending.extend(events.into_iter().take(room));
         }
     }
 

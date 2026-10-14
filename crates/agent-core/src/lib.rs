@@ -58,6 +58,7 @@ pub mod voice {
 
 // Domain modules (impl AgentRuntime split)
 mod asset_sync;
+mod command_monitor;
 mod compliance;
 mod configure_cmd;
 pub mod edr_actions;
@@ -374,6 +375,8 @@ pub struct AgentRuntime {
     fim_audit: std::sync::Mutex<Option<fim_audit::AuditWatches>>,
     /// The inventory of the system and when it was taken (`None`: option off).
     inventory: std::sync::Mutex<Option<inventory_watch::InventoryWatch>>,
+    /// The programs whose output is watched (`command_monitors`).
+    command_monitors: std::sync::Mutex<command_monitor::CommandMonitors>,
     /// What the log analysis loaded, for the interface (`None`: option off).
     #[cfg_attr(not(feature = "gui"), allow(dead_code))]
     log_rules_summary: Option<String>,
@@ -702,6 +705,17 @@ impl AgentRuntime {
         info!("Initialized network manager with smart scheduling");
 
         let active_frameworks = config.active_frameworks.clone();
+        let (command_monitors, refused) =
+            command_monitor::CommandMonitors::new(&config.command_monitors);
+        for reason in refused {
+            warn!("Watched command not usable: {}", reason);
+        }
+        if !command_monitors.is_empty() {
+            info!(
+                "{} watched command(s) declared",
+                config.command_monitors.len()
+            );
+        }
         let inventory = config
             .system_inventory
             .then(inventory_watch::InventoryWatch::new);
@@ -757,6 +771,7 @@ impl AgentRuntime {
             #[cfg(target_os = "linux")]
             fim_audit: std::sync::Mutex::new(None),
             inventory: std::sync::Mutex::new(inventory),
+            command_monitors: std::sync::Mutex::new(command_monitors),
             log_rules_summary,
             canary_rx: tokio::sync::Mutex::new(None),
             canary_shutdown: std::sync::Mutex::new(Arc::new(std::sync::atomic::AtomicBool::new(
