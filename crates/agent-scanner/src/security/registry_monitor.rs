@@ -626,7 +626,10 @@ mod tests {
 
     #[test]
     fn a_short_hive_is_spelt_out_as_reg_query_prints_it() {
-        assert_eq!(full_key(r"HKLM\SOFTWARE\X"), r"HKEY_LOCAL_MACHINE\SOFTWARE\X");
+        assert_eq!(
+            full_key(r"HKLM\SOFTWARE\X"),
+            r"HKEY_LOCAL_MACHINE\SOFTWARE\X"
+        );
         assert_eq!(full_key(r" HKU\S-1-5-18\Y\ "), r"HKEY_USERS\S-1-5-18\Y");
         assert_eq!(full_key(r"HKEY_CLASSES_ROOT\Z"), r"HKEY_CLASSES_ROOT\Z");
         // A name that only starts like a hive is not one.
