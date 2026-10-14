@@ -640,7 +640,10 @@ impl AgentRuntime {
         };
         security_monitor.set_sigma_rules(sigma.processes);
         security_monitor.set_rootkit_detection(config.rootkit_detection);
-        security_monitor.watch_registry(AgentConfig::platform_data_dir().join("registry.json"));
+        security_monitor.watch_registry(
+            AgentConfig::platform_data_dir().join("registry.json"),
+            &config.registry_keys,
+        );
         let sigma = sigma.report;
         let log_rules_summary = log_analysis.is_some().then(|| log_rules_summary(&sigma));
         if sigma.loaded + sigma.log_rules + sigma.correlations > 0 || !sigma.errors.is_empty() {

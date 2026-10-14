@@ -205,7 +205,11 @@ fichiers declares.
   deborde (`auditctl -f 2`).
 - Sous Windows, les valeurs de registre de demarrage automatique (`Run`,
   `Winlogon`, `Image File Execution Options`...) sont surveillees de la meme
-  facon.
+  facon. `"registry_keys"` y ajoute les cles de l'organisation (reglages d'une
+  application, cle de strategie), dont toutes les valeurs sont relues a chaque
+  analyse : `"registry_keys": ["HKLM\\SOFTWARE\\Contoso\\Agent"]` (`HKLM`
+  vaut `HKEY_LOCAL_MACHINE`). Une valeur ajoutee ou modifiee y est signalee
+  comme une modification du registre (T1112).
 
 ## Flux d'indicateurs de compromission
 

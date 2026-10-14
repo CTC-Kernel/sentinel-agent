@@ -52,6 +52,11 @@ Tous les changements notables apportés au projet **Sentinel GRC Agent** sont co
   groupes et membres, services, ports en écoute (locaux ou exposés au
   réseau), et les changements depuis le démarrage de l'agent avec l'incident
   que chacun a levé.
+- **Clés de registre de l'organisation** (`registry_keys`, Windows) : elles
+  s'ajoutent aux emplacements de démarrage automatique surveillés ; toutes
+  leurs valeurs sont relues à chaque analyse, et une valeur ajoutée ou
+  modifiée est signalée comme modification du registre (T1112), comme le
+  permet la surveillance de registre de Wazuh.
 - **Auteur exact d'un changement de fichier** (`fim_whodata`, Linux,
   désactivé par défaut) : l'agent ajoute à auditd une règle par chemin
   surveillé, sous sa propre clé, lit le journal d'audit et retire ses règles à
@@ -60,9 +65,41 @@ Tous les changements notables apportés au projet **Sentinel GRC Agent** sont co
   par défaut : sur un système très actif, une mise à jour produit beaucoup
   d'enregistrements, et une politique d'audit qui arrête la machine quand
   son tampon déborde relève de l'administrateur.
-- **Vérifié** : RÉSULTAT_E2E. Code propre à Windows d'`agent-scanner` et
-  d'`agent-common` contrôlé pour la cible Windows (types et clippy).
-  **Non vérifié** : l'auteur exact sur un vrai auditd (le noyau partagé des
+- **Trois défauts trouvés en faisant tourner l'agent sur une vraie Ubuntu
+  24.04, et corrigés** :
+  - **mémoire du scan de vulnérabilités** : l'agent gagnait environ 30 Mo par
+    seconde pendant l'interrogation d'OSV pour 475 paquets, de 80 Mo à 4 Go
+    en deux minutes et 6 Go en six, jusqu'à saturer la machine. Chaque avis
+    était gardé en entier pendant tout le scan, des milliers à la fois, avec
+    toutes les versions concernées et, sous Ubuntu, tous les paquets binaires
+    de la source. Chaque avis est désormais réduit dès sa réception à ce que
+    le résultat utilise ; les résultats sont inchangés. Mesuré après
+    correction : MÉMOIRE_APRÈS ;
+  - **notification d'un poste sans interface** : elle échouait faute de
+    destination, et chaque déclenchement de playbook était compté en échec
+    partiel sur un serveur. Elle part maintenant dans les enregistrements SIEM
+    (onglet SIEM de la plateforme, SIEM externe s'il est configuré) ; sans
+    aucune destination elle échoue toujours, jamais réussie par simple
+    écriture dans le journal ;
+  - **collecteur de journaux** : quand `journalctl` n'avait rien de nouveau,
+    il relisait les 500 dernières lignes du fichier de journal et les
+    renvoyait au SIEM à chaque passage, et cherchait sous Ubuntu un
+    `/var/log/messages` qui n'existe pas (un avertissement par minute). Le
+    journal fait foi quand il répond ; sans journal, le fichier de la
+    distribution est lu depuis l'endroit où la lecture précédente s'était
+    arrêtée.
+- **Vérifié** : force brute SSH réelle contre l'agent fusionné, en service
+  sans interface, sur une Ubuntu 24.04 (OrbStack) : huit mauvais mots de
+  passe depuis une adresse de test, « Échecs d'authentification répétés sur
+  un compte » puis « Attaque par force brute SSH » levés, le playbook « Compte
+  pris par force brute » déclenché, l'adresse bloquée dans iptables (entrée
+  et sortie) pour 600 s, le second blocage compté comme la même récidive ;
+  l'attaquant est coupé net. Code propre à Windows d'`agent-scanner` et
+  d'`agent-common` contrôlé pour la cible Windows (types et clippy) ; tests de
+  tout l'espace de travail sous macOS. **Non vérifié** : le verrouillage du
+  compte pris dans ce même essai (le blocage a empêché la connexion réussie
+  qui le déclenche ; le verrouillage lui-même avait été exercé sur Ubuntu le
+  11 octobre) ; l'auteur exact sur un vrai auditd (le noyau partagé des
   machines OrbStack refuse l'audit) ; l'interface n'a été vue que dans son
   aperçu, avec des données d'exemple.
 
