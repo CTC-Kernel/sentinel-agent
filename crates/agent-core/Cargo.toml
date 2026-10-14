@@ -130,7 +130,12 @@ extended-description = """\
 Sentinel GRC endpoint compliance monitoring agent.
 Provides real-time asset scanning, risk assessment, and compliance monitoring
 for enterprise environments following ISO 27001/27005 standards."""
-depends = "libssl3, libgtk-3-0, libayatana-appindicator3-1"
+# `$auto`: the libraries the binary links (glibc, GTK, libxdo...) with the
+# minimum versions it needs, as dpkg-shlibdeps reads them on the build system
+# (Debian 12 in the release, see build-deb in release.yml). The tray library
+# is opened at run time (dlopen), so the binary does not show it. No libssl:
+# OpenSSL is compiled in (rusqlite's bundled-sqlcipher-vendored-openssl).
+depends = "$auto, libayatana-appindicator3-1"
 section = "admin"
 priority = "optional"
 conf-files = ["/etc/sentinel/agent.json"]

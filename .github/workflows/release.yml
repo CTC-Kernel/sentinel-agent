@@ -668,26 +668,50 @@ jobs:
   # ═══════════════════════════════════════════════════════════════════
   # Linux — DEB package (Debian/Ubuntu)
   # ═══════════════════════════════════════════════════════════════════
+  # Built inside Debian 12, not on the runner itself (ubuntu-latest, 24.04):
+  # a Linux binary only starts on a glibc at least as new as the one it was
+  # linked against. Built on 24.04 it needed glibc 2.38 and could not start
+  # on Debian 12 (2.36) or Ubuntu 22.04 (2.35). The package dependencies are
+  # read from the binary (`$auto` in crates/agent-core/Cargo.toml), so they
+  # carry Debian 12's package names, which Debian 13 and Ubuntu 24.04 still
+  # provide through their t64 packages.
   build-deb:
     name: Build Linux DEB
     runs-on: ubuntu-latest
+    container: debian:bookworm
     needs: [version]
     env:
+      DEBIAN_FRONTEND: noninteractive
       OPENSSL_DIR: /usr
       OPENSSL_LIB_DIR: /usr/lib/x86_64-linux-gnu
       OPENSSL_INCLUDE_DIR: /usr/include/openssl
       RELEASE_VERSION: ${{ needs.version.outputs.version }}
     steps:
+      # Before the checkout: without git in the container, actions/checkout
+      # downloads a tarball instead of cloning.
+      - name: Install dependencies
+        run: |
+          apt-get update
+          apt-get install -y --no-install-recommends ca-certificates curl git build-essential cmake perl pkg-config libgtk-3-dev libayatana-appindicator3-dev libssl-dev libxdo-dev libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev libxkbcommon-dev libudev-dev
+
       - uses: actions/checkout@v4
         with:
           ref: v${{ needs.version.outputs.version }}
-      - uses: dtolnay/rust-toolchain@stable
-      - uses: Swatinem/rust-cache@v2
 
-      - name: Install dependencies
+      # rustup, then the toolchain pinned in rust-toolchain.toml.
+      - name: Install Rust
         run: |
-          sudo apt-get update
-          sudo apt-get install -y libgtk-3-dev libayatana-appindicator3-dev libssl-dev pkg-config libxdo-dev libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev libxkbcommon-dev libudev-dev
+          curl --proto '=https' --tlsv1.2 --retry 5 -sSf https://sh.rustup.rs | sh -s -- -y --profile minimal --default-toolchain none
+          echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
+          "$HOME/.cargo/bin/rustup" toolchain install
+
+      # The key keeps this job off the caches it saved when it ran on the
+      # Ubuntu 24.04 runner: their C objects (sqlcipher, openssl, ring...)
+      # were compiled against glibc 2.39 headers and would bring the newer
+      # symbols back.
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: debian-bookworm
 
       - name: Install cargo-deb
         run: cargo install cargo-deb --locked
@@ -695,8 +719,21 @@ jobs:
       - name: Build release binary
         run: cargo build --release --features gui --package agent-core --no-default-features
 
+      # Fail the release here rather than on a customer's server: the oldest
+      # glibc this deb must start on is Ubuntu 22.04's.
+      - name: Check the glibc the binary needs
+        run: |
+          need=$(objdump -T target/release/agent-core | grep -o 'GLIBC_[0-9.]*' | sed 's/^GLIBC_//' | sort -uV | tail -n 1)
+          echo "Highest glibc symbol version: $need"
+          if [ -z "$need" ] || [ "$(printf '%s\n' "$need" 2.35 | sort -V | tail -n 1)" != "2.35" ]; then
+            echo "::error::agent-core needs glibc $need; Ubuntu 22.04 has 2.35, Debian 12 has 2.36"
+            exit 1
+          fi
+
       - name: Build DEB package
-        run: cargo deb --package agent-core --no-build --deb-revision 1
+        run: |
+          cargo deb --package agent-core --no-build --deb-revision 1
+          dpkg-deb --field target/debian/sentinel-agent_*.deb Version Depends
 
       - name: Generate checksums
         run: |
@@ -900,7 +937,8 @@ jobs:
             local pattern="$1"
             local folder="$2"
             local latest_name="$3"
-            
+            local dest="$4"  # bucket folder, the one update_manager.rs reads
+
             # For macOS, we already created latest aliases on the macOS runner to ensure stapling/notarization
             if [[ "$folder" == "sentinel-agent-macos" ]]; then
               echo "Skipping local alias creation for macOS (pre-created on build runner)"
@@ -914,15 +952,24 @@ jobs:
               cp "$file" "artifacts/$folder/$latest_name"
               # Create checksum for latest
               sha256sum "$file" | cut -d' ' -f1 > "artifacts/$folder/$latest_name.sha256"
-              gcloud storage cp "artifacts/$folder/$latest_name" "$BUCKET/${folder##sentinel-agent-}/"
-              gcloud storage cp "artifacts/$folder/$latest_name.sha256" "$BUCKET/${folder##sentinel-agent-}/"
+              gcloud storage cp "artifacts/$folder/$latest_name" "$BUCKET/$dest/"
+              gcloud storage cp "artifacts/$folder/$latest_name.sha256" "$BUCKET/$dest/"
             fi
           }
 
-          create_latest "SentinelAgent-*.pkg" "sentinel-agent-macos" "SentinelAgent-latest.pkg"
-          create_latest "SentinelAgentSetup-*.msi" "sentinel-agent-windows" "SentinelAgentSetup-latest.msi"
-          create_latest "sentinel-agent_*.deb" "sentinel-agent-linux-deb" "sentinel-agent-latest-amd64.deb"
-          create_latest "sentinel-agent-*.rpm" "sentinel-agent-linux-rpm" "sentinel-agent-latest.x86_64.rpm"
+          create_latest "SentinelAgent-*.pkg" "sentinel-agent-macos" "SentinelAgent-latest.pkg" "macos"
+          create_latest "SentinelAgentSetup-*.msi" "sentinel-agent-windows" "SentinelAgentSetup-latest.msi" "windows"
+          create_latest "sentinel-agent_*.deb" "sentinel-agent-linux-deb" "sentinel-agent-latest-amd64.deb" "linux_deb"
+          create_latest "sentinel-agent-*.rpm" "sentinel-agent-linux-rpm" "sentinel-agent-latest.x86_64.rpm" "linux_rpm"
+
+          # The deb link handed out to users predates the alias above and was
+          # never refreshed: until this step it served the 2.0.0 package of
+          # January 2026, built on Ubuntu 24.04, which Debian 12 refuses.
+          DEB_LATEST=artifacts/sentinel-agent-linux-deb/sentinel-agent-latest-amd64.deb
+          if [ -f "$DEB_LATEST" ]; then
+            gcloud storage cp "$DEB_LATEST" "$BUCKET/linux_deb/sentinel-agent_latest_amd64.deb"
+            gcloud storage cp "$DEB_LATEST.sha256" "$BUCKET/linux_deb/sentinel-agent_latest_amd64.deb.sha256"
+          fi
 
           echo "=== Processing macOS latest files ==="
           # macOS latest files are pre-created and stapled on macOS runner
@@ -1063,10 +1110,19 @@ jobs:
           echo "Windows MSI HTTP status: $HTTP_CODE"
           
           # Test Linux DEB
+          # A 200 is not enough: the old link answered 200 for months with a
+          # stale package. Both names must serve this release's deb.
           echo "Testing Linux DEB download..."
-          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" "$BASE_URL/linux_deb/sentinel-agent_latest_amd64.deb")
-          echo "Linux DEB HTTP status: $HTTP_CODE"
-          
+          DEB_SHA=$(cat artifacts/sentinel-agent-linux-deb/sentinel-agent-latest-amd64.deb.sha256)
+          for name in sentinel-agent-latest-amd64.deb sentinel-agent_latest_amd64.deb; do
+            SERVED_SHA=$(curl -sf "$BASE_URL/linux_deb/$name" | sha256sum | cut -d' ' -f1)
+            if [ "$SERVED_SHA" = "$DEB_SHA" ]; then
+              echo "Linux DEB linux_deb/$name: serves $RELEASE_VERSION"
+            else
+              echo "::warning::linux_deb/$name does not serve the $RELEASE_VERSION deb"
+            fi
+          done
+
           # Test Linux RPM
           echo "Testing Linux RPM download..."
           HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" "$BASE_URL/linux_rpm/sentinel-agent-latest.x86_64.rpm")
