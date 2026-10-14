@@ -140,6 +140,9 @@ fn main() -> Result<(), eframe::Error> {
                     details: None,
                     executed_at: Some(now),
                     frameworks: vec![],
+                    description: None,
+                    rationale: None,
+                    remediation: None,
                 },
             })
             .unwrap();

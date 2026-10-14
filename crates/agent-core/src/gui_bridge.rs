@@ -114,9 +114,22 @@ impl AgentRuntime {
             standalone: self.config.standalone,
             ransomware_canaries: self.state.ransomware_canaries.load(Ordering::Acquire),
             host_isolated: crate::host_isolation::is_isolated(),
+            detection: self.gui_detection_options(),
         };
 
         self.emit_gui_event(AgentEvent::StatusChanged { summary });
+    }
+
+    /// The detection engines this agent was started with.
+    pub(crate) fn gui_detection_options(&self) -> agent_gui::dto::GuiDetectionOptions {
+        agent_gui::dto::GuiDetectionOptions {
+            log_analysis: self.config.log_analysis,
+            rootkit_detection: self.config.rootkit_detection,
+            system_inventory: self.config.system_inventory,
+            hardening_benchmark: self.config.hardening_benchmark,
+            fim_report_changes: self.config.fim_report_changes,
+            log_rules: self.log_rules_summary.clone(),
+        }
     }
 
     /// Emit resource usage update to the GUI.
@@ -339,6 +352,26 @@ impl AgentRuntime {
                     vec![],
                 )
             };
+        // What a policy check says beyond its name: its description, why it
+        // matters and how to correct it (the SCA format carries all three).
+        let (description, rationale, remediation) = match self.check_registry.get(check_id) {
+            Some(check) => {
+                let def = check.definition();
+                let text = |value: &serde_json::Value| {
+                    value
+                        .as_str()
+                        .map(str::trim)
+                        .filter(|text| !text.is_empty())
+                        .map(str::to_string)
+                };
+                (
+                    Some(def.description.trim().to_string()).filter(|text| !text.is_empty()),
+                    text(&def.parameters["rationale"]),
+                    text(&def.parameters["remediation"]),
+                )
+            }
+            None => (None, None, None),
+        };
 
         let status = match common_result.status {
             agent_common::types::CheckStatus::Pass => GuiCheckStatus::Pass,
@@ -369,6 +402,9 @@ impl AgentRuntime {
             },
             executed_at: Some(common_result.executed_at),
             frameworks,
+            description,
+            rationale,
+            remediation,
         }
     }
 

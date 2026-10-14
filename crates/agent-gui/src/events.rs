@@ -461,6 +461,12 @@ pub enum GuiCommand {
         /// `true`: deploy and watch the decoys; `false`: remove them.
         enabled: bool,
     },
+    /// Turn a detection engine on or off in the agent's configuration; the
+    /// agent runs with it from its next start.
+    SetDetectionOption {
+        option: crate::dto::DetectionOption,
+        enabled: bool,
+    },
     SetLogLevel {
         /// Log level (0=TRACE, 1=DEBUG, 2=INFO, 3=WARN, 4=ERROR).
         level: u8,
@@ -723,6 +729,10 @@ impl GuiCommand {
             Self::UnblockIp { .. } => "Débloquer une adresse IP",
             Self::RestoreQuarantinedFile { .. } => "Restaurer un fichier mis en quarantaine",
             Self::SetRansomwareCanaries { enabled: false } => "Retirer les fichiers leurres",
+            Self::SetDetectionOption {
+                option,
+                enabled: false,
+            } if option.lowers_protection_when_off() => "Désactiver une détection",
             Self::TogglePlaybook { enabled: false, .. } => "Désactiver un playbook",
             Self::DeletePlaybook { .. } => "Supprimer un playbook",
             Self::ToggleDetectionRule { enabled: false, .. } => "Désactiver une règle de détection",
@@ -746,6 +756,10 @@ mod tests {
             GuiCommand::Pause,
             GuiCommand::ReleaseHost,
             GuiCommand::SetRansomwareCanaries { enabled: false },
+            GuiCommand::SetDetectionOption {
+                option: crate::dto::DetectionOption::LogAnalysis,
+                enabled: false,
+            },
             GuiCommand::TogglePlaybook {
                 playbook_id: "p".into(),
                 enabled: false,
@@ -773,6 +787,15 @@ mod tests {
                 duration_secs: 0,
             },
             GuiCommand::SetRansomwareCanaries { enabled: true },
+            GuiCommand::SetDetectionOption {
+                option: crate::dto::DetectionOption::RootkitDetection,
+                enabled: true,
+            },
+            // Turning the hardening policy off removes checks, not detection.
+            GuiCommand::SetDetectionOption {
+                option: crate::dto::DetectionOption::HardeningBenchmark,
+                enabled: false,
+            },
             GuiCommand::TogglePlaybook {
                 playbook_id: "p".into(),
                 enabled: true,

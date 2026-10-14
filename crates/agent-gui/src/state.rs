@@ -1091,6 +1091,9 @@ pub struct SettingsState {
     pub log_collector_poll_secs: u64,
     /// Navigation sidebar is collapsed to an icon rail.
     pub sidebar_collapsed: bool,
+    /// Detection engines switched from this interface since the agent
+    /// started: they apply at its next start.
+    pub detection_requested: std::collections::HashMap<crate::dto::DetectionOption, bool>,
 }
 
 impl Default for SettingsState {
@@ -1123,6 +1126,7 @@ impl Default for SettingsState {
             ],
             log_collector_poll_secs: 60,
             sidebar_collapsed: false,
+            detection_requested: std::collections::HashMap::new(),
         }
     }
 }

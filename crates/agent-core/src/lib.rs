@@ -369,6 +369,9 @@ pub struct AgentRuntime {
     fim_attribution: std::sync::Mutex<fim_attribution::Attribution>,
     /// The inventory of the system and when it was taken (`None`: option off).
     inventory: std::sync::Mutex<Option<inventory_watch::InventoryWatch>>,
+    /// What the log analysis loaded, for the interface (`None`: option off).
+    #[cfg_attr(not(feature = "gui"), allow(dead_code))]
+    log_rules_summary: Option<String>,
     /// Tampered ransomware canary folders (`None`: protection off).
     canary_rx: tokio::sync::Mutex<Option<mpsc::Receiver<agent_fim::canary::CanaryIncident>>>,
     /// Stops the current ransomware canary watcher (one flag per start).
@@ -634,6 +637,7 @@ impl AgentRuntime {
         security_monitor.set_rootkit_detection(config.rootkit_detection);
         security_monitor.watch_registry(AgentConfig::platform_data_dir().join("registry.json"));
         let sigma = sigma.report;
+        let log_rules_summary = log_analysis.is_some().then(|| log_rules_summary(&sigma));
         if sigma.loaded + sigma.log_rules + sigma.correlations > 0 || !sigma.errors.is_empty() {
             info!(
                 "Sigma rules: {}",
@@ -743,6 +747,7 @@ impl AgentRuntime {
             log_analysis: std::sync::Mutex::new(log_analysis),
             fim_attribution: std::sync::Mutex::new(fim_attribution::Attribution::default()),
             inventory: std::sync::Mutex::new(inventory),
+            log_rules_summary,
             canary_rx: tokio::sync::Mutex::new(None),
             canary_shutdown: std::sync::Mutex::new(Arc::new(std::sync::atomic::AtomicBool::new(
                 false,
@@ -981,9 +986,40 @@ impl AgentRuntime {
     }
 }
 
+/// What the log analysis loaded, as the settings show it.
+fn log_rules_summary(report: &agent_scanner::security::sigma::SigmaLoadReport) -> String {
+    let mut summary = format!(
+        "{} règle(s) sur les journaux, {} corrélation(s), {} sur les processus",
+        report.log_rules, report.correlations, report.loaded
+    );
+    if !report.errors.is_empty() {
+        summary.push_str(&format!(
+            ", {} refusée(s) (voir le journal de l'agent)",
+            report.errors.len()
+        ));
+    }
+    summary
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn the_settings_say_what_the_log_analysis_loaded() {
+        let report = agent_scanner::security::sigma::SigmaLoadReport {
+            loaded: 2,
+            log_rules: 15,
+            correlations: 6,
+            errors: vec!["bad.yml: no detection".to_string()],
+            ..Default::default()
+        };
+        assert_eq!(
+            log_rules_summary(&report),
+            "15 règle(s) sur les journaux, 6 corrélation(s), 2 sur les processus, \
+             1 refusée(s) (voir le journal de l'agent)"
+        );
+    }
 
     #[test]
     fn test_agent_runtime_creation() {

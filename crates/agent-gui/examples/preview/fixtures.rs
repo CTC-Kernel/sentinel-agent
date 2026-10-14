@@ -95,6 +95,16 @@ pub fn seed(state: &mut AppState) {
         standalone: false,
         ransomware_canaries: false,
         host_isolated: false,
+        detection: agent_gui::dto::GuiDetectionOptions {
+            log_analysis: true,
+            rootkit_detection: true,
+            system_inventory: true,
+            hardening_benchmark: false,
+            fim_report_changes: true,
+            log_rules: Some(
+                "18 règle(s) sur les journaux, 8 corrélation(s), 0 sur les processus".into(),
+            ),
+        },
     };
     state.policy = policy;
     state.previous_compliance_score = Some(83.1);
@@ -342,9 +352,27 @@ pub fn seed(state: &mut AppState) {
                 details: None,
                 executed_at: Some(ago(12 + i as i64 % 3)),
                 frameworks: fws.iter().map(|s| s.to_string()).collect(),
+                description: None,
+                rationale: None,
+                remediation: None,
             },
         )
         .collect();
+    // A policy check says what it verifies, why, and how to correct it.
+    if let Some(firewall) = state.checks.iter_mut().find(|c| c.check_id == "CIS-3.1") {
+        firewall.description = Some(
+            "Le pare-feu filtre les connexions entrantes sur les profils domaine, privé et public."
+                .into(),
+        );
+        firewall.rationale = Some(
+            "Un profil sans pare-feu expose les services du poste à tout le réseau qu'il rejoint."
+                .into(),
+        );
+        firewall.remediation = Some(
+            "Activer le pare-feu sur chaque profil : Set-NetFirewallProfile -Profile Domain,Private,Public -Enabled True"
+                .into(),
+        );
+    }
 
     // ── Vulnerabilities ───────────────────────────────────────────────
     state.vulnerability_summary = Some(GuiVulnerabilitySummary {
@@ -2235,6 +2263,13 @@ pub fn open_drawer(state: &mut AppState, which: &str) {
         "risk" => {
             state.risks.selected_risk = Some(0);
             state.risks.detail_open = true;
+        }
+        "check" => {
+            state.compliance.selected_check = state
+                .checks
+                .iter()
+                .position(|c| c.status == GuiCheckStatus::Fail);
+            state.compliance.detail_open = true;
         }
         "fim" => {
             state.fim.selected_alert = Some(0);
