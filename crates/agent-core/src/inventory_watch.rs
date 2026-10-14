@@ -60,94 +60,11 @@ impl InventoryWatch {
         for change in changes {
             self.recent.push_front(RecentChange {
                 at,
-                label: label_fr(change),
+                label: change.describe(),
                 severity: change.incident().map(|incident| incident.severity),
             });
         }
         self.recent.truncate(RECENT_CHANGES);
-    }
-}
-
-/// The change in one sentence, in French, for the interface (the SIEM and
-/// the platform keep [`InventoryChange::describe`]).
-fn label_fr(change: &InventoryChange) -> String {
-    let port = |port: &agent_scanner::inventory::ListeningPort| {
-        format!(
-            "{}/{} sur {}{}",
-            port.protocol,
-            port.port,
-            port.address,
-            port.process
-                .as_deref()
-                .map(|process| format!(" ({process})"))
-                .unwrap_or_default()
-        )
-    };
-    match change {
-        InventoryChange::UserAdded(user) => {
-            format!("Compte créé : {} (identifiant {})", user.name, user.id)
-        }
-        InventoryChange::UserRemoved(user) => format!("Compte supprimé : {}", user.name),
-        InventoryChange::UserChanged { before, after } => format!(
-            "Compte modifié : {} (identifiant {} → {}, shell {} → {})",
-            after.name,
-            before.id,
-            after.id,
-            before.shell.as_deref().unwrap_or("—"),
-            after.shell.as_deref().unwrap_or("—")
-        ),
-        InventoryChange::GroupMemberAdded { group, member } => {
-            format!("{member} ajouté au groupe {group}")
-        }
-        InventoryChange::GroupMemberRemoved { group, member } => {
-            format!("{member} retiré du groupe {group}")
-        }
-        InventoryChange::ServiceAdded(service) => {
-            format!("Service installé : {} ({})", service.name, service.state)
-        }
-        InventoryChange::ServiceRemoved(service) => format!("Service supprimé : {}", service.name),
-        InventoryChange::ServiceChanged { before, after } => format!(
-            "Service modifié : {} ({} → {})",
-            after.name, before.state, after.state
-        ),
-        InventoryChange::PortOpened {
-            port: opened,
-            known,
-        } => format!(
-            "Port en écoute : {}{}",
-            port(opened),
-            if *known { ", déjà vu" } else { "" }
-        ),
-        InventoryChange::PortClosed(closed) => format!("Port fermé : {}", port(closed)),
-        InventoryChange::SystemChanged {
-            field,
-            before,
-            after,
-        } => {
-            use agent_scanner::inventory::SystemField;
-            let what = match field {
-                SystemField::Hostname => "Nom de la machine",
-                SystemField::OperatingSystem => "Système d'exploitation",
-                SystemField::Kernel => "Noyau",
-                SystemField::Hardware => "Matériel",
-                SystemField::SerialNumber => "Numéro de série",
-                SystemField::Processor => "Processeur",
-                SystemField::Memory => "Mémoire",
-            };
-            // The memory is counted in GiB, « Gio » in French.
-            let french = |value: &str| {
-                if *field == SystemField::Memory {
-                    value.replace(" GiB", " Gio")
-                } else {
-                    value.to_string()
-                }
-            };
-            format!("{what} : {} → {}", french(before), french(after))
-        }
-        InventoryChange::HotfixInstalled(hotfix) => format!("Correctif installé : {}", hotfix.id),
-        InventoryChange::HotfixRemoved(hotfix) => {
-            format!("Correctif plus installé : {}", hotfix.id)
-        }
     }
 }
 
@@ -424,13 +341,13 @@ mod tests {
     }
 
     #[test]
-    fn system_and_update_changes_are_labelled_in_french() {
+    fn system_and_update_changes_are_described_in_french() {
         use agent_scanner::inventory::{Hotfix, SystemField};
         let changes = [
             InventoryChange::SystemChanged {
                 field: SystemField::Memory,
-                before: "16 GiB".to_string(),
-                after: "32 GiB".to_string(),
+                before: "16 Gio".to_string(),
+                after: "32 Gio".to_string(),
             },
             InventoryChange::SystemChanged {
                 field: SystemField::Kernel,
@@ -443,7 +360,7 @@ mod tests {
                 installed_on: None,
             }),
         ];
-        let labels: Vec<String> = changes.iter().map(label_fr).collect();
+        let labels: Vec<String> = changes.iter().map(InventoryChange::describe).collect();
         assert_eq!(
             labels,
             [

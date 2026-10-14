@@ -262,7 +262,13 @@ pub fn incident(path: &Path, matches: &[YaraMatch]) -> Option<SecurityIncident> 
         .and_then(|v| v.as_str())
         .filter(|d| !d.trim().is_empty())
         .map(|d| format!("{} — {d}", path.display()))
-        .unwrap_or_else(|| format!("{} matches YARA rule {}", path.display(), worst.rule));
+        .unwrap_or_else(|| {
+            format!(
+                "{} correspond à la règle YARA {}.",
+                path.display(),
+                worst.rule
+            )
+        });
     Some(
         SecurityIncident::new(
             IncidentType::Malware,
@@ -408,7 +414,7 @@ mod tests {
         let plain = super::incident(path, &[found("Bare", json!({}))]).unwrap();
         assert_eq!(
             plain.description,
-            "/Users/alice/Downloads/invoice.exe matches YARA rule Bare"
+            "/Users/alice/Downloads/invoice.exe correspond à la règle YARA Bare."
         );
     }
 

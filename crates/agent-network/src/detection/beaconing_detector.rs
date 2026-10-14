@@ -342,7 +342,7 @@ impl BeaconingDetector {
         let process_info = conn
             .process_name
             .as_ref()
-            .map(|p| format!(" by process '{}'", p))
+            .map(|p| format!(" par le processus « {} »", p))
             .unwrap_or_default();
 
         let severity = if analysis.confidence >= 90 {
@@ -354,22 +354,22 @@ impl BeaconingDetector {
         };
 
         let interval_desc = if analysis.avg_interval_secs < 60.0 {
-            format!("{:.0} seconds", analysis.avg_interval_secs)
+            format!("{:.0} s", analysis.avg_interval_secs)
         } else if analysis.avg_interval_secs < 3600.0 {
-            format!("{:.1} minutes", analysis.avg_interval_secs / 60.0)
+            format!("{:.1} min", analysis.avg_interval_secs / 60.0).replace('.', ",")
         } else {
-            format!("{:.1} hours", analysis.avg_interval_secs / 3600.0)
+            format!("{:.1} h", analysis.avg_interval_secs / 3600.0).replace('.', ",")
         };
 
         NetworkSecurityAlert {
             alert_type: NetworkAlertType::C2Communication,
             severity,
-            title: format!("Beaconing pattern detected to {}", analysis.destination),
+            title: format!("Balise vers {}", analysis.destination),
             description: format!(
-                "Regular callback pattern detected to '{}'{} with {}% confidence. \
-                 Average interval: {}, jitter: {:.1}%. \
-                 Beaconing is a common C2 communication pattern where malware \
-                 periodically contacts its command server.",
+                "Appels réguliers vers « {} »{}, confiance {} %. \
+                 Intervalle moyen : {}, gigue : {:.1} %. \
+                 Un logiciel malveillant contacte ainsi son serveur de commande à \
+                 intervalles réguliers.",
                 analysis.destination,
                 process_info,
                 analysis.confidence,

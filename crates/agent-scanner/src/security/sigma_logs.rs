@@ -807,7 +807,10 @@ pub fn incident(detection: &Detection, fields: &SigmaEvent, source: &str) -> Sec
         SigmaLevel::Informational => (IncidentSeverity::Low, 20),
     };
     let mut description = if detection.description.is_empty() {
-        format!("Sigma rule \"{}\" matched a log event.", detection.title)
+        format!(
+            "La règle Sigma « {} » correspond à un événement des journaux.",
+            detection.title
+        )
     } else {
         detection.description.clone()
     };
@@ -818,7 +821,7 @@ pub fn incident(detection: &Detection, fields: &SigmaEvent, source: &str) -> Sec
             .map(|(field, value)| format!("{field}={value}"))
             .collect();
         description.push_str(&format!(
-            " ({} in {}s{}{})",
+            " ({} en {} s{}{})",
             hit.count,
             hit.timespan_secs,
             if group.is_empty() { "" } else { ", " },
@@ -1044,7 +1047,7 @@ mod tests {
         assert!(
             incident
                 .description
-                .contains("2 in 300s, src_ip=203.0.113.9")
+                .contains("2 en 300 s, src_ip=203.0.113.9")
         );
         assert_eq!(incident.evidence["correlation"]["count"], 2);
         assert_eq!(incident.evidence["event"]["user"], "root");

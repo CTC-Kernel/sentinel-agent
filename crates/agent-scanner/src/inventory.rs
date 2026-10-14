@@ -221,7 +221,20 @@ impl SystemField {
         Self::Memory,
     ];
 
-    /// Its name, for the evidence and the SIEM.
+    /// Its name in French, for the people who read the change.
+    pub fn label(self) -> &'static str {
+        match self {
+            Self::Hostname => "Nom de la machine",
+            Self::OperatingSystem => "Système d'exploitation",
+            Self::Kernel => "Noyau",
+            Self::Hardware => "Matériel",
+            Self::SerialNumber => "Numéro de série",
+            Self::Processor => "Processeur",
+            Self::Memory => "Mémoire",
+        }
+    }
+
+    /// Its name, for the evidence.
     pub fn name(self) -> &'static str {
         match self {
             Self::Hostname => "hostname",
@@ -263,7 +276,7 @@ impl SystemDescription {
             // by a few megabytes from one version to the next.
             SystemField::Memory => self
                 .memory_bytes
-                .map(|bytes| format!("{} GiB", (bytes + (1 << 29)) >> 30)),
+                .map(|bytes| format!("{} Gio", (bytes + (1 << 29)) >> 30)),
         }
     }
 
@@ -383,39 +396,52 @@ pub fn is_privileged_group(name: &str) -> bool {
 }
 
 impl InventoryChange {
-    /// The change in one sentence.
+    /// The change in one sentence, in French, as the interface, the SIEM
+    /// and the platform show it.
     pub fn describe(&self) -> String {
+        let listener = |port: &ListeningPort| {
+            format!(
+                "{}/{} sur {}{}",
+                port.protocol,
+                port.port,
+                port.address,
+                port.process
+                    .as_deref()
+                    .map(|process| format!(" ({process})"))
+                    .unwrap_or_default()
+            )
+        };
         match self {
             Self::UserAdded(user) => {
-                format!("Account '{}' (id {}) was created", user.name, user.id)
+                format!("Compte créé : {} (identifiant {})", user.name, user.id)
             }
-            Self::UserRemoved(user) => format!("Account '{}' was removed", user.name),
+            Self::UserRemoved(user) => format!("Compte supprimé : {}", user.name),
             Self::UserChanged { before, after } => format!(
-                "Account '{}' changed: id {} -> {}, shell {} -> {}",
+                "Compte modifié : {} (identifiant {} → {}, shell {} → {})",
                 after.name,
                 before.id,
                 after.id,
-                before.shell.as_deref().unwrap_or("-"),
-                after.shell.as_deref().unwrap_or("-")
+                before.shell.as_deref().unwrap_or("—"),
+                after.shell.as_deref().unwrap_or("—")
             ),
             Self::GroupMemberAdded { group, member } => {
-                format!("Account '{member}' was added to group '{group}'")
+                format!("{member} ajouté au groupe {group}")
             }
             Self::GroupMemberRemoved { group, member } => {
-                format!("Account '{member}' was removed from group '{group}'")
+                format!("{member} retiré du groupe {group}")
             }
             Self::ServiceAdded(service) => format!(
-                "Service '{}' was installed ({}){}",
+                "Service installé : {} ({}){}",
                 service.name,
                 service.state,
                 service
                     .command
                     .as_ref()
-                    .map_or_else(String::new, |command| format!(": {command}"))
+                    .map_or_else(String::new, |command| format!(", commande {command}"))
             ),
-            Self::ServiceRemoved(service) => format!("Service '{}' was removed", service.name),
+            Self::ServiceRemoved(service) => format!("Service supprimé : {}", service.name),
             Self::ServiceChanged { before, after } => format!(
-                "Service '{}' changed: {} -> {}{}",
+                "Service modifié : {} ({} → {}){}",
                 after.name,
                 before.state,
                 after.state,
@@ -423,34 +449,25 @@ impl InventoryChange {
                     String::new()
                 } else {
                     format!(
-                        ", command {} -> {}",
-                        before.command.as_deref().unwrap_or("-"),
-                        after.command.as_deref().unwrap_or("-")
+                        ", commande {} → {}",
+                        before.command.as_deref().unwrap_or("—"),
+                        after.command.as_deref().unwrap_or("—")
                     )
                 }
             ),
-            Self::PortOpened { port, .. } => format!(
-                "Port {}/{} is now listening on {}{}",
-                port.port,
-                port.protocol,
-                port.address,
-                port.process
-                    .as_ref()
-                    .map_or_else(String::new, |process| format!(" ({process})"))
+            Self::PortOpened { port, known } => format!(
+                "Port en écoute : {}{}",
+                listener(port),
+                if *known { ", déjà vu" } else { "" }
             ),
-            Self::PortClosed(port) => {
-                format!(
-                    "Port {}/{} is no longer listening",
-                    port.port, port.protocol
-                )
-            }
+            Self::PortClosed(port) => format!("Port fermé : {}", listener(port)),
             Self::SystemChanged {
                 field,
                 before,
                 after,
-            } => format!("The {} changed: {before} -> {after}", field.name()),
-            Self::HotfixInstalled(hotfix) => format!("Update {} was installed", hotfix.id),
-            Self::HotfixRemoved(hotfix) => format!("Update {} is no longer installed", hotfix.id),
+            } => format!("{} : {before} → {after}", field.label()),
+            Self::HotfixInstalled(hotfix) => format!("Correctif installé : {}", hotfix.id),
+            Self::HotfixRemoved(hotfix) => format!("Correctif plus installé : {}", hotfix.id),
         }
     }
 
@@ -505,31 +522,31 @@ impl InventoryChange {
         let severity = self.severity()?;
         let (title, technique) = match self {
             Self::UserAdded(user) if user.is_root_equivalent() => (
-                format!("Account created with the identifier of root: {}", user.name),
+                format!("Compte créé avec l'identifiant de root : {}", user.name),
                 "T1136.001",
             ),
-            Self::UserAdded(user) => (format!("Account created: {}", user.name), "T1136.001"),
+            Self::UserAdded(user) => (format!("Compte créé : {}", user.name), "T1136.001"),
             Self::UserChanged { after, .. } if after.is_root_equivalent() => (
-                format!("Account given the identifier of root: {}", after.name),
+                format!("Compte doté de l'identifiant de root : {}", after.name),
                 "T1098",
             ),
             Self::UserChanged { after, .. } => (
-                format!("Account given a login shell: {}", after.name),
+                format!("Compte doté d'un shell de connexion : {}", after.name),
                 "T1098",
             ),
             Self::GroupMemberAdded { group, member } => (
-                format!("Account added to an administration group: {member} in {group}"),
+                format!("Compte ajouté à un groupe d'administration : {member} dans {group}"),
                 "T1098",
             ),
             Self::ServiceAdded(service) => {
-                (format!("Service installed: {}", service.name), "T1543")
+                (format!("Service installé : {}", service.name), "T1543")
             }
             Self::ServiceChanged { after, .. } => (
-                format!("Command of a service changed: {}", after.name),
+                format!("Commande d'un service modifiée : {}", after.name),
                 "T1543",
             ),
             Self::PortOpened { port, .. } => (
-                format!("New listening port: {}/{}", port.port, port.protocol),
+                format!("Nouveau port en écoute : {}/{}", port.port, port.protocol),
                 "T1571",
             ),
             _ => return None,
@@ -1812,7 +1829,10 @@ mod tests {
         );
         assert_eq!(changes.len(), 2);
         assert!(changes.iter().all(|change| change.incident().is_none()));
-        assert!(changes[1].describe().contains("kernel changed"));
+        assert_eq!(
+            changes[1].describe(),
+            "Noyau : 6.8.0-45-generic → 6.8.0-47-generic"
+        );
         let kept = state.inventory.as_ref().unwrap().system.as_ref().unwrap();
         assert_eq!(kept.serial_number.as_deref(), Some("7XK2QD3"));
         assert_eq!(kept.kernel.as_deref(), Some("6.8.0-47-generic"));
@@ -1831,10 +1851,10 @@ mod tests {
         assert_eq!(
             kinds,
             [
-                "The operating system changed: Ubuntu 24.04.2 LTS -> Ubuntu 24.04.1 LTS",
-                "The kernel changed: 6.8.0-47-generic -> 6.8.0-45-generic",
-                "The serial number changed: 7XK2QD3 -> 9ZZ1AB2",
-                "The memory changed: 64 GiB -> 128 GiB",
+                "Système d'exploitation : Ubuntu 24.04.2 LTS → Ubuntu 24.04.1 LTS",
+                "Noyau : 6.8.0-47-generic → 6.8.0-45-generic",
+                "Numéro de série : 7XK2QD3 → 9ZZ1AB2",
+                "Mémoire : 64 Gio → 128 Gio",
             ]
         );
     }
@@ -1858,11 +1878,11 @@ mod tests {
             [
                 (
                     "hotfix_installed",
-                    "Update KB5034441 was installed".to_string()
+                    "Correctif installé : KB5034441".to_string()
                 ),
                 (
                     "hotfix_removed",
-                    "Update KB5031356 is no longer installed".to_string()
+                    "Correctif plus installé : KB5031356".to_string()
                 ),
             ]
         );

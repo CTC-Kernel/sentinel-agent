@@ -69,6 +69,23 @@ Tous les changements notables apportés au projet **Sentinel GRC Agent** sont co
   couvert par un test de lecture de sa sortie et par un test lancé sur le
   Windows de la CI.
 
+### 🗣️ Incidents et alertes en français
+
+- **Titres et descriptions en français** pour les détecteurs qui parlaient
+  encore anglais dans une interface française : processus suspects et outils
+  connus (mineurs, vol d'identifiants, post-exploitation), commandes
+  encodées, shells inversés, pare-feu et antivirus désactivés, Gatekeeper,
+  connexion SSH de root, nouveaux administrateurs, signes de rootkit,
+  registre Windows, inventaire, fichiers malveillants connus, YARA et Sigma
+  sans description, et les alertes réseau (C2, balises, domaines générés,
+  minage, Tor, IRC, connexions et ports suspects). Les titres des règles
+  Sigma et YARA restent ceux des règles.
+- **Une seule formulation des changements d'inventaire** : l'interface, le
+  SIEM et la plateforme reçoivent la même phrase française.
+- **À reprendre** : une autorisation saisie à la main qui citait un titre
+  anglais d'incident ne le reconnaît plus ; celles créées depuis la fiche
+  d'un incident portent sur son type et ne changent pas.
+
 ### 🏁 Détection et réponse : chaînes vérifiées de bout en bout, tout se règle dans l'interface
 
 - **Le modèle de playbook « Brute-force » se déclenche enfin** : sa condition

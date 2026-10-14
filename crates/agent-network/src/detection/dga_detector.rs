@@ -345,7 +345,7 @@ impl DgaDetector {
         let process_info = conn
             .process_name
             .as_ref()
-            .map(|p| format!(" by process '{}'", p))
+            .map(|p| format!(" par le processus « {} »", p))
             .unwrap_or_default();
 
         let severity = if confidence >= 90 {
@@ -359,10 +359,10 @@ impl DgaDetector {
         NetworkSecurityAlert {
             alert_type: NetworkAlertType::C2Communication, // Could add DgaDomain type
             severity,
-            title: format!("Potential DGA domain detected: {}", domain),
+            title: format!("Domaine généré par algorithme possible : {}", domain),
             description: format!(
-                "Connection to suspected algorithmically-generated domain '{}'{} with {}% confidence. \
-                 DGA domains are commonly used by malware for command and control communication.",
+                "Connexion vers « {} », qui semble généré par un algorithme (DGA){}, confiance {} %. \
+                 Les logiciels malveillants génèrent ainsi les domaines de leur serveur de commande.",
                 domain, process_info, confidence
             ),
             connection: Some(conn.clone()),

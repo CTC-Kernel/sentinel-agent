@@ -47,6 +47,20 @@ pub struct SystemMonitor {
     known_admins: Vec<String>,
 }
 
+/// The description of accounts given administrator rights.
+#[cfg_attr(
+    not(any(target_os = "linux", target_os = "macos", target_os = "windows")),
+    allow(dead_code)
+)]
+fn new_administrators(names: &[&String]) -> String {
+    let accounts = if names.len() > 1 { "Comptes" } else { "Compte" };
+    let names: Vec<&str> = names.iter().map(|name| name.as_str()).collect();
+    format!(
+        "{accounts} ayant reçu les droits d'administrateur : {}.",
+        names.join(", ")
+    )
+}
+
 impl SystemMonitor {
     /// Create a new system monitor.
     pub fn new() -> Self {
@@ -251,8 +265,9 @@ impl SystemMonitor {
                     SecurityIncident::new(
                         IncidentType::AntivirusDisabled,
                         IncidentSeverity::Medium,
-                        "Gatekeeper disabled",
-                        "macOS Gatekeeper (application verification) is disabled",
+                        "Gatekeeper désactivé",
+                        "Gatekeeper (la vérification des applications de macOS) est désactivé : \
+                         une application non signée s'ouvre sans avertissement.",
                     )
                     .with_evidence(serde_json::json!({
                         "component": "gatekeeper",
@@ -284,8 +299,9 @@ impl SystemMonitor {
                 && (line.contains("yes") || line.contains("without-password"))
             {
                 return Some(SecurityIncident::system_change(
-                    "SSH root login enabled",
-                    "SSH server allows root login, which is a security risk",
+                    "connexion SSH de root autorisée",
+                    "Le serveur SSH accepte la connexion de root (PermitRootLogin) : qui \
+                     obtient son mot de passe ou sa clé prend la machine.",
                     IncidentSeverity::Medium,
                     serde_json::json!({
                         "setting": "PermitRootLogin",
@@ -355,11 +371,8 @@ impl SystemMonitor {
 
             if !new_admins.is_empty() {
                 return Some(SecurityIncident::system_change(
-                    "New administrator account",
-                    &format!(
-                        "New user(s) with administrator privileges detected: {:?}",
-                        new_admins
-                    ),
+                    "nouveau compte administrateur",
+                    &new_administrators(&new_admins),
                     IncidentSeverity::High,
                     serde_json::json!({
                         "new_admins": new_admins,
@@ -398,11 +411,8 @@ impl SystemMonitor {
 
                 if !new_admins.is_empty() {
                     return Some(SecurityIncident::system_change(
-                        "New administrator account",
-                        &format!(
-                            "New user(s) with administrator privileges detected: {:?}",
-                            new_admins
-                        ),
+                        "nouveau compte administrateur",
+                        &new_administrators(&new_admins),
                         IncidentSeverity::High,
                         serde_json::json!({
                             "new_admins": new_admins,
@@ -446,11 +456,8 @@ impl SystemMonitor {
 
                 if !new_admins.is_empty() {
                     return Some(SecurityIncident::system_change(
-                        "New administrator account",
-                        &format!(
-                            "New user(s) with administrator privileges detected: {:?}",
-                            new_admins
-                        ),
+                        "nouveau compte administrateur",
+                        &new_administrators(&new_admins),
                         IncidentSeverity::High,
                         serde_json::json!({
                             "new_admins": new_admins,
