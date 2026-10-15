@@ -54,6 +54,15 @@ Tous les changements notables apportés au projet **Sentinel GRC Agent** sont co
 - **Notifications en français** : « Règle « X » déclenchée », et ce qui a été
   trouvé (« Processus mimikatz.exe (PID 4120) : … »).
 
+### 🕳️ Rootkits : modules noyau connus, signatures récentes
+
+- **Modules noyau de rootkits publiés** : un module chargé sous le nom de
+  Diamorphine, Reptile, Suterusu, KoviD, Nuk3Gh0st, Puszek, Syslogk,
+  Adore-ng, Knark, Rooty, Enyelkm ou KBeast est un incident critique, même
+  quand il ne se cache pas (un module qui se cache l'était déjà).
+- **Fichiers de menaces récentes** : BPFDoor, Kinsing, XorDdos, Winnti et
+  Syslogk rejoignent la liste des fichiers laissés par des rootkits connus.
+
 ### 🖥️ Journaux : sortie de commandes surveillée
 
 - **Commandes surveillées** (`command_monitors`), comme les sources
