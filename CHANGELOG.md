@@ -113,10 +113,9 @@ Tous les changements notables apportés au projet **Sentinel GRC Agent** sont co
   montre), sur une Ubuntu 24.04 sous QEMU, qui a un DMI (fabricant « QEMU »,
   modèle « QEMU Virtual Machine », pas de numéro de série, comme QEMU), et
   sur le Windows Server de la CI : le script PowerShell, lancé
-  pour de vrai, donne les comptes, les services, le nom du système et le
-  fabricant ou le modèle. **Non vérifié** : la liste des correctifs sur un
-  vrai Windows (lue par un test sur une sortie d'exemple, pas contrôlée
-  dans la CI).
+  pour de vrai, donne les comptes, les services, le nom du système, le
+  fabricant ou le modèle, et la liste des correctifs (identifiants KB, dates
+  d'installation lisibles).
 
 ### 🗣️ Incidents et alertes en français
 
