@@ -528,6 +528,9 @@ pub struct ThreatsState {
     // Detection rules tab
     pub detection_rules: Vec<crate::dto::DetectionRule>,
     pub detection_rule_editing: bool,
+    /// List filter: 0 every rule, 1 the shipped ones, 2 the organisation's.
+    pub detection_rule_filter: usize,
+    pub detection_rule_search: String,
 
     // Forensic timeline tab
     pub forensic_time_range: crate::dto::TimelineRange,
@@ -654,6 +657,8 @@ impl Default for ThreatsState {
             playbook_log_page: 0,
             detection_rules: Vec::new(),
             detection_rule_editing: false,
+            detection_rule_filter: 0,
+            detection_rule_search: String::new(),
             forensic_time_range: crate::dto::TimelineRange::default(),
             forensic_source_filter: None,
             forensic_severity_filter: None,
@@ -2254,6 +2259,21 @@ impl AppState {
             }
             AgentEvent::DetectionRulesLoaded { rules } => {
                 self.threats.detection_rules = rules;
+            }
+            AgentEvent::DetectionRuleMatched {
+                rule_id,
+                matched_at,
+            } => {
+                if let Some(rule) = self
+                    .threats
+                    .detection_rules
+                    .iter_mut()
+                    .find(|rule| rule.id == rule_id)
+                {
+                    rule.match_count = rule.match_count.saturating_add(1);
+                    rule.last_match =
+                        Some(rule.last_match.map_or(matched_at, |t| t.max(matched_at)));
+                }
             }
             AgentEvent::AlertingLoaded { rules, webhooks } => {
                 self.alerting.rules = rules;

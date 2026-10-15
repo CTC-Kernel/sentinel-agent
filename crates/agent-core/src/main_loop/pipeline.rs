@@ -22,11 +22,78 @@ fn detection_match_payloads(matches: &[RuleMatch]) -> Vec<agent_sync::DetectionM
         .map(|m| agent_sync::DetectionMatchPayload {
             rule_id: m.rule_id.clone(),
             rule_name: m.rule_name.clone(),
-            matched_at: chrono::Utc::now(),
+            matched_at: m.matched_at,
             trigger_details: m.matched_value.clone(),
             severity: m.severity.clone(),
         })
         .collect()
+}
+
+/// Matches per rule: (rule id, number, last match as RFC 3339).
+fn rule_match_counts(matches: &[RuleMatch]) -> Vec<(String, u32, String)> {
+    let mut counts: Vec<(String, u32, chrono::DateTime<chrono::Utc>)> = Vec::new();
+    for rule_match in matches {
+        match counts
+            .iter_mut()
+            .find(|(id, _, _)| *id == rule_match.rule_id)
+        {
+            Some((_, count, last)) => {
+                *count = count.saturating_add(1);
+                *last = (*last).max(rule_match.matched_at);
+            }
+            None => counts.push((rule_match.rule_id.clone(), 1, rule_match.matched_at)),
+        }
+    }
+    counts
+        .into_iter()
+        .map(|(id, count, last)| (id, count, last.to_rfc3339()))
+        .collect()
+}
+
+/// The SIEM event recorded for a detection rule match seen on `host`.
+fn rule_match_siem_event(rule_match: &RuleMatch, host: &str) -> SiemEvent {
+    use crate::threat_pipeline::RuleTarget;
+    let severity = match rule_match.severity.as_str() {
+        "critical" => 9,
+        "high" => 7,
+        "medium" => 5,
+        "low" => 3,
+        _ => 1,
+    };
+    let process = rule_match.targets.iter().find_map(|target| match target {
+        RuleTarget::Process { name, pid } => Some((name.clone(), *pid)),
+        _ => None,
+    });
+    let connection = rule_match.targets.iter().find_map(|target| match target {
+        RuleTarget::Connection { remote_ip, port } => Some((remote_ip.clone(), *port)),
+        _ => None,
+    });
+    let file = rule_match.targets.iter().find_map(|target| match target {
+        RuleTarget::File { path, .. } => Some(path.clone()),
+        _ => None,
+    });
+    SiemEvent {
+        timestamp: rule_match.matched_at,
+        severity,
+        category: agent_siem::EventCategory::Security,
+        name: format!("Règle « {} » déclenchée", rule_match.rule_name),
+        description: rule_match.matched_value.clone(),
+        source_host: host.to_string(),
+        source_ip: None,
+        destination_ip: connection.as_ref().map(|(ip, _)| ip.clone()),
+        destination_port: connection.map(|(_, port)| port).filter(|port| *port != 0),
+        user: None,
+        process_name: process.as_ref().map(|(name, _)| name.clone()),
+        process_id: process.map(|(_, pid)| pid),
+        file_path: file,
+        custom_fields: serde_json::json!({
+            "detection": "detection_rule",
+            "rule_id": rule_match.rule_id,
+            "rule_name": rule_match.rule_name,
+        }),
+        event_id: uuid::Uuid::new_v4().to_string(),
+        agent_version: AGENT_VERSION.to_string(),
+    }
 }
 
 /// The playbook executions of a pass, as the platform receives them.
@@ -237,6 +304,38 @@ impl AgentRuntime {
         (detection_rules, playbooks)
     }
 
+    /// Count the matches of each rule in the database, and record them in
+    /// the SIEM (for the platform, and the external SIEM when there is one),
+    /// as the detections of the engines are.
+    pub(crate) async fn record_rule_matches(&self, matches: &[RuleMatch]) {
+        if matches.is_empty() {
+            return;
+        }
+        if let Some(ref db) = self.db {
+            let counts = rule_match_counts(matches);
+            if let Err(e) = agent_storage::repositories::grc::DetectionRuleRepository::new(db)
+                .record_matches(&counts)
+                .await
+            {
+                warn!("Detection rule matches not counted: {}", e);
+            }
+        }
+        let siem_guard = self.siem_forwarder.read().await;
+        if let Some(siem) = siem_guard.as_ref() {
+            let host = hostname::get()
+                .map(|h| h.to_string_lossy().to_string())
+                .unwrap_or_default();
+            for rule_match in matches {
+                self.enrich_record_and_forward(
+                    siem,
+                    rule_match_siem_event(rule_match, &host),
+                    "detection rule match",
+                )
+                .await;
+            }
+        }
+    }
+
     /// Upload the detection matches and the playbook execution logs of a
     /// pass to the platform.
     pub(crate) async fn upload_pipeline_result(&self, pipeline_result: &PipelineResult) {
@@ -417,16 +516,64 @@ mod tests {
         assert_eq!(bare.destination_port, None);
     }
 
-    #[test]
-    fn rule_matches_are_sent_with_their_trigger() {
-        let payloads = detection_match_payloads(&[RuleMatch {
-            rule_id: "rule-1".to_string(),
+    fn rule_match(rule_id: &str, targets: Vec<crate::threat_pipeline::RuleTarget>) -> RuleMatch {
+        RuleMatch {
+            rule_id: rule_id.to_string(),
             rule_name: "Mineur".to_string(),
             severity: "high".to_string(),
             matched_value: "xmrig".to_string(),
             confidence: 0.9,
             ai_classification: None,
-        }]);
+            targets,
+            matched_at: chrono::Utc::now(),
+        }
+    }
+
+    #[test]
+    fn rule_matches_are_counted_per_rule() {
+        let mut first = rule_match("rule-1", vec![]);
+        first.matched_at -= chrono::Duration::minutes(5);
+        let latest = rule_match("rule-1", vec![]);
+        let counts = rule_match_counts(&[first, latest.clone(), rule_match("rule-2", vec![])]);
+        assert_eq!(counts.len(), 2);
+        assert_eq!(
+            counts[0],
+            ("rule-1".to_string(), 2, latest.matched_at.to_rfc3339())
+        );
+        assert_eq!(counts[1].1, 1);
+    }
+
+    #[test]
+    fn a_rule_match_event_names_what_it_found() {
+        use crate::threat_pipeline::RuleTarget;
+        let event = rule_match_siem_event(
+            &rule_match(
+                "default-crypto-mining",
+                vec![
+                    RuleTarget::Process {
+                        name: "xmrig".into(),
+                        pid: 4242,
+                    },
+                    RuleTarget::Connection {
+                        remote_ip: "203.0.113.7".into(),
+                        port: 3333,
+                    },
+                ],
+            ),
+            "poste-01",
+        );
+        assert_eq!(event.name, "Règle « Mineur » déclenchée");
+        assert_eq!(event.severity, 7);
+        assert_eq!(event.process_name.as_deref(), Some("xmrig"));
+        assert_eq!(event.process_id, Some(4242));
+        assert_eq!(event.destination_ip.as_deref(), Some("203.0.113.7"));
+        assert_eq!(event.destination_port, Some(3333));
+        assert_eq!(event.custom_fields["rule_id"], "default-crypto-mining");
+    }
+
+    #[test]
+    fn rule_matches_are_sent_with_their_trigger() {
+        let payloads = detection_match_payloads(&[rule_match("rule-1", vec![])]);
         assert_eq!(payloads.len(), 1);
         assert_eq!(payloads[0].rule_id, "rule-1");
         assert_eq!(payloads[0].trigger_details, "xmrig");

@@ -61,6 +61,7 @@ mod asset_sync;
 mod command_monitor;
 mod compliance;
 mod configure_cmd;
+pub mod default_rules;
 pub mod edr_actions;
 mod enrollment;
 mod fim_attribution;

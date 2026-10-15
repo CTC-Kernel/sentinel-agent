@@ -24,7 +24,7 @@ pub struct PlaybookEvaluation {
 }
 
 /// A resolved action to execute as part of a playbook.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum ResolvedAction {
     KillProcess {
         name: String,
