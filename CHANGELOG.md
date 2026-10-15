@@ -181,9 +181,10 @@ Tous les changements notables apportés au projet **Sentinel GRC Agent** sont co
   toute bibliothèque imposée aux programmes, tout nouvel administrateur
   (tous « changement non autorisé »). Une règle pour un type entier reste
   possible, écrite dans les autorisations.
-- **À reprendre** : une autorisation saisie à la main qui citait un titre
-  anglais d'incident ne le reconnaît plus ; celles qui portent sur un type
-  ne changent pas.
+- **Autorisations écrites avec un titre anglais** : une autorisation saisie à
+  la main qui citait un ancien titre (« Suspicious process detected: … »,
+  « Hidden listening port (… ») couvre toujours l'incident, comparée aussi
+  au titre français. Celles qui portent sur un type ne changent pas.
 
 ### 📦 Paquets Linux : toutes les distributions maintenues, x64 et ARM64
 
