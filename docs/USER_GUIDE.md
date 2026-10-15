@@ -144,15 +144,15 @@ Accédez à une visibilité complète via notre tableau de bord immersif compos�
 
 ## 🚀 Protocoles d'Installation
 
-### 🐧 Linux (Ubuntu, RHEL, Debian)
-1. Téléchargez le paquet correspondant à votre distribution (.deb ou .rpm) depuis les GitHub Releases.
-2. Installez le paquet :
+### 🐧 Linux (Debian 11+, Ubuntu 20.04+, RHEL / AlmaLinux / Rocky 8+, Fedora ; x64 et ARM64)
+1. Téléchargez le paquet correspondant à votre distribution (.deb ou .rpm) et à votre architecture depuis les GitHub Releases.
+2. Installez le paquet (apt et dnf installent aussi ses dépendances) :
    ```bash
-   # Debian/Ubuntu
-   sudo dpkg -i sentinel-agent_2.0.219_amd64.deb
+   # Debian/Ubuntu (_arm64.deb sur ARM)
+   sudo apt install ./sentinel-agent_<version>-1_amd64.deb
 
-   # RHEL/CentOS
-   sudo rpm -i sentinel-agent-2.0.219.x86_64.rpm
+   # RHEL/AlmaLinux/Rocky/Fedora (.aarch64.rpm sur ARM)
+   sudo dnf install ./sentinel-agent-<version>-1.x86_64.rpm
    ```
 3. Configurez l'agent : `sudo nano /etc/sentinel/agent.json`
 4. Démarrez et activez le service :

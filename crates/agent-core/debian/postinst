@@ -76,10 +76,17 @@ if command -v apparmor_parser > /dev/null 2>&1; then
 fi
 
 # Reload systemd and enable the service and its root helper (firewall and
-# isolation actions; the service itself runs unprivileged)
-systemctl daemon-reload
-systemctl enable sentinel-agent.service
-systemctl enable sentinel-agent-helper.service || true
+# isolation actions; the service itself runs unprivileged). Without a
+# running systemd (a container, a chroot building a system image) there is
+# nothing to reload or start: enabling only creates the links, and the
+# services start at the next boot, as the preinst already assumes.
+if command -v systemctl > /dev/null 2>&1; then
+    if [ -d /run/systemd/system ]; then
+        systemctl daemon-reload
+    fi
+    systemctl enable sentinel-agent.service
+    systemctl enable sentinel-agent-helper.service || true
+fi
 
 # Start or restart depending on install type.
 # dpkg: "configure" with the previous version as $2 on an upgrade.
@@ -102,8 +109,15 @@ case "$1" in
         action=
         ;;
 esac
-if [ -n "$action" ]; then
-    systemctl "$action" sentinel-agent-helper.service || true
+# The helper is PartOf= the agent, which Wants= it: restarting the agent
+# restarts the helper, or starts it if it was stopped. Restarting the helper
+# here as well would start it twice per upgrade: three upgrades within 10 s
+# would reach systemd's start limit (5 starts in 10 s) and leave the helper
+# failed while the agent runs without it.
+if [ -n "$action" ] && [ -d /run/systemd/system ]; then
+    if [ "$action" = start ]; then
+        systemctl start sentinel-agent-helper.service || true
+    fi
     systemctl "$action" sentinel-agent.service || true
 fi
 

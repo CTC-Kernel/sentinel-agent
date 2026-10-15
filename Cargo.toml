@@ -7,7 +7,7 @@ members = [
 exclude = ["third_party/candle-core", "tools/sentinel-yara"]
 
 [workspace.package]
-version = "4.0.51"
+version = "4.0.53"
 edition = "2024"
 rust-version = "1.85"
 license = "MIT"
@@ -46,8 +46,12 @@ semver = { version = "1", features = ["serde"] }
 hmac = "0.12"
 # Administrator password hashing (Argon2id, PHC strings with a random salt).
 argon2 = { version = "0.5", features = ["std"] }
-tray-icon = "0.19"
-muda = "0.15"
+# Without their default `libxdo` feature: on Linux it only serves the
+# Copy/Paste/Select All predefined menu items, which our menus do not use
+# (separators only), and it made the packages require libxdo.so.3, which
+# RHEL and its rebuilds ship only in EPEL.
+tray-icon = { version = "0.19", default-features = false }
+muda = { version = "0.15", default-features = false }
 image = { version = "0.25", default-features = false, features = ["png"] }
 open = "5"
 tao = { version = "0.30", default-features = false, features = ["rwh_06"] }

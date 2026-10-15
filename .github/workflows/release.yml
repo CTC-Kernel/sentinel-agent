@@ -61,7 +61,7 @@ jobs:
             echo "::warning::Update signing is not configured: agents check updates by SHA-256 only, which does not prove where a package comes from (docs/UPDATE_SIGNING.md)."
           fi
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -144,7 +144,7 @@ jobs:
     env:
       RELEASE_VERSION: ${{ needs.version.outputs.version }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           ref: v${{ needs.version.outputs.version }}
       - uses: dtolnay/rust-toolchain@stable
@@ -394,7 +394,7 @@ jobs:
           cat SHA256SUMS-macos.txt
 
       - name: Upload macOS artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: sentinel-agent-macos
           path: |
@@ -414,7 +414,7 @@ jobs:
     env:
       RELEASE_VERSION: ${{ needs.version.outputs.version }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           ref: v${{ needs.version.outputs.version }}
       - uses: dtolnay/rust-toolchain@stable
@@ -510,7 +510,7 @@ jobs:
       - name: Upload unsigned MSI for signing
         id: upload-unsigned
         if: ${{ vars.SIGNPATH_ORGANIZATION_ID != '' }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: sentinel-agent-windows-unsigned
           path: target/release/SentinelAgentSetup-${{ env.RELEASE_VERSION }}.msi
@@ -658,7 +658,7 @@ jobs:
         shell: pwsh
 
       - name: Upload Windows artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: sentinel-agent-windows
           path: |
@@ -666,105 +666,96 @@ jobs:
             target/release/SHA256SUMS-windows.txt
 
   # ═══════════════════════════════════════════════════════════════════
-  # Linux — DEB package (Debian/Ubuntu)
+  # Linux — DEB (Debian/Ubuntu) and RPM (RHEL/Fedora), amd64 and arm64
   # ═══════════════════════════════════════════════════════════════════
-  build-deb:
-    name: Build Linux DEB
-    runs-on: ubuntu-latest
+  # One binary per architecture, built inside AlmaLinux 8 and packaged
+  # twice. A Linux binary only starts on a glibc at least as new as the one
+  # it was linked against: built on the runner itself (ubuntu-latest, glibc
+  # 2.39) it needed 2.38 and could not start on Debian 12, Ubuntu 22.04 or
+  # RHEL 9. AlmaLinux 8 has glibc 2.28, the oldest of the distributions
+  # served (RHEL 8; Debian 11 and Ubuntu 20.04 have 2.31), and GTK 3.22,
+  # the oldest the gtk crates accept. With no dpkg-shlibdeps here, the deb
+  # dependencies are written out in crates/agent-core/Cargo.toml; the rpm
+  # ones are read from the binary.
+  build-linux:
+    name: Build Linux packages (${{ matrix.arch }})
+    runs-on: ${{ matrix.runner }}
+    container: almalinux:8
     needs: [version]
+    strategy:
+      matrix:
+        include:
+          - arch: amd64
+            runner: ubuntu-latest
+          - arch: arm64
+            runner: ubuntu-24.04-arm
     env:
-      OPENSSL_DIR: /usr
-      OPENSSL_LIB_DIR: /usr/lib/x86_64-linux-gnu
-      OPENSSL_INCLUDE_DIR: /usr/include/openssl
       RELEASE_VERSION: ${{ needs.version.outputs.version }}
     steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: v${{ needs.version.outputs.version }}
-      - uses: dtolnay/rust-toolchain@stable
-      - uses: Swatinem/rust-cache@v2
-
+      # Before the checkout: without git in the container, actions/checkout
+      # downloads a tarball instead of cloning. perl-IPC-Cmd is for
+      # OpenSSL's Configure (rusqlite compiles OpenSSL in); rpm-build for
+      # the rpm requirements (see Build packages).
       - name: Install dependencies
         run: |
-          sudo apt-get update
-          sudo apt-get install -y libgtk-3-dev libayatana-appindicator3-dev libssl-dev pkg-config libxdo-dev libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev libxkbcommon-dev libudev-dev
+          dnf install -y git gcc gcc-c++ make cmake perl perl-IPC-Cmd pkgconf-pkg-config binutils rpm-build gtk3-devel libxkbcommon-devel libxcb-devel systemd-devel
 
-      - name: Install cargo-deb
-        run: cargo install cargo-deb --locked
+      - uses: actions/checkout@v7
+        with:
+          ref: v${{ needs.version.outputs.version }}
+
+      # rustup, then the toolchain pinned in rust-toolchain.toml.
+      - name: Install Rust
+        run: |
+          curl --proto '=https' --tlsv1.2 --retry 5 -sSf https://sh.rustup.rs | sh -s -- -y --profile minimal --default-toolchain none
+          echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
+          "$HOME/.cargo/bin/rustup" toolchain install
+
+      # A key of its own: the caches saved when Linux was built on Ubuntu
+      # 24.04 hold C objects (sqlcipher, OpenSSL, ring...) compiled against
+      # glibc 2.39 headers, which would bring the newer symbols back.
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: almalinux-8
+
+      - name: Install packaging tools
+        run: cargo install cargo-deb cargo-generate-rpm --locked
 
       - name: Build release binary
         run: cargo build --release --features gui --package agent-core --no-default-features
 
-      - name: Build DEB package
-        run: cargo deb --package agent-core --no-build --deb-revision 1
-
-      - name: Generate checksums
+      # Fail the release here rather than on a customer's server. 2.28 is
+      # also the floor the deb declares (libc6 >= 2.28).
+      - name: Check the glibc the binary needs
         run: |
-          cd target/debian
-          for f in sentinel-agent_*.deb; do
-            sha256sum "$f" >> SHA256SUMS-linux-deb.txt
-          done
-          cat SHA256SUMS-linux-deb.txt
+          need=$(objdump -T target/release/agent-core | grep -o 'GLIBC_[0-9.]*' | sed 's/^GLIBC_//' | sort -uV | tail -n 1)
+          echo "Highest glibc symbol version: $need"
+          if [ -z "$need" ] || [ "$(printf '%s\n' "$need" 2.28 | sort -V | tail -n 1)" != "2.28" ]; then
+            echo "::error::agent-core needs glibc $need; RHEL 8 has 2.28"
+            exit 1
+          fi
+          objdump -p target/release/agent-core | grep NEEDED
 
-      - name: Upload DEB artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: sentinel-agent-linux-deb
-          path: |
-            target/debian/sentinel-agent_*.deb
-            target/debian/SHA256SUMS-linux-deb.txt
-
-  # ═══════════════════════════════════════════════════════════════════
-  # Linux — RPM package (RHEL/Fedora/CentOS)
-  # ═══════════════════════════════════════════════════════════════════
-  build-rpm:
-    name: Build Linux RPM
-    runs-on: ubuntu-latest
-    needs: [version]
-    env:
-      OPENSSL_DIR: /usr
-      OPENSSL_LIB_DIR: /usr/lib/x86_64-linux-gnu
-      OPENSSL_INCLUDE_DIR: /usr/include/openssl
-      RELEASE_VERSION: ${{ needs.version.outputs.version }}
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: v${{ needs.version.outputs.version }}
-      - uses: dtolnay/rust-toolchain@stable
-      - uses: Swatinem/rust-cache@v2
-
-      - name: Install dependencies
+      # --auto-req find-requires: rpm's own generator (elfdeps), which
+      # requires only the libraries the binary links. cargo-generate-rpm's
+      # builtin one walks ldd, so the rpm also required GTK's own
+      # dependencies under AlmaLinux 8's sonames (libffi.so.6,
+      # libnettle.so.6...), which RHEL 9 and Fedora do not have.
+      - name: Build packages
         run: |
-          sudo apt-get update
-          sudo apt-get install -y libgtk-3-dev libayatana-appindicator3-dev libssl-dev pkg-config libxdo-dev libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev libxkbcommon-dev libudev-dev
+          cargo deb --package agent-core --no-build --deb-revision 1
+          cargo generate-rpm -p crates/agent-core --auto-req find-requires
+          mkdir -p dist
+          cp target/debian/sentinel-agent_*.deb target/generate-rpm/sentinel-agent-*.rpm dist/
+          cd dist
+          sha256sum sentinel-agent* > SHA256SUMS-linux-${{ matrix.arch }}.txt
+          cat SHA256SUMS-linux-${{ matrix.arch }}.txt
 
-      - name: Install cargo-generate-rpm
-        run: cargo install cargo-generate-rpm --locked
-
-      - name: Build release binary
-        run: cargo build --release --features gui --package agent-core --no-default-features
-
-      - name: Strip binary
-        run: strip target/release/agent-core
-
-      - name: Build RPM package
-        run: cargo generate-rpm -p crates/agent-core
-
-      - name: Generate checksums
-        run: |
-          cd target/generate-rpm
-          for f in sentinel-agent-*.rpm; do
-            sha256sum "$f" >> SHA256SUMS-linux-rpm.txt
-          done
-          cat SHA256SUMS-linux-rpm.txt
-
-      - name: Upload RPM artifacts
-        uses: actions/upload-artifact@v4
+      - name: Upload Linux artifacts
+        uses: actions/upload-artifact@v7
         with:
-          name: sentinel-agent-linux-rpm
-          path: |
-            target/generate-rpm/sentinel-agent-*.rpm
-            target/generate-rpm/SHA256SUMS-linux-rpm.txt
+          name: sentinel-agent-linux-${{ matrix.arch }}
+          path: dist/
 
   # ═══════════════════════════════════════════════════════════════════
   # SBOM Generation (CycloneDX)
@@ -774,7 +765,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [version]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           ref: v${{ needs.version.outputs.version }}
       - uses: dtolnay/rust-toolchain@stable
@@ -789,7 +780,7 @@ jobs:
           cp crates/agent-core/bom.json sbom/sentinel-agent-${{ needs.version.outputs.version }}.cdx.json
 
       - name: Upload SBOM artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: sentinel-agent-sbom
           path: sbom/
@@ -800,36 +791,36 @@ jobs:
   attestation:
     name: Attest build provenance
     runs-on: ubuntu-latest
-    needs: [version, build-macos, build-windows, build-deb, build-rpm]
+    needs: [version, build-macos, build-windows, build-linux]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           ref: v${{ needs.version.outputs.version }}
 
       - name: Download all artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           path: artifacts
 
       - name: Attest macOS artifacts
-        uses: actions/attest-build-provenance@v2
+        uses: actions/attest-build-provenance@v4
         with:
           subject-path: artifacts/sentinel-agent-macos/SentinelAgent-*
 
       - name: Attest Windows artifacts
-        uses: actions/attest-build-provenance@v2
+        uses: actions/attest-build-provenance@v4
         with:
           subject-path: artifacts/sentinel-agent-windows/SentinelAgentSetup-*.msi
 
       - name: Attest Linux DEB artifacts
-        uses: actions/attest-build-provenance@v2
+        uses: actions/attest-build-provenance@v4
         with:
-          subject-path: artifacts/sentinel-agent-linux-deb/sentinel-agent_*.deb
+          subject-path: artifacts/sentinel-agent-linux-*/sentinel-agent_*.deb
 
       - name: Attest Linux RPM artifacts
-        uses: actions/attest-build-provenance@v2
+        uses: actions/attest-build-provenance@v4
         with:
-          subject-path: artifacts/sentinel-agent-linux-rpm/sentinel-agent-*.rpm
+          subject-path: artifacts/sentinel-agent-linux-*/sentinel-agent-*.rpm
 
   # ═══════════════════════════════════════════════════════════════════
   # Upload all artifacts to Firebase Storage + GitHub Release
@@ -837,7 +828,7 @@ jobs:
   upload-releases:
     name: Upload to Firebase Storage
     runs-on: ubuntu-latest
-    needs: [version, build-macos, build-windows, build-deb, build-rpm, sbom, attestation]
+    needs: [version, build-macos, build-windows, build-linux, sbom, attestation]
     env:
       RELEASE_VERSION: ${{ needs.version.outputs.version }}
       # `secrets` cannot be referenced from a step `if:`, so we surface a
@@ -845,12 +836,12 @@ jobs:
       # steps on it. The key itself is only injected at the signing step.
       HAS_UPDATE_KEY: ${{ secrets.SENTINEL_UPDATE_KEY != '' }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           ref: v${{ needs.version.outputs.version }}
 
       - name: Download all artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           path: artifacts
 
@@ -869,7 +860,7 @@ jobs:
           fi
 
       - name: Authenticate to Google Cloud
-        uses: google-github-actions/auth@v2
+        uses: google-github-actions/auth@v3
         with:
           credentials_json: ${{ secrets.GCP_SA_KEY }}
           project_id: ${{ secrets.GCP_PROJECT_ID }}
@@ -900,7 +891,8 @@ jobs:
             local pattern="$1"
             local folder="$2"
             local latest_name="$3"
-            
+            local dest="$4"  # bucket folder, the one update_manager.rs reads
+
             # For macOS, we already created latest aliases on the macOS runner to ensure stapling/notarization
             if [[ "$folder" == "sentinel-agent-macos" ]]; then
               echo "Skipping local alias creation for macOS (pre-created on build runner)"
@@ -914,15 +906,30 @@ jobs:
               cp "$file" "artifacts/$folder/$latest_name"
               # Create checksum for latest
               sha256sum "$file" | cut -d' ' -f1 > "artifacts/$folder/$latest_name.sha256"
-              gcloud storage cp "artifacts/$folder/$latest_name" "$BUCKET/${folder##sentinel-agent-}/"
-              gcloud storage cp "artifacts/$folder/$latest_name.sha256" "$BUCKET/${folder##sentinel-agent-}/"
+              gcloud storage cp "artifacts/$folder/$latest_name" "$BUCKET/$dest/"
+              gcloud storage cp "artifacts/$folder/$latest_name.sha256" "$BUCKET/$dest/"
             fi
           }
 
-          create_latest "SentinelAgent-*.pkg" "sentinel-agent-macos" "SentinelAgent-latest.pkg"
-          create_latest "SentinelAgentSetup-*.msi" "sentinel-agent-windows" "SentinelAgentSetup-latest.msi"
-          create_latest "sentinel-agent_*.deb" "sentinel-agent-linux-deb" "sentinel-agent-latest-amd64.deb"
-          create_latest "sentinel-agent-*.rpm" "sentinel-agent-linux-rpm" "sentinel-agent-latest.x86_64.rpm"
+          create_latest "SentinelAgent-*.pkg" "sentinel-agent-macos" "SentinelAgent-latest.pkg" "macos"
+          create_latest "SentinelAgentSetup-*.msi" "sentinel-agent-windows" "SentinelAgentSetup-latest.msi" "windows"
+          # Linux names as update_manager.rs asks for them, per architecture.
+          create_latest "sentinel-agent_*_amd64.deb" "sentinel-agent-linux-amd64" "sentinel-agent-latest-amd64.deb" "linux_deb"
+          create_latest "sentinel-agent_*_arm64.deb" "sentinel-agent-linux-arm64" "sentinel-agent-latest-arm64.deb" "linux_deb"
+          create_latest "sentinel-agent-*.x86_64.rpm" "sentinel-agent-linux-amd64" "sentinel-agent-latest.x86_64.rpm" "linux_rpm"
+          create_latest "sentinel-agent-*.aarch64.rpm" "sentinel-agent-linux-arm64" "sentinel-agent-latest.aarch64.rpm" "linux_rpm"
+
+          # The deb links handed out to users predate the aliases above and
+          # were never refreshed: until this step they served the 2.0.0
+          # packages of early 2026, built on Ubuntu 24.04, which Debian 12
+          # refuses.
+          for arch in amd64 arm64; do
+            DEB_LATEST=artifacts/sentinel-agent-linux-$arch/sentinel-agent-latest-$arch.deb
+            if [ -f "$DEB_LATEST" ]; then
+              gcloud storage cp "$DEB_LATEST" "$BUCKET/linux_deb/sentinel-agent_latest_$arch.deb"
+              gcloud storage cp "$DEB_LATEST.sha256" "$BUCKET/linux_deb/sentinel-agent_latest_$arch.deb.sha256"
+            fi
+          done
 
           echo "=== Processing macOS latest files ==="
           # macOS latest files are pre-created and stapled on macOS runner
@@ -944,8 +951,8 @@ jobs:
           # Upload all artifacts (versioned)
           gcloud storage cp "artifacts/sentinel-agent-macos/SentinelAgent-*" "$BUCKET/macos/"
           gcloud storage cp "artifacts/sentinel-agent-windows/SentinelAgentSetup-*" "$BUCKET/windows/"
-          gcloud storage cp "artifacts/sentinel-agent-linux-deb/sentinel-agent_*" "$BUCKET/linux_deb/"
-          gcloud storage cp "artifacts/sentinel-agent-linux-rpm/sentinel-agent-*" "$BUCKET/linux_rpm/"
+          gcloud storage cp "artifacts/sentinel-agent-linux-*/sentinel-agent_*.deb" "$BUCKET/linux_deb/"
+          gcloud storage cp "artifacts/sentinel-agent-linux-*/sentinel-agent-*.rpm" "$BUCKET/linux_rpm/"
           gcloud storage cp "artifacts/*/SHA256SUMS*.txt" "$BUCKET/" 2>/dev/null || true
 
           echo "=== Setting content types ==="
@@ -1023,8 +1030,10 @@ jobs:
 
           sign_and_upload "sentinel-agent-macos" "SentinelAgent-latest.pkg" "macos"
           sign_and_upload "sentinel-agent-windows" "SentinelAgentSetup-latest.msi" "windows"
-          sign_and_upload "sentinel-agent-linux-deb" "sentinel-agent-latest-amd64.deb" "linux_deb"
-          sign_and_upload "sentinel-agent-linux-rpm" "sentinel-agent-latest.x86_64.rpm" "linux_rpm"
+          sign_and_upload "sentinel-agent-linux-amd64" "sentinel-agent-latest-amd64.deb" "linux_deb"
+          sign_and_upload "sentinel-agent-linux-arm64" "sentinel-agent-latest-arm64.deb" "linux_deb"
+          sign_and_upload "sentinel-agent-linux-amd64" "sentinel-agent-latest.x86_64.rpm" "linux_rpm"
+          sign_and_upload "sentinel-agent-linux-arm64" "sentinel-agent-latest.aarch64.rpm" "linux_rpm"
 
           # Keep the signatures and manifests fresh like the other latest files.
           for pattern in "*.sig" "*.manifest.json"; do
@@ -1063,19 +1072,33 @@ jobs:
           echo "Windows MSI HTTP status: $HTTP_CODE"
           
           # Test Linux DEB
-          echo "Testing Linux DEB download..."
-          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" "$BASE_URL/linux_deb/sentinel-agent_latest_amd64.deb")
-          echo "Linux DEB HTTP status: $HTTP_CODE"
-          
-          # Test Linux RPM
-          echo "Testing Linux RPM download..."
-          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" "$BASE_URL/linux_rpm/sentinel-agent-latest.x86_64.rpm")
-          echo "Linux RPM HTTP status: $HTTP_CODE"
+          # Test Linux packages
+          # A 200 is not enough: the old deb link answered 200 for months
+          # with a stale package. Every name must serve this release's file.
+          echo "Testing Linux downloads..."
+          check_latest() {
+            local file="$1"  # alias made by create_latest, with its .sha256
+            local url="$2"
+            local served
+            served=$(curl -sf "$BASE_URL/$url" | sha256sum | cut -d' ' -f1)
+            if [ "$served" = "$(cat "$file.sha256")" ]; then
+              echo "$url: serves $RELEASE_VERSION"
+            else
+              echo "::warning::$url does not serve the $RELEASE_VERSION package"
+            fi
+          }
+          for arch in amd64 arm64; do
+            deb=artifacts/sentinel-agent-linux-$arch/sentinel-agent-latest-$arch.deb
+            check_latest "$deb" "linux_deb/sentinel-agent-latest-$arch.deb"
+            check_latest "$deb" "linux_deb/sentinel-agent_latest_$arch.deb"
+          done
+          check_latest artifacts/sentinel-agent-linux-amd64/sentinel-agent-latest.x86_64.rpm linux_rpm/sentinel-agent-latest.x86_64.rpm
+          check_latest artifacts/sentinel-agent-linux-arm64/sentinel-agent-latest.aarch64.rpm linux_rpm/sentinel-agent-latest.aarch64.rpm
           
           echo "✅ Public access verification complete"
 
       - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           tag_name: v${{ env.RELEASE_VERSION }}
           name: "Sentinel Agent v${{ env.RELEASE_VERSION }}"
@@ -1088,15 +1111,17 @@ jobs:
             |----------|---------|--------|-------|
             | macOS (Universal) | `SentinelAgent-${{ env.RELEASE_VERSION }}.pkg` | PKG | Signed + Notarized |
             | Windows x64 | `SentinelAgentSetup-${{ env.RELEASE_VERSION }}.msi` | MSI | Signed via SignPath |
-            | Linux (Debian/Ubuntu) | `sentinel-agent_${{ env.RELEASE_VERSION }}-1_amd64.deb` | DEB | |
-            | Linux (RHEL/Fedora) | `sentinel-agent-${{ env.RELEASE_VERSION }}-1.x86_64.rpm` | RPM | |
+            | Linux x64 (Debian 11+, Ubuntu 20.04+) | `sentinel-agent_${{ env.RELEASE_VERSION }}-1_amd64.deb` | DEB | |
+            | Linux ARM64 (Debian 11+, Ubuntu 20.04+) | `sentinel-agent_${{ env.RELEASE_VERSION }}-1_arm64.deb` | DEB | |
+            | Linux x64 (RHEL 8+, Fedora) | `sentinel-agent-${{ env.RELEASE_VERSION }}-1.x86_64.rpm` | RPM | |
+            | Linux ARM64 (RHEL 8+, Fedora) | `sentinel-agent-${{ env.RELEASE_VERSION }}-1.aarch64.rpm` | RPM | |
 
             ### Installation
 
             **macOS**: Open PKG and follow installer prompts, or double-click PKG.
             **Windows**: Run the MSI installer as Administrator.
-            **Linux (DEB)**: `sudo dpkg -i sentinel-agent_${{ env.RELEASE_VERSION }}-1_amd64.deb`
-            **Linux (RPM)**: `sudo rpm -i sentinel-agent-${{ env.RELEASE_VERSION }}-1.x86_64.rpm`
+            **Linux (DEB)**: `sudo apt install ./sentinel-agent_${{ env.RELEASE_VERSION }}-1_amd64.deb` (`_arm64.deb` on ARM)
+            **Linux (RPM)**: `sudo dnf install ./sentinel-agent-${{ env.RELEASE_VERSION }}-1.x86_64.rpm` (`.aarch64.rpm` on ARM)
 
             Then enroll: `sentinel-agent enroll --token <YOUR_TOKEN>`
           files: |
@@ -1104,10 +1129,9 @@ jobs:
             artifacts/sentinel-agent-macos/SHA256SUMS-macos.txt
             artifacts/sentinel-agent-windows/SentinelAgentSetup-*.msi
             artifacts/sentinel-agent-windows/SHA256SUMS-windows.txt
-            artifacts/sentinel-agent-linux-deb/sentinel-agent_*.deb
-            artifacts/sentinel-agent-linux-deb/SHA256SUMS-linux-deb.txt
-            artifacts/sentinel-agent-linux-rpm/sentinel-agent-*.rpm
-            artifacts/sentinel-agent-linux-rpm/SHA256SUMS-linux-rpm.txt
+            artifacts/sentinel-agent-linux-*/sentinel-agent_*.deb
+            artifacts/sentinel-agent-linux-*/sentinel-agent-*.rpm
+            artifacts/sentinel-agent-linux-*/SHA256SUMS-linux-*.txt
             artifacts/sentinel-agent-sbom/*.cdx.json
           generate_release_notes: true
         env:
