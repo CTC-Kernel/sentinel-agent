@@ -38,16 +38,19 @@ Tous les changements notables apportés au projet **Sentinel GRC Agent** sont co
   dérobée en écoute ». La sortie conservée est en `0600`, l'agent s'arrête
   en 4 s.
 
-### 🐳 Conteneurs Docker surveillés
+### 🐳 Conteneurs Docker et Podman surveillés
 
 - **Événements des conteneurs** (Linux), comme le Docker listener de
-  Wazuh : quand Docker tourne, l'agent suit `docker events` (création,
-  démarrage, `docker exec`, arrêt, manque de mémoire, suppression ; pas les
+  Wazuh, et pour Podman en plus (le moteur de RHEL et Fedora, que Wazuh ne
+  suit pas) : l'agent suit `docker events` et `podman events` (création,
+  démarrage, `exec`, arrêt, manque de mémoire, suppression ; pas les
   contrôles de santé, trop bavards) et les donne aux règles des journaux
-  (service `docker`). Docker est suivi dès qu'il apparaît, et de nouveau
-  après le redémarrage de son démon ; aucun réglage.
+  (service `containers`, ou `docker` et `podman` pour un seul moteur). Un
+  moteur est suivi dès qu'il apparaît, Docker de nouveau après le
+  redémarrage de son démon ; aucun réglage. Un `docker` qui n'est que le
+  relais de Podman (`podman-docker`) n'est suivi qu'une fois.
 - **Démarrage examiné** : chaque conteneur qui démarre est décrit par
-  `docker inspect` : mode privilégié, espaces de noms de l'hôte, capacités
+  `inspect` : mode privilégié, espaces de noms de l'hôte, capacités
   ajoutées, profils seccomp ou AppArmor retirés, périphériques et chemins de
   l'hôte montés, compte qui l'exécute.
 - **Règles livrées** (`containers.yml`) : conteneur privilégié, qui monte la
@@ -55,13 +58,15 @@ Tous les changements notables apportés au projet **Sentinel GRC Agent** sont co
   capacités qui permettent d'en sortir, avec un disque de l'hôte en accès
   direct, dans l'espace des processus de l'hôte, sans profil de sécurité
   (incidents, T1610/T1611) ; shell interactif ouvert dans un conteneur
-  (événement SIEM, T1609). Deux conteneurs privilégiés font deux incidents.
-- **Onglet « Conteneurs »** (Système & comptes, quand Docker tourne) : chaque
-  conteneur de l'hôte, en cours ou arrêté, avec son image, son état, le
+  (événement SIEM, T1609 ; Docker seulement, Podman ne dit pas ce qu'un
+  `exec` lance). Deux conteneurs privilégiés font deux incidents.
+- **Onglet « Conteneurs »** (Système & comptes, quand Docker ou Podman est
+  là) : chaque conteneur de l'hôte, en cours ou arrêté, avec son moteur, son
+  image, son état, le
   compte qui l'exécute et ce qui affaiblit son isolation ; l'onglet compte
   ceux qui peuvent prendre l'hôte. Il couvre ce que les événements ne voient
   pas : un conteneur dangereux démarré avant l'agent. Les événements et
-  l'inventaire lisent `docker inspect` au même endroit et jugent pareil.
+  l'inventaire lisent `inspect` au même endroit et jugent pareil.
 - **Vérifié** sur une Ubuntu 24.04 réelle (noyau 6.8 sous QEMU) avec
   Docker 27 : l'agent suit les événements une minute après son démarrage ;
   un conteneur ordinaire (`docker run alpine sleep`, puis `docker exec
@@ -72,6 +77,11 @@ Tous les changements notables apportés au projet **Sentinel GRC Agent** sont co
   SIEM, n'est vérifié que par les tests. L'inventaire du même hôte liste ses
   quatre conteneurs (en cours et créé) : `--privileged --pid=host -v /:/host`
   d'un côté, `--cap-add SYS_ADMIN` et le socket Docker monté de l'autre.
+  Avec Podman 4.9 installé à côté de Docker, les deux moteurs sont suivis
+  ensemble : `podman run --privileged -v /:/host` lève « Conteneur
+  privilégié démarré » et « Conteneur qui monte la racine de l'hôte »,
+  `docker run --privileged` son propre incident, un conteneur Podman
+  ordinaire rien ; l'inventaire liste les conteneurs des deux moteurs.
 
 ### 🧾 Inventaire : système, matériel et correctifs Windows
 

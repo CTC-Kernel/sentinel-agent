@@ -4,8 +4,8 @@
 //! Detection rules on the logs, as they are written.
 //!
 //! Four things are read: the system log through a stream kept open
-//! ([`agent_siem::stream`]), the container events of Docker when it runs
-//! (Linux), the declared log files ([`agent_siem::logfile`]) and, on
+//! ([`agent_siem::stream`]), the container events of Docker and Podman when
+//! they are there (Linux), the declared log files ([`agent_siem::logfile`]) and, on
 //! Windows, the event channels. Every
 //! line is decoded into fields ([`agent_siem::decode`]) and given to the
 //! Sigma rules written for a log source and to the correlation rules
@@ -53,8 +53,8 @@ const SUPPRESSION: Duration = Duration::minutes(15);
 const MAX_SUPPRESSED: usize = 10_000;
 /// Time between two attempts to start a stream that stopped.
 const STREAM_RETRY: std::time::Duration = std::time::Duration::from_secs(300);
-/// Time between two looks for Docker, or attempts to follow it again
-/// (its daemon restarts when it is updated).
+/// Time between two looks for a container engine, or attempts to follow it
+/// again (Docker's daemon restarts when it is updated).
 #[cfg_attr(not(target_os = "linux"), allow(dead_code))]
 const DOCKER_RETRY: std::time::Duration = std::time::Duration::from_secs(60);
 /// Time between two readings of the Windows event channels.
@@ -75,6 +75,64 @@ pub(crate) struct LogFindings {
     pub records: Vec<SiemEvent>,
 }
 
+/// The container events of one engine, while it is there.
+#[cfg_attr(not(target_os = "linux"), allow(dead_code))]
+struct EngineEvents {
+    engine: agent_siem::stream::Engine,
+    stream: Option<LogStream>,
+    /// When to look for the engine again.
+    next_attempt: Option<Instant>,
+    /// Why the engine could not be followed, told once.
+    failure: Option<String>,
+}
+
+impl EngineEvents {
+    fn all() -> Vec<Self> {
+        agent_siem::stream::Engine::ALL
+            .iter()
+            .map(|engine| Self {
+                engine: *engine,
+                stream: None,
+                next_attempt: None,
+                failure: None,
+            })
+            .collect()
+    }
+
+    /// Follow the engine when it is there: from the moment it appears, and
+    /// again after it stopped (Docker's daemon restarted).
+    #[cfg(target_os = "linux")]
+    fn ensure(&mut self) {
+        if self.stream.as_ref().is_some_and(LogStream::is_running) {
+            return;
+        }
+        let name = self.engine.name();
+        if self.stream.take().is_some() {
+            info!("The {name} events stopped: they will be followed again");
+        }
+        if self.next_attempt.is_some_and(|at| Instant::now() < at) {
+            return;
+        }
+        self.next_attempt = Some(Instant::now() + DOCKER_RETRY);
+        if self.engine.program().is_none() {
+            return;
+        }
+        match LogStream::start_containers(self.engine) {
+            Ok(stream) => {
+                info!("The {name} container events are analysed as they happen");
+                self.stream = Some(stream);
+                self.failure = None;
+            }
+            Err(e) => {
+                if self.failure.as_ref() != Some(&e) {
+                    warn!("The {name} container events cannot be followed: {}", e);
+                }
+                self.failure = Some(e);
+            }
+        }
+    }
+}
+
 /// The log sources, the rules, and what was recently reported.
 pub(crate) struct LogAnalysis {
     engine: LogRuleEngine,
@@ -82,14 +140,8 @@ pub(crate) struct LogAnalysis {
     all_programs: bool,
     /// When a stream that is not running may be started again.
     next_stream_attempt: Option<Instant>,
-    /// The container events of Docker, while it runs.
-    docker: Option<LogStream>,
-    /// When to look for Docker again.
-    #[cfg_attr(not(target_os = "linux"), allow(dead_code))]
-    next_docker_attempt: Option<Instant>,
-    /// Why Docker could not be followed, told once.
-    #[cfg_attr(not(target_os = "linux"), allow(dead_code))]
-    docker_failure: Option<String>,
+    /// The container events of each engine of the host.
+    containers: Vec<EngineEvents>,
     tailer: LogFileTailer,
     /// Events read outside the pass (the Windows channels).
     pending: Vec<DecodedLog>,
@@ -180,9 +232,7 @@ impl LogAnalysis {
             stream: None,
             all_programs: config.log_analysis_all_programs,
             next_stream_attempt: Some(Instant::now()),
-            docker: None,
-            next_docker_attempt: None,
-            docker_failure: None,
+            containers: EngineEvents::all(),
             tailer,
             pending: Vec::new(),
             suppressed: HashMap::new(),
@@ -257,49 +307,22 @@ impl LogAnalysis {
         }
     }
 
-    /// Follow the container events of Docker when it runs (Linux): from the
-    /// moment it appears, and again after its daemon restarted.
-    fn ensure_docker(&mut self) {
+    /// Follow the container events of the engines of the host (Linux).
+    fn ensure_containers(&mut self) {
         #[cfg(target_os = "linux")]
-        {
-            if self.docker.as_ref().is_some_and(LogStream::is_running) {
-                return;
-            }
-            if self.docker.take().is_some() {
-                info!(
-                    "The Docker events stopped (its daemon restarted?): they will be followed again"
-                );
-            }
-            if self
-                .next_docker_attempt
-                .is_some_and(|at| Instant::now() < at)
-            {
-                return;
-            }
-            self.next_docker_attempt = Some(Instant::now() + DOCKER_RETRY);
-            if agent_siem::stream::docker_program().is_none() {
-                return;
-            }
-            match LogStream::start_docker() {
-                Ok(stream) => {
-                    info!("Docker container events are analysed as they happen");
-                    self.docker = Some(stream);
-                    self.docker_failure = None;
-                }
-                Err(e) => {
-                    if self.docker_failure.as_ref() != Some(&e) {
-                        warn!("Docker container events cannot be followed: {}", e);
-                    }
-                    self.docker_failure = Some(e);
-                }
-            }
+        for engine in &mut self.containers {
+            engine.ensure();
         }
     }
 
     /// The events written since the last pass.
     fn read(&mut self) -> Vec<DecodedLog> {
         let mut logs = std::mem::take(&mut self.pending);
-        for stream in [&self.stream, &self.docker].into_iter().flatten() {
+        let containers = self
+            .containers
+            .iter()
+            .filter_map(|engine| engine.stream.as_ref());
+        for stream in self.stream.iter().chain(containers) {
             logs.extend(stream.drain(MAX_EVENTS_PER_PASS.saturating_sub(logs.len())));
             let dropped = stream.take_dropped();
             if dropped > 0 {
@@ -483,7 +506,7 @@ impl LogAnalysis {
     /// rules.
     pub(crate) fn pass(&mut self) -> LogFindings {
         self.ensure_stream();
-        self.ensure_docker();
+        self.ensure_containers();
         let logs = self.read();
         if logs.is_empty() {
             return LogFindings::default();
@@ -492,10 +515,11 @@ impl LogAnalysis {
     }
 
     fn stop(&mut self) {
-        for stream in [self.stream.take(), self.docker.take()]
-            .into_iter()
-            .flatten()
-        {
+        let containers = self
+            .containers
+            .iter_mut()
+            .filter_map(|engine| engine.stream.take());
+        for stream in self.stream.take().into_iter().chain(containers) {
             stream.stop();
         }
     }
@@ -603,7 +627,9 @@ mod tests {
             "screensharingd",
             "auditd",
             "kernel",
+            "containers",
             "docker",
+            "podman",
             "security",
             "system",
             "powershell",
@@ -622,9 +648,7 @@ mod tests {
             stream: None,
             all_programs: false,
             next_stream_attempt: None,
-            docker: None,
-            next_docker_attempt: None,
-            docker_failure: None,
+            containers: EngineEvents::all(),
             tailer,
             pending: Vec::new(),
             suppressed: HashMap::new(),

@@ -297,6 +297,7 @@ impl InventoryWatch {
                 .map(|container| {
                     let risks = container.settings.risks();
                     dto::GuiInventoryContainer {
+                        engine: container.engine.clone(),
                         id: container.id.clone(),
                         name: container.name.clone(),
                         image: container.image.clone(),

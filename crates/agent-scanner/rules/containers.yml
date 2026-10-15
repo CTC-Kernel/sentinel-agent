@@ -1,8 +1,10 @@
-# Règles Sigma livrées avec l'agent Sentinel GRC : les conteneurs Docker.
+# Règles Sigma livrées avec l'agent Sentinel GRC : les conteneurs Docker et
+# Podman.
 #
 # Elles portent sur les événements de conteneurs que l'agent lit avec
-# `docker events` (service `docker`) ; le démarrage d'un conteneur est
-# complété par `docker inspect` (voir crates/agent-siem/src/decode.rs). Pour
+# `docker events` et `podman events` (service `containers` ; `docker` ou
+# `podman` pour un seul moteur) ; le démarrage d'un conteneur est complété
+# par `inspect` (voir crates/agent-siem/src/decode.rs). Pour
 # en ajuster une, copiez-la dans le dossier « sigma.d » avec le même `id` :
 # votre version la remplace. Pour en désactiver une, ajoutez son `id` à
 # « sigma.d/disabled-rules.txt ».
@@ -18,7 +20,7 @@ tags:
     - attack.t1610
 logsource:
     product: linux
-    service: docker
+    service: containers
 detection:
     selection:
         action: start
@@ -36,7 +38,7 @@ tags:
     - attack.t1611
 logsource:
     product: linux
-    service: docker
+    service: containers
 detection:
     selection:
         action: start
@@ -56,7 +58,7 @@ tags:
     - attack.t1610
 logsource:
     product: linux
-    service: docker
+    service: containers
 detection:
     selection:
         action: start
@@ -74,7 +76,7 @@ tags:
     - attack.t1611
 logsource:
     product: linux
-    service: docker
+    service: containers
 detection:
     selection:
         action: start
@@ -96,7 +98,7 @@ tags:
     - attack.t1611
 logsource:
     product: linux
-    service: docker
+    service: containers
 detection:
     selection:
         action: start
@@ -121,7 +123,7 @@ tags:
     - attack.t1611
 logsource:
     product: linux
-    service: docker
+    service: containers
 detection:
     selection:
         action: start
@@ -139,7 +141,7 @@ tags:
     - attack.t1562.001
 logsource:
     product: linux
-    service: docker
+    service: containers
 detection:
     selection:
         action: start
@@ -154,14 +156,14 @@ level: medium
 title: Shell interactif ouvert dans un conteneur
 id: 40fad355-22da-46a1-9fe8-8e5f75104eb2
 status: stable
-description: Un shell a été lancé dans un conteneur en cours d'exécution (docker exec). Courant pour un administrateur, c'est aussi ce que fait un attaquant qui a pris la main sur l'hôte ou sur l'API Docker.
+description: Un shell a été lancé dans un conteneur en cours d'exécution (docker exec ; Podman ne dit pas ce qu'un exec lance). Courant pour un administrateur, c'est aussi ce que fait un attaquant qui a pris la main sur l'hôte ou sur l'API Docker.
 author: Sentinel GRC
 tags:
     - attack.execution
     - attack.t1609
 logsource:
     product: linux
-    service: docker
+    service: containers
 detection:
     selection:
         action: exec_start

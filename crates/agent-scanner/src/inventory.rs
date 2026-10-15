@@ -19,7 +19,7 @@
 //! | Services        | `systemctl list-unit-files`         | launch daemons and agents of `/Library` | `Win32_Service`         |
 //! | Listening ports | `ss -lntup`                         | `lsof`, completed by `netstat`          | `Get-NetTCPConnection`  |
 //! | Updates         | (the packages, in the software inventory) | (idem)                            | `Get-HotFix`            |
-//! | Containers      | `docker ps`, `docker inspect`       |                                         |                         |
+//! | Containers      | `docker` and `podman` (`ps`, `inspect`) |                                     |                         |
 //!
 //! The processor, memory, kernel and start time come from `sysinfo` on
 //! every system.
@@ -318,9 +318,12 @@ pub struct Hotfix {
     pub installed_on: Option<String>,
 }
 
-/// A container of the host's Docker, running or not.
+/// A container of the host (Docker or Podman), running or not.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct ContainerEntry {
+    /// `docker` or `podman`.
+    #[serde(default)]
+    pub engine: String,
     /// The first twelve characters of its identifier, as Docker shows it.
     pub id: String,
     pub name: String,
@@ -349,7 +352,7 @@ pub struct SystemInventory {
     /// Windows only.
     #[serde(default)]
     pub hotfixes: Vec<Hotfix>,
-    /// Linux, when Docker runs.
+    /// Linux, when Docker runs or Podman is installed.
     #[serde(default)]
     pub containers: Vec<ContainerEntry>,
 }
@@ -1306,12 +1309,13 @@ pub fn parse_mac_hardware(json: &str) -> SystemDescription {
     }
 }
 
-/// The containers of what `docker inspect` prints.
-pub fn parse_docker_containers(json: &str) -> Vec<ContainerEntry> {
+/// The containers of what `docker inspect` or `podman inspect` prints.
+pub fn parse_containers(engine: &str, json: &str) -> Vec<ContainerEntry> {
     agent_common::containers::inspected(json)
         .iter()
         .filter_map(|container| {
             Some(ContainerEntry {
+                engine: engine.to_string(),
                 id: container["Id"].as_str()?.chars().take(12).collect(),
                 name: container["Name"]
                     .as_str()
@@ -1336,26 +1340,30 @@ pub fn parse_docker_containers(json: &str) -> Vec<ContainerEntry> {
 #[cfg(target_os = "linux")]
 const MAX_CONTAINERS: usize = 500;
 
-/// The containers of the host's Docker, running or not (Linux, when Docker
-/// runs).
+/// The containers of the host, running or not, of every engine there
+/// (Linux).
 #[cfg(target_os = "linux")]
-fn docker_containers() -> Vec<ContainerEntry> {
-    let Some(docker) = agent_common::containers::docker_program() else {
-        return Vec::new();
-    };
-    let Some(ids) = run(docker, &["ps", "--all", "--quiet", "--no-trunc"]) else {
-        return Vec::new();
-    };
-    let ids: Vec<&str> = ids.split_whitespace().take(MAX_CONTAINERS).collect();
-    if ids.is_empty() {
-        return Vec::new();
+fn containers() -> Vec<ContainerEntry> {
+    let mut containers = Vec::new();
+    for engine in agent_common::containers::Engine::ALL {
+        let Some(program) = engine.program() else {
+            continue;
+        };
+        let Some(ids) = run(program, &["ps", "--all", "--quiet", "--no-trunc"]) else {
+            continue;
+        };
+        let ids: Vec<&str> = ids.split_whitespace().take(MAX_CONTAINERS).collect();
+        if ids.is_empty() {
+            continue;
+        }
+        let mut arguments = vec!["inspect", "--type", "container"];
+        arguments.extend(ids);
+        // A container removed meanwhile is left out; the others are printed.
+        if let Some(json) = run(program, &arguments) {
+            containers.extend(parse_containers(engine.name(), &json));
+        }
     }
-    let mut arguments = vec!["inspect", "--type", "container"];
-    arguments.extend(ids);
-    // A container removed meanwhile is left out; the others are printed.
-    run(docker, &arguments)
-        .map(|json| parse_docker_containers(&json))
-        .unwrap_or_default()
+    containers
 }
 
 /// What every system says through `sysinfo`: name and version, kernel,
@@ -1484,7 +1492,7 @@ fn collect_platform() -> SystemInventory {
             .map(|output| parse_ss_listeners(&output))
             .unwrap_or_default(),
         hotfixes: Vec::new(),
-        containers: docker_containers(),
+        containers: containers(),
     }
 }
 
@@ -1867,7 +1875,8 @@ mod tests {
     #[test]
     fn containers_are_listed_with_what_weakens_them_never_compared() {
         use agent_common::containers::ContainerRisk;
-        let containers = parse_docker_containers(
+        let containers = parse_containers(
+            "docker",
             r#"[{"Id":"4f2a9c0d1e2b3a4f5e6d","Name":"/escape","Config":{"Image":"alpine:3.20","User":""},
                  "State":{"Status":"running"},"HostConfig":{"Privileged":true},"Mounts":[{"Source":"/"}]},
                 {"Id":"9b8a7c6d5e4f","Name":"/web","Config":{"Image":"nginx","User":"nginx"},

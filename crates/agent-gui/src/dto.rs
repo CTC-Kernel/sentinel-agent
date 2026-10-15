@@ -450,13 +450,16 @@ pub struct GuiSystemInventory {
     /// Windows updates, the most recently installed first.
     #[serde(default)]
     pub hotfixes: Vec<GuiInventoryHotfix>,
-    /// The containers of the host's Docker (Linux).
+    /// The containers of the host, Docker's and Podman's (Linux).
     #[serde(default)]
     pub containers: Vec<GuiInventoryContainer>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct GuiInventoryContainer {
+    /// `docker` or `podman`.
+    #[serde(default)]
+    pub engine: String,
     /// Twelve characters, as Docker shows it.
     pub id: String,
     pub name: String,

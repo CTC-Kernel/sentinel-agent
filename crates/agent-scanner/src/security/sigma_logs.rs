@@ -1254,7 +1254,7 @@ mod tests {
                 "system",
                 "powershell",
                 "windefend",
-                "docker",
+                "containers",
             ]
             .iter()
             .map(|service| (*service).to_string())

@@ -1,12 +1,13 @@
 // Copyright (c) 2024-2026 Cyber Threat Consulting
 // SPDX-License-Identifier: MIT
 
-//! What Docker says of a container: the settings that weaken the isolation
-//! between the container and the host.
+//! What a container engine (Docker, Podman) says of a container: the
+//! settings that weaken the isolation between the container and the host.
 //!
 //! The log analysis reads them at every container start, the inventory for
 //! every container of the host; both read them here, from what `docker
-//! inspect` prints, so that they agree. The shipped Sigma rules
+//! inspect` or `podman inspect` prints (the same document), so that they
+//! agree. The shipped Sigma rules
 //! (`crates/agent-scanner/rules/containers.yml`) raise the same risks as
 //! [`ContainerSettings::risks`].
 
@@ -21,6 +22,8 @@ const DOCKER_PROGRAMS: &[&str] = &[
 ];
 /// Where the daemon of a Docker run by the system listens.
 const DOCKER_SOCKETS: &[&str] = &["/var/run/docker.sock", "/run/docker.sock"];
+/// Where the Podman command may be installed.
+const PODMAN_PROGRAMS: &[&str] = &["/usr/bin/podman", "/usr/local/bin/podman"];
 
 /// Sockets whose mount gives a container the control of the host's
 /// containers, hence of the host.
@@ -38,19 +41,57 @@ const HOST_DEVICES: &[&str] = &[
     "/dev/kmem",
 ];
 
-/// The Docker command, when Docker is installed and its daemon, run by the
-/// system, has a socket.
-pub fn docker_program() -> Option<&'static str> {
-    if !DOCKER_SOCKETS
-        .iter()
-        .any(|socket| Path::new(socket).exists())
-    {
-        return None;
+/// A container engine of the host.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum Engine {
+    Docker,
+    Podman,
+}
+
+impl Engine {
+    pub const ALL: [Self; 2] = [Self::Docker, Self::Podman];
+
+    /// Its name, as its command and the rules call it.
+    pub fn name(self) -> &'static str {
+        match self {
+            Self::Docker => "docker",
+            Self::Podman => "podman",
+        }
     }
-    DOCKER_PROGRAMS
-        .iter()
-        .copied()
-        .find(|program| Path::new(program).is_file())
+
+    /// Its command, when the engine is installed and can be asked: Docker
+    /// needs its daemon's socket, Podman has no daemon. A `docker` that is
+    /// a script (Podman's `podman-docker`) is Podman, followed once.
+    pub fn program(self) -> Option<&'static str> {
+        match self {
+            Self::Docker => {
+                if !DOCKER_SOCKETS
+                    .iter()
+                    .any(|socket| Path::new(socket).exists())
+                {
+                    return None;
+                }
+                DOCKER_PROGRAMS
+                    .iter()
+                    .copied()
+                    .find(|program| Path::new(program).is_file() && !is_script(program))
+            }
+            Self::Podman => PODMAN_PROGRAMS
+                .iter()
+                .copied()
+                .find(|program| Path::new(program).is_file()),
+        }
+    }
+}
+
+/// Whether the file starts with `#!`.
+fn is_script(path: &str) -> bool {
+    use std::io::Read;
+    let mut start = [0u8; 2];
+    std::fs::File::open(path)
+        .and_then(|mut file| file.read_exact(&mut start))
+        .is_ok_and(|()| &start == b"#!")
 }
 
 /// A setting of a container that weakens its isolation.
@@ -239,6 +280,19 @@ mod tests {
     use super::*;
 
     #[test]
+    fn a_docker_command_that_is_a_script_is_podman() {
+        let dir = tempfile::tempdir().unwrap();
+        let shim = dir.path().join("docker");
+        std::fs::write(&shim, "#!/bin/sh\nexec /usr/bin/podman \"$@\"\n").unwrap();
+        assert!(is_script(&shim.to_string_lossy()));
+        let binary = dir.path().join("dockerd");
+        std::fs::write(&binary, [0x7f, b'E', b'L', b'F']).unwrap();
+        assert!(!is_script(&binary.to_string_lossy()));
+        assert!(!is_script("/nonexistent/docker"));
+        assert_eq!(Engine::Podman.name(), "podman");
+    }
+
+    #[test]
     fn the_settings_that_weaken_a_container_are_read_and_named() {
         let containers = inspected(
             r#"[{"Name":"/escape","Config":{"User":""},
@@ -272,6 +326,23 @@ mod tests {
         assert_eq!(web.user, "nginx");
         assert_eq!(web.host_paths, ["/srv/www"]);
         assert!(web.risks().is_empty());
+
+        // Podman's document is Docker's: the same fields.
+        let podman = ContainerSettings::from_inspect(
+            &inspected(
+                r#"[{"Name":"pescape","Config":{"User":""},
+                 "HostConfig":{"Privileged":true,"PidMode":"host","CapAdd":[],"SecurityOpt":["unmask=all"],"Devices":[]},
+                 "Mounts":[{"Type":"bind","Source":"/"}]}]"#,
+            )[0],
+        );
+        assert_eq!(
+            podman.risks(),
+            [
+                ContainerRisk::Privileged,
+                ContainerRisk::HostRoot,
+                ContainerRisk::HostProcesses
+            ]
+        );
 
         // One container, not in a list; and what is not JSON.
         assert_eq!(inspected(r#"{"Name":"/one"}"#).len(), 1);

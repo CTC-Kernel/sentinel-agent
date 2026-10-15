@@ -40,9 +40,11 @@
 //! | `firewall_block`, `firewall_log`           | kernel (iptables, nftables, ufw)       |
 //! | `promiscuous_mode`                         | kernel                                 |
 //!
-//! Docker events (service `docker`) keep Docker's own action (`create`,
-//! `start`, `exec_start`, `die`…) with `container`, `container_id`,
-//! `image`, the `command` of an `exec`, and, for a start, the settings that
+//! Container events answer to the service `containers` and to their engine
+//! (`docker`, `podman`, also in `engine`). They keep the engine's action
+//! (`create`, `start`, `die`…; an `exec` is `exec_start` for both) with
+//! `container`, `container_id`, `image`, the `command` of an `exec` (Docker
+//! only: Podman does not say it), and, for a start, the settings that
 //! weaken the isolation of the container: `privileged`, `pid_mode`,
 //! `network_mode`, `ipc_mode`, `userns_mode`, `cap_add`, `security_opt`,
 //! `devices`, `host_paths` (the host paths mounted), `mounts_host_root`,
@@ -778,6 +780,8 @@ pub fn decode_docker_event(line: &str) -> Option<DecodedLog> {
     };
     let mut log = DecodedLog::default();
     log.add_service("docker");
+    log.add_service("containers");
+    log.set("engine", "docker");
     log.set("program", "dockerd");
     log.set("action", action);
     if action.starts_with("exec_") {
@@ -822,8 +826,48 @@ pub fn decode_docker_event(line: &str) -> Option<DecodedLog> {
     Some(log)
 }
 
+/// Decode an event of Podman as `podman events --format json` prints it.
+/// Container events only.
+pub fn decode_podman_event(line: &str) -> Option<DecodedLog> {
+    let event: serde_json::Value = serde_json::from_str(line.trim()).ok()?;
+    if event["Type"].as_str()? != "container" {
+        return None;
+    }
+    let status = event["Status"].as_str()?.trim();
+    // Docker's name for the same event, so that one rule fits both.
+    let action = match status {
+        "exec" => "exec_start",
+        "died" => "die",
+        "remove" => "destroy",
+        other => other,
+    };
+    let mut log = DecodedLog::default();
+    log.add_service("podman");
+    log.add_service("containers");
+    log.set("engine", "podman");
+    log.set("program", "podman");
+    log.set("action", action);
+    if let Some(id) = event["ID"].as_str() {
+        log.set("container_id", id);
+    }
+    let name = event["Name"].as_str().unwrap_or("");
+    let image = event["Image"].as_str().unwrap_or("");
+    log.set("container", name);
+    log.set("image", image);
+    if let Some(code) = json_text(&event["ContainerExitCode"]) {
+        log.set("exit_code", code);
+    }
+    log.timestamp = event["Time"]
+        .as_str()
+        .and_then(|time| DateTime::parse_from_rfc3339(time).ok())
+        .map(|time| time.with_timezone(&Utc));
+    log.set("message", format!("container {action} {name} ({image})"));
+    Some(log)
+}
+
 /// Add to the event of a container's start the settings that weaken its
-/// isolation, from `docker inspect --type container <id>`.
+/// isolation, from `docker inspect` or `podman inspect` (`--type
+/// container <id>`).
 pub fn add_docker_settings(log: &mut DecodedLog, inspect: &str) {
     use agent_common::containers::{ContainerSettings, inspected};
     let Some(container) = inspected(inspect).into_iter().next() else {
@@ -958,6 +1002,53 @@ mod tests {
     use super::*;
 
     #[test]
+    fn podman_events_are_read_as_docker_names_them() {
+        let start = decode_podman_event(
+            r#"{"ID":"0eb1e12cc0212f9f","Image":"docker.io/library/alpine:3.20","Name":"pescape",
+                "Status":"start","Time":"2026-10-14T23:55:57.999395043Z","Type":"container","Attributes":null}"#,
+        )
+        .unwrap();
+        assert_eq!(start.services, ["podman", "containers"]);
+        assert_eq!(
+            fields(
+                &start,
+                &["engine", "action", "container", "image", "container_id"]
+            ),
+            [
+                Some("podman"),
+                Some("start"),
+                Some("pescape"),
+                Some("docker.io/library/alpine:3.20"),
+                Some("0eb1e12cc0212f9f")
+            ]
+        );
+        assert_eq!(
+            start.timestamp,
+            Some(DateTime::from_timestamp_nanos(1_792_022_157_999_395_043))
+        );
+        let exec = decode_podman_event(
+            r#"{"ID":"1","Image":"alpine","Name":"pweb","Status":"exec","Time":"2026-10-14T23:55:54Z","Type":"container"}"#,
+        )
+        .unwrap();
+        // Podman does not say what an exec runs.
+        assert_eq!(
+            fields(&exec, &["action", "command"]),
+            [Some("exec_start"), None]
+        );
+        let died = decode_podman_event(
+            r#"{"ContainerExitCode":143,"ID":"1","Image":"alpine","Name":"pweb","Status":"died","Type":"container"}"#,
+        )
+        .unwrap();
+        assert_eq!(
+            fields(&died, &["action", "exit_code"]),
+            [Some("die"), Some("143")]
+        );
+        assert!(
+            decode_podman_event(r#"{"Type":"image","Status":"pull","Name":"alpine"}"#).is_none()
+        );
+    }
+
+    #[test]
     fn docker_events_and_container_settings_are_read() {
         let start = decode_docker_event(
             r#"{"status":"start","id":"4f2a","from":"alpine:3.20","Type":"container","Action":"start",
@@ -965,7 +1056,7 @@ mod tests {
                 "scope":"local","time":1792020000,"timeNano":1792020000123456789}"#,
         )
         .unwrap();
-        assert_eq!(start.services, ["docker"]);
+        assert_eq!(start.services, ["docker", "containers"]);
         assert_eq!(
             fields(&start, &["action", "container", "image", "container_id"]),
             [

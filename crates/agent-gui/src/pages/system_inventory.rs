@@ -169,8 +169,10 @@ fn filtered_containers(containers: &[GuiInventoryContainer], needle: &str) -> Ve
     (0..containers.len())
         .filter(|&i| {
             let c = &containers[i];
-            found(needle, &[&c.name, &c.image, &c.id, &c.state, &c.user])
-                || c.risks.iter().any(|risk| found(needle, &[risk]))
+            found(
+                needle,
+                &[&c.name, &c.image, &c.id, &c.state, &c.user, &c.engine],
+            ) || c.risks.iter().any(|risk| found(needle, &[risk]))
         })
         .collect()
 }
@@ -732,8 +734,16 @@ impl SystemInventoryPage {
                     return;
                 };
                 row.col(|ui| {
-                    table::cell_stack(ui, &container.name, &container.image)
-                        .on_hover_text(format!("{} · {}", container.id, container.image));
+                    let engine = match container.engine.as_str() {
+                        "podman" => "Podman",
+                        _ => "Docker",
+                    };
+                    table::cell_stack(
+                        ui,
+                        &container.name,
+                        &format!("{} · {engine}", container.image),
+                    )
+                    .on_hover_text(format!("{} · {}", container.id, container.image));
                 });
                 row.col(|ui| {
                     let (label, color) = match container.state.as_str() {
@@ -931,6 +941,7 @@ mod tests {
         let mut inventory = GuiSystemInventory::default();
         assert!(!tabs_of(&inventory).contains(&Tab::Containers));
         inventory.containers.push(GuiInventoryContainer {
+            engine: "podman".to_string(),
             id: "4f2a9c0d1e2b".to_string(),
             name: "escape".to_string(),
             image: "alpine:3.20".to_string(),
@@ -950,6 +961,7 @@ mod tests {
         assert_eq!(rows_of(&inventory, Tab::Containers, "RACINE"), [0]);
         assert_eq!(rows_of(&inventory, Tab::Containers, "ALPINE"), [0]);
         assert!(rows_of(&inventory, Tab::Containers, "NGINX").is_empty());
+        assert_eq!(rows_of(&inventory, Tab::Containers, "PODMAN"), [0]);
     }
 
     #[test]

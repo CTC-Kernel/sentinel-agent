@@ -536,6 +536,12 @@ pub fn seed(state: &mut AppState) {
             .into_iter()
             .map(
                 |(id, name, image, state, user, risks, can_take_host)| GuiInventoryContainer {
+                    engine: if name == "migration" {
+                        "podman"
+                    } else {
+                        "docker"
+                    }
+                    .into(),
                     id: id.into(),
                     name: name.into(),
                     image: image.into(),

@@ -32,13 +32,14 @@
 //! - A Linux system without systemd has no journal: declare its log files
 //!   in `log_files` instead (`/var/log/auth.log`, `/var/log/secure`).
 //!
-//! # Docker
+//! # Containers
 //!
-//! On Linux, when Docker runs, its container events are read the same way
-//! (`docker events`, service `docker`), as Wazuh's Docker listener does. The
-//! start of a container is completed by `docker inspect`: privileged, host
-//! namespaces, added capabilities, host paths mounted. Rootless Docker,
-//! whose socket belongs to a user, is not followed.
+//! On Linux, when Docker runs or Podman is installed, their container
+//! events are read the same way (`docker events`, `podman events`; services
+//! `containers` and the engine's name), as Wazuh's Docker listener does for
+//! Docker alone. The start of a container is completed by `inspect`:
+//! privileged, host namespaces, added capabilities, host paths mounted.
+//! Rootless engines, whose containers belong to a user, are not followed.
 
 use crate::decode::{self, DecodedLog};
 use std::collections::BTreeMap;
@@ -110,13 +111,14 @@ pub fn stream_services() -> Vec<String> {
             .map(|s| (*s).to_string()),
         );
         if cfg!(target_os = "linux") {
-            // Docker's events are followed from the moment it runs: its
-            // rules are loaded whether it runs at the start or not.
-            services.extend([
-                "kernel".to_string(),
-                "auditd".to_string(),
-                "docker".to_string(),
-            ]);
+            // The container engines are followed from the moment they are
+            // there: their rules are loaded whether they are at the start
+            // or not.
+            services.extend(
+                ["kernel", "auditd", "containers", "docker", "podman"]
+                    .iter()
+                    .map(|service| (*service).to_string()),
+            );
         }
     }
     services
@@ -156,50 +158,57 @@ pub fn journalctl_arguments(all_programs: bool) -> Vec<String> {
     arguments
 }
 
+pub use agent_common::containers::Engine;
+
 /// The container events read: not the health checks, which come every few
 /// seconds and say nothing of an attack.
-pub const DOCKER_EVENTS: &[&str] = &[
-    "create",
-    "start",
-    "restart",
-    "exec_start",
-    "die",
-    "kill",
-    "oom",
-    "destroy",
-    "update",
-];
+pub fn container_events(engine: Engine) -> &'static [&'static str] {
+    match engine {
+        Engine::Docker => &[
+            "create",
+            "start",
+            "restart",
+            "exec_start",
+            "die",
+            "kill",
+            "oom",
+            "destroy",
+            "update",
+        ],
+        Engine::Podman => &[
+            "create", "start", "restart", "exec", "died", "kill", "remove",
+        ],
+    }
+}
 
-/// The Docker command, when Docker is installed and its daemon has a
-/// socket.
-pub use agent_common::containers::docker_program;
-
-/// The arguments given to `docker events`.
-pub fn docker_events_arguments() -> Vec<String> {
-    let mut arguments: Vec<String> = [
-        "events",
-        "--format",
-        "{{json .}}",
-        "--filter",
-        "type=container",
-    ]
-    .iter()
-    .map(|argument| (*argument).to_string())
-    .collect();
+/// The arguments given to `docker events` or `podman events`.
+pub fn container_events_arguments(engine: Engine) -> Vec<String> {
+    let format = match engine {
+        Engine::Docker => "{{json .}}",
+        Engine::Podman => "json",
+    };
+    let mut arguments: Vec<String> = ["events", "--format", format, "--filter", "type=container"]
+        .iter()
+        .map(|argument| (*argument).to_string())
+        .collect();
     // Filters on the same key are alternatives.
-    for event in DOCKER_EVENTS {
+    for event in container_events(engine) {
         arguments.push("--filter".to_string());
         arguments.push(format!("event={event}"));
     }
     arguments
 }
 
-/// A container event, and for a start, the settings of the container.
+/// A container event of `engine`, and for a start, the settings of the
+/// container.
 #[cfg_attr(not(target_os = "linux"), allow(dead_code))]
-fn decode_docker_line(line: &str) -> Option<DecodedLog> {
-    let mut log = decode::decode_docker_event(line)?;
+fn decode_container_line(engine: Engine, line: &str) -> Option<DecodedLog> {
+    let mut log = match engine {
+        Engine::Docker => decode::decode_docker_event(line)?,
+        Engine::Podman => decode::decode_podman_event(line)?,
+    };
     if log.get("action") == Some("start")
-        && let (Some(program), Some(id)) = (docker_program(), log.get("container_id"))
+        && let (Some(program), Some(id)) = (engine.program(), log.get("container_id"))
     {
         let inspect = std::process::Command::new(program)
             .args(["inspect", "--type", "container", id])
@@ -215,6 +224,16 @@ fn decode_docker_line(line: &str) -> Option<DecodedLog> {
         }
     }
     Some(log)
+}
+
+#[cfg_attr(not(target_os = "linux"), allow(dead_code))]
+fn decode_docker_line(line: &str) -> Option<DecodedLog> {
+    decode_container_line(Engine::Docker, line)
+}
+
+#[cfg_attr(not(target_os = "linux"), allow(dead_code))]
+fn decode_podman_line(line: &str) -> Option<DecodedLog> {
+    decode_container_line(Engine::Podman, line)
 }
 
 /// A running reader of the system log.
@@ -255,13 +274,19 @@ impl LogStream {
         Self::from_lines("journalctl", command, decode::decode_journal_entry)
     }
 
-    /// Start reading the container events of Docker (Linux).
+    /// Start reading the container events of `engine` (Linux).
     #[cfg(target_os = "linux")]
-    pub fn start_docker() -> Result<Self, String> {
-        let program = docker_program().ok_or_else(|| "Docker is not running".to_string())?;
+    pub fn start_containers(engine: Engine) -> Result<Self, String> {
+        let program = engine
+            .program()
+            .ok_or_else(|| format!("{} is not installed or not running", engine.name()))?;
         let mut command = std::process::Command::new(program);
-        command.args(docker_events_arguments());
-        Self::from_lines("docker events", command, decode_docker_line)
+        command.args(container_events_arguments(engine));
+        let (kind, parse): (&'static str, fn(&str) -> Option<DecodedLog>) = match engine {
+            Engine::Docker => ("docker events", decode_docker_line),
+            Engine::Podman => ("podman events", decode_podman_line),
+        };
+        Self::from_lines(kind, command, parse)
     }
 
     #[cfg(not(any(target_os = "macos", target_os = "linux")))]
