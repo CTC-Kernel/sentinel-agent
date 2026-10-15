@@ -61,7 +61,7 @@ jobs:
             echo "::warning::Update signing is not configured: agents check updates by SHA-256 only, which does not prove where a package comes from (docs/UPDATE_SIGNING.md)."
           fi
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -144,7 +144,7 @@ jobs:
     env:
       RELEASE_VERSION: ${{ needs.version.outputs.version }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           ref: v${{ needs.version.outputs.version }}
       - uses: dtolnay/rust-toolchain@stable
@@ -394,7 +394,7 @@ jobs:
           cat SHA256SUMS-macos.txt
 
       - name: Upload macOS artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: sentinel-agent-macos
           path: |
@@ -414,7 +414,7 @@ jobs:
     env:
       RELEASE_VERSION: ${{ needs.version.outputs.version }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           ref: v${{ needs.version.outputs.version }}
       - uses: dtolnay/rust-toolchain@stable
@@ -510,7 +510,7 @@ jobs:
       - name: Upload unsigned MSI for signing
         id: upload-unsigned
         if: ${{ vars.SIGNPATH_ORGANIZATION_ID != '' }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: sentinel-agent-windows-unsigned
           path: target/release/SentinelAgentSetup-${{ env.RELEASE_VERSION }}.msi
@@ -658,7 +658,7 @@ jobs:
         shell: pwsh
 
       - name: Upload Windows artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: sentinel-agent-windows
           path: |
@@ -700,7 +700,7 @@ jobs:
         run: |
           dnf install -y git gcc gcc-c++ make cmake perl perl-IPC-Cmd pkgconf-pkg-config binutils rpm-build gtk3-devel libxkbcommon-devel libxcb-devel systemd-devel
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           ref: v${{ needs.version.outputs.version }}
 
@@ -752,7 +752,7 @@ jobs:
           cat SHA256SUMS-linux-${{ matrix.arch }}.txt
 
       - name: Upload Linux artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: sentinel-agent-linux-${{ matrix.arch }}
           path: dist/
@@ -765,7 +765,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [version]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           ref: v${{ needs.version.outputs.version }}
       - uses: dtolnay/rust-toolchain@stable
@@ -780,7 +780,7 @@ jobs:
           cp crates/agent-core/bom.json sbom/sentinel-agent-${{ needs.version.outputs.version }}.cdx.json
 
       - name: Upload SBOM artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: sentinel-agent-sbom
           path: sbom/
@@ -793,32 +793,32 @@ jobs:
     runs-on: ubuntu-latest
     needs: [version, build-macos, build-windows, build-linux]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           ref: v${{ needs.version.outputs.version }}
 
       - name: Download all artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           path: artifacts
 
       - name: Attest macOS artifacts
-        uses: actions/attest-build-provenance@v2
+        uses: actions/attest-build-provenance@v4
         with:
           subject-path: artifacts/sentinel-agent-macos/SentinelAgent-*
 
       - name: Attest Windows artifacts
-        uses: actions/attest-build-provenance@v2
+        uses: actions/attest-build-provenance@v4
         with:
           subject-path: artifacts/sentinel-agent-windows/SentinelAgentSetup-*.msi
 
       - name: Attest Linux DEB artifacts
-        uses: actions/attest-build-provenance@v2
+        uses: actions/attest-build-provenance@v4
         with:
           subject-path: artifacts/sentinel-agent-linux-*/sentinel-agent_*.deb
 
       - name: Attest Linux RPM artifacts
-        uses: actions/attest-build-provenance@v2
+        uses: actions/attest-build-provenance@v4
         with:
           subject-path: artifacts/sentinel-agent-linux-*/sentinel-agent-*.rpm
 
@@ -836,12 +836,12 @@ jobs:
       # steps on it. The key itself is only injected at the signing step.
       HAS_UPDATE_KEY: ${{ secrets.SENTINEL_UPDATE_KEY != '' }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           ref: v${{ needs.version.outputs.version }}
 
       - name: Download all artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           path: artifacts
 
@@ -860,7 +860,7 @@ jobs:
           fi
 
       - name: Authenticate to Google Cloud
-        uses: google-github-actions/auth@v2
+        uses: google-github-actions/auth@v3
         with:
           credentials_json: ${{ secrets.GCP_SA_KEY }}
           project_id: ${{ secrets.GCP_PROJECT_ID }}
@@ -1098,7 +1098,7 @@ jobs:
           echo "✅ Public access verification complete"
 
       - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           tag_name: v${{ env.RELEASE_VERSION }}
           name: "Sentinel Agent v${{ env.RELEASE_VERSION }}"
