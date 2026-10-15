@@ -121,6 +121,11 @@ post_install_script = "debian/postinst"
 pre_uninstall_script = "debian/prerm"
 post_uninstall_script = "debian/postrm"
 
+# The requirements are read from the binary (glibc, GTK...). The tray
+# library is opened at run time by the desktop tray only (Fedora, EPEL).
+[package.metadata.generate-rpm.recommends]
+libayatana-appindicator-gtk3 = "*"
+
 [package.metadata.deb]
 name = "sentinel-agent"
 maintainer = "Sentinel GRC Team <support@sentinel-grc.com>"
@@ -130,7 +135,19 @@ extended-description = """\
 Sentinel GRC endpoint compliance monitoring agent.
 Provides real-time asset scanning, risk assessment, and compliance monitoring
 for enterprise environments following ISO 27001/27005 standards."""
-depends = "libssl3, libgtk-3-0, libayatana-appindicator3-1"
+# Written out, for Debian 11+ and Ubuntu 20.04+: the release builds on
+# AlmaLinux 8 (build-linux in release.yml), where dpkg-shlibdeps cannot run.
+# - libc6 2.28: the glibc of the build system; release.yml fails the build
+#   if the binary needs more.
+# - GTK 3.22: the oldest the gtk crates accept. It brings GLib and
+#   gdk-pixbuf, the other libraries the binary links. Debian 13 and Ubuntu
+#   24.04 renamed the package libgtk-3-0t64.
+# - No libssl: OpenSSL is compiled in (rusqlite's
+#   bundled-sqlcipher-vendored-openssl).
+# - The tray library is opened at run time (dlopen) and only by the desktop
+#   tray, not by the service: recommended, not required.
+depends = "libc6 (>= 2.28), libgtk-3-0t64 (>= 3.22) | libgtk-3-0 (>= 3.22)"
+recommends = "libayatana-appindicator3-1"
 section = "admin"
 priority = "optional"
 conf-files = ["/etc/sentinel/agent.json"]

@@ -10,6 +10,36 @@ Tous les changements notables apportés au projet **Sentinel GRC Agent** sont co
 
 ## 🚀 [Non publié]
 
+### 📦 Paquets Linux : toutes les distributions maintenues, x64 et ARM64
+
+- **Debian 12 refusait le .deb** : le lien de téléchargement
+  `linux_deb/sentinel-agent_latest_amd64.deb` servait encore le paquet 2.0.0
+  de janvier 2026 (dépendances `libc6 (>= 2.39)` et paquets `t64`
+  d'Ubuntu 24.04). Aucune release ne le remplaçait : l'alias partait dans
+  `linux-deb/` et la vérification se contentait d'un code 200. Chaque
+  release le remplace désormais, et la vérification compare le SHA-256 du
+  fichier servi.
+- **Mise à jour automatique Debian/Ubuntu** : le paquet qu'elle télécharge
+  (`linux_deb/sentinel-agent-latest-amd64.deb`) n'était jamais publié ; il
+  l'est, comme son équivalent ARM64.
+- **glibc 2.28** : le binaire Linux était compilé sur Ubuntu 24.04 et
+  exigeait glibc 2.38, donc ne démarrait ni sur Debian 12, ni sur Ubuntu
+  22.04, ni sur RHEL 9. Il est compilé sur AlmaLinux 8, et la release
+  échoue s'il exige plus que glibc 2.28. Distributions visées : Debian 11+,
+  Ubuntu 20.04+, RHEL / AlmaLinux / Rocky 8+, Fedora.
+- **ARM64** : `.deb` et `.rpm` ARM64 à chaque release.
+- **Dépendances** : plus de `libssl3` (OpenSSL est intégré au binaire) ni de
+  `libxdo3` (il ne servait qu'aux entrées de menu Copier/Coller, absentes de
+  nos menus ; RHEL ne le fournit que dans EPEL). La bibliothèque du plateau
+  système (`libayatana-appindicator3-1`) est recommandée et non plus exigée :
+  seul le plateau du mode bureau l'ouvre, pas le service.
+- **Installation** : `sudo apt install ./sentinel-agent_*.deb` ou
+  `sudo dnf install ./sentinel-agent-*.rpm`, qui installent aussi les
+  dépendances, au lieu de `dpkg -i` / `rpm -i`.
+- **Conteneurs et images système** : l'installation n'échoue plus sans
+  systemd en marche (conteneur, chroot de construction d'image) ; le service
+  est activé et démarre au prochain boot.
+
 ### 🏁 Détection et réponse : chaînes vérifiées de bout en bout, tout se règle dans l'interface
 
 - **Le modèle de playbook « Brute-force » se déclenche enfin** : sa condition

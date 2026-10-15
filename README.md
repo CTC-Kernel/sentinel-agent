@@ -136,7 +136,7 @@ graph TD
 
 ### Prérequis
 - **Rust Edition 2024** (v1.85+)
-- **OS Supportés** : Windows 10+ (x64), macOS 12+ (Universal), Linux (Ubuntu, RHEL, Debian).
+- **OS Supportés** : Windows 10+ (x64), macOS 12+ (Universal), Linux x64 et ARM64 : Debian 11+, Ubuntu 20.04+, RHEL / AlmaLinux / Rocky 8+, Fedora.
 - **Dépendances Optionnelles** : OpenSSL, SQLite3, libgtk3 (pour GUI)
 
 ### Installation
@@ -147,11 +147,11 @@ Téléchargez le paquet de votre système depuis la page des
 avec le fichier `SHA256SUMS-*.txt` publié à côté, puis installez-le :
 
 ```bash
-# Debian / Ubuntu
-sudo dpkg -i sentinel-agent_*.deb
+# Debian / Ubuntu (_amd64.deb ou _arm64.deb) : apt installe aussi les dépendances
+sudo apt install ./sentinel-agent_*_amd64.deb
 
-# RHEL / Fedora
-sudo rpm -i sentinel-agent-*.rpm
+# RHEL / AlmaLinux / Rocky / Fedora (.x86_64.rpm ou .aarch64.rpm)
+sudo dnf install ./sentinel-agent-*.x86_64.rpm
 
 # macOS (ou double-clic sur le .pkg)
 sudo installer -pkg SentinelAgent-*.pkg -target /
