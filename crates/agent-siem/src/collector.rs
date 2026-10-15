@@ -376,6 +376,9 @@ pub struct LogCollector {
     buffer: RwLock<VecDeque<RawLogEntry>>,
     last_collection: RwLock<Option<DateTime<Utc>>>,
     hostname: String,
+    /// Where the last read of each log file stopped (Linux without journald).
+    #[cfg(target_os = "linux")]
+    file_offsets: std::sync::Mutex<std::collections::HashMap<&'static str, u64>>,
 }
 
 impl LogCollector {
@@ -390,6 +393,8 @@ impl LogCollector {
             buffer: RwLock::new(VecDeque::new()),
             last_collection: RwLock::new(None),
             hostname,
+            #[cfg(target_os = "linux")]
+            file_offsets: std::sync::Mutex::new(std::collections::HashMap::new()),
         }
     }
 
@@ -660,13 +665,13 @@ impl LogCollector {
             cmd.args(&journalctl_args);
 
             match cmd.output().await {
+                // The journal answered: it is the source of truth, even with
+                // nothing new. The files hold the same lines; reading them
+                // again when the journal had nothing sent their last lines
+                // to the SIEM a second time at every pass.
                 Ok(output) if output.status.success() => {
                     let stdout = String::from_utf8_lossy(&output.stdout);
-                    let entries = parse_syslog_lines(&stdout, source);
-                    if !entries.is_empty() {
-                        return Ok(entries);
-                    }
-                    // If journalctl succeeded but returned no entries, fall through to log files
+                    return Ok(parse_syslog_lines(&stdout, source));
                 }
                 _ => {
                     // journalctl not available or failed, fall through to log files
@@ -674,17 +679,30 @@ impl LogCollector {
             }
         }
 
-        // Fallback to reading log files
-        let log_path = match source {
-            LogSource::System => "/var/log/syslog",
-            LogSource::Auth => "/var/log/auth.log",
-            LogSource::Firewall => "/var/log/kern.log",
-            LogSource::Application => "/var/log/messages",
+        // No journal: the log file of the distribution (Debian and Ubuntu
+        // write syslog, Red Hat and SUSE messages and secure).
+        let candidates: &[&'static str] = match source {
+            LogSource::System => &["/var/log/syslog", "/var/log/messages"],
+            LogSource::Auth => &["/var/log/auth.log", "/var/log/secure"],
+            LogSource::Firewall => &["/var/log/kern.log", "/var/log/messages"],
+            LogSource::Application => &["/var/log/messages", "/var/log/syslog"],
+        };
+        let Some(log_path) = candidates
+            .iter()
+            .copied()
+            .find(|path| std::path::Path::new(path).is_file())
+        else {
+            return Err(format!(
+                "no journal, and none of {} exists",
+                candidates.join(", ")
+            ));
         };
 
         match tokio::fs::read_to_string(log_path).await {
             Ok(content) => {
-                let lines = tail_lines(&content, 500);
+                let mut offsets = self.file_offsets.lock().unwrap_or_else(|e| e.into_inner());
+                let (lines, end) = appended_lines(&content, offsets.get(log_path).copied());
+                offsets.insert(log_path, end);
                 Ok(parse_syslog_lines(&lines, source))
             }
             Err(e) => Err(format!("Cannot read {}: {}", log_path, e)),
@@ -1297,16 +1315,47 @@ pub(crate) fn classify_windows_event(event_id: u32) -> Option<(&'static str, u8)
 }
 
 /// Return the last N lines of a string.
-#[cfg(target_os = "linux")]
+#[cfg(any(target_os = "linux", test))]
 fn tail_lines(content: &str, n: usize) -> String {
     let lines: Vec<&str> = content.lines().collect();
     let start = lines.len().saturating_sub(n);
     lines[start..].join("\n")
 }
 
+/// The lines of a log file written since the last read, which stopped at
+/// byte `previous`, and where this read stops. The first read takes the
+/// last 500 lines; a file shorter than before was rotated and is read from
+/// its start.
+#[cfg(any(target_os = "linux", test))]
+fn appended_lines(content: &str, previous: Option<u64>) -> (String, u64) {
+    let end = content.len() as u64;
+    let text = match previous {
+        None => tail_lines(content, 500),
+        Some(offset) if offset > end => content.to_string(),
+        Some(offset) => content
+            .get(offset as usize..)
+            .unwrap_or_default()
+            .to_string(),
+    };
+    (text, end)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn a_log_file_is_read_once_and_from_where_it_was_left() {
+        let content = "line 1\nline 2\n";
+        let (first, end) = appended_lines(content, None);
+        assert_eq!(first, "line 1\nline 2");
+        // Nothing written since: nothing read again.
+        assert_eq!(appended_lines(content, Some(end)).0, "");
+        let grown = "line 1\nline 2\nline 3\n";
+        assert_eq!(appended_lines(grown, Some(end)).0, "line 3\n");
+        // Rotated: shorter than before, read from its start.
+        assert_eq!(appended_lines("new 1\n", Some(end)).0, "new 1\n");
+    }
 
     #[test]
     fn test_log_collector_config_default() {

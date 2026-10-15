@@ -28,6 +28,8 @@
 //! - `SENTINEL_HARDENING_BENCHMARK` → `hardening_benchmark` (`true`: run the shipped hardening policy)
 //! - `SENTINEL_SYSTEM_INVENTORY` → `system_inventory` (`false`: no inventory of accounts, services and ports)
 //! - `SENTINEL_FIM_REPORT_CHANGES` → `fim_report_changes` (`false`: report that a file changed, not which lines)
+//! - `SENTINEL_FIM_WHODATA` → `fim_whodata` (`true`: ask the Linux audit who changed a watched file)
+//! - `SENTINEL_REGISTRY_KEYS` → `registry_keys` (comma-separated Windows registry keys to watch)
 //!
 //! Nested fields are mapped explicitly (see [`NESTED_ENV_KEYS`]):
 //!
@@ -68,6 +70,7 @@ const LIST_ENV_FIELDS: &[&str] = &[
     "fim_watched_paths",
     "fim_ignore_patterns",
     "active_frameworks",
+    "registry_keys",
 ];
 
 /// Snapshot of environment variables (used to inject a fake environment in tests).
@@ -255,6 +258,24 @@ pub struct AgentConfig {
     /// default.
     #[serde(default = "default_true")]
     pub fim_report_changes: bool,
+
+    /// Say exactly who changed a watched file (account, program, process),
+    /// from the audit of the system: on Linux, the agent adds a watch rule
+    /// for every watched path to auditd, under its own key, and removes them
+    /// when it stops. Off by default: on a busy system the records of a
+    /// package upgrade add up, and an audit set to stop the machine when its
+    /// backlog overflows is the administrator's to judge. Needs auditd
+    /// running and the agent running as root.
+    #[serde(default)]
+    pub fim_whodata: bool,
+
+    /// Windows registry keys of the organisation's own (an application's
+    /// settings, a policy key) watched with the built-in start-up locations:
+    /// every value of each is read at every security scan, and a value
+    /// added or changed is reported. `HKLM\…` stands for
+    /// `HKEY_LOCAL_MACHINE\…`. None by default.
+    #[serde(default)]
+    pub registry_keys: Vec<String>,
 
     /// Programs of the organisation a playbook may ask for by name (open a
     /// ticket, call the on-call engineer…). None by default. A playbook can
@@ -553,6 +574,8 @@ impl Default for AgentConfig {
             hardening_benchmark: false,
             system_inventory: true,
             fim_report_changes: true,
+            fim_whodata: false,
+            registry_keys: Vec::new(),
             response_commands: Vec::new(),
         }
     }
@@ -1098,6 +1121,8 @@ mod tests {
             hardening_benchmark: false,
             system_inventory: true,
             fim_report_changes: true,
+            fim_whodata: false,
+            registry_keys: Vec::new(),
             response_commands: Vec::new(),
         };
 

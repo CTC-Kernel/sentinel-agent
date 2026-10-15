@@ -9,6 +9,7 @@
 
 #[cfg(feature = "llm")]
 use tracing::debug;
+use tracing::info;
 use tracing::warn;
 
 /// Playbook condition evaluation result.
@@ -63,6 +64,98 @@ pub enum ResolvedAction {
     },
 }
 
+/// An address stays blocked this long when the playbook action gives no
+/// duration.
+pub const DEFAULT_BLOCK_SECS: u64 = 3600;
+
+/// Duration of a "block IP" action of an automatic run, from its parameter
+/// (seconds; `0`: until unblocked; blank or unreadable: [`DEFAULT_BLOCK_SECS`]).
+pub fn block_duration(parameters: &str) -> u64 {
+    parameters
+        .trim()
+        .parse::<u64>()
+        .unwrap_or(DEFAULT_BLOCK_SECS)
+}
+
+/// Automatic blocks of one address within this window are repeated
+/// offences.
+const OFFENCE_WINDOW_SECS: i64 = 24 * 3600;
+/// Blocks this close together are the same offence (two playbooks acting on
+/// one alert), not a repeated one.
+const SAME_OFFENCE_SECS: i64 = 60;
+/// The longest a repeated offence makes a timed block: a week.
+const MAX_REPEATED_BLOCK_SECS: u64 = 7 * 24 * 3600;
+
+/// One address's automatic blocks: how many in the window, the last when.
+#[derive(Debug, Clone, Copy)]
+struct Offence {
+    count: u32,
+    last: i64,
+}
+
+static OFFENCES: std::sync::LazyLock<std::sync::Mutex<std::collections::HashMap<String, Offence>>> =
+    std::sync::LazyLock::new(Default::default);
+
+/// The duration of an automatic block of an address blocked before: doubled
+/// for each block of it in the past day, up to a week, so that an address
+/// that comes back once its block ends is shut out longer each time (Wazuh's
+/// "repeated offenders"). Returns the duration and the number of the
+/// offence (1 for the first). A block until unblocked (`0`) stays so.
+fn escalate_block(
+    offences: &mut std::collections::HashMap<String, Offence>,
+    ip: &str,
+    requested_secs: u64,
+    now: i64,
+) -> (u64, u32) {
+    offences.retain(|_, offence| now - offence.last < OFFENCE_WINDOW_SECS);
+    let offence = offences.entry(ip.to_string()).or_insert(Offence {
+        count: 0,
+        last: i64::MIN,
+    });
+    if offence.count == 0 || now - offence.last >= SAME_OFFENCE_SECS {
+        offence.count += 1;
+    }
+    offence.last = now;
+    let number = offence.count;
+    if requested_secs == 0 {
+        return (0, number);
+    }
+    let factor = 1u64 << (number - 1).min(16);
+    (
+        requested_secs
+            .saturating_mul(factor)
+            .min(MAX_REPEATED_BLOCK_SECS.max(requested_secs)),
+        number,
+    )
+}
+
+/// Lengthen the automatic blocks of `actions` for the addresses blocked in
+/// the past day (see [`escalate_block`]). For automatic runs only: a block
+/// an operator asks for lasts what they asked.
+pub fn escalate_repeated_blocks(actions: &[ResolvedAction]) -> Vec<ResolvedAction> {
+    let now = chrono::Utc::now().timestamp();
+    let mut offences = OFFENCES.lock().unwrap_or_else(|e| e.into_inner());
+    actions
+        .iter()
+        .map(|action| match action {
+            ResolvedAction::BlockIp { ip, duration_secs } => {
+                let (escalated, number) = escalate_block(&mut offences, ip, *duration_secs, now);
+                if number > 1 {
+                    info!(
+                        "Address {} blocked again within a day (offence {}): {}s instead of {}s",
+                        ip, number, escalated, duration_secs
+                    );
+                }
+                ResolvedAction::BlockIp {
+                    ip: ip.clone(),
+                    duration_secs: escalated,
+                }
+            }
+            other => other.clone(),
+        })
+        .collect()
+}
+
 /// An account lock lasts this long when the playbook action gives no duration.
 pub const DEFAULT_ACCOUNT_LOCK_SECS: u64 = 3600;
 
@@ -115,6 +208,10 @@ pub struct ProcessInfo {
 
 #[derive(Debug, Clone)]
 pub struct NetworkAlertInfo {
+    /// What kind of alert it is, as a playbook condition names it:
+    /// `brute_force`, `data_exfiltration`, `c2_communication`… Stable, unlike
+    /// the description, which is written for people and may be translated.
+    pub alert_type: String,
     pub remote_ip: Option<String>,
     pub port: Option<u16>,
     pub severity: String,
@@ -205,7 +302,11 @@ pub async fn evaluate_playbook(
             }
             PlaybookConditionType::NetworkAlertType => {
                 for alert in &threat_context.network_alerts {
-                    if alert.description.to_lowercase().contains(&condition_value)
+                    // The type first ("brute_force" names an SSH brute force
+                    // whose title is in French); the description and the
+                    // severity as before, for the playbooks written for them.
+                    if alert.alert_type.to_lowercase().contains(&condition_value)
+                        || alert.description.to_lowercase().contains(&condition_value)
                         || alert.severity.to_lowercase() == condition_value
                     {
                         matched_conditions
@@ -213,7 +314,7 @@ pub async fn evaluate_playbook(
                         if let Some(ref ip) = alert.remote_ip {
                             actions.push(ResolvedAction::BlockIp {
                                 ip: ip.clone(),
-                                duration_secs: 3600,
+                                duration_secs: DEFAULT_BLOCK_SECS,
                             });
                         }
                         if let Some(ref user) = alert.user {
@@ -299,16 +400,21 @@ pub async fn evaluate_playbook(
                 )
             })
     });
-    // The same account named by several alerts is locked once, for the time
-    // the playbook asks.
-    let lock_secs = playbook
-        .actions
-        .iter()
-        .find(|configured| {
-            configured.action_type == agent_gui::dto::PlaybookActionType::DisableAccount
-        })
-        .map(|configured| account_lock_duration(&configured.parameters));
+    // The same account or address named by several alerts is acted on once,
+    // for the time the playbook asks.
+    let configured_parameters = |action_type| {
+        playbook
+            .actions
+            .iter()
+            .find(|configured| configured.action_type == action_type)
+            .map(|configured| configured.parameters.as_str())
+    };
+    let lock_secs = configured_parameters(agent_gui::dto::PlaybookActionType::DisableAccount)
+        .map(account_lock_duration);
+    let block_secs =
+        configured_parameters(agent_gui::dto::PlaybookActionType::BlockIp).map(block_duration);
     let mut locked: Vec<String> = Vec::new();
+    let mut blocked: Vec<String> = Vec::new();
     actions.retain_mut(|action| match action {
         ResolvedAction::DisableAccount {
             user,
@@ -319,15 +425,25 @@ pub async fn evaluate_playbook(
             locked.push(user.clone());
             first
         }
+        ResolvedAction::BlockIp { ip, duration_secs } => {
+            *duration_secs = block_secs.unwrap_or(DEFAULT_BLOCK_SECS);
+            let first = !blocked.contains(ip);
+            blocked.push(ip.clone());
+            first
+        }
         _ => true,
     });
     if actually_triggered {
         for configured in &playbook.actions {
             match configured.action_type {
                 agent_gui::dto::PlaybookActionType::CreateNotification => {
-                    actions.push(ResolvedAction::Notify {
-                        message: configured.parameters.clone(),
-                    })
+                    // A notification with no text of its own says what set
+                    // the playbook off: an empty one tells the operator nothing.
+                    let message = match configured.parameters.trim() {
+                        "" => format!("Déclenché : {}", matched_conditions.join(" ; ")),
+                        text => text.to_string(),
+                    };
+                    actions.push(ResolvedAction::Notify { message })
                 }
                 agent_gui::dto::PlaybookActionType::IsolateHost => {
                     actions.push(ResolvedAction::IsolateHost {
@@ -579,6 +695,31 @@ fn describe(action: &ResolvedAction) -> String {
     }
 }
 
+/// A notification of `playbook_name` as a SIEM record, for an endpoint with
+/// no interface to show it.
+fn notification_event(playbook_name: &str, message: &str) -> agent_siem::SiemEvent {
+    agent_siem::SiemEvent {
+        timestamp: chrono::Utc::now(),
+        severity: 5,
+        category: agent_siem::EventCategory::Security,
+        name: format!("Playbook notification: {playbook_name}"),
+        description: message.to_string(),
+        source_host: hostname::get()
+            .map(|h| h.to_string_lossy().into_owned())
+            .unwrap_or_default(),
+        source_ip: None,
+        destination_ip: None,
+        destination_port: None,
+        user: None,
+        process_name: None,
+        process_id: None,
+        file_path: None,
+        custom_fields: serde_json::json!({ "playbook": playbook_name, "notification": true }),
+        event_id: uuid::Uuid::new_v4().to_string(),
+        agent_version: agent_common::constants::AGENT_VERSION.to_string(),
+    }
+}
+
 /// Marks, in results and logs, an action that was simulated and not run.
 pub const SIMULATION_PREFIX: &str = "[Simulation] ";
 
@@ -751,6 +892,19 @@ async fn run_playbook_actions(
                             ),
                         })
                         .map_err(|e| e.to_string())
+                    } else if let Some(forwarder) = siem {
+                        // No interface on this endpoint (a service on a
+                        // server): the notification goes where its operators
+                        // read, the SIEM records the platform receives, and
+                        // the external SIEM when there is one.
+                        let event = notification_event(playbook_name, message);
+                        forwarder.record_event(event.clone()).await;
+                        if forwarder.is_enabled()
+                            && let Err(e) = forwarder.send_event(&event).await
+                        {
+                            warn!("Playbook notification not forwarded to the SIEM: {}", e);
+                        }
+                        Ok(())
                     } else {
                         Err("No notification delivery destination configured".to_string())
                     }
@@ -883,6 +1037,81 @@ mod guard_tests {
         );
     }
 
+    /// A service has no interface: its notifications go to the SIEM records
+    /// the platform receives, instead of failing the playbook.
+    #[tokio::test]
+    async fn without_an_interface_a_notification_goes_to_the_siem_records() {
+        let forwarder = agent_siem::SiemForwarder::new(agent_siem::SiemConfig::default())
+            .expect("default forwarder");
+        let actions = vec![ResolvedAction::Notify {
+            message: "Adresse bloquée".to_string(),
+        }];
+        let results = execute_playbook_actions_with_delivery(
+            "Brute-force",
+            &actions,
+            None,
+            None,
+            Some(&forwarder),
+        )
+        .await;
+        assert!(results[0].success, "{:?}", results[0].error);
+        let recorded = forwarder.take_recent_events().await;
+        assert_eq!(recorded.len(), 1);
+        assert_eq!(recorded[0].name, "Playbook notification: Brute-force");
+        assert_eq!(recorded[0].description, "Adresse bloquée");
+
+        // Nowhere to deliver: still a failure, never a success by logging.
+        let results = execute_playbook_actions_with_delivery("x", &actions, None, None, None).await;
+        assert!(!results[0].success);
+    }
+
+    /// An address that comes back after its block is shut out longer each
+    /// time, as Wazuh's repeated offenders option does.
+    #[test]
+    fn a_repeated_offender_is_blocked_longer_each_time() {
+        let mut offences = std::collections::HashMap::new();
+        let ip = "203.0.113.9";
+        let t0 = 1_000_000;
+        assert_eq!(escalate_block(&mut offences, ip, 3600, t0), (3600, 1));
+        // Two playbooks acting on the same alert: one offence.
+        assert_eq!(escalate_block(&mut offences, ip, 3600, t0 + 5), (3600, 1));
+        assert_eq!(escalate_block(&mut offences, ip, 3600, t0 + 600), (7200, 2));
+        assert_eq!(
+            escalate_block(&mut offences, ip, 3600, t0 + 7200),
+            (14_400, 3)
+        );
+        // Another address starts from the beginning.
+        assert_eq!(
+            escalate_block(&mut offences, "198.51.100.7", 3600, t0 + 7200),
+            (3600, 1)
+        );
+        // A day without coming back: forgotten.
+        assert_eq!(
+            escalate_block(&mut offences, ip, 3600, t0 + 7200 + 25 * 3600),
+            (3600, 1)
+        );
+    }
+
+    #[test]
+    fn a_repeated_block_stays_under_a_week_and_a_permanent_one_permanent() {
+        let mut offences = std::collections::HashMap::new();
+        let mut last = (0, 0);
+        for n in 0..20 {
+            last = escalate_block(&mut offences, "203.0.113.9", 3600, 1_000 + n * 120);
+        }
+        assert_eq!(last, (MAX_REPEATED_BLOCK_SECS, 20));
+        assert_eq!(
+            escalate_block(&mut offences, "203.0.113.9", 0, 9_000),
+            (0, 21)
+        );
+        // A block asked longer than the cap is not shortened.
+        let month = 30 * 24 * 3600;
+        assert_eq!(
+            escalate_block(&mut offences, "192.0.2.1", month, 9_000),
+            (month, 1)
+        );
+    }
+
     #[test]
     fn non_destructive_actions_are_not_capped() {
         assert!(!is_destructive(&ResolvedAction::Notify {
@@ -1007,6 +1236,7 @@ mod tests {
         });
         let ctx = ThreatContext {
             network_alerts: vec![NetworkAlertInfo {
+                alert_type: "connection_anomaly".into(),
                 remote_ip: None,
                 port: None,
                 severity: "high".into(),
@@ -1312,6 +1542,7 @@ mod tests {
             suspicious_processes: vec![],
             network_alerts: vec![
                 NetworkAlertInfo {
+                    alert_type: "brute_force".to_string(),
                     remote_ip: Some("203.0.113.9".to_string()),
                     port: None,
                     severity: "critical".to_string(),
@@ -1321,6 +1552,7 @@ mod tests {
                 },
                 // The burst that came before names no account that was taken.
                 NetworkAlertInfo {
+                    alert_type: "brute_force".to_string(),
                     remote_ip: Some("203.0.113.9".to_string()),
                     port: None,
                     severity: "high".to_string(),

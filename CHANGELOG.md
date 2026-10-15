@@ -40,6 +40,109 @@ Tous les changements notables apportés au projet **Sentinel GRC Agent** sont co
   systemd en marche (conteneur, chroot de construction d'image) ; le service
   est activé et démarre au prochain boot.
 
+### 🏁 Détection et réponse : chaînes vérifiées de bout en bout, tout se règle dans l'interface
+
+- **Le modèle de playbook « Brute-force » se déclenche enfin** : sa condition
+  cherchait le texte `brute_force` dans la description de l'alerte, alors
+  qu'une force brute SSH vue dans les journaux s'intitule « Attaque par force
+  brute SSH ». Il ne pouvait jamais agir. Chaque alerte donnée aux playbooks
+  porte désormais un type stable : celui du détecteur réseau
+  (`data_exfiltration`, `c2_communication`…) et, pour une détection dans les
+  journaux, `brute_force` quand ses techniques ATT&CK sont T1110 (essais de
+  mots de passe, pulvérisation comprise), `log_detection` sinon.
+- **Paramètres des actions** : le formulaire de création de playbook n'avait
+  aucun champ pour eux ; une commande de réponse ne pouvait pas être nommée,
+  ni une durée de blocage ou de verrouillage, ni le texte d'une
+  notification. Chaque action a maintenant son champ et une ligne qui dit ce
+  qu'il signifie en exécution automatique et à la main ; les conditions
+  disent quelles valeurs existent.
+- **Durée de blocage** : celle de l'action s'applique aussi aux exécutions
+  automatiques (c'était toujours une heure). Une adresse nommée par
+  plusieurs alertes est bloquée une fois.
+- **Récidivistes** : une adresse bloquée automatiquement de nouveau dans la
+  journée l'est deux fois plus longtemps que la fois précédente, jusqu'à une
+  semaine (comme l'option `repeated_offenders` de Wazuh). Un blocage sans
+  fin le reste ; un blocage demandé par un opérateur dure ce qu'il a demandé.
+- **Notification** : sans texte, elle dit ce qui a déclenché le playbook (elle
+  arrivait vide).
+- **Deux modèles** : « Compte pris par force brute » (bloque l'adresse et
+  verrouille le compte pris) et « Fichier malveillant connu » (quarantaine du
+  fichier dont un flux liste l'empreinte).
+- **Détection et conformité dans les paramètres** : analyse des journaux,
+  détection de rootkits, inventaire du poste, socle de durcissement, lignes
+  modifiées et auteur exact des changements s'activent depuis l'interface (ils
+  ne se réglaient que dans le fichier de configuration). Le réglage est
+  enregistré et pris en compte au prochain démarrage de l'agent, ce que
+  l'interface dit ; en désactiver un demande le mode administrateur.
+- **Fiche d'un contrôle de conformité** : elle montre ce qui est vérifié,
+  pourquoi, et comment corriger (description, justification et correction
+  des politiques SCA), la correction en premier quand le contrôle échoue.
+- **Comptes & services** (Actifs & inventaire) : l'inventaire du poste a son
+  écran. Comptes (qui peut ouvrir une session, qui est administrateur),
+  groupes et membres, services, ports en écoute (locaux ou exposés au
+  réseau), et les changements depuis le démarrage de l'agent avec l'incident
+  que chacun a levé.
+- **Clés de registre de l'organisation** (`registry_keys`, Windows) : elles
+  s'ajoutent aux emplacements de démarrage automatique surveillés ; toutes
+  leurs valeurs sont relues à chaque analyse, et une valeur ajoutée ou
+  modifiée est signalée comme modification du registre (T1112), comme le
+  permet la surveillance de registre de Wazuh.
+- **Auteur exact d'un changement de fichier** (`fim_whodata`, Linux,
+  désactivé par défaut) : l'agent ajoute à auditd une règle par chemin
+  surveillé, sous sa propre clé, lit le journal d'audit et retire ses règles à
+  l'arrêt. L'alerte d'intégrité nomme alors le compte et le programme. Sans
+  auditd, rien n'est ajouté et l'alerte garde l'auteur probable. Désactivé
+  par défaut : sur un système très actif, une mise à jour produit beaucoup
+  d'enregistrements, et une politique d'audit qui arrête la machine quand
+  son tampon déborde relève de l'administrateur.
+- **Trois défauts trouvés en faisant tourner l'agent sur une vraie Ubuntu
+  24.04, et corrigés** :
+  - **mémoire du scan de vulnérabilités** : l'agent gagnait environ 30 Mo par
+    seconde pendant l'interrogation d'OSV pour 475 paquets, de 80 Mo à 4 Go
+    en deux minutes et 6 Go en six, jusqu'à saturer la machine. Chaque avis
+    était gardé en entier pendant tout le scan, des milliers à la fois, avec
+    toutes les versions concernées et, sous Ubuntu, tous les paquets binaires
+    de la source. Chaque avis est désormais réduit dès sa réception à ce que
+    le résultat utilise, et aux seuls paquets interrogés ; les résultats sont
+    inchangés. Mesuré après correction sur la même machine : le scan va au
+    bout (4120 vulnérabilités sur 831 paquets, en moins de quatre minutes) et
+    la mémoire plafonne vers 280 Mo, stable ensuite ;
+  - **notification d'un poste sans interface** : elle échouait faute de
+    destination, et chaque déclenchement de playbook était compté en échec
+    partiel sur un serveur. Elle part maintenant dans les enregistrements SIEM
+    (onglet SIEM de la plateforme, SIEM externe s'il est configuré) ; sans
+    aucune destination elle échoue toujours, jamais réussie par simple
+    écriture dans le journal ;
+  - **collecteur de journaux** : quand `journalctl` n'avait rien de nouveau,
+    il relisait les 500 dernières lignes du fichier de journal et les
+    renvoyait au SIEM à chaque passage, et cherchait sous Ubuntu un
+    `/var/log/messages` qui n'existe pas (un avertissement par minute). Le
+    journal fait foi quand il répond ; sans journal, le fichier de la
+    distribution est lu depuis l'endroit où la lecture précédente s'était
+    arrêtée ;
+  - **fichiers de verrou des comptes** : verrouiller un compte levait quatre
+    alertes d'intégrité pour `passwd.lock` et `shadow.lock`, créés puis
+    supprimés en une fraction de seconde par les outils de comptes. Ils sont
+    exclus par défaut, par leur nom exact ; la modification de la base de
+    comptes elle-même reste signalée.
+- **Vérifié** : force brute SSH réelle contre l'agent fusionné, en service
+  sans interface, sur une Ubuntu 24.04 (OrbStack) : huit mauvais mots de
+  passe depuis une adresse de test, « Échecs d'authentification répétés sur
+  un compte » puis « Attaque par force brute SSH » levés, le playbook « Compte
+  pris par force brute » déclenché, l'adresse bloquée dans iptables (entrée
+  et sortie) pour 600 s, le second blocage compté comme la même récidive ;
+  l'attaquant est coupé net. Second essai, playbook de verrouillage seul :
+  après la force brute, la connexion réussie avec le bon mot de passe lève
+  « Connexion SSH réussie après une attaque par force brute », le compte pris
+  est verrouillé pour 600 s (verrouillé et expiré, ce qui refuse aussi les clés
+  SSH), la session ouverte est fermée, et les notifications de ce poste sans
+  interface sont toutes délivrées. Code propre à Windows d'`agent-scanner` et
+  d'`agent-common` contrôlé pour la cible Windows (types et clippy) ; tests de
+  tout l'espace de travail sous macOS. **Non vérifié** : l'auteur exact sur un
+  vrai auditd (le noyau partagé des machines OrbStack refuse l'audit) ; les
+  clés de registre et le reste du code Windows ailleurs que dans la CI ;
+  l'interface n'a été vue que dans son aperçu, avec des données d'exemple.
+
 ### 🔒 Réponse : verrouillage de compte et commande de réponse
 
 - **Verrouiller un compte** (action de playbook « Verrouiller le compte ») :

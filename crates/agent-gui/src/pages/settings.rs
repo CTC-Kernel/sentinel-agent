@@ -45,6 +45,8 @@ impl SettingsPage {
                 ui.add_space(theme::SPACE);
                 Self::ransomware_card(ui, state, &mut command);
                 ui.add_space(theme::SPACE);
+                Self::detection_card(ui, state, &mut command);
+                ui.add_space(theme::SPACE);
                 Self::update_card(ui, state, &mut command);
                 ui.add_space(theme::SPACE);
                 Self::discovery_card(ui, state, &mut command);
@@ -339,6 +341,78 @@ impl SettingsPage {
                     .font(theme::font_caption())
                     .color(theme::text_secondary()),
             );
+        });
+    }
+
+    /// The detection engines: what the agent runs, and what it will run from
+    /// its next start once switched here.
+    fn detection_card(ui: &mut Ui, state: &mut AppState, command: &mut Option<GuiCommand>) {
+        use crate::dto::DetectionOption;
+        widgets::data_card(ui, "Détection et conformité", |ui: &mut egui::Ui| {
+            ui.label(
+                egui::RichText::new("DÉTECTION ET CONFORMITÉ")
+                    .font(theme::font_label())
+                    .color(theme::text_tertiary())
+                    .extra_letter_spacing(theme::TRACKING_NORMAL)
+                    .strong(),
+            );
+            ui.add_space(theme::SPACE_MD);
+
+            for option in DetectionOption::ALL {
+                let running = state.summary.detection.is_on(option);
+                let wanted = state
+                    .settings
+                    .detection_requested
+                    .get(&option)
+                    .copied()
+                    .unwrap_or(running);
+                let mut enabled = wanted;
+                ui.horizontal(|ui: &mut egui::Ui| {
+                    ui.label(
+                        egui::RichText::new(option.label_fr())
+                            .font(theme::font_body())
+                            .color(theme::text_primary()),
+                    );
+                    ui.add_space(theme::SPACE_SM);
+                    if widgets::toggle_switch_labeled(ui, &mut enabled, option.label_fr())
+                        .changed()
+                        // Turning detection off lowers protection: administrator
+                        // mode first, as for the decoys.
+                        && (enabled
+                            || !option.lowers_protection_when_off()
+                            || state.require_admin("Désactiver une détection"))
+                    {
+                        state.settings.detection_requested.insert(option, enabled);
+                        *command = Some(GuiCommand::SetDetectionOption { option, enabled });
+                    }
+                });
+                ui.label(
+                    egui::RichText::new(option.description_fr())
+                        .font(theme::font_min())
+                        .color(theme::text_secondary()),
+                );
+                if enabled != running {
+                    ui.label(
+                        egui::RichText::new(format!(
+                            "{}  {} au prochain démarrage de l'agent.",
+                            icons::INFO_CIRCLE,
+                            if enabled { "Activée" } else { "Désactivée" }
+                        ))
+                        .font(theme::font_caption())
+                        .color(theme::readable_color(theme::WARNING)),
+                    );
+                } else if option == DetectionOption::LogAnalysis
+                    && running
+                    && let Some(rules) = &state.summary.detection.log_rules
+                {
+                    ui.label(
+                        egui::RichText::new(format!("{}  {rules}", icons::INFO_CIRCLE))
+                            .font(theme::font_caption())
+                            .color(theme::text_secondary()),
+                    );
+                }
+                ui.add_space(theme::SPACE_SM);
+            }
         });
     }
 

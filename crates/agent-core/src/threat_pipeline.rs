@@ -433,9 +433,11 @@ pub async fn run_threat_pipeline(
                 )
                 .await
             } else {
+                // An address blocked again within a day is blocked longer.
+                let actions = crate::playbook_engine::escalate_repeated_blocks(&evaluation.actions);
                 crate::playbook_engine::execute_playbook_actions_with_delivery(
                     &evaluation.playbook_name,
-                    &evaluation.actions,
+                    &actions,
                     audit_trail,
                     gui_tx.as_ref(),
                     siem,
@@ -669,6 +671,7 @@ pub fn build_threat_context(
                 (None, None)
             };
             NetworkAlertInfo {
+                alert_type: network_alert_type(alert.alert_type).to_string(),
                 remote_ip,
                 port,
                 severity: severity_str.to_string(),
@@ -689,6 +692,7 @@ pub fn build_threat_context(
         let address = evidence.get("event")?.get("src_ip")?.as_str()?;
         address.parse::<std::net::IpAddr>().ok()?;
         Some(NetworkAlertInfo {
+            alert_type: log_detection_type(evidence).to_string(),
             remote_ip: Some(address.to_string()),
             port: None,
             severity: incident.severity.to_string(),
@@ -714,6 +718,40 @@ pub fn build_threat_context(
         suspicious_processes,
         network_alerts: net_alerts,
         fim_alerts: fim,
+    }
+}
+
+/// The name a playbook condition gives a type of network alert.
+fn network_alert_type(kind: agent_network::types::NetworkAlertType) -> &'static str {
+    use agent_network::types::NetworkAlertType as Kind;
+    match kind {
+        Kind::C2Communication => "c2_communication",
+        Kind::CryptoMining => "crypto_mining",
+        Kind::DataExfiltration => "data_exfiltration",
+        Kind::SuspiciousPort => "suspicious_port",
+        Kind::MaliciousDestination => "malicious_destination",
+        Kind::DnsTunneling => "dns_tunneling",
+        Kind::AnonymizationNetwork => "anonymization_network",
+        Kind::ConnectionAnomaly => "connection_anomaly",
+    }
+}
+
+/// The name a playbook condition gives a detection on the logs, from its
+/// ATT&CK techniques: a brute force (T1110 and its sub-techniques, password
+/// spraying included) is `brute_force`, anything else `log_detection`.
+fn log_detection_type(evidence: &serde_json::Value) -> &'static str {
+    let brute_force = evidence["attack_techniques"]
+        .as_array()
+        .is_some_and(|techniques| {
+            techniques
+                .iter()
+                .filter_map(|technique| technique.as_str())
+                .any(|technique| technique.to_ascii_uppercase().starts_with("T1110"))
+        });
+    if brute_force {
+        "brute_force"
+    } else {
+        "log_detection"
     }
 }
 
@@ -790,6 +828,90 @@ mod tests {
             ]
         );
         assert_eq!(context.network_alerts[0].severity, "high");
+    }
+
+    /// The shipped "Brute-force" playbook asks for the alert type
+    /// `brute_force`; a brute force found in the logs is titled in French.
+    /// It used to be matched on its title, and so never matched.
+    #[tokio::test]
+    async fn a_brute_force_found_in_the_logs_sets_off_the_brute_force_playbook() {
+        let brute_force = SecurityIncident::new(
+            IncidentType::CredentialTheft,
+            IncidentSeverity::High,
+            "Sigma: Attaque par force brute SSH",
+            "8 échecs",
+        )
+        .with_evidence(serde_json::json!({
+            "detection": "sigma_log",
+            "attack_techniques": ["T1110.001"],
+            "event": { "src_ip": "203.0.113.9", "action": "login_failed" },
+        }));
+        let context = build_threat_context(&[brute_force], &[], &[]);
+        assert_eq!(context.network_alerts[0].alert_type, "brute_force");
+
+        let playbook = agent_gui::dto::Playbook {
+            id: "pb".to_string(),
+            name: "Brute-force".to_string(),
+            description: String::new(),
+            enabled: true,
+            conditions: vec![agent_gui::dto::PlaybookCondition {
+                condition_type: agent_gui::dto::PlaybookConditionType::NetworkAlertType,
+                operator: "égal".to_string(),
+                value: "brute_force".to_string(),
+            }],
+            actions: vec![
+                agent_gui::dto::PlaybookAction {
+                    action_type: agent_gui::dto::PlaybookActionType::BlockIp,
+                    parameters: "600".to_string(),
+                },
+                agent_gui::dto::PlaybookAction {
+                    action_type: agent_gui::dto::PlaybookActionType::CreateNotification,
+                    parameters: String::new(),
+                },
+            ],
+            created_at: chrono::Utc::now(),
+            last_triggered: None,
+            trigger_count: 0,
+            is_template: true,
+        };
+        let evaluation = crate::playbook_engine::evaluate_playbook(
+            &playbook,
+            &context,
+            #[cfg(feature = "llm")]
+            None,
+        )
+        .await;
+
+        assert!(evaluation.triggered);
+        match evaluation.actions.as_slice() {
+            [
+                crate::playbook_engine::ResolvedAction::BlockIp { ip, duration_secs },
+                crate::playbook_engine::ResolvedAction::Notify { message },
+            ] => {
+                assert_eq!((ip.as_str(), *duration_secs), ("203.0.113.9", 600));
+                assert_eq!(message, "Déclenché : Network alert matches 'brute_force'");
+            }
+            other => panic!("expected a block then a notification, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn a_log_detection_is_a_brute_force_only_by_its_attack_techniques() {
+        let of = |techniques: serde_json::Value| {
+            log_detection_type(&serde_json::json!({ "attack_techniques": techniques }))
+        };
+        assert_eq!(of(serde_json::json!(["T1110"])), "brute_force");
+        assert_eq!(
+            of(serde_json::json!(["T1078.003", "T1110.003"])),
+            "brute_force"
+        );
+        assert_eq!(of(serde_json::json!(["t1110.001"])), "brute_force");
+        assert_eq!(of(serde_json::json!(["T1078.003"])), "log_detection");
+        assert_eq!(of(serde_json::Value::Null), "log_detection");
+        assert_eq!(
+            network_alert_type(agent_network::types::NetworkAlertType::DataExfiltration),
+            "data_exfiltration"
+        );
     }
 
     #[test]
@@ -880,6 +1002,7 @@ mod tests {
                 command_line: "powershell -enc example".into(),
             }],
             network_alerts: vec![NetworkAlertInfo {
+                alert_type: "suspicious_port".into(),
                 remote_ip: None,
                 port: Some(443),
                 severity: "high".into(),

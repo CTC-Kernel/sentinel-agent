@@ -635,6 +635,27 @@ mod tests {
         assert!(rx.try_recv().is_err());
     }
 
+    /// Locking an account wrote four alerts for lock files that live a
+    /// fraction of a second; the databases themselves stay watched.
+    #[test]
+    fn the_lock_files_of_the_account_tools_are_not_reported() {
+        let patterns = agent_common::types::FimPolicy::default().ignore_patterns;
+        for lock in [
+            "/etc/passwd.lock",
+            "/etc/shadow.lock",
+            "/etc/group.lock",
+            "/etc/gshadow.lock",
+        ] {
+            assert!(is_ignored_path(&PathBuf::from(lock), &patterns), "{lock}");
+        }
+        for database in ["/etc/passwd", "/etc/shadow", "/etc/group", "/etc/sudoers"] {
+            assert!(
+                !is_ignored_path(&PathBuf::from(database), &patterns),
+                "{database}"
+            );
+        }
+    }
+
     #[test]
     fn test_is_ignored_path() {
         let patterns = vec!["*.log".to_string(), "*.tmp".to_string()];

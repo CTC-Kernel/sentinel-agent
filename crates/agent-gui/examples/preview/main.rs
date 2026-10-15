@@ -575,6 +575,7 @@ fn page_from(name: &str) -> Page {
         "audit" => Page::AuditTrail,
         "fim" => Page::FileIntegrity,
         "software" => Page::Software,
+        "system_inventory" => Page::SystemInventory,
         "sync" => Page::Sync,
         _ => Page::Dashboard,
     }
@@ -610,6 +611,7 @@ fn location(page: &str) -> (&'static str, &'static str, &'static str) {
             "Détection & réponse",
         ),
         "software" => (icons::SOFTWARE, "Logiciels & MDM", "Actifs & inventaire"),
+        "system_inventory" => (icons::USERS, "Comptes & services", "Actifs & inventaire"),
         "sync" => (icons::SYNC, "Synchronisation", "Système"),
         _ => (icons::DASHBOARD, "Tableau de bord", "Vue d'ensemble"),
     }
@@ -672,6 +674,9 @@ fn real_page(ui: &mut egui::Ui, page: &str, state: &mut AppState) {
         }
         "software" => {
             pages::SoftwarePage::show(ui, state);
+        }
+        "system_inventory" => {
+            pages::SystemInventoryPage::show(ui, state);
         }
         "sync" => {
             pages::SyncPage::show(ui, state);

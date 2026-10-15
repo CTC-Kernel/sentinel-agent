@@ -145,7 +145,7 @@ fn templates() -> Vec<PlaybookTemplate> {
         PlaybookTemplate {
             icon: icons::LOCK,
             name: "Brute-force",
-            description: "D\u{00e9}tecte les attaques par force brute et bloque l'adresse source.",
+            description: "Bloque une heure l'adresse d'une attaque par force brute vue dans les journaux (SSH, ouverture de session Windows, mots de passe essay\u{00e9}s sur plusieurs comptes).",
             conditions: vec![PlaybookCondition {
                 condition_type: PlaybookConditionType::NetworkAlertType,
                 operator: "\u{00e9}gal".to_string(),
@@ -154,7 +154,7 @@ fn templates() -> Vec<PlaybookTemplate> {
             actions: vec![
                 PlaybookAction {
                     action_type: PlaybookActionType::BlockIp,
-                    parameters: String::new(),
+                    parameters: "3600".to_string(),
                 },
                 PlaybookAction {
                     action_type: PlaybookActionType::CreateNotification,
@@ -162,7 +162,106 @@ fn templates() -> Vec<PlaybookTemplate> {
                 },
             ],
         },
+        PlaybookTemplate {
+            icon: icons::USER,
+            name: "Compte pris par force brute",
+            description: "Quand une session s'ouvre depuis une adresse qui vient d'essayer des mots de passe : bloque l'adresse et verrouille le compte pris pendant une heure.",
+            conditions: vec![PlaybookCondition {
+                condition_type: PlaybookConditionType::NetworkAlertType,
+                operator: "\u{00e9}gal".to_string(),
+                value: "brute_force".to_string(),
+            }],
+            actions: vec![
+                PlaybookAction {
+                    action_type: PlaybookActionType::BlockIp,
+                    parameters: "3600".to_string(),
+                },
+                PlaybookAction {
+                    action_type: PlaybookActionType::DisableAccount,
+                    parameters: "3600".to_string(),
+                },
+                PlaybookAction {
+                    action_type: PlaybookActionType::CreateNotification,
+                    parameters: String::new(),
+                },
+            ],
+        },
+        PlaybookTemplate {
+            icon: icons::FINGERPRINT,
+            name: "Fichier malveillant connu",
+            description: "Met en quarantaine un fichier cr\u{00e9}\u{00e9} ou modifi\u{00e9} dont l'empreinte SHA-256 figure dans un flux d'indicateurs. Demande un flux qui publie des empreintes.",
+            conditions: vec![PlaybookCondition {
+                condition_type: PlaybookConditionType::FimChange,
+                operator: "\u{00e9}gal".to_string(),
+                value: "malicious_hash".to_string(),
+            }],
+            actions: vec![
+                PlaybookAction {
+                    action_type: PlaybookActionType::QuarantineFile,
+                    parameters: String::new(),
+                },
+                PlaybookAction {
+                    action_type: PlaybookActionType::CreateNotification,
+                    parameters: "Fichier malveillant connu mis en quarantaine.".to_string(),
+                },
+            ],
+        },
     ]
+}
+
+/// What the value of a condition is, as the input's placeholder says it.
+fn condition_placeholder(condition_type: PlaybookConditionType) -> &'static str {
+    match condition_type {
+        PlaybookConditionType::ProcessNameMatch => "Nom ou partie du nom (xmrig)\u{2026}",
+        PlaybookConditionType::NetworkAlertType => {
+            "brute_force, data_exfiltration, c2_communication\u{2026}"
+        }
+        PlaybookConditionType::FimChange => {
+            "Chemin, ou ransomware_canary, yara_match, malicious_hash\u{2026}"
+        }
+        PlaybookConditionType::SeverityThreshold => "low, medium, high ou critical",
+        PlaybookConditionType::CvssScore => "Score minimal (7.0)\u{2026}",
+    }
+}
+
+/// The parameter of an action: placeholder of its input, and what it means
+/// when the playbook triggers on its own and when it is run by hand (the
+/// target then has to be given). `None`: the action reads no parameter.
+fn action_parameter(action_type: PlaybookActionType) -> Option<(&'static str, &'static str)> {
+    match action_type {
+        PlaybookActionType::KillProcess => Some((
+            "nom:pid (ex\u{00e9}cution manuelle)",
+            "Automatique : le processus d\u{00e9}tect\u{00e9}. \u{00c0} la main : nom:pid.",
+        )),
+        PlaybookActionType::QuarantineFile => Some((
+            "Chemin (ex\u{00e9}cution manuelle)",
+            "Automatique : le fichier d\u{00e9}tect\u{00e9}. \u{00c0} la main : son chemin absolu.",
+        )),
+        PlaybookActionType::BlockIp => Some((
+            "Dur\u{00e9}e en secondes (3600)",
+            "Automatique : dur\u{00e9}e du blocage, doubl\u{00e9}e \u{00e0} chaque r\u{00e9}cidive dans la journ\u{00e9}e, 0 sans fin. \u{00c0} la main : adresse:dur\u{00e9}e.",
+        )),
+        PlaybookActionType::IsolateHost => Some((
+            "Dur\u{00e9}e en secondes (3600)",
+            "0 : jusqu'\u{00e0} la lev\u{00e9}e de l'isolement par un administrateur.",
+        )),
+        PlaybookActionType::DisableAccount => Some((
+            "Dur\u{00e9}e en secondes (3600)",
+            "Automatique : le compte pris, 0 jusqu'au d\u{00e9}verrouillage. \u{00c0} la main : compte:dur\u{00e9}e.",
+        )),
+        PlaybookActionType::RunCommand => Some((
+            "Nom de la commande",
+            "Une commande d\u{00e9}clar\u{00e9}e dans response_commands de la configuration du poste.",
+        )),
+        PlaybookActionType::CreateNotification => Some((
+            "Texte (facultatif)",
+            "Sans texte, la notification dit ce qui a d\u{00e9}clench\u{00e9} le playbook.",
+        )),
+        PlaybookActionType::SendSiemAlert => Some((
+            "Description (ex\u{00e9}cution manuelle)",
+            "Automatique : les conditions remplies. \u{00c0} la main : la description de l'alerte.",
+        )),
+    }
 }
 
 /// Inline editing state for the new-playbook form.
@@ -790,7 +889,11 @@ fn show_playbook_form(ui: &mut Ui, state: &mut AppState, command: &mut Option<Gu
                             cond.condition_type = *ct;
                         }
                         ui.add_space(theme::SPACE_XS);
-                        widgets::text_input(ui, &mut cond.value, "Valeur…");
+                        widgets::text_input(
+                            ui,
+                            &mut cond.value,
+                            condition_placeholder(cond.condition_type),
+                        );
                         ui.add_space(theme::SPACE_XS);
                         if widgets::icon_button(ui, icons::TRASH, Some("Retirer cette condition"))
                             .clicked()
@@ -844,12 +947,23 @@ fn show_playbook_form(ui: &mut Ui, state: &mut AppState, command: &mut Option<Gu
                             action.action_type = *at;
                         }
                         ui.add_space(theme::SPACE_XS);
+                        if let Some((placeholder, _)) = action_parameter(action.action_type) {
+                            widgets::text_input(ui, &mut action.parameters, placeholder);
+                            ui.add_space(theme::SPACE_XS);
+                        }
                         if widgets::icon_button(ui, icons::TRASH, Some("Retirer cette action"))
                             .clicked()
                         {
                             remove_action_idx = Some(i);
                         }
                     });
+                    if let Some((_, meaning)) = action_parameter(action.action_type) {
+                        ui.label(
+                            egui::RichText::new(meaning)
+                                .font(theme::font_min())
+                                .color(theme::text_tertiary()),
+                        );
+                    }
                 });
             }
             if let Some(idx) = remove_action_idx
@@ -965,6 +1079,50 @@ mod tests {
     #[test]
     fn unknown_errors_are_shown_as_received() {
         assert_eq!(friendly_error("pfctl: syntax error"), "pfctl: syntax error");
+    }
+
+    /// A template the agent cannot act on is a promise it breaks: every
+    /// value its conditions name is one the agent produces.
+    #[test]
+    fn templates_name_alert_and_change_types_the_agent_produces() {
+        const ALERT_TYPES: &[&str] = &[
+            "brute_force",
+            "log_detection",
+            "c2_communication",
+            "crypto_mining",
+            "data_exfiltration",
+            "suspicious_port",
+            "malicious_destination",
+            "dns_tunneling",
+            "anonymization_network",
+            "connection_anomaly",
+        ];
+        const CHANGE_TYPES: &[&str] = &["ransomware_canary", "yara_match", "malicious_hash"];
+        for template in templates() {
+            for condition in &template.conditions {
+                let known = match condition.condition_type {
+                    PlaybookConditionType::NetworkAlertType => ALERT_TYPES
+                        .iter()
+                        .any(|kind| kind.contains(condition.value.as_str())),
+                    PlaybookConditionType::FimChange => {
+                        CHANGE_TYPES.contains(&condition.value.as_str())
+                    }
+                    _ => true,
+                };
+                assert!(known, "{}: {}", template.name, condition.value);
+            }
+            assert!(!template.actions.is_empty(), "{}", template.name);
+        }
+    }
+
+    #[test]
+    fn every_action_that_reads_a_parameter_says_what_it_means() {
+        for action_type in PlaybookActionType::all() {
+            if let Some((placeholder, meaning)) = action_parameter(*action_type) {
+                assert!(!placeholder.is_empty() && !meaning.is_empty());
+            }
+        }
+        assert!(action_parameter(PlaybookActionType::RunCommand).is_some());
     }
 
     #[test]

@@ -95,6 +95,17 @@ pub fn seed(state: &mut AppState) {
         standalone: false,
         ransomware_canaries: false,
         host_isolated: false,
+        detection: agent_gui::dto::GuiDetectionOptions {
+            log_analysis: true,
+            rootkit_detection: true,
+            system_inventory: true,
+            hardening_benchmark: false,
+            fim_report_changes: true,
+            fim_whodata: false,
+            log_rules: Some(
+                "18 règle(s) sur les journaux, 8 corrélation(s), 0 sur les processus".into(),
+            ),
+        },
     };
     state.policy = policy;
     state.previous_compliance_score = Some(83.1);
@@ -342,9 +353,130 @@ pub fn seed(state: &mut AppState) {
                 details: None,
                 executed_at: Some(ago(12 + i as i64 % 3)),
                 frameworks: fws.iter().map(|s| s.to_string()).collect(),
+                description: None,
+                rationale: None,
+                remediation: None,
             },
         )
         .collect();
+    // A policy check says what it verifies, why, and how to correct it.
+    if let Some(firewall) = state.checks.iter_mut().find(|c| c.check_id == "CIS-3.1") {
+        firewall.description = Some(
+            "Le pare-feu filtre les connexions entrantes sur les profils domaine, privé et public."
+                .into(),
+        );
+        firewall.rationale = Some(
+            "Un profil sans pare-feu expose les services du poste à tout le réseau qu'il rejoint."
+                .into(),
+        );
+        firewall.remediation = Some(
+            "Activer le pare-feu sur chaque profil : Set-NetFirewallProfile -Profile Domain,Private,Public -Enabled True"
+                .into(),
+        );
+    }
+
+    // ── Inventory of the endpoint ────────────────────────────────────
+    {
+        use agent_gui::dto::{
+            GuiInventoryAccount, GuiInventoryChange, GuiInventoryGroup, GuiInventoryPort,
+            GuiInventoryService, GuiSystemInventory,
+        };
+        let account = |name: &str, id: &str, home: &str, shell: &str, log_in: bool, admin: bool| {
+            GuiInventoryAccount {
+                name: name.into(),
+                id: id.into(),
+                home: Some(home.into()),
+                shell: Some(shell.into()),
+                can_log_in: log_in,
+                privileged: admin,
+            }
+        };
+        let service = |name: &str, state: &str, command: &str| GuiInventoryService {
+            name: name.into(),
+            state: state.into(),
+            command: Some(command.into()),
+        };
+        let port = |protocol: &str, address: &str, port: u16, process: &str, local: bool| {
+            GuiInventoryPort {
+                protocol: protocol.into(),
+                address: address.into(),
+                port,
+                process: Some(process.into()),
+                local_only: local,
+            }
+        };
+        state.system_inventory.inventory = Some(GuiSystemInventory {
+            collected_at: Some(ago(4)),
+            accounts: vec![
+                account("root", "0", "/root", "/bin/bash", true, true),
+                account("alice", "1000", "/home/alice", "/bin/zsh", true, true),
+                account("backup", "1001", "/var/backups", "/bin/bash", true, false),
+                account(
+                    "www-data",
+                    "33",
+                    "/var/www",
+                    "/usr/sbin/nologin",
+                    false,
+                    false,
+                ),
+                account(
+                    "sshd",
+                    "110",
+                    "/run/sshd",
+                    "/usr/sbin/nologin",
+                    false,
+                    false,
+                ),
+            ],
+            groups: vec![
+                GuiInventoryGroup {
+                    name: "sudo".into(),
+                    id: Some("27".into()),
+                    members: vec!["alice".into(), "backup".into()],
+                    privileged: true,
+                },
+                GuiInventoryGroup {
+                    name: "docker".into(),
+                    id: Some("998".into()),
+                    members: vec!["alice".into()],
+                    privileged: false,
+                },
+            ],
+            services: vec![
+                service("ssh.service", "enabled", "/usr/sbin/sshd -D"),
+                service("nginx.service", "enabled", "/usr/sbin/nginx -g daemon off;"),
+                service("cups.service", "disabled", "/usr/sbin/cupsd -l"),
+                service(
+                    "sentinel-agent.service",
+                    "enabled",
+                    "/usr/bin/sentinel-agent run",
+                ),
+            ],
+            ports: vec![
+                port("tcp", "0.0.0.0", 22, "sshd", false),
+                port("tcp", "0.0.0.0", 443, "nginx", false),
+                port("tcp", "127.0.0.1", 5432, "postgres", true),
+                port("udp", "127.0.0.53", 53, "systemd-resolved", true),
+            ],
+            changes: vec![
+                GuiInventoryChange {
+                    at: ago(4),
+                    label: "backup ajouté au groupe sudo".into(),
+                    severity: Some(Severity::High),
+                },
+                GuiInventoryChange {
+                    at: ago(14),
+                    label: "Compte créé : backup (identifiant 1001)".into(),
+                    severity: Some(Severity::Medium),
+                },
+                GuiInventoryChange {
+                    at: ago(34),
+                    label: "Service modifié : cups.service (enabled → disabled)".into(),
+                    severity: None,
+                },
+            ],
+        });
+    }
 
     // ── Vulnerabilities ───────────────────────────────────────────────
     state.vulnerability_summary = Some(GuiVulnerabilitySummary {
@@ -2169,6 +2301,7 @@ pub fn select_tab(state: &mut AppState, page: &str, tab: usize) {
             state.software.active_tab = SoftwareTab::from_index(u8::try_from(tab).unwrap_or(0));
         }
         "notifications" => state.notifications_active_tab = tab,
+        "system_inventory" => state.system_inventory.active_tab = tab,
         "monitoring" => state.monitoring.active_tab = tab,
         "reports" => state.reports.active_tab = tab,
         "network" => state.network.active_section = tab,
@@ -2235,6 +2368,13 @@ pub fn open_drawer(state: &mut AppState, which: &str) {
         "risk" => {
             state.risks.selected_risk = Some(0);
             state.risks.detail_open = true;
+        }
+        "check" => {
+            state.compliance.selected_check = state
+                .checks
+                .iter()
+                .position(|c| c.status == GuiCheckStatus::Fail);
+            state.compliance.detail_open = true;
         }
         "fim" => {
             state.fim.selected_alert = Some(0);
