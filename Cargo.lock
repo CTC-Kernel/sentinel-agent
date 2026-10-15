@@ -138,7 +138,7 @@ checksum = "320119579fcad9c21884f5c4861d16174d0e06250625266f50fe6898340abefa"
 
 [[package]]
 name = "agent-common"
-version = "4.0.51"
+version = "4.0.52"
 dependencies = [
  "base64 0.22.1",
  "blake3",
@@ -165,7 +165,7 @@ dependencies = [
 
 [[package]]
 name = "agent-core"
-version = "4.0.51"
+version = "4.0.52"
 dependencies = [
  "agent-common",
  "agent-fim",
@@ -237,7 +237,7 @@ dependencies = [
 
 [[package]]
 name = "agent-fim"
-version = "4.0.51"
+version = "4.0.52"
 dependencies = [
  "agent-common",
  "blake3",
@@ -257,7 +257,7 @@ dependencies = [
 
 [[package]]
 name = "agent-gui"
-version = "4.0.51"
+version = "4.0.52"
 dependencies = [
  "agent-common",
  "agent-storage",
@@ -292,7 +292,7 @@ dependencies = [
 
 [[package]]
 name = "agent-network"
-version = "4.0.51"
+version = "4.0.52"
 dependencies = [
  "agent-common",
  "anyhow",
@@ -312,7 +312,7 @@ dependencies = [
 
 [[package]]
 name = "agent-persistence"
-version = "4.0.51"
+version = "4.0.52"
 dependencies = [
  "agent-common",
  "agent-storage",
@@ -335,7 +335,7 @@ dependencies = [
 
 [[package]]
 name = "agent-scanner"
-version = "4.0.51"
+version = "4.0.52"
 dependencies = [
  "agent-common",
  "agent_llm",
@@ -370,7 +370,7 @@ dependencies = [
 
 [[package]]
 name = "agent-siem"
-version = "4.0.51"
+version = "4.0.52"
 dependencies = [
  "agent-common",
  "async-trait",
@@ -394,7 +394,7 @@ dependencies = [
 
 [[package]]
 name = "agent-storage"
-version = "4.0.51"
+version = "4.0.52"
 dependencies = [
  "agent-common",
  "chrono",
@@ -417,7 +417,7 @@ dependencies = [
 
 [[package]]
 name = "agent-sync"
-version = "4.0.51"
+version = "4.0.52"
 dependencies = [
  "agent-common",
  "agent-storage",
@@ -446,7 +446,7 @@ dependencies = [
 
 [[package]]
 name = "agent_llm"
-version = "4.0.51"
+version = "4.0.52"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -11543,7 +11543,7 @@ checksum = "3ae8337f8a065cfc972643663ea4279e04e7256de865aa66fe25cec5fb912d3f"
 
 [[package]]
 name = "xtask"
-version = "4.0.51"
+version = "4.0.52"
 dependencies = [
  "agent-common",
  "anyhow",
