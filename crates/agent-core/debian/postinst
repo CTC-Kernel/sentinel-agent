@@ -109,8 +109,15 @@ case "$1" in
         action=
         ;;
 esac
+# The helper is PartOf= the agent, which Wants= it: restarting the agent
+# restarts the helper, or starts it if it was stopped. Restarting the helper
+# here as well would start it twice per upgrade: three upgrades within 10 s
+# would reach systemd's start limit (5 starts in 10 s) and leave the helper
+# failed while the agent runs without it.
 if [ -n "$action" ] && [ -d /run/systemd/system ]; then
-    systemctl "$action" sentinel-agent-helper.service || true
+    if [ "$action" = start ]; then
+        systemctl start sentinel-agent-helper.service || true
+    fi
     systemctl "$action" sentinel-agent.service || true
 fi
 
