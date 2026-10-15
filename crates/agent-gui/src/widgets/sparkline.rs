@@ -116,8 +116,8 @@ pub fn sparkline(
         )
     };
     let points: Vec<Pos2> = valid_data.iter().map(to_pos).collect();
-    // Marks use the theme's readable variant: the raw brand violet sits at
-    // about 2.5:1 on dark cards, under the 3:1 a meaningful graphic needs.
+    // Marks use the theme's readable variant: the raw brand sapphire sits at
+    // about 2.7:1 on dark cards, under the 3:1 a meaningful graphic needs.
     let color = theme::chart_color(config.color);
     let baseline = plot.bottom() - ((0.0 - y_min) / y_span) as f32 * plot.height();
 

@@ -19,7 +19,7 @@ Les cartes métriques sont communes à Conformité, Vulnérabilités, Menaces, R
 
 ## Règles de composition
 
-- Utiliser les couleurs et polices sémantiques du thème. Le violet exprime l’identité et l’interaction, les couleurs d’état expriment les données.
+- Utiliser les couleurs et polices sémantiques du thème. Le bleu saphir exprime l’identité et l’interaction, les couleurs d’état expriment les données.
 - Garder les graphiques spécifiques au métier : radar pour les menaces, matrice pour les risques, topologie pour le réseau, courbes pour les ressources.
 - Réserver les grandes représentations à la synthèse. Les listes et formulaires restent denses et lisibles.
 - Une carte métrique ouvre toujours les données qu’elle résume. Le texte et la valeur sont exposés aux technologies d’assistance.

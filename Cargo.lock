@@ -138,7 +138,7 @@ checksum = "320119579fcad9c21884f5c4861d16174d0e06250625266f50fe6898340abefa"
 
 [[package]]
 name = "agent-common"
-version = "4.0.51"
+version = "4.0.52"
 dependencies = [
  "base64 0.22.1",
  "blake3",
@@ -165,7 +165,7 @@ dependencies = [
 
 [[package]]
 name = "agent-core"
-version = "4.0.51"
+version = "4.0.52"
 dependencies = [
  "agent-common",
  "agent-fim",
@@ -237,7 +237,7 @@ dependencies = [
 
 [[package]]
 name = "agent-fim"
-version = "4.0.51"
+version = "4.0.52"
 dependencies = [
  "agent-common",
  "blake3",
@@ -257,7 +257,7 @@ dependencies = [
 
 [[package]]
 name = "agent-gui"
-version = "4.0.51"
+version = "4.0.52"
 dependencies = [
  "agent-common",
  "agent-storage",
@@ -292,7 +292,7 @@ dependencies = [
 
 [[package]]
 name = "agent-network"
-version = "4.0.51"
+version = "4.0.52"
 dependencies = [
  "agent-common",
  "anyhow",
@@ -312,7 +312,7 @@ dependencies = [
 
 [[package]]
 name = "agent-persistence"
-version = "4.0.51"
+version = "4.0.52"
 dependencies = [
  "agent-common",
  "agent-storage",
@@ -335,7 +335,7 @@ dependencies = [
 
 [[package]]
 name = "agent-scanner"
-version = "4.0.51"
+version = "4.0.52"
 dependencies = [
  "agent-common",
  "agent_llm",
@@ -370,7 +370,7 @@ dependencies = [
 
 [[package]]
 name = "agent-siem"
-version = "4.0.51"
+version = "4.0.52"
 dependencies = [
  "agent-common",
  "async-trait",
@@ -394,7 +394,7 @@ dependencies = [
 
 [[package]]
 name = "agent-storage"
-version = "4.0.51"
+version = "4.0.52"
 dependencies = [
  "agent-common",
  "chrono",
@@ -417,7 +417,7 @@ dependencies = [
 
 [[package]]
 name = "agent-sync"
-version = "4.0.51"
+version = "4.0.52"
 dependencies = [
  "agent-common",
  "agent-storage",
@@ -446,7 +446,7 @@ dependencies = [
 
 [[package]]
 name = "agent_llm"
-version = "4.0.51"
+version = "4.0.52"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -1631,9 +1631,9 @@ dependencies = [
 
 [[package]]
 name = "chacha20"
-version = "0.10.1"
+version = "0.10.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d524456ba66e72eb8b115ff89e01e497f8e6d11d78b70b1aa13c0fbd97540a81"
+checksum = "65c35e4b699c7e15ccbe7ee35c005e4fc0a278d22238a2857e6ce2dadeda1b06"
 dependencies = [
  "cfg-if",
  "cpufeatures 0.3.0",
@@ -3064,11 +3064,10 @@ checksum = "d817e038c30374a4bcb22f94d0a8a0e216958d4c3dcde369b1439fec4bdda6e6"
 
 [[package]]
 name = "event-listener"
-version = "5.4.1"
+version = "5.4.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e13b66accf52311f30a0db42147dadea9850cb48cd070028831ae5f5d4b856ab"
+checksum = "5a23add41df1562121a9393cb065eab5146a1242410f23a644851e90cfd669d2"
 dependencies = [
- "concurrent-queue",
  "parking",
  "pin-project-lite",
 ]
@@ -7866,9 +7865,9 @@ dependencies = [
 
 [[package]]
 name = "rustls"
-version = "0.23.45"
+version = "0.23.46"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0d41d731c7d2f962d1ccc364cec258de3c0e93b38c2fb3ba97ac74513048d634"
+checksum = "48e13bd8c0e9365c43cfa5c9e8f9ad49d3c8444926c9aac819e0e4dc503c8fdf"
 dependencies = [
  "aws-lc-rs",
  "log",
@@ -11524,7 +11523,7 @@ checksum = "3ae8337f8a065cfc972643663ea4279e04e7256de865aa66fe25cec5fb912d3f"
 
 [[package]]
 name = "xtask"
-version = "4.0.51"
+version = "4.0.52"
 dependencies = [
  "agent-common",
  "anyhow",

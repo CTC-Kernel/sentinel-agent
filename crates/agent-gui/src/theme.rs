@@ -196,40 +196,42 @@ pub fn detect_reduced_motion() -> bool {
 //   • text_tertiary and semantic text ≥ 4.5:1 (WCAG AA) on every surface
 //   • border()                        ≥ 3:1 (WCAG 1.4.11) on every surface
 
-/// Primary accent — Sentinel GRC violet (violet-700), the hue that carries
-/// every call to action on cyber-threat-consulting.com. Text and selections
-/// use its pale counterpart in dark mode; semantic states keep their own hue
-/// families. A muted iris (#5944B0) was tried here and read as dull: the
-/// palette below is the saturated one, on purpose.
-pub const ACCENT: Color32 = Color32::from_rgb(109, 40, 217); // #6D28D9
-/// Far end of the primary-action gradient (fuchsia-800), as on the site's
-/// download buttons: `ACCENT → ACCENT_GRADIENT_END`, left to right.
-pub const ACCENT_GRADIENT_END: Color32 = Color32::from_rgb(134, 25, 143); // #86198F
+/// Primary accent — Sentinel sapphire, a deep royal blue that carries every
+/// call to action. It replaced the site's violet-700 (#6D28D9), and before
+/// that a muted iris (#5944B0) that read as dull: the accent stays saturated,
+/// on purpose. Text and selections use its pale counterpart in dark mode;
+/// semantic states keep their own hue families. Deep enough for white labels
+/// at 7:1, and a step bluer than the azure `INFO` so the two never merge.
+pub const ACCENT: Color32 = Color32::from_rgb(29, 72, 212); // #1D48D4
+/// Far end of the primary-action gradient, a deep ocean blue:
+/// `ACCENT → ACCENT_GRADIENT_END`, left to right.
+pub const ACCENT_GRADIENT_END: Color32 = Color32::from_rgb(12, 77, 168); // #0C4DA8
 
 /// Decorative brand ramp from the CTC site. Semantic alert colors and
 /// readable control colors remain independent of these accents.
 pub const BRAND_CYAN: Color32 = Color32::from_rgb(34, 211, 238); // #22D3EE
 pub const BRAND_BLUE: Color32 = Color32::from_rgb(37, 99, 235); // #2563EB
-pub const BRAND_VIOLET: Color32 = Color32::from_rgb(139, 92, 246); // #8B5CF6
+/// Luminous sapphire for glows, blooms and hairlines around the accent.
+pub const BRAND_SAPPHIRE: Color32 = Color32::from_rgb(77, 124, 254); // #4D7CFE
 pub const BRAND_EMERALD: Color32 = Color32::from_rgb(52, 211, 153); // #34D399
 /// Mint used by the site's quiet primary call to action ("Commencer").
 pub const BRAND_MINT: Color32 = Color32::from_rgb(163, 237, 230); // #A3EDE6
-/// Signature tri-tone of the site's display type ("Chez vous."):
-/// violet-300 → cyan-300 → emerald-300. See `gradient_text`.
+/// Signature tri-tone of the display type: pale sapphire → cyan-300 →
+/// emerald-300. See `gradient_text`.
 pub const BRAND_GRADIENT: [Color32; 3] = [
-    Color32::from_rgb(196, 181, 253), // #C4B5FD
+    Color32::from_rgb(163, 191, 255), // #A3BFFF
     Color32::from_rgb(103, 232, 249), // #67E8F9
     Color32::from_rgb(110, 231, 183), // #6EE7B7
 ];
 
-/// Accent tuned for text and icons on dark surfaces (violet-300).
-pub const ACCENT_LIGHT: Color32 = Color32::from_rgb(196, 181, 253); // #C4B5FD
+/// Accent tuned for text and icons on dark surfaces (pale sapphire).
+pub const ACCENT_LIGHT: Color32 = Color32::from_rgb(163, 191, 255); // #A3BFFF
 /// Accent hover state (one step deeper than `ACCENT`).
-pub const ACCENT_HOVER: Color32 = Color32::from_rgb(91, 33, 182); // #5B21B6
+pub const ACCENT_HOVER: Color32 = Color32::from_rgb(26, 61, 184); // #1A3DB8
 /// Accent pressed state.
-pub const ACCENT_PRESSED: Color32 = Color32::from_rgb(76, 29, 149); // #4C1D95
+pub const ACCENT_PRESSED: Color32 = Color32::from_rgb(23, 51, 160); // #1733A0
 /// Accent tuned for text and icons on light surfaces.
-pub const ACCENT_DEEP: Color32 = Color32::from_rgb(109, 40, 217); // #6D28D9
+pub const ACCENT_DEEP: Color32 = Color32::from_rgb(29, 72, 212); // #1D48D4
 
 /// Success — emerald.
 pub const SUCCESS: Color32 = Color32::from_rgb(43, 201, 138); // #2BC98A
@@ -250,20 +252,20 @@ pub const INFO: Color32 = Color32::from_rgb(56, 166, 245); // #38A6F5
 pub const SEVERITY_HIGH: Color32 = Color32::from_rgb(255, 140, 58); // #FF8C3A
 /// Severity-medium — saturated amber, the `WARNING` family.
 pub const SEVERITY_MEDIUM: Color32 = Color32::from_rgb(255, 176, 32); // #FFB020
-/// Assistant / AI — lavender, the pale end of the brand violet. It reads as
-/// the same family as the action accent, as on the site's AI orb, but its
-/// lightness keeps it apart from the deep violet fills.
-pub const AI: Color32 = Color32::from_rgb(167, 139, 255); // #A78BFF
+/// Assistant / AI — turquoise. Its own hue, not a lighter blue: the
+/// assistant sits next to azure `INFO` (live voice input, permission changes)
+/// and must not read as the same signal, nor as the sapphire accent.
+pub const AI: Color32 = Color32::from_rgb(51, 214, 208); // #33D6D0
 
 // Light-mode counterparts (deepened for ≥4.5:1 on white and near-white).
-const ACCENT_ON_LIGHT: Color32 = Color32::from_rgb(109, 40, 217); // #6D28D9
+const ACCENT_ON_LIGHT: Color32 = Color32::from_rgb(29, 72, 212); // #1D48D4
 const SUCCESS_ON_LIGHT: Color32 = Color32::from_rgb(8, 108, 74); // #086C4A
 const WARNING_ON_LIGHT: Color32 = Color32::from_rgb(138, 87, 0); // #8A5700
 const ERROR_ON_LIGHT: Color32 = Color32::from_rgb(196, 38, 43); // #C4262B
 const INFO_ON_LIGHT: Color32 = Color32::from_rgb(11, 107, 181); // #0B6BB5
 const SEVERITY_HIGH_ON_LIGHT: Color32 = Color32::from_rgb(155, 63, 8); // #9B3F08
 const SEVERITY_MEDIUM_ON_LIGHT: Color32 = Color32::from_rgb(125, 81, 0); // #7D5100
-const AI_ON_LIGHT: Color32 = Color32::from_rgb(109, 75, 216); // #6D4BD8
+const AI_ON_LIGHT: Color32 = Color32::from_rgb(10, 110, 106); // #0A6E6A
 
 // ============================================================================
 // Surface colors (dynamic – depends on active theme)
@@ -526,14 +528,14 @@ pub fn paint_workspace_backdrop(painter: &egui::Painter, rect: egui::Rect) {
     if !painter.clip_rect().intersects(rect) {
         return;
     }
-    // The site's two blooms, violet upper right and cyan lower left, kept
-    // well under the content: at alpha 8 the canvas read as flat grey.
+    // Two blooms, sapphire upper right and cyan lower left, kept well under
+    // the content: at alpha 8 the canvas read as flat grey.
     let dark = is_dark_mode();
     paint_radial_glow(
         painter,
         egui::pos2(rect.right() - 120.0, rect.top() - 40.0),
         460.0,
-        with_alpha(BRAND_VIOLET, if dark { 20 } else { 9 }),
+        with_alpha(BRAND_SAPPHIRE, if dark { 20 } else { 9 }),
     );
     paint_radial_glow(
         painter,
@@ -595,7 +597,7 @@ pub fn paint_gradient_hairline(
 /// Brand hairline across the top edge of a featured surface.
 pub fn paint_brand_hairline(painter: &egui::Painter, rect: egui::Rect, radius: CornerRadius) {
     let color = if is_dark_mode() {
-        with_alpha(BRAND_VIOLET, 204)
+        with_alpha(BRAND_SAPPHIRE, 204)
     } else {
         with_alpha(ACCENT, 150)
     };
@@ -685,20 +687,20 @@ pub fn paint_gradient_rect(
     painter.add(egui::Shape::mesh(mesh));
 }
 
-/// Coloured glow under a primary action — the site's
-/// `shadow-lg shadow-violet-500/30` rather than a neutral drop shadow.
+/// Coloured glow under a primary action — a sapphire
+/// `shadow-lg shadow-blue-500/30` rather than a neutral drop shadow.
 pub fn accent_glow_shadow(intensity: f32) -> Shadow {
     let alpha = if is_dark_mode() { 80.0 } else { 56.0 } * intensity.clamp(0.0, 1.0);
     Shadow {
         offset: [0, 6],
         blur: 18,
         spread: 0,
-        color: with_alpha(BRAND_VIOLET, alpha as u8),
+        color: with_alpha(BRAND_SAPPHIRE, alpha as u8),
     }
 }
 
-/// Lay out `text` with each glyph tinted along `stops`, the way the site
-/// sets its display type in the violet → cyan → emerald brand gradient.
+/// Lay out `text` with each glyph tinted along `stops`, as the wordmark is
+/// set in the sapphire → cyan → emerald brand gradient.
 ///
 /// On light surfaces the pastel stops are swapped for readable variants so
 /// the wordmark keeps AA contrast.
@@ -1022,7 +1024,7 @@ pub fn table_row_bg(row_index: usize) -> Color32 {
 /// Hover colour of a table or list row, in both table kinds.
 ///
 /// A lift in lightness with a hint of the accent. The previous wash was
-/// `hover_bg()`, the deep accent at 10 %: on a dark card that is a purple no
+/// `hover_bg()`, the deep accent at 10 %: on a dark card that is a tint no
 /// brighter than the zebra stripe, so hovering a striped row changed its hue
 /// and not its lightness and read as a rendering fault. This one is always
 /// lighter than the stripe (dark) or tinted against the grey stripe (light).
@@ -2235,7 +2237,7 @@ pub const SPLASH_FADE_OUT_DURATION: f32 = 0.4;
 pub fn enrollment_gradient() -> (Color32, Color32) {
     if is_dark_mode() {
         (
-            Color32::from_rgb(22, 16, 44), // Violet-ink center, the site's hero glow
+            Color32::from_rgb(12, 22, 48), // Sapphire-ink center, the hero glow
             Color32::from_rgb(5, 7, 13),   // Site ink outer
         )
     } else {
@@ -2262,7 +2264,7 @@ pub const ENROLLMENT_GLOW_RADIUS: f32 = 60.0;
 pub fn sidebar_gradient() -> (Color32, Color32) {
     if is_dark_mode() {
         (
-            Color32::from_rgb(10, 12, 22), // Ink with a violet lift at the top
+            Color32::from_rgb(10, 12, 22), // Ink with a blue lift at the top
             Color32::from_rgb(5, 7, 13),   // Site chrome ink
         )
     } else {

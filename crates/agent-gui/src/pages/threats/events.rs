@@ -199,7 +199,7 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
             // Status and severity are what an analyst scans for: pills in
             // their semantic colour, the same ones the detail modal shows.
             // Warm hues belong to severity alone; "to triage" is the brand
-            // violet, so the two columns never read as the same signal.
+            // sapphire, so the two columns never read as the same signal.
             let (sev_label, sev_color) = match threat.severity {
                 "critical" => ("Critique", theme::ERROR),
                 "high" => ("\u{00c9}lev\u{00e9}", theme::SEVERITY_HIGH),
