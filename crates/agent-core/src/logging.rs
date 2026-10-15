@@ -354,7 +354,8 @@ mod tests {
     #[test]
     fn linux_log_directory_is_the_one_the_packages_set_up() {
         let unit = include_str!("../debian/sentinel-agent.service");
-        let postinst = include_str!("../debian/postinst");
+        // A Windows checkout has CRLF line ends.
+        let postinst = include_str!("../debian/postinst").replace("\r\n", "\n");
         let logrotate = include_str!("../../../linux/logrotate/sentinel-agent");
         let apparmor = include_str!("../../../linux/apparmor/sentinel-agent");
 
