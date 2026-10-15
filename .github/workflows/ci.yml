@@ -393,7 +393,26 @@ jobs:
       - name: Prepare binary
         run: chmod +x target/release/agent-core
 
+      # Pull requests opened by Dependabot (and from forks) do not receive the
+      # repository's Actions secrets. They still build the bundle and the DMG,
+      # signed ad hoc and not notarized; a push without the secrets still fails.
+      - name: Check signing secrets
+        id: signing
+        env:
+          APPLE_CERTIFICATE_P12: ${{ secrets.APPLE_CERTIFICATE_P12 }}
+        run: |
+          if [ -n "$APPLE_CERTIFICATE_P12" ]; then
+            echo "available=true" >> "$GITHUB_OUTPUT"
+          elif [ "${{ github.event_name }}" = "pull_request" ]; then
+            echo "::notice::No signing secrets on this pull request: the DMG is signed ad hoc and not notarized."
+            echo "available=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "::error::APPLE_CERTIFICATE_P12 is not set."
+            exit 1
+          fi
+
       - name: Import Code Signing Certificate
+        if: steps.signing.outputs.available == 'true'
         env:
           APPLE_CERTIFICATE_P12: ${{ secrets.APPLE_CERTIFICATE_P12 }}
           APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
@@ -445,6 +464,7 @@ jobs:
       - name: Create App Bundle and Sign
         env:
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          SIGNING_AVAILABLE: ${{ steps.signing.outputs.available }}
         run: |
           APP_NAME="Sentinel Agent"
           APP_BUNDLE="target/release/$APP_NAME.app"
@@ -471,8 +491,13 @@ jobs:
           echo "APPL????" > "$APP_BUNDLE/Contents/PkgInfo"
 
           echo "=== Code signing ==="
-          # Find Developer ID certificate
-          IDENTITY=$(security find-identity -v -p codesigning | grep "Developer ID Application" | head -1 | awk -F'"' '{print $2}')
+          if [ "$SIGNING_AVAILABLE" = "true" ]; then
+            # Find Developer ID certificate
+            IDENTITY=$(security find-identity -v -p codesigning | grep "Developer ID Application" | head -1 | awk -F'"' '{print $2}')
+          else
+            # Ad hoc signature: no Developer ID on this run
+            IDENTITY="-"
+          fi
 
           if [ -n "$IDENTITY" ]; then
             echo "Signing with: $IDENTITY"
@@ -520,6 +545,7 @@ jobs:
           echo "DMG created: $DMG_PATH"
 
       - name: Notarize DMG
+        if: steps.signing.outputs.available == 'true'
         timeout-minutes: 25
         env:
           APPLE_ID: ${{ secrets.APPLE_ID }}

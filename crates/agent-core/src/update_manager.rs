@@ -165,6 +165,29 @@ fn verify_manifest(
     Ok(manifest)
 }
 
+/// The Linux package and its checksum file, as release.yml publishes them:
+/// one per package format and per architecture.
+fn linux_package_details(debian: bool, aarch64: bool) -> (&'static str, &'static str) {
+    match (debian, aarch64) {
+        (true, false) => (
+            "sentinel-agent-latest-amd64.deb",
+            "sentinel-agent-latest-amd64.deb.sha256",
+        ),
+        (true, true) => (
+            "sentinel-agent-latest-arm64.deb",
+            "sentinel-agent-latest-arm64.deb.sha256",
+        ),
+        (false, false) => (
+            "sentinel-agent-latest.x86_64.rpm",
+            "sentinel-agent-latest.x86_64.rpm.sha256",
+        ),
+        (false, true) => (
+            "sentinel-agent-latest.aarch64.rpm",
+            "sentinel-agent-latest.aarch64.rpm.sha256",
+        ),
+    }
+}
+
 /// SHA-256 of a file, hex.
 fn sha256_file(path: &Path) -> Result<String> {
     use sha2::{Digest, Sha256};
@@ -456,17 +479,10 @@ impl UpdateManager {
                 "SentinelAgentSetup-latest.msi.sha256",
             ))
         } else if cfg!(target_os = "linux") {
-            if std::path::Path::new("/etc/debian_version").exists() {
-                Ok((
-                    "sentinel-agent-latest-amd64.deb",
-                    "sentinel-agent-latest-amd64.deb.sha256",
-                ))
-            } else {
-                Ok((
-                    "sentinel-agent-latest.x86_64.rpm",
-                    "sentinel-agent-latest.x86_64.rpm.sha256",
-                ))
-            }
+            Ok(linux_package_details(
+                std::path::Path::new("/etc/debian_version").exists(),
+                cfg!(target_arch = "aarch64"),
+            ))
         } else {
             Err(CommonError::not_supported(
                 "Self-update not supported on this platform",
@@ -741,6 +757,35 @@ mod tests {
         assert!(validate_installer_path_for_platform(r"C:\Temp\bad&command.msi", true).is_err());
         assert!(validate_installer_path_for_platform("", true).is_err());
         assert!(validate_installer_path_for_platform("/tmp/pkg\0.pkg", false).is_err());
+    }
+
+    // ── Linux package names ─────────────────────────────────────────────
+
+    #[test]
+    fn linux_packages_are_named_per_format_and_architecture() {
+        // The names create_latest gives the aliases in release.yml.
+        assert_eq!(
+            linux_package_details(true, false),
+            (
+                "sentinel-agent-latest-amd64.deb",
+                "sentinel-agent-latest-amd64.deb.sha256"
+            )
+        );
+        assert_eq!(
+            linux_package_details(true, true).0,
+            "sentinel-agent-latest-arm64.deb"
+        );
+        assert_eq!(
+            linux_package_details(false, false).0,
+            "sentinel-agent-latest.x86_64.rpm"
+        );
+        assert_eq!(
+            linux_package_details(false, true),
+            (
+                "sentinel-agent-latest.aarch64.rpm",
+                "sentinel-agent-latest.aarch64.rpm.sha256"
+            )
+        );
     }
 
     // ── installer path: shell metacharacter rejection ───────────────────

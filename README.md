@@ -151,7 +151,7 @@ graph TD
 ## 🚀 Mise en Œuvre Rapide
 
 ### Prérequis
-- **Systèmes** : Windows 10+ (x64), macOS 11+ (Apple Silicon et Intel), Linux x86_64 (paquets deb et rpm).
+- **Systèmes** : Windows 10+ (x64), macOS 11+ (Apple Silicon et Intel), Linux x64 et ARM64 (paquets deb et rpm) : Debian 11+, Ubuntu 20.04+, RHEL / AlmaLinux / Rocky 8+, Fedora.
 - **Compilation** : Rust édition 2024. Le compilateur est figé dans [`rust-toolchain.toml`](rust-toolchain.toml) et installé automatiquement par rustup.
 
 ### Installation
@@ -163,14 +163,14 @@ avec le fichier `SHA256SUMS-*.txt` publié à côté, puis installez-le. Chaque 
 publie aussi le SBOM CycloneDX de l'agent (`sentinel-agent-<version>.cdx.json`).
 
 ```bash
-# Vérification (exemple Debian / Ubuntu)
-sha256sum --ignore-missing -c SHA256SUMS-linux-deb.txt
+# Vérification (exemple Linux x64 ; SHA256SUMS-linux-arm64.txt sur ARM64)
+sha256sum --ignore-missing -c SHA256SUMS-linux-amd64.txt
 
-# Debian / Ubuntu
-sudo dpkg -i sentinel-agent_*_amd64.deb
+# Debian / Ubuntu (_amd64.deb ou _arm64.deb) : apt installe aussi les dépendances
+sudo apt install ./sentinel-agent_*_amd64.deb
 
-# RHEL / Fedora / AlmaLinux / Rocky
-sudo rpm -i sentinel-agent-*.x86_64.rpm
+# RHEL / AlmaLinux / Rocky / Fedora (.x86_64.rpm ou .aarch64.rpm)
+sudo dnf install ./sentinel-agent-*.x86_64.rpm
 
 # macOS (ou double-clic sur le .pkg)
 sudo installer -pkg SentinelAgent-<version>.pkg -target /
