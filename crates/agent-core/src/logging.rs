@@ -10,6 +10,23 @@
 
 use std::io::Write;
 
+use agent_common::constants::LOG_FILE_NAME;
+use tracing_appender::rolling::{RollingFileAppender, Rotation};
+
+/// Log directory of the Linux service: the one the deb/rpm packages create
+/// for the `sentinel-grc` user, and the one its systemd unit
+/// (`ReadWritePaths`), logrotate, AppArmor and the desktop app name.
+const LINUX_LOG_DIR: &str = "/var/log/sentinel-grc";
+
+/// System-wide log directory, used whenever this process may write to it.
+#[cfg(windows)]
+const SYSTEM_LOG_DIR: &str = r"C:\ProgramData\Sentinel\logs";
+#[cfg(target_os = "linux")]
+const SYSTEM_LOG_DIR: &str = LINUX_LOG_DIR;
+// macOS: created by the installer, written by the agent running as root.
+#[cfg(not(any(windows, target_os = "linux")))]
+const SYSTEM_LOG_DIR: &str = "/var/log/sentinel";
+
 static ACTIVE_LOG_DIR: std::sync::OnceLock<std::path::PathBuf> = std::sync::OnceLock::new();
 
 /// Directory selected by logging initialization, without creating another sink.
@@ -109,7 +126,7 @@ pub fn init_logging(log_level: &str) {
     // Initial log directory and file appender
     let log_dir = get_log_dir();
     let _ = ACTIVE_LOG_DIR.set(log_dir.clone());
-    let file_appender = tracing_appender::rolling::daily(&log_dir, "agent.log");
+    let file_appender = RollingFileAppender::new(rotation_for(&log_dir), &log_dir, LOG_FILE_NAME);
     let (non_blocking, _guard) = tracing_appender::non_blocking(file_appender);
     // Leak the guard to keep it alive for the duration of the program
     std::mem::forget(_guard);
@@ -154,7 +171,7 @@ pub fn init_logging_with_terminal(log_level: &str) -> crate::tracing_layer::GuiT
     // Initial log directory and file appender
     let log_dir = get_log_dir();
     let _ = ACTIVE_LOG_DIR.set(log_dir.clone());
-    let file_appender = tracing_appender::rolling::daily(&log_dir, "agent.log");
+    let file_appender = RollingFileAppender::new(rotation_for(&log_dir), &log_dir, LOG_FILE_NAME);
     let (non_blocking, _guard) = tracing_appender::non_blocking(file_appender);
     // Leak the guard to keep it alive for the duration of the program
     std::mem::forget(_guard);
@@ -189,12 +206,7 @@ pub fn init_logging_with_terminal(log_level: &str) -> crate::tracing_layer::GuiT
 /// This returns all candidates instead: protecting a directory the agent is not
 /// currently using is harmless, missing the one it *is* using is not.
 pub(crate) fn log_dir_candidates() -> Vec<std::path::PathBuf> {
-    let mut candidates = Vec::new();
-
-    #[cfg(windows)]
-    candidates.push(std::path::PathBuf::from(r"C:\ProgramData\Sentinel\logs"));
-    #[cfg(not(windows))]
-    candidates.push(std::path::PathBuf::from("/var/log/sentinel"));
+    let mut candidates = vec![std::path::PathBuf::from(SYSTEM_LOG_DIR)];
 
     if let Some(dirs) = directories::ProjectDirs::from("com", "sentinel-grc", "Sentinel") {
         candidates.push(dirs.data_local_dir().join("logs"));
@@ -206,19 +218,20 @@ pub(crate) fn log_dir_candidates() -> Vec<std::path::PathBuf> {
 }
 
 fn get_log_dir() -> std::path::PathBuf {
-    #[cfg(windows)]
-    let primary = std::path::PathBuf::from(r"C:\ProgramData\Sentinel\logs");
-    #[cfg(not(windows))]
-    let primary = std::path::PathBuf::from("/var/log/sentinel");
+    let primary = std::path::PathBuf::from(SYSTEM_LOG_DIR);
 
     // Try to create and use the system-wide log directory.
     // If that fails (e.g. running as non-root), fall back to a user-local directory.
-    if std::fs::create_dir_all(&primary).is_ok() && is_writable(&primary) {
+    if std::fs::create_dir_all(&primary).is_ok()
+        && may_write_into(&primary)
+        && is_writable(&primary)
+    {
         restrict_dir_permissions(&primary);
         return primary;
     }
 
-    // Fallback: ~/Library/Logs/Sentinel (macOS) or ~/.local/share/sentinel/logs (Linux)
+    // Fallback: ~/Library/Application Support/com.sentinel-grc.Sentinel/logs
+    // (macOS) or ~/.local/share/sentinel/logs (Linux)
     if let Some(dirs) = directories::ProjectDirs::from("com", "sentinel-grc", "Sentinel") {
         let fallback = dirs.data_local_dir().join("logs");
         if std::fs::create_dir_all(&fallback).is_ok() {
@@ -229,6 +242,37 @@ fn get_log_dir() -> std::path::PathBuf {
 
     // Last resort: temp directory
     std::env::temp_dir().join("sentinel-logs")
+}
+
+/// How the log file in `log_dir` is rotated.
+///
+/// Daily files (`agent.log.YYYY-MM-DD`), except in the Linux system
+/// directory: there the packages' logrotate configuration rotates, compresses
+/// and expires a single `agent.log`, and would not match a dated name.
+fn rotation_for(log_dir: &std::path::Path) -> Rotation {
+    if cfg!(target_os = "linux") && log_dir == std::path::Path::new(LINUX_LOG_DIR) {
+        Rotation::NEVER
+    } else {
+        Rotation::DAILY
+    }
+}
+
+/// Whether this process may put its logs in `dir` at all.
+///
+/// A root process stays out of a directory another user owns: that user could
+/// swap a log file for a link to any file root can write. On Linux the system
+/// directory belongs to the unprivileged service, so the privileged helper and
+/// an administrator's commands log to the journal and to their fallback
+/// directory, and never leave a root-owned `agent.log` the service cannot open.
+#[cfg(unix)]
+fn may_write_into(dir: &std::path::Path) -> bool {
+    use std::os::unix::fs::MetadataExt;
+    !crate::service::is_admin() || std::fs::metadata(dir).is_ok_and(|meta| meta.uid() == 0)
+}
+
+#[cfg(not(unix))]
+fn may_write_into(_dir: &std::path::Path) -> bool {
+    true
 }
 
 /// Restrict the log directory to the owning user (0700), matching the
@@ -302,6 +346,57 @@ mod tests {
     fn flushes_trailing_data_without_newline() {
         let out = redact(&[b"partial line without newline"]);
         assert_eq!(out, "partial line without newline");
+    }
+
+    /// The Linux service logs where its packages create, open and rotate the
+    /// directory: under `ProtectSystem=strict` any other system path is read
+    /// only, and the logs ended up in the service's private /tmp.
+    #[test]
+    fn linux_log_directory_is_the_one_the_packages_set_up() {
+        let unit = include_str!("../debian/sentinel-agent.service");
+        let postinst = include_str!("../debian/postinst");
+        let logrotate = include_str!("../../../linux/logrotate/sentinel-agent");
+        let apparmor = include_str!("../../../linux/apparmor/sentinel-agent");
+
+        assert!(
+            unit.lines()
+                .filter_map(|line| line.strip_prefix("ReadWritePaths="))
+                .any(|paths| paths.split_whitespace().any(|path| path == LINUX_LOG_DIR)),
+            "the unit must let the service write {LINUX_LOG_DIR}"
+        );
+        assert!(postinst.contains(&format!("mkdir -p {LINUX_LOG_DIR}\n")));
+        assert!(postinst.contains(&format!(
+            "chown sentinel-grc:sentinel-grc {LINUX_LOG_DIR}\n"
+        )));
+        assert!(apparmor.contains(&format!("{LINUX_LOG_DIR}/** rw,")));
+
+        // logrotate picks up the agent's file, and copies it before truncating
+        // it in place since the agent keeps it open and cannot reopen it.
+        assert_eq!(
+            logrotate.lines().next(),
+            Some(format!("{LINUX_LOG_DIR}/*.log {{").as_str())
+        );
+        assert!(LOG_FILE_NAME.ends_with(".log"));
+        assert!(logrotate.lines().any(|line| line.trim() == "copytruncate"));
+        assert!(
+            logrotate
+                .lines()
+                .any(|line| line.trim() == "su sentinel-grc sentinel-grc")
+        );
+    }
+
+    #[test]
+    fn only_the_linux_service_directory_leaves_rotation_to_logrotate() {
+        let expected = if cfg!(target_os = "linux") {
+            Rotation::NEVER
+        } else {
+            Rotation::DAILY
+        };
+        assert_eq!(rotation_for(std::path::Path::new(LINUX_LOG_DIR)), expected);
+
+        for candidate in log_dir_candidates().into_iter().skip(1) {
+            assert_eq!(rotation_for(&candidate), Rotation::DAILY, "{candidate:?}");
+        }
     }
 
     #[test]

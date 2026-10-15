@@ -29,7 +29,7 @@ chmod 700 /var/lib/sentinel-grc
 chmod 755 /var/lib/sentinel-grc/models
 chmod 755 /var/lib/sentinel-grc/cache
 chmod 755 /var/lib/sentinel-grc/cache/llm
-chmod 755 /var/log/sentinel-grc
+chmod 700 /var/log/sentinel-grc
 chmod 700 /etc/sentinel
 
 # Copy config templates if config files don't exist yet

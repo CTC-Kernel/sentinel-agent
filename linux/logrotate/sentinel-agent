@@ -1,13 +1,13 @@
 /var/log/sentinel-grc/*.log {
+    # The directory belongs to the service user: rotate as that user.
+    su sentinel-grc sentinel-grc
     daily
     rotate 14
     compress
     delaycompress
     missingok
     notifempty
-    create 0640 sentinel-grc sentinel-grc
-    sharedscripts
-    postrotate
-        systemctl reload sentinel-agent.service > /dev/null 2>&1 || true
-    endscript
+    # The agent keeps agent.log open and has no reload: copy it, then
+    # truncate it in place (it writes in append mode).
+    copytruncate
 }

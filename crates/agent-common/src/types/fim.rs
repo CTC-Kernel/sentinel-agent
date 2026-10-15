@@ -433,8 +433,9 @@ fn default_rescan_interval_secs() -> u64 {
 /// a file after the agent, so a directory the agent starts writing to must be
 /// listed here by its exact name.
 pub const SELF_EXCLUSION_PATTERNS: &[&str] = &[
-    // Linux: /etc/sentinel (config), /var/log/sentinel and
-    // ~/.local/share/sentinel (logs). Windows: %ProgramData%\Sentinel and
+    // Linux: /etc/sentinel (config), ~/.local/share/sentinel (logs), and
+    // /var/log/sentinel (logs of agents up to 4.0.52 run as root). macOS:
+    // /var/log/sentinel (logs). Windows: %ProgramData%\Sentinel and
     // %LOCALAPPDATA%\Sentinel (config, data, logs).
     "sentinel/**",
     // Linux: /var/lib/sentinel-grc (data), /var/log/sentinel-grc (logs),

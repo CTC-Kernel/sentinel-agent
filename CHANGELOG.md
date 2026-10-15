@@ -113,6 +113,32 @@ Tous les changements notables apportés au projet **Sentinel GRC Agent** sont co
   clés de registre et le reste du code Windows ailleurs que dans la CI ;
   l'interface n'a été vue que dans son aperçu, avec des données d'exemple.
 
+### 🐧 Linux : les journaux du service dans `/var/log/sentinel-grc`
+
+- **Le service écrit enfin ses journaux là où le paquet les attend** : il
+  visait `/var/log/sentinel`, en lecture seule sous `ProtectSystem=strict`,
+  et retombait sur son `/tmp` privé, vidé à chaque redémarrage. Il écrit
+  maintenant `/var/log/sentinel-grc/agent.log`, le dossier que créent les
+  paquets deb et rpm et qu'ouvrent l'unité systemd, AppArmor et l'application
+  de bureau. macOS (`/var/log/sentinel`) et Windows ne changent pas.
+- **logrotate prend ce fichier** : un seul `agent.log`, tourné chaque jour,
+  compressé, gardé 14 jours (les noms datés `agent.log.AAAA-MM-JJ` lui
+  échappaient). Il le copie puis le vide sur place (`copytruncate`), en tant
+  que `sentinel-grc` (`su`) : l'agent n'a pas de rechargement, et l'ancien
+  `systemctl reload` échouait sans bruit.
+- **Un processus root n'écrit plus dans ce dossier** : il appartient au compte
+  du service, qui pourrait y remplacer un fichier par un lien. L'assistant
+  privilégié et les commandes lancées en root gardent le journal système et
+  leur dossier de repli (`/root/.local/share/sentinel/logs`) ; le service ne
+  trouve jamais un `agent.log` à root qu'il ne pourrait pas ouvrir.
+- **Vérifié** sur Ubuntu 24.04 et Fedora 43 (machines OrbStack isolées,
+  protections systemd actives) : avant, dossier vide et journaux dans le
+  `/tmp` privé ; après, installation neuve et mise à jour, `agent.log` au
+  compte `sentinel-grc` dans un dossier 0700 ; `logrotate.service` le tourne
+  (copie identique, l'agent continue au début du fichier vidé, compression à
+  la rotation suivante). **Non vérifié** : AppArmor (absent du noyau
+  OrbStack), amd64, paquet construit en profil release avec l'interface.
+
 ### 🔒 Réponse : verrouillage de compte et commande de réponse
 
 - **Verrouiller un compte** (action de playbook « Verrouiller le compte ») :
