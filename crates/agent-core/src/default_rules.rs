@@ -42,8 +42,14 @@ pub async fn install_default_rules(
     let catalog = detection_catalog::default_rules(chrono::Utc::now());
     let plan = detection_catalog::plan_install(&catalog, &existing, &installed);
     let changed: Vec<&DetectionRule> = plan.insert.iter().chain(&plan.update).collect();
+    let queue = SyncQueueRepository::new(db);
     for rule in &changed {
         repo.upsert(&rule_to_stored(rule, false)).await?;
+        // A rule deleted then restored before the deletion reached the
+        // platform must not be deleted there afterwards.
+        queue
+            .cancel_grc_delete(SyncEntityType::DetectionRule, &rule.id)
+            .await?;
         if queue_for_upload {
             queue_rule_upload(db, rule).await;
         }
@@ -137,6 +143,30 @@ mod tests {
         );
 
         assert_eq!(install_default_rules(&db, false, true).await.unwrap(), 1);
+        assert!(
+            load_rules(&db)
+                .await
+                .unwrap()
+                .iter()
+                .any(|r| r.id == gone.id)
+        );
+    }
+
+    #[tokio::test]
+    async fn restoring_a_rule_withdraws_its_pending_deletion() {
+        let (_dir, db) = open_db();
+        install_default_rules(&db, false, false).await.unwrap();
+        let gone = load_rules(&db).await.unwrap().remove(0);
+        let queue = SyncQueueRepository::new(&db);
+        // What the interface's deletion does: the row goes, a tombstone waits.
+        queue
+            .delete_grc(SyncEntityType::DetectionRule, &gone.id)
+            .await
+            .unwrap();
+        assert_eq!(queue.count().await.unwrap(), 1);
+
+        install_default_rules(&db, false, true).await.unwrap();
+        assert_eq!(queue.count().await.unwrap(), 0, "the deletion is withdrawn");
         assert!(
             load_rules(&db)
                 .await
