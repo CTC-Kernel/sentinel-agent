@@ -3647,6 +3647,9 @@ mod tests {
             details: Some(details),
             executed_at: Some(chrono::Utc::now()),
             frameworks: vec![],
+            description: None,
+            rationale: None,
+            remediation: None,
         }
     }
 

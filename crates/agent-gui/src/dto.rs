@@ -309,6 +309,192 @@ pub struct AgentSummary {
     /// DHCP stay reachable).
     #[serde(default)]
     pub host_isolated: bool,
+    /// The detection engines the agent runs.
+    #[serde(default)]
+    pub detection: GuiDetectionOptions,
+}
+
+/// A detection engine that the configuration turns on or off.
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Hash)]
+#[serde(rename_all = "snake_case")]
+pub enum DetectionOption {
+    /// Sigma rules and correlations on the system log and declared files.
+    LogAnalysis,
+    /// Hidden processes, ports and modules, preloaded libraries.
+    RootkitDetection,
+    /// Accounts, groups, services and listening ports, and their changes.
+    SystemInventory,
+    /// The hardening policies shipped with the agent (SCA format).
+    HardeningBenchmark,
+    /// The lines that changed in a small text file.
+    FimReportChanges,
+    /// Who changed a watched file, from the system audit (Linux).
+    FimWhodata,
+}
+
+impl DetectionOption {
+    /// Every option, in the order the settings show them.
+    pub const ALL: [Self; 6] = [
+        Self::LogAnalysis,
+        Self::RootkitDetection,
+        Self::SystemInventory,
+        Self::HardeningBenchmark,
+        Self::FimReportChanges,
+        Self::FimWhodata,
+    ];
+
+    /// The key of the option in the agent's configuration file.
+    pub fn config_key(self) -> &'static str {
+        match self {
+            Self::LogAnalysis => "log_analysis",
+            Self::RootkitDetection => "rootkit_detection",
+            Self::SystemInventory => "system_inventory",
+            Self::HardeningBenchmark => "hardening_benchmark",
+            Self::FimReportChanges => "fim_report_changes",
+            Self::FimWhodata => "fim_whodata",
+        }
+    }
+
+    pub fn label_fr(self) -> &'static str {
+        match self {
+            Self::LogAnalysis => "Analyse des journaux",
+            Self::RootkitDetection => "D\u{00e9}tection de rootkits",
+            Self::SystemInventory => "Inventaire du poste",
+            Self::HardeningBenchmark => "Socle de durcissement",
+            Self::FimReportChanges => "Lignes modifi\u{00e9}es (int\u{00e9}grit\u{00e9})",
+            Self::FimWhodata => "Auteur exact des changements (audit)",
+        }
+    }
+
+    pub fn description_fr(self) -> &'static str {
+        match self {
+            Self::LogAnalysis => {
+                "R\u{00e8}gles Sigma et corr\u{00e9}lations sur le journal du syst\u{00e8}me lu en continu : \
+                 force brute, sudo refus\u{00e9}, comptes cr\u{00e9}\u{00e9}s, effacement de journaux\u{2026}"
+            }
+            Self::RootkitDetection => {
+                "Ce que le syst\u{00e8}me cache : processus, ports et modules invisibles, \
+                 biblioth\u{00e8}ques pr\u{00e9}charg\u{00e9}es, interfaces en \u{00e9}coute de tout le trafic."
+            }
+            Self::SystemInventory => {
+                "Comptes, groupes, services et ports en \u{00e9}coute relev\u{00e9}s toutes les dix minutes ; \
+                 un compte administrateur ou un port nouveau l\u{00e8}ve un incident."
+            }
+            Self::HardeningBenchmark => {
+                "Les contr\u{00f4}les de durcissement livr\u{00e9}s avec l'agent (SSH, mots de passe, \
+                 pare-feu, journalisation\u{2026}), au format des politiques SCA."
+            }
+            Self::FimReportChanges => {
+                "Pour un petit fichier texte lisible par tous, l'alerte d'int\u{00e9}grit\u{00e9} montre les \
+                 lignes retir\u{00e9}es et ajout\u{00e9}es. Les fichiers priv\u{00e9}s ne sont jamais copi\u{00e9}s."
+            }
+            Self::FimWhodata => {
+                "Linux : ajoute \u{00e0} auditd une r\u{00e8}gle par dossier surveill\u{00e9}, retir\u{00e9}e \u{00e0} l'arr\u{00ea}t, \
+                 pour nommer le compte et le programme de chaque modification. Demande auditd ; \
+                 sur un syst\u{00e8}me tr\u{00e8}s actif, une mise \u{00e0} jour produit beaucoup d'enregistrements."
+            }
+        }
+    }
+
+    /// Whether turning the option off removes detection, and so needs the
+    /// administrator mode. The hardening policy only adds checks.
+    pub fn lowers_protection_when_off(self) -> bool {
+        !matches!(self, Self::HardeningBenchmark)
+    }
+}
+
+/// The detection engines the agent runs, as its configuration had them when
+/// it started: a change made since applies at the next start.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Default)]
+pub struct GuiDetectionOptions {
+    pub log_analysis: bool,
+    pub rootkit_detection: bool,
+    pub system_inventory: bool,
+    pub hardening_benchmark: bool,
+    pub fim_report_changes: bool,
+    #[serde(default)]
+    pub fim_whodata: bool,
+    /// What the log analysis loaded, in one line (`None`: off).
+    #[serde(default)]
+    pub log_rules: Option<String>,
+}
+
+impl GuiDetectionOptions {
+    pub fn is_on(&self, option: DetectionOption) -> bool {
+        match option {
+            DetectionOption::LogAnalysis => self.log_analysis,
+            DetectionOption::RootkitDetection => self.rootkit_detection,
+            DetectionOption::SystemInventory => self.system_inventory,
+            DetectionOption::HardeningBenchmark => self.hardening_benchmark,
+            DetectionOption::FimReportChanges => self.fim_report_changes,
+            DetectionOption::FimWhodata => self.fim_whodata,
+        }
+    }
+}
+
+/// The inventory of this endpoint: accounts, groups, services and listening
+/// ports as last collected, and what changed since the agent started.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
+pub struct GuiSystemInventory {
+    pub collected_at: Option<DateTime<Utc>>,
+    pub accounts: Vec<GuiInventoryAccount>,
+    pub groups: Vec<GuiInventoryGroup>,
+    pub services: Vec<GuiInventoryService>,
+    pub ports: Vec<GuiInventoryPort>,
+    /// Most recent first.
+    pub changes: Vec<GuiInventoryChange>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct GuiInventoryAccount {
+    pub name: String,
+    /// Numeric identifier (Unix), or security identifier (Windows).
+    pub id: String,
+    pub home: Option<String>,
+    pub shell: Option<String>,
+    /// Can open a session: a real shell on Unix, an enabled account on Windows.
+    pub can_log_in: bool,
+    /// Has the rights of an administrator: the identifier of root, or a
+    /// member of an administration group.
+    pub privileged: bool,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct GuiInventoryGroup {
+    pub name: String,
+    pub id: Option<String>,
+    pub members: Vec<String>,
+    /// Membership gives administration rights.
+    pub privileged: bool,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct GuiInventoryService {
+    pub name: String,
+    /// `enabled`, `disabled`, `static`… (systemd), `installed` (launchd),
+    /// the start mode (Windows).
+    pub state: String,
+    pub command: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct GuiInventoryPort {
+    /// `tcp` or `udp`.
+    pub protocol: String,
+    pub address: String,
+    pub port: u16,
+    pub process: Option<String>,
+    /// Answers on the machine itself only.
+    pub local_only: bool,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct GuiInventoryChange {
+    pub at: DateTime<Utc>,
+    /// The change in one sentence, in French.
+    pub label: String,
+    /// The severity of the incident it raised (`None`: recorded only).
+    pub severity: Option<Severity>,
 }
 
 /// A single compliance check result for GUI display.
@@ -335,6 +521,15 @@ pub struct GuiCheckResult {
     pub executed_at: Option<DateTime<Utc>>,
     /// Applicable frameworks (e.g., "NIS2", "DORA").
     pub frameworks: Vec<String>,
+    /// What the check verifies, in a sentence or two.
+    #[serde(default)]
+    pub description: Option<String>,
+    /// Why it matters (the rationale of a policy check).
+    #[serde(default)]
+    pub rationale: Option<String>,
+    /// How to bring the system into line when the check fails.
+    #[serde(default)]
+    pub remediation: Option<String>,
 }
 
 /// Check status for GUI display.
@@ -2195,6 +2390,7 @@ mod tests {
             standalone: false,
             ransomware_canaries: false,
             host_isolated: false,
+            detection: GuiDetectionOptions::default(),
         };
 
         let json = serde_json::to_string(&summary).unwrap();
@@ -2216,6 +2412,9 @@ mod tests {
             details: None,
             executed_at: Some(Utc::now()),
             frameworks: vec!["NIS2".to_string(), "DORA".to_string()],
+            description: None,
+            rationale: None,
+            remediation: None,
         };
 
         let json = serde_json::to_string(&result).unwrap();

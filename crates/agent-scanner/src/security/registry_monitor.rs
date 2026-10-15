@@ -22,6 +22,11 @@
 //!
 //! The first reading is the reference. Removals are not reported.
 //!
+//! Keys of the organisation's own (an application's settings, a policy
+//! key) are added to these with the `registry_keys` option: every value of
+//! them is read the same way, and a change in them is reported as a change
+//! of the registry (T1112).
+//!
 //! # Limits, stated plainly
 //!
 //! - The registry is read at intervals with `reg query`: a value written and
@@ -159,8 +164,32 @@ pub trait RegistryReader: Send + Sync {
     fn user_sids(&self) -> Vec<String>;
 }
 
+/// A key as the configuration may write it, with the hive spelt out as
+/// `reg query` prints it (`HKLM\…` is `HKEY_LOCAL_MACHINE\…`).
+pub fn full_key(key: &str) -> String {
+    let key = key.trim().trim_end_matches('\\');
+    for (short, long) in [
+        ("HKLM", "HKEY_LOCAL_MACHINE"),
+        ("HKU", "HKEY_USERS"),
+        ("HKCR", "HKEY_CLASSES_ROOT"),
+        ("HKCC", "HKEY_CURRENT_CONFIG"),
+    ] {
+        if let Some(rest) = key.strip_prefix(short)
+            && (rest.is_empty() || rest.starts_with('\\'))
+        {
+            return format!("{long}{rest}");
+        }
+    }
+    key.to_string()
+}
+
 /// The values of every watched location: `KEY\name` to data.
 pub fn snapshot(reader: &dyn RegistryReader) -> BTreeMap<String, String> {
+    snapshot_with(reader, &[])
+}
+
+/// The same, with the keys of the configuration (`registry_keys`).
+pub fn snapshot_with(reader: &dyn RegistryReader, extra: &[String]) -> BTreeMap<String, String> {
     let mut values = BTreeMap::new();
     let mut read = |key: &str, wanted: &[&str]| {
         let Some(found) = reader.values(key) else {
@@ -174,6 +203,9 @@ pub fn snapshot(reader: &dyn RegistryReader) -> BTreeMap<String, String> {
     };
     for watched in WATCHED {
         read(watched.key, watched.values);
+    }
+    for key in extra {
+        read(key, &[]);
     }
     for sid in reader.user_sids() {
         read(&format!(r"HKEY_USERS\{sid}\{RUN}"), &[]);
@@ -232,7 +264,11 @@ fn meaning(entry: &str) -> (&'static str, &'static str, IncidentSeverity) {
         .filter(|watched| upper.starts_with(&format!("{}\\", watched.key.to_ascii_uppercase())))
         .max_by_key(|watched| watched.key.len())
         .map_or(
-            ("a start-up location", "T1547", IncidentSeverity::Medium),
+            (
+                "a value of a key the configuration watches",
+                "T1112",
+                IncidentSeverity::Medium,
+            ),
             |watched| (watched.what, watched.technique, watched.severity),
         )
 }
@@ -304,6 +340,8 @@ pub struct RegistryMonitor {
     reader: Box<dyn RegistryReader>,
     state_path: PathBuf,
     saved: Mutex<Saved>,
+    /// Keys of the configuration, read with the built-in ones.
+    extra_keys: Vec<String>,
 }
 
 impl RegistryMonitor {
@@ -321,7 +359,20 @@ impl RegistryMonitor {
             reader,
             state_path,
             saved: Mutex::new(saved),
+            extra_keys: Vec::new(),
         }
+    }
+
+    /// Watch these keys too, every value of each (`registry_keys`).
+    pub fn with_keys(mut self, keys: &[String]) -> Self {
+        self.extra_keys = keys
+            .iter()
+            .map(|key| full_key(key))
+            .filter(|key| key.starts_with("HKEY_"))
+            .collect();
+        self.extra_keys.sort();
+        self.extra_keys.dedup();
+        self
     }
 
     fn save(&self, saved: &Saved) {
@@ -343,7 +394,7 @@ impl RegistryMonitor {
     /// Read the watched locations and return what was added or changed
     /// since the last reading. Blocking.
     pub fn check(&self) -> Vec<SecurityIncident> {
-        let current = snapshot(self.reader.as_ref());
+        let current = snapshot_with(self.reader.as_ref(), &self.extra_keys);
         let mut saved = self.saved.lock().unwrap_or_else(|e| e.into_inner());
         let found = match &saved.values {
             None => {
@@ -546,6 +597,43 @@ mod tests {
 
     fn monitor(registry: &FakeRegistry, dir: &tempfile::TempDir) -> RegistryMonitor {
         RegistryMonitor::with_reader(Box::new(registry.clone()), dir.path().join("registry.json"))
+    }
+
+    /// A key the organisation adds is read whole and its changes reported
+    /// as a change of the registry, the hive written short or long.
+    #[test]
+    fn a_key_of_the_configuration_is_watched_like_the_built_in_ones() {
+        const APP: &str = r"HKEY_LOCAL_MACHINE\SOFTWARE\Contoso\Agent";
+        let registry = FakeRegistry::new();
+        registry.set(APP, "Endpoint", "https://contoso.example");
+        let dir = tempfile::tempdir().unwrap();
+        let monitor = monitor(&registry, &dir).with_keys(&[
+            r"HKLM\SOFTWARE\Contoso\Agent\".to_string(),
+            // Not a key of the registry: left out.
+            "SOFTWARE\\Contoso".to_string(),
+        ]);
+        assert!(monitor.check().is_empty());
+
+        registry.set(APP, "Endpoint", "https://attacker.example");
+        let incidents = monitor.check();
+        assert_eq!(incidents.len(), 1);
+        assert_eq!(
+            incidents[0].evidence["entry"],
+            format!(r"{APP}\Endpoint").as_str()
+        );
+        assert_eq!(incidents[0].evidence["attack_techniques"][0], "T1112");
+    }
+
+    #[test]
+    fn a_short_hive_is_spelt_out_as_reg_query_prints_it() {
+        assert_eq!(
+            full_key(r"HKLM\SOFTWARE\X"),
+            r"HKEY_LOCAL_MACHINE\SOFTWARE\X"
+        );
+        assert_eq!(full_key(r" HKU\S-1-5-18\Y\ "), r"HKEY_USERS\S-1-5-18\Y");
+        assert_eq!(full_key(r"HKEY_CLASSES_ROOT\Z"), r"HKEY_CLASSES_ROOT\Z");
+        // A name that only starts like a hive is not one.
+        assert_eq!(full_key(r"HKLMX\A"), r"HKLMX\A");
     }
 
     #[test]

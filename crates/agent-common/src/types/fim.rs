@@ -481,6 +481,16 @@ impl Default for FimPolicy {
                 "*.tmp".to_string(),
                 "*.swp".to_string(),
                 ".git/**".to_string(),
+                // The lock files the account tools (useradd, usermod,
+                // passwd, the agent's own account lock) create next to the
+                // account databases for a moment, around the change that the
+                // database itself reports.
+                "passwd.lock".to_string(),
+                "shadow.lock".to_string(),
+                "group.lock".to_string(),
+                "gshadow.lock".to_string(),
+                "subuid.lock".to_string(),
+                "subgid.lock".to_string(),
                 // Windows: exclude transient user-profile caches under the config directory.
                 // These generate hundreds of events (D3DSCache, Office telemetry, Xbox, etc.)
                 // and are not security-relevant.

@@ -534,6 +534,20 @@ impl CompliancePage {
                             widgets::detail_field_colored(ui, "Score", &format!("{score}%"), theme::readable_color(theme::score_color(sc)));
                         }
 
+                        if check.description.is_some() || check.rationale.is_some() {
+                            widgets::detail_section(ui, "CE QUI EST V\u{00c9}RIFI\u{00c9}");
+                        }
+                        if let Some(ref text) = check.description {
+                            widgets::detail_text(ui, "Description", text);
+                        }
+                        if let Some(ref text) = check.rationale {
+                            widgets::detail_text(ui, "Pourquoi", text);
+                        }
+                        if let Some(ref text) = check.remediation {
+                            widgets::detail_section(ui, if is_failed { "\u{00c0} CORRIGER" } else { "CORRECTION" });
+                            widgets::detail_text(ui, "Comment se mettre en conformit\u{00e9}", text);
+                        }
+
                         widgets::detail_section(ui, "R\u{00c9}F\u{00c9}RENTIELS");
                         for fw in &check.frameworks {
                             widgets::detail_field_badge(ui, "", &fw.to_uppercase(), theme::INFO);

@@ -20,6 +20,9 @@ pub(crate) async fn handle(ctx: &mut CommandContext, command: GuiCommand) {
         GuiCommand::SetRansomwareCanaries { enabled } => {
             set_ransomware_canaries(ctx, enabled).await
         }
+        GuiCommand::SetDetectionOption { option, enabled } => {
+            set_detection_option(ctx, option, enabled)
+        }
         GuiCommand::UpdateSiemConfig {
             enabled,
             format,
@@ -82,6 +85,46 @@ async fn set_ransomware_canaries(ctx: &mut CommandContext, enabled: bool) {
         );
     }
     ctx.handle.state.set_ransomware_canaries(enabled);
+}
+
+/// Turn a detection engine on or off. The engines are set up when the agent
+/// starts: the value is saved, and applies at the next start. The interface
+/// is told either way, since nothing visible changes before then.
+fn set_detection_option(
+    ctx: &mut CommandContext,
+    option: agent_gui::dto::DetectionOption,
+    enabled: bool,
+) {
+    info!(
+        "[AUDIT] GUI user set {} to {}",
+        option.config_key(),
+        enabled
+    );
+    let notification = match AgentConfig::persist_value_to(
+        &AgentConfig::platform_config_path(),
+        option.config_key(),
+        serde_json::Value::Bool(enabled),
+    ) {
+        Ok(()) => agent_gui::dto::GuiNotification::info(
+            option.label_fr(),
+            format!(
+                "{} au prochain démarrage de l'agent.",
+                if enabled { "Activée" } else { "Désactivée" }
+            ),
+        ),
+        Err(e) => {
+            warn!(
+                "{} not saved to the config file: {}",
+                option.config_key(),
+                e
+            );
+            agent_gui::dto::GuiNotification::error(
+                option.label_fr(),
+                format!("Réglage non enregistré : {e}"),
+            )
+        }
+    };
+    let _ = ctx.events.send(AgentEvent::Notification { notification });
 }
 
 /// Update the SIEM forwarder configuration.

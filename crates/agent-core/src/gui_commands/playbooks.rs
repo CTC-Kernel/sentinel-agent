@@ -83,7 +83,10 @@ async fn load_playbook(
 
 /// The actions a playbook runs when the operator starts it by hand: its
 /// conditions are not evaluated, each action takes its target from its own
-/// parameters. A kill without a readable `name:pid` is left out.
+/// parameters. An action whose parameters name no target is left out: a
+/// kill without a readable `name:pid`, a block without an address, a lock
+/// without an account (a playbook made for automatic runs keeps only a
+/// duration there).
 fn resolve_manual_actions(playbook: &agent_gui::dto::Playbook) -> Vec<ResolvedAction> {
     let mut resolved_actions = Vec::new();
     for action in &playbook.actions {
@@ -106,17 +109,24 @@ fn resolve_manual_actions(playbook: &agent_gui::dto::Playbook) -> Vec<ResolvedAc
                 });
             }
             agent_gui::dto::PlaybookActionType::BlockIp => {
-                // parameters format: "ip:duration_secs"
-                let parts: Vec<&str> = action.parameters.splitn(2, ':').collect();
-                let ip = parts.first().unwrap_or(&"").to_string();
-                let duration = parts
-                    .get(1)
-                    .and_then(|s| s.parse::<u64>().ok())
-                    .unwrap_or(3600);
-                resolved_actions.push(ResolvedAction::BlockIp {
-                    ip,
-                    duration_secs: duration,
-                });
+                // parameters format: "ip:duration_secs", or the bare address
+                // (an IPv6 one has colons of its own).
+                let parameters = action.parameters.trim();
+                let (ip, duration) = match parameters.parse::<std::net::IpAddr>() {
+                    Ok(_) => (parameters, None),
+                    Err(_) => match parameters.rsplit_once(':') {
+                        Some((ip, duration)) => (ip, Some(duration)),
+                        None => (parameters, None),
+                    },
+                };
+                if ip.parse::<std::net::IpAddr>().is_ok() {
+                    resolved_actions.push(ResolvedAction::BlockIp {
+                        ip: ip.to_string(),
+                        duration_secs: duration
+                            .map(agent_core::playbook_engine::block_duration)
+                            .unwrap_or(agent_core::playbook_engine::DEFAULT_BLOCK_SECS),
+                    });
+                }
             }
             agent_gui::dto::PlaybookActionType::IsolateHost => {
                 resolved_actions.push(ResolvedAction::IsolateHost {
@@ -141,7 +151,8 @@ fn resolve_manual_actions(playbook: &agent_gui::dto::Playbook) -> Vec<ResolvedAc
                 // parameters format: "account" or "account:duration_secs"
                 let parts: Vec<&str> = action.parameters.splitn(2, ':').collect();
                 let user = parts.first().unwrap_or(&"").trim().to_string();
-                if !user.is_empty() {
+                // A number alone is the duration of an automatic run, not an account.
+                if !user.is_empty() && !user.chars().all(|c| c.is_ascii_digit()) {
                     resolved_actions.push(ResolvedAction::DisableAccount {
                         user,
                         duration_secs: agent_core::playbook_engine::account_lock_duration(
@@ -572,6 +583,24 @@ mod tests {
                 duration_secs: 3600,
                 ..
             }]
+        ));
+    }
+
+    #[test]
+    fn a_manual_block_needs_an_address_and_reads_its_duration() {
+        let resolved = resolve_manual_actions(&playbook(&[
+            (PlaybookActionType::BlockIp, "203.0.113.7:600"),
+            (PlaybookActionType::BlockIp, "2001:db8::10"),
+            // A playbook made for automatic runs: a duration, no address.
+            (PlaybookActionType::BlockIp, "3600"),
+            (PlaybookActionType::DisableAccount, "3600"),
+        ]));
+        assert!(matches!(
+            resolved.as_slice(),
+            [
+                ResolvedAction::BlockIp { ip: first, duration_secs: 600 },
+                ResolvedAction::BlockIp { ip: second, duration_secs: 3600 },
+            ] if first == "203.0.113.7" && second == "2001:db8::10"
         ));
     }
 

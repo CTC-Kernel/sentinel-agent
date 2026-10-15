@@ -24,11 +24,24 @@ const INVENTORY_EVERY: Duration = Duration::from_secs(10 * 60);
 /// replaces every service must not raise a hundred incidents.
 const MAX_INCIDENTS_PER_INVENTORY: usize = 15;
 
+/// Changes kept for the interface, most recent first.
+const RECENT_CHANGES: usize = 200;
+
+/// A change of the inventory as the interface lists it.
+#[cfg_attr(not(feature = "gui"), allow(dead_code))]
+pub(crate) struct RecentChange {
+    at: chrono::DateTime<chrono::Utc>,
+    label: String,
+    severity: Option<agent_scanner::IncidentSeverity>,
+}
+
 /// When the inventory was last taken, and what it held.
 pub(crate) struct InventoryWatch {
     state: InventoryState,
     last: Option<Instant>,
     path: std::path::PathBuf,
+    /// What changed since the agent started, most recent first.
+    recent: std::collections::VecDeque<RecentChange>,
 }
 
 impl InventoryWatch {
@@ -38,7 +51,74 @@ impl InventoryWatch {
             state: InventoryState::load(&path),
             last: None,
             path,
+            recent: std::collections::VecDeque::new(),
         }
+    }
+
+    /// Keep `changes`, taken at `at`, for the interface.
+    fn remember(&mut self, changes: &[InventoryChange], at: chrono::DateTime<chrono::Utc>) {
+        for change in changes {
+            self.recent.push_front(RecentChange {
+                at,
+                label: label_fr(change),
+                severity: change.incident().map(|incident| incident.severity),
+            });
+        }
+        self.recent.truncate(RECENT_CHANGES);
+    }
+}
+
+/// The change in one sentence, in French, for the interface (the SIEM and
+/// the platform keep [`InventoryChange::describe`]).
+fn label_fr(change: &InventoryChange) -> String {
+    let port = |port: &agent_scanner::inventory::ListeningPort| {
+        format!(
+            "{}/{} sur {}{}",
+            port.protocol,
+            port.port,
+            port.address,
+            port.process
+                .as_deref()
+                .map(|process| format!(" ({process})"))
+                .unwrap_or_default()
+        )
+    };
+    match change {
+        InventoryChange::UserAdded(user) => {
+            format!("Compte créé : {} (identifiant {})", user.name, user.id)
+        }
+        InventoryChange::UserRemoved(user) => format!("Compte supprimé : {}", user.name),
+        InventoryChange::UserChanged { before, after } => format!(
+            "Compte modifié : {} (identifiant {} → {}, shell {} → {})",
+            after.name,
+            before.id,
+            after.id,
+            before.shell.as_deref().unwrap_or("—"),
+            after.shell.as_deref().unwrap_or("—")
+        ),
+        InventoryChange::GroupMemberAdded { group, member } => {
+            format!("{member} ajouté au groupe {group}")
+        }
+        InventoryChange::GroupMemberRemoved { group, member } => {
+            format!("{member} retiré du groupe {group}")
+        }
+        InventoryChange::ServiceAdded(service) => {
+            format!("Service installé : {} ({})", service.name, service.state)
+        }
+        InventoryChange::ServiceRemoved(service) => format!("Service supprimé : {}", service.name),
+        InventoryChange::ServiceChanged { before, after } => format!(
+            "Service modifié : {} ({} → {})",
+            after.name, before.state, after.state
+        ),
+        InventoryChange::PortOpened {
+            port: opened,
+            known,
+        } => format!(
+            "Port en écoute : {}{}",
+            port(opened),
+            if *known { ", déjà vu" } else { "" }
+        ),
+        InventoryChange::PortClosed(closed) => format!("Port fermé : {}", port(closed)),
     }
 }
 
@@ -131,9 +211,15 @@ impl AgentRuntime {
             current.services.len(),
             current.listening_ports.len(),
         );
-        let changes = watch.state.update(current, chrono::Utc::now());
+        let taken_at = chrono::Utc::now();
+        let changes = watch.state.update(current, taken_at);
         if let Err(e) = watch.state.save(&watch.path) {
             warn!("Failed to save the inventory: {}", e);
+        }
+        watch.remember(&changes, taken_at);
+        #[cfg(feature = "gui")]
+        if let Some(inventory) = watch.gui_inventory() {
+            self.emit_gui_event(agent_gui::events::AgentEvent::SystemInventory { inventory });
         }
         if first {
             info!(
@@ -150,10 +236,116 @@ impl AgentRuntime {
     }
 }
 
+#[cfg(feature = "gui")]
+impl InventoryWatch {
+    /// The inventory as the interface shows it (`None`: none taken yet).
+    pub(crate) fn gui_inventory(&self) -> Option<agent_gui::dto::GuiSystemInventory> {
+        use agent_gui::dto;
+        use agent_scanner::inventory::is_privileged_group;
+        let inventory = self.state.inventory.as_ref()?;
+        let administrators: std::collections::BTreeSet<&str> = inventory
+            .groups
+            .iter()
+            .filter(|group| is_privileged_group(&group.name))
+            .flat_map(|group| group.members.iter().map(String::as_str))
+            .collect();
+        let severity = |severity: agent_scanner::IncidentSeverity| match severity {
+            agent_scanner::IncidentSeverity::Critical => dto::Severity::Critical,
+            agent_scanner::IncidentSeverity::High => dto::Severity::High,
+            agent_scanner::IncidentSeverity::Medium => dto::Severity::Medium,
+            agent_scanner::IncidentSeverity::Low => dto::Severity::Low,
+        };
+        Some(dto::GuiSystemInventory {
+            collected_at: inventory.collected_at,
+            accounts: inventory
+                .users
+                .iter()
+                .map(|user| dto::GuiInventoryAccount {
+                    name: user.name.clone(),
+                    id: user.id.clone(),
+                    home: user.home.clone(),
+                    shell: user.shell.clone(),
+                    can_log_in: user.can_log_in,
+                    privileged: user.is_root_equivalent()
+                        || administrators.contains(user.name.as_str()),
+                })
+                .collect(),
+            groups: inventory
+                .groups
+                .iter()
+                .map(|group| dto::GuiInventoryGroup {
+                    name: group.name.clone(),
+                    id: group.id.clone(),
+                    members: group.members.clone(),
+                    privileged: is_privileged_group(&group.name),
+                })
+                .collect(),
+            services: inventory
+                .services
+                .iter()
+                .map(|service| dto::GuiInventoryService {
+                    name: service.name.clone(),
+                    state: service.state.clone(),
+                    command: service.command.clone(),
+                })
+                .collect(),
+            ports: inventory
+                .listening_ports
+                .iter()
+                .map(|port| dto::GuiInventoryPort {
+                    protocol: port.protocol.clone(),
+                    address: port.address.clone(),
+                    port: port.port,
+                    process: port.process.clone(),
+                    local_only: port.is_local_only(),
+                })
+                .collect(),
+            changes: self
+                .recent
+                .iter()
+                .map(|change| dto::GuiInventoryChange {
+                    at: change.at,
+                    label: change.label.clone(),
+                    severity: change.severity.map(severity),
+                })
+                .collect(),
+        })
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
     use agent_scanner::inventory::{ServiceEntry, UserAccount};
+
+    #[test]
+    fn the_interface_lists_changes_in_french_most_recent_first() {
+        let mut watch = InventoryWatch {
+            state: InventoryState::default(),
+            last: None,
+            path: std::path::PathBuf::new(),
+            recent: std::collections::VecDeque::new(),
+        };
+        let first = chrono::Utc::now() - chrono::Duration::minutes(10);
+        watch.remember(&[account("backup", "1001")], first);
+        watch.remember(
+            &[InventoryChange::GroupMemberAdded {
+                group: "sudo".to_string(),
+                member: "backup".to_string(),
+            }],
+            chrono::Utc::now(),
+        );
+        let labels: Vec<&str> = watch.recent.iter().map(|c| c.label.as_str()).collect();
+        assert_eq!(
+            labels,
+            [
+                "backup ajouté au groupe sudo",
+                "Compte créé : backup (identifiant 1001)"
+            ]
+        );
+        // Both raise an incident: an account, then an administrator.
+        assert!(watch.recent.iter().all(|change| change.severity.is_some()));
+    }
 
     fn account(name: &str, id: &str) -> InventoryChange {
         InventoryChange::UserAdded(UserAccount {

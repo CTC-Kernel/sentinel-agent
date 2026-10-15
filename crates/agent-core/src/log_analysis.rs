@@ -137,10 +137,21 @@ impl LogAnalysis {
         config: &AgentConfig,
         rules_dir: &std::path::Path,
     ) -> (Self, agent_scanner::security::sigma::LoadedRules) {
-        let (tailer, errors) =
+        // Only Linux follows one more file below.
+        #[cfg_attr(not(target_os = "linux"), allow(unused_mut))]
+        let (mut tailer, errors) =
             LogFileTailer::new(&config.log_files, Some(state_path("positions.json")));
         for error in errors {
             warn!("Log file not followed: {}", error);
+        }
+        // The records of the audit watches added for the watched files.
+        #[cfg(target_os = "linux")]
+        if config.fim_whodata && !tailer.is_following(crate::fim_audit::AUDIT_LOG) {
+            let _ = tailer.follow(&LogFileConfig {
+                path: crate::fim_audit::AUDIT_LOG.to_string(),
+                format: LogFileFormat::Audit,
+                service: Some("auditd".to_string()),
+            });
         }
         let (loaded, engine) = sigma_logs::load(rules_dir, &coverage(&tailer));
         let analysis = Self {

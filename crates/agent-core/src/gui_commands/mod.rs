@@ -128,6 +128,7 @@ fn group_of(command: &GuiCommand) -> Group {
         | GuiCommand::UpdateAllowlist { .. }
         | GuiCommand::SetLogLevel { .. }
         | GuiCommand::SetRansomwareCanaries { .. }
+        | GuiCommand::SetDetectionOption { .. }
         | GuiCommand::UpdateSiemConfig { .. }
         | GuiCommand::UpdateLogCollectorConfig { .. } => Group::Settings,
         GuiCommand::AcknowledgeFimAlert { .. }

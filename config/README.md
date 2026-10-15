@@ -82,6 +82,11 @@ au blocage d'adresse et a l'isolement :
 - **Commande de reponse** : lance un programme declare ici, que le playbook
   demande par son nom (parametre de l'action).
 
+Un blocage d'adresse dure ce que dit le parametre de l'action (secondes ;
+vide : une heure ; `0` : sans fin). Une adresse bloquee automatiquement de
+nouveau dans la journee l'est deux fois plus longtemps que la fois precedente,
+jusqu'a une semaine (recidive, comme `repeated_offenders` chez Wazuh).
+
 ```json
 "response_commands": [
   { "name": "open-ticket", "program": "/usr/local/bin/sentinel-ticket",
@@ -188,12 +193,23 @@ fichiers declares.
   d'un petit fichier texte. Le dernier contenu est conserve pour cela, mais
   jamais celui d'un fichier que ses droits reservent a certains comptes.
 - L'auteur d'un changement est indique quand l'audit du systeme le donne
-  (Linux : `auditctl -w /etc -p wa -k sentinel` ; Windows : audit d'acces aux
-  objets sur le fichier) ou, a defaut et s'il y a lieu, d'apres les processus
-  vus demarrer (`process_event_telemetry`).
+  (Windows : audit d'acces aux objets sur le fichier) ou, a defaut et s'il y a
+  lieu, d'apres les processus vus demarrer (`process_event_telemetry`).
+- `"fim_whodata": true` (Linux, desactive par defaut) : l'agent ajoute a
+  auditd une regle par chemin surveille (`auditctl -w <chemin> -p wa -k
+  sentinel_fim`), lit `/var/log/audit/audit.log` et retire ses regles a
+  l'arret. L'alerte nomme alors exactement le compte et le programme. Demande
+  auditd en marche, l'agent en root et l'analyse de journaux active. A peser
+  sur un systeme tres actif (une mise a jour produit beaucoup
+  d'enregistrements) ou dont l'audit arrete la machine quand son tampon
+  deborde (`auditctl -f 2`).
 - Sous Windows, les valeurs de registre de demarrage automatique (`Run`,
   `Winlogon`, `Image File Execution Options`...) sont surveillees de la meme
-  facon.
+  facon. `"registry_keys"` y ajoute les cles de l'organisation (reglages d'une
+  application, cle de strategie), dont toutes les valeurs sont relues a chaque
+  analyse : `"registry_keys": ["HKLM\\SOFTWARE\\Contoso\\Agent"]` (`HKLM`
+  vaut `HKEY_LOCAL_MACHINE`). Une valeur ajoutee ou modifiee y est signalee
+  comme une modification du registre (T1112).
 
 ## Flux d'indicateurs de compromission
 

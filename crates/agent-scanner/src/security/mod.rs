@@ -315,11 +315,13 @@ impl SecurityMonitor {
 
     /// Follow the registry values a program uses to start by itself,
     /// keeping the reference in `state_path`. Does nothing off Windows.
-    pub fn watch_registry(&mut self, state_path: std::path::PathBuf) {
+    /// `extra_keys`: keys of the organisation's own, watched with the
+    /// built-in start-up locations (`registry_keys`).
+    pub fn watch_registry(&mut self, state_path: std::path::PathBuf, extra_keys: &[String]) {
         if cfg!(windows) {
-            self.registry = Some(std::sync::Arc::new(registry_monitor::RegistryMonitor::new(
-                state_path,
-            )));
+            self.registry = Some(std::sync::Arc::new(
+                registry_monitor::RegistryMonitor::new(state_path).with_keys(extra_keys),
+            ));
         }
     }
 

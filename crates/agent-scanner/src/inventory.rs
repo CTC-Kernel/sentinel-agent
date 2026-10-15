@@ -203,7 +203,9 @@ pub enum InventoryChange {
     PortClosed(ListeningPort),
 }
 
-fn is_privileged_group(name: &str) -> bool {
+/// Whether membership of the group gives administration rights (`wheel`,
+/// `sudo`, `admin`, `Administrators`…).
+pub fn is_privileged_group(name: &str) -> bool {
     PRIVILEGED_GROUPS.contains(&name.to_ascii_lowercase().as_str())
 }
 

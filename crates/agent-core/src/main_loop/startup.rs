@@ -87,6 +87,26 @@ impl AgentRuntime {
                 warn!("FIM policy: {}", warning);
             }
         }
+        // Who changes the watched paths, from the system audit.
+        #[cfg(target_os = "linux")]
+        if self.config.fim_whodata {
+            match crate::fim_audit::AuditWatches::install(&policy.watched_paths) {
+                Ok(watches) => {
+                    *self.fim_audit.lock().unwrap_or_else(|e| e.into_inner()) = Some(watches);
+                }
+                Err(e) => warn!(
+                    "FIM: who changed a file stays probable only ({}): \"fim_whodata\" needs auditd",
+                    e
+                ),
+            }
+        }
+        #[cfg(not(target_os = "linux"))]
+        if self.config.fim_whodata {
+            info!(
+                "FIM: \"fim_whodata\" sets up the audit on Linux only; the events of an audit \
+                 the administrator set up are read on Windows"
+            );
+        }
         let fim_dir = AgentConfig::platform_data_dir().join("fim");
         let mut engine = FimEngine::new(policy, fim_tx);
         if self.config.fim_report_changes {
