@@ -32,7 +32,7 @@ config = "0.15"
 directories = "6"
 url = "2"
 tempfile = "3"
-toml = "0.8"
+toml = "1.0"
 # Already in the dependency tree through `config`; used to read Sigma rules.
 yaml-rust2 = "0.10"
 sha2 = "0.10"
