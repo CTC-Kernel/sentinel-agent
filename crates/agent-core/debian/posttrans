@@ -1,0 +1,15 @@
+#!/bin/sh
+# Sentinel GRC Agent - rpm %posttrans (rpm only: dpkg has no such step and
+# cargo-deb does not package this file)
+set -e
+
+# rpm runs it once the whole transaction is done: on an upgrade, after the
+# old package's %preun. Up to 4.0.52 that %preun stopped the service, which
+# the new package's %post had just restarted, and every rpm upgrade left the
+# agent stopped. Start the services again; a no-op when they are running.
+if [ -d /run/systemd/system ] && systemctl is-enabled --quiet sentinel-agent.service 2>/dev/null; then
+    systemctl start sentinel-agent-helper.service || true
+    systemctl start sentinel-agent.service || true
+fi
+
+exit 0
