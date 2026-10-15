@@ -39,6 +39,11 @@ Tous les changements notables apportés au projet **Sentinel GRC Agent** sont co
 - **Conteneurs et images système** : l'installation n'échoue plus sans
   systemd en marche (conteneur, chroot de construction d'image) ; le service
   est activé et démarre au prochain boot.
+- **Mise à jour du .rpm** : elle laissait l'agent arrêté. rpm exécute le
+  `%post` du nouveau paquet (qui redémarre le service) avant le `%preun` de
+  l'ancien, et celui-ci arrêtait le service. Il ne l'arrête plus que pour une
+  désinstallation, et un `%posttrans` relance le service quand la version
+  mise à jour l'arrête encore (4.0.52 et avant). Le .deb ne change pas.
 
 ### 🏁 Détection et réponse : chaînes vérifiées de bout en bout, tout se règle dans l'interface
 

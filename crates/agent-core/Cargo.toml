@@ -120,6 +120,7 @@ pre_install_script = "debian/preinst"
 post_install_script = "debian/postinst"
 pre_uninstall_script = "debian/prerm"
 post_uninstall_script = "debian/postrm"
+post_trans_script = "debian/posttrans"
 
 # The requirements are read from the binary (glibc, GTK...). The tray
 # library is opened at run time by the desktop tray only (Fedora, EPEL).
