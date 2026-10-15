@@ -36,6 +36,12 @@ Tous les changements notables apportés au projet **Sentinel GRC Agent** sont co
 - **Installation** : `sudo apt install ./sentinel-agent_*.deb` ou
   `sudo dnf install ./sentinel-agent-*.rpm`, qui installent aussi les
   dépendances, au lieu de `dpkg -i` / `rpm -i`.
+- **Mises à jour rapprochées** : chaque mise à jour du .deb ou du .rpm
+  démarrait deux fois l'assistant privilégié (le script le redémarrait, puis
+  le redémarrage de l'agent le relançait). Trois mises à jour en moins de
+  10 secondes atteignaient la limite de systemd (5 démarrages en 10 s) :
+  l'assistant restait en échec et l'agent tournait sans lui. Le script ne
+  redémarre plus que l'agent, et l'assistant suit.
 - **Conteneurs et images système** : l'installation n'échoue plus sans
   systemd en marche (conteneur, chroot de construction d'image) ; le service
   est activé et démarre au prochain boot.
