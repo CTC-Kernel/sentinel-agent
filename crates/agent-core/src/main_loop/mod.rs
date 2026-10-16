@@ -121,7 +121,7 @@ mod state;
 #[cfg(test)]
 pub(crate) mod testing;
 
-pub(crate) use outbox::Outbox;
+pub(crate) use outbox::{Outbound, Outbox};
 pub(crate) use pass::LoopPass;
 pub(crate) use state::{CERT_CHECK_INTERVAL_SECS, LoopState};
 

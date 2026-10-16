@@ -10,6 +10,36 @@ Tous les changements notables apportés au projet **Sentinel GRC Agent** sont co
 
 ## 🚀 [Non publié]
 
+### 🛰️ Inventaire du poste envoyé à la plateforme
+
+- **L'inventaire quitte le poste**, comme le syscollector de Wazuh remonte au
+  serveur : fiche du système, comptes (avec ceux qui administrent la
+  machine), groupes et leurs membres, services, ports en écoute (locaux ou
+  ouverts au réseau), correctifs Windows, conteneurs et ce qui affaiblit leur
+  isolement. Envoi par le client authentifié de l'agent, sur
+  `POST /v1/agents/{id}/system-inventory`.
+- **Quand** : l'inventaire entier au démarrage de l'agent, puis une fois par
+  jour ; entre les deux, seulement les parties qui ont changé (un compte
+  créé envoie la liste des comptes, rien d'autre), au plus une fois par
+  relevé de dix minutes, et rien quand rien n'a changé. L'heure de démarrage
+  de la machine, relue à la seconde près sur Windows, et les quelques Mo de
+  mémoire que réserve un nouveau noyau ne comptent pas comme un changement.
+- **Bornes** : 5 000 entrées et 512 Kio par partie, 500 membres listés par
+  groupe (le nombre réel est donné), textes coupés à la longueur que la
+  plateforme accepte : une partie tient toujours dans un document Firestore,
+  l'envoi entier sous les 5 Mo d'une requête. Une partie coupée le dit.
+- **En cas d'échec** : nouvel essai après 10 minutes, puis 20, 40… jusqu'à
+  6 heures ; une plateforme qui ne connaît pas encore cette route (404)
+  n'est signalée qu'une fois dans le journal. La plateforme peut demander
+  l'inventaire entier quand elle n'a pas de quoi compléter un envoi partiel.
+- **Mode autonome** : rien n'est envoyé ; l'inventaire et la page
+  Système & comptes sont inchangés.
+- **À faire côté plateforme** : la route, le schéma et le stockage
+  (`organizations/{org}/agents/{id}/inventory/{partie}`) restent à ajouter
+  dans sentinel-grc-v2-prod ; d'ici là l'agent essaie de loin en loin. Les
+  changements, eux, arrivaient déjà comme événements SIEM
+  (`inventory_user_added`…) et incidents.
+
 ### 🎯 Règles de détection : un jeu par défaut prêt à l'emploi, des réponses qui agissent
 
 - **19 règles par défaut**, installées actives au premier démarrage de

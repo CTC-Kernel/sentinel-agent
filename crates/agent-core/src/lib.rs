@@ -69,6 +69,7 @@ mod fim_audit;
 mod gui_bridge;
 mod heartbeat;
 pub mod host_isolation;
+mod inventory_upload;
 mod inventory_watch;
 mod log_analysis;
 pub mod mdm;

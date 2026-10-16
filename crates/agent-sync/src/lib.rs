@@ -55,6 +55,7 @@ pub mod request_auth;
 pub mod result_upload;
 pub mod rules;
 pub mod security;
+pub mod system_inventory;
 pub mod types;
 
 pub use audit_sync::AuditSyncService;
@@ -86,6 +87,11 @@ pub use result_upload::{
 pub use rules::{ApiCheckRule, CacheMetadata, RuleSyncResult, RuleSyncService, RulesResponse};
 pub use security::{
     LogSigner, SignatureType, SignatureValidator, SignatureVerificationResult, SignedLogEntry,
+};
+pub use system_inventory::{
+    InventoryContainerPayload, InventoryGroupPayload, InventoryHotfixPayload, InventoryList,
+    InventoryPortPayload, InventorySection, InventoryServicePayload, InventorySystemPayload,
+    InventoryUserPayload, SystemInventoryParts, SystemInventoryResponse, SystemInventoryUpload,
 };
 pub use types::{
     AcknowledgedResponse, AgentCommand, AlertRulePayload, AlertRuleSyncRequest, ApiErrorResponse,
