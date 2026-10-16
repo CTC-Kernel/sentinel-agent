@@ -1895,6 +1895,12 @@ pub struct SystemResources {
     pub disk_percent: f64,
 }
 
+/// Take a first system CPU sample. The system CPU is a delta between two
+/// readings: without this, the first heartbeat after start would report 0 %.
+pub(crate) fn prime_system_cpu() {
+    let _ = get_system_cpu();
+}
+
 /// Get system-level resource information (CPU, total memory, disk usage).
 pub fn get_system_resources() -> SystemResources {
     let cpu_percent = get_system_cpu();

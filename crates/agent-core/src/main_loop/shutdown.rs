@@ -20,6 +20,7 @@ fn offline_heartbeat_request(
         .map(|h| h.to_string_lossy().to_string())
         .unwrap_or_else(|_| "unknown".to_string());
 
+    let sys = resources::get_system_resources();
     api_client::HeartbeatRequest {
         timestamp: chrono::Utc::now().to_rfc3339(),
         agent_version: AGENT_VERSION.to_string(),
@@ -30,13 +31,14 @@ fn offline_heartbeat_request(
             std::env::consts::OS,
             system_utils::get_os_version()
         ),
-        cpu_percent: usage.cpu_percent,
+        // Host CPU, as in the regular heartbeat (see heartbeat.rs).
+        cpu_percent: sys.cpu_percent,
         memory_bytes: usage.memory_bytes,
-        memory_percent: resources::get_system_resources().memory_percent,
-        memory_total_bytes: resources::get_system_resources().memory_total_bytes,
-        disk_percent: resources::get_system_resources().disk_percent,
-        disk_used_bytes: resources::get_system_resources().disk_used_bytes,
-        disk_total_bytes: resources::get_system_resources().disk_total_bytes,
+        memory_percent: sys.memory_percent,
+        memory_total_bytes: sys.memory_total_bytes,
+        disk_percent: sys.disk_percent,
+        disk_used_bytes: sys.disk_used_bytes,
+        disk_total_bytes: sys.disk_total_bytes,
         disk_io_kbps: usage.disk_kbps,
         network_bytes_sent: 0,
         network_bytes_recv: 0,
@@ -139,6 +141,8 @@ mod tests {
         assert_eq!(request.agent_version, AGENT_VERSION);
         assert_eq!(request.uptime_seconds, 125);
         assert_eq!(request.memory_bytes, 64 * 1024 * 1024);
+        // Host CPU in 0-100, never the agent's own per-core process CPU.
+        assert!((0.0..=100.0).contains(&request.cpu_percent));
         assert_eq!(request.compliance_score, Some(87.5));
         assert_eq!(
             request.last_check_at.as_deref(),

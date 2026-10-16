@@ -243,7 +243,12 @@ impl AgentRuntime {
             status: "online".to_string(),
             hostname,
             os_info: format!("{} {}", std::env::consts::OS, get_os_version()),
-            cpu_percent: usage.cpu_percent,
+            // CPU of the machine (0-100), like `memory_percent` and
+            // `disk_percent` and like the GUI and the diagnostics command: the
+            // platform shows it as the host CPU. The agent's own process CPU
+            // (per core, above 100 on several cores) made the platform refuse
+            // the heartbeat.
+            cpu_percent: sys_res.cpu_percent,
             memory_bytes: usage.memory_bytes,
             memory_percent: sys_res.memory_percent,
             memory_total_bytes: sys_res.memory_total_bytes,
