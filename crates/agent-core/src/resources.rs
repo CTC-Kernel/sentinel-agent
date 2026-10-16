@@ -101,6 +101,9 @@ pub struct ResourceMonitor {
     sys: Mutex<sysinfo::System>,
     /// sysinfo Networks instance.
     networks: Mutex<sysinfo::Networks>,
+    /// Accounts known on the host, refreshed with each process listing: the
+    /// platform shows a process owner by name (`root`), not its raw UID.
+    users: Mutex<sysinfo::Users>,
     /// Whether the LLM model is currently loaded (relaxes memory limits).
     llm_loaded: std::sync::atomic::AtomicBool,
 }
@@ -124,6 +127,7 @@ impl ResourceMonitor {
             last_disk_sample_time: AtomicU64::new(0),
             sys: Mutex::new(sysinfo::System::new_all()),
             networks: Mutex::new(sysinfo::Networks::new_with_refreshed_list()),
+            users: Mutex::new(sysinfo::Users::new_with_refreshed_list()),
             llm_loaded: std::sync::atomic::AtomicBool::new(false),
         }
     }
@@ -228,6 +232,11 @@ impl ResourceMonitor {
         };
 
         let total_memory = sys.total_memory();
+        let mut users = match self.users.lock() {
+            Ok(guard) => guard,
+            Err(poisoned) => poisoned.into_inner(),
+        };
+        users.refresh();
 
         let mut processes: Vec<crate::api_client::AgentProcess> = sys
             .processes()
@@ -242,10 +251,7 @@ impl ResourceMonitor {
                 } else {
                     0.0
                 },
-                user: process
-                    .user_id()
-                    .map(|u| u.to_string())
-                    .unwrap_or_else(|| "unknown".to_string()),
+                user: process_owner(&users, process.user_id()),
                 command_line: process
                     .cmd()
                     .first()
@@ -1819,6 +1825,18 @@ pub(crate) fn heartbeat_connection(conn: &NetworkConnection) -> crate::api_clien
     }
 }
 
+/// Name of the account owning a process; its raw identifier (UID, SID) when
+/// the account is not listed (Windows service accounts such as `S-1-5-18`).
+pub(crate) fn process_owner(users: &sysinfo::Users, uid: Option<&sysinfo::Uid>) -> String {
+    match uid {
+        Some(uid) => users
+            .get_user_by_id(uid)
+            .map(|user| user.name().to_string())
+            .unwrap_or_else(|| uid.to_string()),
+        None => "unknown".to_string(),
+    }
+}
+
 /// Order heartbeat connections by interest (established TCP, listening TCP,
 /// other TCP, UDP) and keep at most [`MAX_HEARTBEAT_CONNECTIONS`].
 pub(crate) fn finalize_heartbeat_connections(
@@ -2056,6 +2074,24 @@ mod tests {
             None,
         ));
         assert_eq!((udp.protocol.as_str(), udp.state.as_str()), ("UDP", ""));
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn process_owners_are_reported_by_name_not_by_uid() {
+        let mut sys = sysinfo::System::new();
+        let pid = sysinfo::Pid::from_u32(std::process::id());
+        sys.refresh_processes(sysinfo::ProcessesToUpdate::Some(&[pid]), true);
+        let uid = sys.process(pid).and_then(|p| p.user_id()).cloned();
+        let users = sysinfo::Users::new_with_refreshed_list();
+        let owner = process_owner(&users, uid.as_ref());
+        // The test runs under a named account: never its numeric UID.
+        assert!(!owner.is_empty());
+        assert!(
+            owner.parse::<u64>().is_err(),
+            "owner reported as a raw UID: {owner}"
+        );
+        assert_eq!(process_owner(&sysinfo::Users::new(), None), "unknown");
     }
 
     #[test]
