@@ -183,9 +183,9 @@ impl SecurityIncident {
         Self::new(
             IncidentType::SuspiciousProcess,
             severity,
-            format!("Suspicious process detected: {}", process_name),
+            format!("Processus suspect : {}", process_name),
             format!(
-                "Process {} (PID: {}) flagged: {}",
+                "Le processus {} (PID {}) est signalé : {}.",
                 process_name, pid, reason
             ),
         )
@@ -203,9 +203,10 @@ impl SecurityIncident {
         Self::new(
             IncidentType::CryptoMiner,
             IncidentSeverity::High,
-            format!("Crypto miner detected: {}", process_name),
+            format!("Mineur de cryptomonnaie : {}", process_name),
             format!(
-                "Process {} (PID: {}) matches known crypto miner signature",
+                "Le processus {} (PID {}) correspond à la signature d'un mineur de \
+                 cryptomonnaie connu.",
                 process_name, pid
             ),
         )
@@ -228,7 +229,7 @@ impl SecurityIncident {
         Self::new(
             IncidentType::UnauthorizedChange,
             severity,
-            format!("System change detected: {}", change_type),
+            format!("Changement système : {}", change_type),
             description.to_string(),
         )
         .with_evidence(serde_json::json!({
@@ -243,8 +244,9 @@ impl SecurityIncident {
         Self::new(
             IncidentType::FirewallDisabled,
             IncidentSeverity::High,
-            "Firewall protection disabled",
-            "System firewall has been disabled, reducing security protection",
+            "Pare-feu désactivé",
+            "Le pare-feu du système est désactivé : le poste n'est plus protégé des \
+             connexions entrantes.",
         )
         .with_evidence(details)
         .with_confidence(95)
@@ -255,8 +257,8 @@ impl SecurityIncident {
         Self::new(
             IncidentType::AntivirusDisabled,
             IncidentSeverity::High,
-            format!("Antivirus protection disabled: {}", av_name),
-            format!("{} real-time protection has been disabled", av_name),
+            format!("Antivirus désactivé : {}", av_name),
+            format!("La protection en temps réel de {} est désactivée.", av_name),
         )
         .with_evidence(details)
         .with_confidence(95)

@@ -490,8 +490,7 @@ mod tests {
                 id: None,
                 members: vec!["alice".to_string(), "bob".to_string()],
             }],
-            services: Vec::new(),
-            listening_ports: Vec::new(),
+            ..SystemInventory::default()
         }
     }
 
@@ -564,8 +563,7 @@ mod tests {
                 id: None,
                 members: vec![r"PC\Admin2".to_string(), r"PC\Bob".to_string()],
             }],
-            services: Vec::new(),
-            listening_ports: Vec::new(),
+            ..SystemInventory::default()
         };
         // The built-in administrator, renamed.
         assert!(

@@ -67,49 +67,49 @@ const WATCHED: &[Watched] = &[
     Watched {
         key: r"HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Run",
         values: &[],
-        what: "a program started at every logon",
+        what: "un programme lancé à chaque ouverture de session",
         technique: "T1547.001",
         severity: IncidentSeverity::High,
     },
     Watched {
         key: r"HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce",
         values: &[],
-        what: "a program started at the next logon",
+        what: "un programme lancé à la prochaine ouverture de session",
         technique: "T1547.001",
         severity: IncidentSeverity::Medium,
     },
     Watched {
         key: r"HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Run",
         values: &[],
-        what: "a program started at every logon",
+        what: "un programme lancé à chaque ouverture de session",
         technique: "T1547.001",
         severity: IncidentSeverity::High,
     },
     Watched {
         key: r"HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\RunOnce",
         values: &[],
-        what: "a program started at the next logon",
+        what: "un programme lancé à la prochaine ouverture de session",
         technique: "T1547.001",
         severity: IncidentSeverity::Medium,
     },
     Watched {
         key: r"HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer\Run",
         values: &[],
-        what: "a program started at every logon, by policy",
+        what: "un programme lancé à chaque ouverture de session, par stratégie",
         technique: "T1547.001",
         severity: IncidentSeverity::High,
     },
     Watched {
         key: r"HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon",
         values: &["Shell", "Userinit", "Taskman"],
-        what: "the program that opens the session",
+        what: "le programme qui ouvre la session",
         technique: "T1547.004",
         severity: IncidentSeverity::Critical,
     },
     Watched {
         key: r"HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Windows",
         values: &["AppInit_DLLs", "LoadAppInit_DLLs"],
-        what: "a library loaded into every process",
+        what: "une bibliothèque chargée dans chaque processus",
         technique: "T1546.010",
         severity: IncidentSeverity::High,
     },
@@ -120,28 +120,28 @@ const WATCHED: &[Watched] = &[
             "Notification Packages",
             "Security Packages",
         ],
-        what: "a library loaded by the logon service",
+        what: "une bibliothèque chargée par le service d'ouverture de session",
         technique: "T1547.002",
         severity: IncidentSeverity::High,
     },
     Watched {
         key: r"HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Session Manager",
         values: &["BootExecute"],
-        what: "a program run before the session starts",
+        what: "un programme exécuté avant l'ouverture de la session",
         technique: "T1547.001",
         severity: IncidentSeverity::High,
     },
     Watched {
         key: r"HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Session Manager\AppCertDlls",
         values: &[],
-        what: "a library loaded into every process that starts another",
+        what: "une bibliothèque chargée dans chaque processus qui en lance un autre",
         technique: "T1546.009",
         severity: IncidentSeverity::High,
     },
     Watched {
         key: r"HKEY_LOCAL_MACHINE\SOFTWARE\Classes\exefile\shell\open\command",
         values: &[],
-        what: "what runs when any program is started",
+        what: "ce qui s'exécute au lancement de tout programme",
         technique: "T1546.001",
         severity: IncidentSeverity::Critical,
     },
@@ -236,7 +236,7 @@ fn meaning(entry: &str) -> (&'static str, &'static str, IncidentSeverity) {
     let upper = entry.to_ascii_uppercase();
     if upper.starts_with(&IFEO.to_ascii_uppercase()) {
         return (
-            "a program run in place of another",
+            "un programme exécuté à la place d'un autre",
             "T1546.012",
             IncidentSeverity::High,
         );
@@ -245,9 +245,9 @@ fn meaning(entry: &str) -> (&'static str, &'static str, IncidentSeverity) {
         let once = upper.contains("\\RUNONCE\\");
         return (
             if once {
-                "a program started at the next logon of a user"
+                "un programme lancé à la prochaine ouverture de session d'un utilisateur"
             } else {
-                "a program started at every logon of a user"
+                "un programme lancé à chaque ouverture de session d'un utilisateur"
             },
             "T1547.001",
             if once {
@@ -265,7 +265,7 @@ fn meaning(entry: &str) -> (&'static str, &'static str, IncidentSeverity) {
         .max_by_key(|watched| watched.key.len())
         .map_or(
             (
-                "a value of a key the configuration watches",
+                "une valeur d'une clé que la configuration surveille",
                 "T1112",
                 IncidentSeverity::Medium,
             ),
@@ -279,16 +279,16 @@ impl RegistryChange {
         let (what, technique, severity) = meaning(&self.entry);
         let (title, description) = match &self.before {
             None => (
-                format!("Registry start-up value added: {}", self.entry),
+                format!("Valeur de registre ajoutée : {}", self.entry),
                 format!(
-                    "{} was added with the data \"{}\". This location sets {}.",
+                    "{} a été ajoutée avec la donnée « {} ». Cet emplacement définit {}.",
                     self.entry, self.after, what
                 ),
             ),
             Some(before) => (
-                format!("Registry start-up value changed: {}", self.entry),
+                format!("Valeur de registre modifiée : {}", self.entry),
                 format!(
-                    "{} changed from \"{}\" to \"{}\". This location sets {}.",
+                    "{} est passée de « {} » à « {} ». Cet emplacement définit {}.",
                     self.entry, before, self.after, what
                 ),
             ),
@@ -681,13 +681,13 @@ mod tests {
             .collect();
         found.sort_by(|a, b| a.0.cmp(&b.0));
         assert_eq!(found.len(), 4, "{found:?}");
-        assert!(found[0].0.starts_with("Registry start-up value added: HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Image File Execution Options\\sethc.exe\\Debugger"));
+        assert!(found[0].0.starts_with("Valeur de registre ajoutée : HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Image File Execution Options\\sethc.exe\\Debugger"));
         assert_eq!(found[0].1, IncidentSeverity::High);
         assert!(found[1].0.ends_with(r"CurrentVersion\Run\Updater"));
         assert_eq!(found[1].1, IncidentSeverity::High);
         assert!(found[2].0.contains(r"RunOnce\Setup"));
         assert_eq!(found[2].1, IncidentSeverity::Medium);
-        assert!(found[3].0.starts_with("Registry start-up value changed:"));
+        assert!(found[3].0.starts_with("Valeur de registre modifiée :"));
         assert_eq!(found[3].1, IncidentSeverity::Critical);
 
         let shell = incidents
@@ -699,7 +699,7 @@ mod tests {
         assert!(
             shell
                 .description
-                .contains("the program that opens the session")
+                .contains("le programme qui ouvre la session")
         );
         // Reported once.
         assert!(monitor.check().is_empty());
@@ -739,19 +739,19 @@ mod tests {
             of(
                 r"HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Session Manager\AppCertDlls\x"
             ),
-            "a library loaded into every process that starts another"
+            "une bibliothèque chargée dans chaque processus qui en lance un autre"
         );
         assert_eq!(
             of(r"HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Session Manager\BootExecute"),
-            "a program run before the session starts"
+            "un programme exécuté avant l'ouverture de la session"
         );
         assert_eq!(
             of(r"hkey_local_machine\software\microsoft\windows\currentversion\run\x"),
-            "a program started at every logon"
+            "un programme lancé à chaque ouverture de session"
         );
         assert_eq!(
             of(&format!(r"HKEY_USERS\{USER}\{RUN}\x")),
-            "a program started at every logon of a user"
+            "un programme lancé à chaque ouverture de session d'un utilisateur"
         );
     }
 

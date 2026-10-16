@@ -378,8 +378,9 @@ pub fn seed(state: &mut AppState) {
     // ── Inventory of the endpoint ────────────────────────────────────
     {
         use agent_gui::dto::{
-            GuiInventoryAccount, GuiInventoryChange, GuiInventoryGroup, GuiInventoryPort,
-            GuiInventoryService, GuiSystemInventory,
+            GuiInventoryAccount, GuiInventoryChange, GuiInventoryContainer, GuiInventoryGroup,
+            GuiInventoryHotfix, GuiInventoryPort, GuiInventoryService, GuiSystemDescription,
+            GuiSystemInventory,
         };
         let account = |name: &str, id: &str, home: &str, shell: &str, log_in: bool, admin: bool| {
             GuiInventoryAccount {
@@ -458,6 +459,99 @@ pub fn seed(state: &mut AppState) {
                 port("tcp", "127.0.0.1", 5432, "postgres", true),
                 port("udp", "127.0.0.53", 53, "systemd-resolved", true),
             ],
+            system: Some(GuiSystemDescription {
+                hostname: Some("web-01".into()),
+                os_label: Some("Ubuntu 24.04.1 LTS".into()),
+                kernel: Some("6.8.0-47-generic".into()),
+                architecture: Some("x86_64".into()),
+                manufacturer: Some("Dell Inc.".into()),
+                model: Some("PowerEdge R650".into()),
+                serial_number: Some("7XK2QD3".into()),
+                processor: Some("Intel(R) Xeon(R) Silver 4314 CPU @ 2.40GHz".into()),
+                cores: Some(16),
+                threads: Some(32),
+                memory_bytes: Some(64 * (1 << 30) - 310 * (1 << 20)),
+                booted_at: Some(ago(6 * 24 * 60 + 135)),
+            }),
+            // The updates tab is Windows'; `PREVIEW_HOTFIXES` shows it.
+            hotfixes: if std::env::var("PREVIEW_HOTFIXES").is_ok() {
+                [
+                    ("KB5044284", "Security Update", Some("2026-10-08")),
+                    ("KB5043937", "Update", Some("2026-09-24")),
+                    ("KB5042098", "Update", Some("2026-09-10")),
+                    ("KB5040442", "Security Update", None),
+                ]
+                .into_iter()
+                .map(|(id, description, day)| GuiInventoryHotfix {
+                    id: id.into(),
+                    description: Some(description.into()),
+                    installed_on: day.map(Into::into),
+                })
+                .collect()
+            } else {
+                Vec::new()
+            },
+            containers: [
+                (
+                    "4f2a9c0d1e2b",
+                    "debug-shell",
+                    "alpine:3.20",
+                    "running",
+                    "root",
+                    vec![
+                        "Privilégié",
+                        "Racine de l'hôte montée",
+                        "Processus de l'hôte",
+                    ],
+                    true,
+                ),
+                (
+                    "9b8a7c6d5e4f",
+                    "traefik",
+                    "traefik:v3.1",
+                    "running",
+                    "root",
+                    vec!["Socket du moteur monté"],
+                    true,
+                ),
+                (
+                    "1c2d3e4f5a6b",
+                    "web",
+                    "nginx:1.27",
+                    "running",
+                    "nginx",
+                    vec![],
+                    false,
+                ),
+                (
+                    "7e6d5c4b3a29",
+                    "migration",
+                    "app/migrate:2.4",
+                    "exited",
+                    "app",
+                    vec![],
+                    false,
+                ),
+            ]
+            .into_iter()
+            .map(
+                |(id, name, image, state, user, risks, can_take_host)| GuiInventoryContainer {
+                    engine: if name == "migration" {
+                        "podman"
+                    } else {
+                        "docker"
+                    }
+                    .into(),
+                    id: id.into(),
+                    name: name.into(),
+                    image: image.into(),
+                    state: state.into(),
+                    user: user.into(),
+                    risks: risks.into_iter().map(Into::into).collect(),
+                    can_take_host,
+                },
+            )
+            .collect(),
             changes: vec![
                 GuiInventoryChange {
                     at: ago(4),
@@ -472,6 +566,11 @@ pub fn seed(state: &mut AppState) {
                 GuiInventoryChange {
                     at: ago(34),
                     label: "Service modifié : cups.service (enabled → disabled)".into(),
+                    severity: None,
+                },
+                GuiInventoryChange {
+                    at: ago(6 * 24 * 60 + 130),
+                    label: "Noyau : 6.8.0-45-generic → 6.8.0-47-generic".into(),
                     severity: None,
                 },
             ],

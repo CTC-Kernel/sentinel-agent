@@ -54,6 +54,8 @@ pub(crate) struct LoopState {
     pub last_compliance_check_at: Option<chrono::DateTime<chrono::Utc>>,
     /// What the custom detection rules have already reported.
     pub rule_hit_memory: RuleHitMemory,
+    /// The watched commands running in the background, by name.
+    pub command_jobs: Vec<(String, super::job::Job<crate::command_monitor::CommandRun>)>,
     /// Background tasks started by the loop; reaped at each pass, so a panic
     /// is logged and a task meant to keep running is started again.
     pub tasks: TaskSet,
@@ -113,6 +115,7 @@ impl LoopState {
             compliance_score: None,
             last_compliance_check_at: None,
             rule_hit_memory: RuleHitMemory::default(),
+            command_jobs: Vec::new(),
             tasks: TaskSet::new("main loop"),
             #[cfg(feature = "gui")]
             gui: GuiLoopState {

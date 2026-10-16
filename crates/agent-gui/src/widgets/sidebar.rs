@@ -97,7 +97,7 @@ fn nav_sections() -> [NavSection; 5] {
             items: &[
                 (Page::Assets, icons::BOXES_STACKED, "Inventaire"),
                 (Page::Software, icons::SOFTWARE, "Logiciels & MDM"),
-                (Page::SystemInventory, icons::USERS, "Comptes & services"),
+                (Page::SystemInventory, icons::DESKTOP, "Système & comptes"),
                 (Page::Discovery, icons::DISCOVERY, "Shadow IT"),
                 (Page::Cartography, icons::CARTOGRAPHY, "Cartographie"),
             ],

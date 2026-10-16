@@ -98,12 +98,12 @@ impl MinerDetector {
         NetworkSecurityAlert {
             alert_type: NetworkAlertType::CryptoMining,
             severity: AlertSeverity::High,
-            title: format!("Crypto miner process detected: {}", process_name),
+            title: format!("Mineur de cryptomonnaie : {}", process_name),
             description: format!(
-                "Process '{}' is a known crypto miner and has an active network connection to {}:{}. \
-                This may indicate unauthorized mining activity consuming system resources.",
+                "Le processus « {} » est un mineur de cryptomonnaie connu, connecté à {}:{}. \
+                Un minage non autorisé consomme les ressources du poste.",
                 process_name,
-                conn.remote_address.as_deref().unwrap_or("unknown"),
+                conn.remote_address.as_deref().unwrap_or("inconnue"),
                 conn.remote_port.unwrap_or(0)
             ),
             connection: Some(conn.clone()),
@@ -126,18 +126,18 @@ impl MinerDetector {
         conn: &NetworkConnection,
         port: u16,
     ) -> NetworkSecurityAlert {
-        let remote_addr = conn.remote_address.as_deref().unwrap_or("unknown");
+        let remote_addr = conn.remote_address.as_deref().unwrap_or("inconnue");
 
         NetworkSecurityAlert {
             alert_type: NetworkAlertType::CryptoMining,
             severity: AlertSeverity::High,
-            title: "Connection to known mining pool".to_string(),
+            title: "Connexion à un pool de minage connu".to_string(),
             description: format!(
-                "Active connection to mining pool address {} on stratum port {}. \
-                Process: {}. This indicates active crypto mining.",
+                "Connexion active vers le pool de minage {} sur le port stratum {}. \
+                Processus : {}. Du minage de cryptomonnaie est en cours.",
                 remote_addr,
                 port,
-                conn.process_name.as_deref().unwrap_or("unknown")
+                conn.process_name.as_deref().unwrap_or("inconnu")
             ),
             connection: Some(conn.clone()),
             evidence: json!({

@@ -1,0 +1,172 @@
+# Règles Sigma livrées avec l'agent Sentinel GRC : les conteneurs Docker et
+# Podman.
+#
+# Elles portent sur les événements de conteneurs que l'agent lit avec
+# `docker events` et `podman events` (service `containers` ; `docker` ou
+# `podman` pour un seul moteur) ; le démarrage d'un conteneur est complété
+# par `inspect` (voir crates/agent-siem/src/decode.rs). Pour
+# en ajuster une, copiez-la dans le dossier « sigma.d » avec le même `id` :
+# votre version la remplace. Pour en désactiver une, ajoutez son `id` à
+# « sigma.d/disabled-rules.txt ».
+title: Conteneur privilégié démarré
+id: cb23d1db-6863-4277-8032-e7d67a57675c
+status: stable
+description: Un conteneur a démarré en mode privilégié. Il voit tous les périphériques de l'hôte et peut charger des modules du noyau ; en sortir pour prendre l'hôte est à sa portée.
+author: Sentinel GRC
+tags:
+    - attack.privilege_escalation
+    - attack.t1611
+    - attack.execution
+    - attack.t1610
+logsource:
+    product: linux
+    service: containers
+detection:
+    selection:
+        action: start
+        privileged: 'true'
+    condition: selection
+level: high
+---
+title: Conteneur qui monte la racine de l'hôte
+id: c384644d-ec8e-435b-81da-7f5d6e084481
+status: stable
+description: Un conteneur a démarré avec la racine du système de fichiers de l'hôte montée. Il peut lire et modifier tout l'hôte, ses comptes et ses tâches planifiées comprises.
+author: Sentinel GRC
+tags:
+    - attack.privilege_escalation
+    - attack.t1611
+logsource:
+    product: linux
+    service: containers
+detection:
+    selection:
+        action: start
+        mounts_host_root: 'true'
+    condition: selection
+level: high
+---
+title: Conteneur qui monte le socket du moteur de conteneurs
+id: 62b974ea-7b0c-45f8-aebb-1193b03e1b33
+status: stable
+description: Un conteneur a démarré avec le socket de Docker (ou de containerd, CRI-O, Podman) monté. Qui le contrôle peut lancer un conteneur privilégié, donc prendre l'hôte. Des outils d'administration (Portainer, Traefik, Watchtower) le font légitimement.
+author: Sentinel GRC
+tags:
+    - attack.privilege_escalation
+    - attack.t1611
+    - attack.execution
+    - attack.t1610
+logsource:
+    product: linux
+    service: containers
+detection:
+    selection:
+        action: start
+        mounts_docker_socket: 'true'
+    condition: selection
+level: medium
+---
+title: Conteneur doté de capacités qui permettent d'en sortir
+id: df93e3ef-0495-44d9-a182-01bf51d3ed2c
+status: stable
+description: Un conteneur a démarré avec une capacité du noyau qui suffit à en sortir (administration du système, chargement de modules, lecture de tout fichier, ou toutes les capacités).
+author: Sentinel GRC
+tags:
+    - attack.privilege_escalation
+    - attack.t1611
+logsource:
+    product: linux
+    service: containers
+detection:
+    selection:
+        action: start
+        cap_add|contains:
+            - SYS_ADMIN
+            - SYS_MODULE
+            - DAC_READ_SEARCH
+            - ALL
+    condition: selection
+level: high
+---
+title: Conteneur avec accès direct à un périphérique de stockage de l'hôte
+id: 3ba518aa-09d4-4fef-8943-a0d0d927ef9e
+status: stable
+description: Un conteneur a démarré avec un disque ou la mémoire de l'hôte en accès direct. Il lit tout ce que le disque contient, sans les droits du système de fichiers.
+author: Sentinel GRC
+tags:
+    - attack.privilege_escalation
+    - attack.t1611
+logsource:
+    product: linux
+    service: containers
+detection:
+    selection:
+        action: start
+        devices|contains:
+            - /dev/sd
+            - /dev/nvme
+            - /dev/vd
+            - /dev/xvd
+            - /dev/mapper
+            - /dev/mem
+            - /dev/kmem
+    condition: selection
+level: high
+---
+title: Conteneur dans l'espace des processus de l'hôte
+id: 6387008a-a07e-4262-b414-b20c113971d7
+status: stable
+description: Un conteneur a démarré dans l'espace des processus de l'hôte (--pid=host). Il voit et peut atteindre tous les processus de l'hôte.
+author: Sentinel GRC
+tags:
+    - attack.privilege_escalation
+    - attack.t1611
+logsource:
+    product: linux
+    service: containers
+detection:
+    selection:
+        action: start
+        pid_mode: host
+    condition: selection
+level: medium
+---
+title: Conteneur sans profil de sécurité
+id: c2d0be3c-45dd-446f-87b5-ab84eae67842
+status: stable
+description: Un conteneur a démarré sans le filtrage des appels système (seccomp) ou sans le profil AppArmor que Docker applique par défaut. Ces protections bornent ce qu'un processus du conteneur peut demander au noyau.
+author: Sentinel GRC
+tags:
+    - attack.defense_evasion
+    - attack.t1562.001
+logsource:
+    product: linux
+    service: containers
+detection:
+    selection:
+        action: start
+        security_opt|contains:
+            - seccomp=unconfined
+            - seccomp:unconfined
+            - apparmor=unconfined
+            - apparmor:unconfined
+    condition: selection
+level: medium
+---
+title: Shell interactif ouvert dans un conteneur
+id: 40fad355-22da-46a1-9fe8-8e5f75104eb2
+status: stable
+description: Un shell a été lancé dans un conteneur en cours d'exécution (docker exec ; Podman ne dit pas ce qu'un exec lance). Courant pour un administrateur, c'est aussi ce que fait un attaquant qui a pris la main sur l'hôte ou sur l'API Docker.
+author: Sentinel GRC
+tags:
+    - attack.execution
+    - attack.t1609
+logsource:
+    product: linux
+    service: containers
+detection:
+    selection:
+        action: exec_start
+        command|re: '^(/usr)?(/bin/)?(ba|z|a|da|k)?sh( -[a-z]+)*$'
+    condition: selection
+level: low

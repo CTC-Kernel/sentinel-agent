@@ -88,25 +88,25 @@ impl PortScanner {
 
     fn create_tor_alert(&self, conn: &NetworkConnection, port: u16) -> NetworkSecurityAlert {
         let port_desc = match port {
-            9001 => "Tor OR port",
-            9030 => "Tor directory port",
-            9050 => "Tor SOCKS proxy",
-            9051 => "Tor control port",
-            9150 => "Tor Browser SOCKS",
-            _ => "Tor network port",
+            9001 => "port de relais Tor",
+            9030 => "port d'annuaire Tor",
+            9050 => "proxy SOCKS Tor",
+            9051 => "port de contrôle Tor",
+            9150 => "SOCKS du navigateur Tor",
+            _ => "port du réseau Tor",
         };
 
         NetworkSecurityAlert {
             alert_type: NetworkAlertType::AnonymizationNetwork,
             severity: AlertSeverity::Medium,
-            title: format!("Tor network connection detected ({})", port_desc),
+            title: format!("Connexion au réseau Tor ({})", port_desc),
             description: format!(
-                "Connection to {} on port {} ({}). \
-                Tor usage may indicate attempt to anonymize traffic or access dark web. Process: {}",
-                conn.remote_address.as_deref().unwrap_or("unknown"),
+                "Connexion vers {} sur le port {} ({}). \
+                Tor sert à rendre le trafic anonyme ou à joindre des services cachés. Processus : {}.",
+                conn.remote_address.as_deref().unwrap_or("inconnue"),
                 port,
                 port_desc,
-                conn.process_name.as_deref().unwrap_or("unknown")
+                conn.process_name.as_deref().unwrap_or("inconnu")
             ),
             connection: Some(conn.clone()),
             evidence: json!({
@@ -127,13 +127,14 @@ impl PortScanner {
         NetworkSecurityAlert {
             alert_type: NetworkAlertType::SuspiciousPort,
             severity: AlertSeverity::Medium,
-            title: format!("IRC connection detected on port {}", port),
+            title: format!("Connexion IRC sur le port {}", port),
             description: format!(
-                "Connection to IRC port {} at {}. \
-                IRC is commonly used by botnets for command and control. Process: {}",
+                "Connexion au port IRC {} de {}. \
+                Des réseaux de machines compromises (botnets) reçoivent leurs ordres par IRC. \
+                Processus : {}.",
                 port,
-                conn.remote_address.as_deref().unwrap_or("unknown"),
-                conn.process_name.as_deref().unwrap_or("unknown")
+                conn.remote_address.as_deref().unwrap_or("inconnue"),
+                conn.process_name.as_deref().unwrap_or("inconnu")
             ),
             connection: Some(conn.clone()),
             evidence: json!({
@@ -155,24 +156,24 @@ impl PortScanner {
         port: u16,
     ) -> NetworkSecurityAlert {
         let port_desc = match port {
-            22 => "SSH - unusual outbound from workstation",
-            23 => "Telnet - insecure protocol",
-            3389 => "RDP - potential lateral movement",
-            5900..=5902 => "VNC - remote desktop",
-            _ => "suspicious port",
+            22 => "SSH, inhabituel depuis un poste de travail",
+            23 => "Telnet, protocole non chiffré",
+            3389 => "RDP, déplacement latéral possible",
+            5900..=5902 => "VNC, bureau à distance",
+            _ => "port suspect",
         };
 
         NetworkSecurityAlert {
             alert_type: NetworkAlertType::SuspiciousPort,
             severity: AlertSeverity::Low,
-            title: format!("Suspicious outbound connection on port {}", port),
+            title: format!("Connexion sortante suspecte sur le port {}", port),
             description: format!(
-                "Outbound connection to {}:{} ({}). \
-                This type of outbound connection may warrant investigation. Process: {}",
-                conn.remote_address.as_deref().unwrap_or("unknown"),
+                "Connexion sortante vers {}:{} ({}). \
+                Ce type de connexion mérite d'être examiné. Processus : {}.",
+                conn.remote_address.as_deref().unwrap_or("inconnue"),
                 port,
                 port_desc,
-                conn.process_name.as_deref().unwrap_or("unknown")
+                conn.process_name.as_deref().unwrap_or("inconnu")
             ),
             connection: Some(conn.clone()),
             evidence: json!({
@@ -193,11 +194,11 @@ impl PortScanner {
         NetworkSecurityAlert {
             alert_type: NetworkAlertType::SuspiciousPort,
             severity: AlertSeverity::High,
-            title: format!("Suspicious listening port detected: {}", conn.local_port),
+            title: format!("Port en écoute suspect : {}", conn.local_port),
             description: format!(
-                "Process '{}' is listening on port {} which is commonly associated with backdoors or RATs. \
-                Verify this is a legitimate service.",
-                conn.process_name.as_deref().unwrap_or("unknown"),
+                "Le processus « {} » écoute sur le port {}, souvent associé aux portes dérobées et \
+                aux outils de prise de contrôle à distance. Vérifier qu'il s'agit d'un service légitime.",
+                conn.process_name.as_deref().unwrap_or("inconnu"),
                 conn.local_port
             ),
             connection: Some(conn.clone()),
