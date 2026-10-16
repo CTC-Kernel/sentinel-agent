@@ -618,6 +618,8 @@ impl AgentRuntime {
     pub fn new(config: AgentConfig) -> Self {
         let config = SecureConfig::from(config);
         let resource_monitor = ResourceMonitor::new();
+        // First system CPU sample, so the first heartbeat reports a real value.
+        crate::resources::prime_system_cpu();
         let vulnerability_scanner = VulnerabilityScanner::new().with_exploit_intel_cache(
             AgentConfig::platform_data_dir()
                 .join("cache")
