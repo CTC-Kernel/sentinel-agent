@@ -140,7 +140,7 @@ checksum = "320119579fcad9c21884f5c4861d16174d0e06250625266f50fe6898340abefa"
 name = "agent-common"
 version = "4.0.53"
 dependencies = [
- "base64 0.22.1",
+ "base64 0.23.1",
  "blake3",
  "chrono",
  "config",
@@ -179,7 +179,7 @@ dependencies = [
  "agent_llm",
  "anyhow",
  "async-trait",
- "base64 0.22.1",
+ "base64 0.23.1",
  "blake3",
  "chrono",
  "clap",
@@ -341,7 +341,7 @@ dependencies = [
  "agent_llm",
  "anyhow",
  "async-trait",
- "base64 0.22.1",
+ "base64 0.23.1",
  "blake3",
  "chrono",
  "directories",
@@ -421,7 +421,7 @@ version = "4.0.53"
 dependencies = [
  "agent-common",
  "agent-storage",
- "base64 0.22.1",
+ "base64 0.23.1",
  "chrono",
  "flate2",
  "futures-util",

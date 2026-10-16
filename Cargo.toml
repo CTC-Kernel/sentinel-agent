@@ -74,7 +74,7 @@ blake3 = "1"
 memmap2 = "0.9"
 regex = "1"
 zeroize = { version = "1", features = ["derive"] }
-base64 = "0.22"
+base64 = "0.23"
 getrandom = "0.2"
 os_info = "3"
 flate2 = "1.0"
