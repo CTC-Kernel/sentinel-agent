@@ -285,6 +285,21 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
             .font(theme::font_min())
             .color(theme::text_secondary()),
         );
+        if !state
+            .summary
+            .detection
+            .is_on(crate::dto::DetectionOption::ProcessEvents)
+        {
+            ui.add_space(theme::SPACE_SM);
+            widgets::alert::alert_compact(
+                ui,
+                widgets::alert::AlertLevel::Warning,
+                "Les r\u{00e8}gles ne voient que les processus encore en cours au balayage de cinq \
+                 minutes : une commande br\u{00e8}ve (vssadmin, certutil, wevtutil\u{2026}) leur \
+                 \u{00e9}chappe. Activez \u{00ab}\u{00a0}Processus \u{00e9}valu\u{00e9}s \u{00e0} leur lancement\u{00a0}\u{00bb} dans \
+                 Param\u{00e8}tres \u{203a} D\u{00e9}tection et conformit\u{00e9}.",
+            );
+        }
     });
 
     ui.add_space(theme::SPACE_MD);

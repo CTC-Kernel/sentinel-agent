@@ -54,6 +54,19 @@ Tous les changements notables apportés au projet **Sentinel GRC Agent** sont co
 - **Notifications en français** : « Règle « X » déclenchée », et ce qui a été
   trouvé (« Processus mimikatz.exe (PID 4120) : … »).
 
+### ⚡ Processus évalués à leur lancement
+
+- **Réglable dans l'interface** : « Processus évalués à leur lancement »
+  rejoint Paramètres › Détection et conformité. Sans elle, les règles ne
+  voient que les processus encore en cours au balayage de cinq minutes : une
+  commande brève (`vssadmin delete shadows`, `certutil -urlcache`…) leur
+  échappe. L'onglet Règles le signale tant qu'elle est coupée.
+- **Linux** : la source (connecteur de processus du noyau) n'était compilée
+  dans aucune version. Elle l'est, et a été essayée sur un vrai noyau Ubuntu
+  24.04 : un `sh -c` de quelques millisecondes est vu, et la réponse d'une
+  règle arrête le processus trouvé. Dans un conteneur qui partage le noyau
+  d'un autre système, elle peut manquer : le balayage périodique reste.
+
 ### 🕳️ Rootkits : modules noyau connus, signatures récentes
 
 - **Modules noyau de rootkits publiés** : un module chargé sous le nom de

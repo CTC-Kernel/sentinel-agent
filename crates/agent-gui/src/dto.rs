@@ -330,11 +330,14 @@ pub enum DetectionOption {
     FimReportChanges,
     /// Who changed a watched file, from the system audit (Linux).
     FimWhodata,
+    /// Every process evaluated as it starts, not only at the periodic scan.
+    ProcessEvents,
 }
 
 impl DetectionOption {
     /// Every option, in the order the settings show them.
-    pub const ALL: [Self; 6] = [
+    pub const ALL: [Self; 7] = [
+        Self::ProcessEvents,
         Self::LogAnalysis,
         Self::RootkitDetection,
         Self::SystemInventory,
@@ -352,6 +355,7 @@ impl DetectionOption {
             Self::HardeningBenchmark => "hardening_benchmark",
             Self::FimReportChanges => "fim_report_changes",
             Self::FimWhodata => "fim_whodata",
+            Self::ProcessEvents => "process_event_telemetry",
         }
     }
 
@@ -363,6 +367,7 @@ impl DetectionOption {
             Self::HardeningBenchmark => "Socle de durcissement",
             Self::FimReportChanges => "Lignes modifi\u{00e9}es (int\u{00e9}grit\u{00e9})",
             Self::FimWhodata => "Auteur exact des changements (audit)",
+            Self::ProcessEvents => "Processus \u{00e9}valu\u{00e9}s \u{00e0} leur lancement",
         }
     }
 
@@ -393,6 +398,13 @@ impl DetectionOption {
                  pour nommer le compte et le programme de chaque modification. Demande auditd ; \
                  sur un syst\u{00e8}me tr\u{00e8}s actif, une mise \u{00e0} jour produit beaucoup d'enregistrements."
             }
+            Self::ProcessEvents => {
+                "Chaque processus passe par les r\u{00e8}gles de d\u{00e9}tection d\u{00e8}s son lancement, m\u{00ea}me s'il ne \
+                 dure qu'une seconde (vssadmin, certutil\u{2026}) ; sans elle, seuls les processus encore \
+                 en cours au balayage de cinq minutes sont vus. Le syst\u{00e8}me signale les lancements : \
+                 connecteur du noyau sous Linux, Endpoint Security sous macOS (acc\u{00e8}s complet au \
+                 disque), trace du noyau sous Windows."
+            }
         }
     }
 
@@ -414,6 +426,8 @@ pub struct GuiDetectionOptions {
     pub fim_report_changes: bool,
     #[serde(default)]
     pub fim_whodata: bool,
+    #[serde(default)]
+    pub process_events: bool,
     /// What the log analysis loaded, in one line (`None`: off).
     #[serde(default)]
     pub log_rules: Option<String>,
@@ -428,6 +442,7 @@ impl GuiDetectionOptions {
             DetectionOption::HardeningBenchmark => self.hardening_benchmark,
             DetectionOption::FimReportChanges => self.fim_report_changes,
             DetectionOption::FimWhodata => self.fim_whodata,
+            DetectionOption::ProcessEvents => self.process_events,
         }
     }
 }

@@ -23,9 +23,10 @@
 //! - Windows: the command line and path are read just after the start
 //!   event; a process that has already exited is reported with its name only.
 //! - Linux: the connector reports the process identifier; its details are
-//!   read from `/proc` at once, with the same limit for very short processes.
-//!   The source is behind the `proc-connector` feature until it has been
-//!   built and exercised on Linux.
+//!   read from `/proc` at once, with the same limit for very short processes
+//!   (in practice a `sh -c` of a few milliseconds is still read). It needs a
+//!   kernel with the process connector: a container sharing another kernel
+//!   may not have it, and the periodic scan then remains.
 //!
 //! When a source cannot start, the periodic scan remains the only detection:
 //! nothing else changes.
