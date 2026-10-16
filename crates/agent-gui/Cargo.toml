@@ -48,6 +48,13 @@ argon2.workspace = true
 
 [dev-dependencies]
 serde_json.workspace = true
+# The preview example renders `PREVIEW_OUT` captures offscreen, so they work
+# with the screen locked or the window covered. eframe with its default
+# features keeps a Linux `--no-default-features` test build compiling: without
+# them winit has no x11/wayland backend to compile.
+eframe.workspace = true
+egui_kittest.workspace = true
+pollster.workspace = true
 
 # Every example exercises egui/eframe APIs. Declaring the requirement keeps
 # DTO-only builds (`--no-default-features --all-targets`) valid instead of

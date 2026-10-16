@@ -5,12 +5,19 @@
 //! reviewed (and screenshotted) in isolation.
 //!
 //! `cargo run -p agent-gui --all-features --example preview`
+//!
+//! `PREVIEW_OUT=<file.png>` renders PREVIEW_SHOT frames offscreen and writes
+//! the last one, without opening a window: it works with the screen locked,
+//! the display asleep or the window covered. Add `PREVIEW_WINDOW=1` to capture
+//! the real window instead, which needs it to be visible on screen.
 
 mod fixtures;
+mod offscreen;
 
 use agent_gui::app::{AppState, Page};
 use agent_gui::{icons, pages, theme, widgets};
 use eframe::egui;
+use std::sync::atomic::{AtomicBool, Ordering};
 
 struct Preview {
     page: Page,
@@ -36,6 +43,9 @@ struct Preview {
     toasts: Vec<widgets::Toast>,
     /// Enrollment wizard, rendered by PREVIEW_PAGE=enrollment at PREVIEW_STEP.
     wizard: agent_gui::enrollment::EnrollmentWizard,
+    /// Rendered by `offscreen::capture`, which counts the frames and reads
+    /// the pixels itself: no window to screenshot or close.
+    offscreen: bool,
 }
 
 impl Default for Preview {
@@ -197,6 +207,7 @@ impl Default for Preview {
                     ..Default::default()
                 }
             },
+            offscreen: false,
         }
     }
 }
@@ -205,14 +216,8 @@ impl eframe::App for Preview {
     /// PREVIEW_HOVER="x,y" (points) holds the pointer at that position, so a
     /// capture can show a hover state: a table row, a card, a button.
     fn raw_input_hook(&mut self, _ctx: &egui::Context, raw_input: &mut egui::RawInput) {
-        let Ok(spec) = std::env::var("PREVIEW_HOVER") else {
-            return;
-        };
-        let mut parts = spec.split(',').filter_map(|v| v.trim().parse::<f32>().ok());
-        if let (Some(x), Some(y)) = (parts.next(), parts.next()) {
-            raw_input
-                .events
-                .push(egui::Event::PointerMoved(egui::pos2(x, y)));
+        if let Some(pos) = hover_pos() {
+            raw_input.events.push(egui::Event::PointerMoved(pos));
         }
     }
 
@@ -409,6 +414,9 @@ impl Preview {
         if std::env::var("PREVIEW_DEBUG").is_ok() {
             eprintln!("frame {}", self.frame_count);
         }
+        if self.offscreen {
+            return;
+        }
         if let Some(n) = self.shot_after
             && self.frame_count >= n
         {
@@ -446,6 +454,7 @@ impl Preview {
                 ) {
                     eprintln!("PREVIEW_OUT: {err}");
                 }
+                SHOT_WRITTEN.store(true, Ordering::Relaxed);
                 ctx.send_viewport_cmd(egui::ViewportCommand::Close);
             }
         }
@@ -982,21 +991,66 @@ fn gallery(ui: &mut egui::Ui) {
     ui.add_space(theme::SPACE_XL);
 }
 
+/// PREVIEW_HOVER="x,y" (points): where the pointer is held.
+fn hover_pos() -> Option<egui::Pos2> {
+    let spec = std::env::var("PREVIEW_HOVER").ok()?;
+    let mut parts = spec.split(',').filter_map(|v| v.trim().parse::<f32>().ok());
+    Some(egui::pos2(parts.next()?, parts.next()?))
+}
+
+/// How long a window capture may take, start to finish (a few seconds when
+/// the window is on screen).
+const WINDOW_SHOT_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(30);
+
+/// The window capture has been written; the process is closing.
+static SHOT_WRITTEN: AtomicBool = AtomicBool::new(false);
+
 fn main() -> eframe::Result<()> {
+    let size = egui::vec2(
+        std::env::var("PREVIEW_W")
+            .ok()
+            .and_then(|v| v.parse().ok())
+            .unwrap_or(theme::WINDOW_WIDTH),
+        std::env::var("PREVIEW_H")
+            .ok()
+            .and_then(|v| v.parse().ok())
+            .unwrap_or(theme::WINDOW_HEIGHT),
+    );
+    if let Ok(path) = std::env::var("PREVIEW_OUT")
+        && std::env::var("PREVIEW_WINDOW").is_err()
+    {
+        if let Err(err) = offscreen::capture(&path, size) {
+            eprintln!("PREVIEW_OUT: {err}");
+            std::process::exit(1);
+        }
+        return Ok(());
+    }
+    if std::env::var("PREVIEW_OUT").is_ok()
+        && std::env::var("PREVIEW_SHOT")
+            .ok()
+            .and_then(|v| v.parse::<u32>().ok())
+            .is_some()
+    {
+        // A window that is not on screen is not painted, and its screenshot
+        // never comes: say so rather than run until killed.
+        std::thread::spawn(|| {
+            std::thread::sleep(WINDOW_SHOT_TIMEOUT);
+            if !SHOT_WRITTEN.load(Ordering::Relaxed) {
+                eprintln!(
+                    "PREVIEW_OUT: no capture after {}s: the window is not on screen (screen \
+                     locked, display asleep, window covered). Without PREVIEW_WINDOW the \
+                     capture is rendered offscreen.",
+                    WINDOW_SHOT_TIMEOUT.as_secs()
+                );
+                std::process::exit(1);
+            }
+        });
+    }
     eframe::run_native(
         "Sentinel GRC Agent — preview",
         eframe::NativeOptions {
             renderer: eframe::Renderer::Wgpu,
-            viewport: egui::ViewportBuilder::default().with_inner_size([
-                std::env::var("PREVIEW_W")
-                    .ok()
-                    .and_then(|v| v.parse().ok())
-                    .unwrap_or(theme::WINDOW_WIDTH),
-                std::env::var("PREVIEW_H")
-                    .ok()
-                    .and_then(|v| v.parse().ok())
-                    .unwrap_or(theme::WINDOW_HEIGHT),
-            ]),
+            viewport: egui::ViewportBuilder::default().with_inner_size(size),
             // A capture must measure the size it was asked for, not the one
             // the previous run left in the window store.
             persist_window: false,

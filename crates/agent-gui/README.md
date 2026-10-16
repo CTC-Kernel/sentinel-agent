@@ -121,11 +121,16 @@ Variables d'environnement :
 | `PREVIEW_LIGHT=1` | Thème clair |
 | `PREVIEW_RAIL=1` | Barre latérale repliée en rail |
 | `PREVIEW_W`, `PREVIEW_H` | Taille de la fenêtre (le rail se replie seul sous 1 120 px) |
-| `PREVIEW_SHOT=<n>` | Ferme la fenêtre après `n` frames (captures automatisées) |
-| `PREVIEW_OUT=<fichier.png>` | Avec `PREVIEW_SHOT`, écrit la capture de la fenêtre dans ce fichier avant de fermer |
+| `PREVIEW_SHOT=<n>` | Nombre de frames rendues avant la capture (8 par défaut avec `PREVIEW_OUT`) ; sans `PREVIEW_OUT`, ferme la fenêtre après `n` frames |
+| `PREVIEW_OUT=<fichier.png>` | Rend `PREVIEW_SHOT` frames hors écran, sans ouvrir de fenêtre, et écrit la dernière dans ce fichier (échelle 2 : 2720×1640 pour la taille par défaut). Fonctionne écran verrouillé, en veille ou fenêtre masquée |
+| `PREVIEW_WINDOW=1` | Avec `PREVIEW_OUT` et `PREVIEW_SHOT`, capture la vraie fenêtre, qui doit être visible à l'écran : sinon eframe ne la peint pas, et le banc abandonne en erreur au bout de 30 s |
 
 Les pages sont disposées avec la colonne du shell (`app::page_column`), pour
-qu'une capture mesure ce que l'application montre.
+qu'une capture mesure ce que l'application montre. La capture hors écran passe
+par `egui_kittest` avec le moteur de rendu que eframe donne à la fenêtre : elle
+est identique au pixel près à la capture de la fenêtre, sauf le curseur de
+texte, qui clignote en temps réel dans la fenêtre. Hors écran, le temps avance
+d'1/60 s par frame, et deux captures du même code sont identiques.
 
 Sonde de défilement, sans fenêtre :
 
