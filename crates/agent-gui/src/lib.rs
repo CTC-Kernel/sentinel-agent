@@ -14,6 +14,7 @@
 
 pub mod admin_auth;
 pub mod assistant_action;
+pub mod detection_catalog;
 pub mod dto;
 pub mod events;
 pub mod format;

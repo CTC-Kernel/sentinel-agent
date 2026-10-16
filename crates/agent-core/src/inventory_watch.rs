@@ -60,65 +60,11 @@ impl InventoryWatch {
         for change in changes {
             self.recent.push_front(RecentChange {
                 at,
-                label: label_fr(change),
+                label: change.describe(),
                 severity: change.incident().map(|incident| incident.severity),
             });
         }
         self.recent.truncate(RECENT_CHANGES);
-    }
-}
-
-/// The change in one sentence, in French, for the interface (the SIEM and
-/// the platform keep [`InventoryChange::describe`]).
-fn label_fr(change: &InventoryChange) -> String {
-    let port = |port: &agent_scanner::inventory::ListeningPort| {
-        format!(
-            "{}/{} sur {}{}",
-            port.protocol,
-            port.port,
-            port.address,
-            port.process
-                .as_deref()
-                .map(|process| format!(" ({process})"))
-                .unwrap_or_default()
-        )
-    };
-    match change {
-        InventoryChange::UserAdded(user) => {
-            format!("Compte créé : {} (identifiant {})", user.name, user.id)
-        }
-        InventoryChange::UserRemoved(user) => format!("Compte supprimé : {}", user.name),
-        InventoryChange::UserChanged { before, after } => format!(
-            "Compte modifié : {} (identifiant {} → {}, shell {} → {})",
-            after.name,
-            before.id,
-            after.id,
-            before.shell.as_deref().unwrap_or("—"),
-            after.shell.as_deref().unwrap_or("—")
-        ),
-        InventoryChange::GroupMemberAdded { group, member } => {
-            format!("{member} ajouté au groupe {group}")
-        }
-        InventoryChange::GroupMemberRemoved { group, member } => {
-            format!("{member} retiré du groupe {group}")
-        }
-        InventoryChange::ServiceAdded(service) => {
-            format!("Service installé : {} ({})", service.name, service.state)
-        }
-        InventoryChange::ServiceRemoved(service) => format!("Service supprimé : {}", service.name),
-        InventoryChange::ServiceChanged { before, after } => format!(
-            "Service modifié : {} ({} → {})",
-            after.name, before.state, after.state
-        ),
-        InventoryChange::PortOpened {
-            port: opened,
-            known,
-        } => format!(
-            "Port en écoute : {}{}",
-            port(opened),
-            if *known { ", déjà vu" } else { "" }
-        ),
-        InventoryChange::PortClosed(closed) => format!("Port fermé : {}", port(closed)),
     }
 }
 
@@ -206,6 +152,7 @@ impl AgentRuntime {
             return (Vec::new(), Vec::new());
         };
         let first = watch.state.inventory.is_none();
+        let system = current.system.as_ref().and_then(|system| system.os_label());
         let (users, services, ports) = (
             current.users.len(),
             current.services.len(),
@@ -223,8 +170,11 @@ impl AgentRuntime {
         }
         if first {
             info!(
-                "First inventory taken: {} accounts, {} services, {} listening ports",
-                users, services, ports
+                "First inventory taken: {}, {} accounts, {} services, {} listening ports",
+                system.as_deref().unwrap_or("system not described"),
+                users,
+                services,
+                ports
             );
         } else if !changes.is_empty() {
             info!("Inventory: {} change(s)", changes.len());
@@ -309,6 +259,58 @@ impl InventoryWatch {
                     severity: change.severity.map(severity),
                 })
                 .collect(),
+            system: inventory
+                .system
+                .as_ref()
+                .map(|system| dto::GuiSystemDescription {
+                    hostname: system.hostname.clone(),
+                    os_label: system.os_label(),
+                    kernel: system.kernel.clone(),
+                    architecture: system.architecture.clone(),
+                    manufacturer: system.manufacturer.clone(),
+                    model: system.model.clone(),
+                    serial_number: system.serial_number.clone(),
+                    processor: system.processor.clone(),
+                    cores: system.cores,
+                    threads: system.threads,
+                    memory_bytes: system.memory_bytes,
+                    booted_at: system.booted_at,
+                }),
+            hotfixes: {
+                let mut hotfixes: Vec<dto::GuiInventoryHotfix> = inventory
+                    .hotfixes
+                    .iter()
+                    .map(|hotfix| dto::GuiInventoryHotfix {
+                        id: hotfix.id.clone(),
+                        description: hotfix.description.clone(),
+                        installed_on: hotfix.installed_on.clone(),
+                    })
+                    .collect();
+                // The days are written `2026-10-08`: their order is that of
+                // the text. The ones without a day come last.
+                hotfixes.sort_by(|a, b| b.installed_on.cmp(&a.installed_on));
+                hotfixes
+            },
+            containers: inventory
+                .containers
+                .iter()
+                .map(|container| {
+                    let risks = container.settings.risks();
+                    dto::GuiInventoryContainer {
+                        engine: container.engine.clone(),
+                        id: container.id.clone(),
+                        name: container.name.clone(),
+                        image: container.image.clone(),
+                        state: container.state.clone(),
+                        user: container.settings.user.clone(),
+                        risks: risks
+                            .iter()
+                            .map(|risk| risk.label_fr().to_string())
+                            .collect(),
+                        can_take_host: risks.iter().any(|risk| risk.is_escape()),
+                    }
+                })
+                .collect(),
         })
     }
 }
@@ -356,6 +358,40 @@ mod tests {
             shell: Some("/bin/bash".to_string()),
             can_log_in: true,
         })
+    }
+
+    #[test]
+    fn system_and_update_changes_are_described_in_french() {
+        use agent_scanner::inventory::{Hotfix, SystemField};
+        let changes = [
+            InventoryChange::SystemChanged {
+                field: SystemField::Memory,
+                before: "16 Gio".to_string(),
+                after: "32 Gio".to_string(),
+            },
+            InventoryChange::SystemChanged {
+                field: SystemField::Kernel,
+                before: "6.8.0-45".to_string(),
+                after: "6.8.0-47".to_string(),
+            },
+            InventoryChange::HotfixRemoved(Hotfix {
+                id: "KB5031356".to_string(),
+                description: None,
+                installed_on: None,
+            }),
+        ];
+        let labels: Vec<String> = changes.iter().map(InventoryChange::describe).collect();
+        assert_eq!(
+            labels,
+            [
+                "Mémoire : 16 Gio → 32 Gio",
+                "Noyau : 6.8.0-45 → 6.8.0-47",
+                "Correctif plus installé : KB5031356"
+            ]
+        );
+        let (incidents, records) = report(&changes, "host");
+        assert!(incidents.is_empty());
+        assert_eq!(records[2].name, "inventory_hotfix_removed");
     }
 
     #[test]

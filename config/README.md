@@ -107,13 +107,44 @@ reussit en sortant avec le code 0. Sous Unix il doit appartenir a root ou au
 compte de l'agent et n'etre modifiable par personne d'autre. Un playbook ne
 peut que nommer une commande declaree : rien de ce qu'il contient n'est execute.
 
+## Commandes surveillees
+
+Des programmes lances a intervalle regulier, dont la sortie est surveillee
+(comme les sources `command` et `full_command` de Wazuh) :
+
+```json
+"command_monitors": [
+  { "name": "listening-ports", "program": "/usr/bin/ss", "args": ["-tlnH"],
+    "interval_secs": 600 }
+]
+```
+
+| Champ | Role | Defaut |
+|-------|------|--------|
+| `name` | Nom de la commande, et du service Sigma de ses lignes (minuscules, chiffres, `-`, `_`) | requis |
+| `program` | Chemin absolu du programme, lance sans interpreteur | requis |
+| `args` | Arguments, tels que declares | aucun |
+| `interval_secs` | Secondes entre deux lancements (60 au moins) | `300` |
+| `report_changes` | Signaler un changement de la sortie, avec les lignes changees | `true` |
+
+Chaque ligne de la sortie passe aux regles des journaux comme un evenement du
+service `name` : une regle Sigma `logsource: service: listening-ports` s'y
+applique. Le programme suit les regles des commandes de reponse (proprietaire
+root ou le compte de l'agent, modifiable par personne d'autre) ; il a une
+minute et 256 Kio de sortie au plus. La derniere sortie est gardee dans
+`commands/` du dossier de donnees.
+
 ## Inventaire du poste
 
-`"system_inventory": true` (defaut) releve toutes les dix minutes les comptes,
-les groupes, les services et les ports en ecoute, et signale ce qui change :
-compte cree, compte ajoute a un groupe d'administration, service installe, port
-ouvert sur le reseau. Le premier inventaire sert de reference. `sentinel-agent
-inventory` affiche l'inventaire courant en JSON.
+`"system_inventory": true` (defaut) releve toutes les dix minutes le systeme
+et le materiel (version, noyau, fabricant, modele, numero de serie,
+processeur, memoire), les comptes, les groupes, les services, les ports en
+ecoute et, sous Windows, les correctifs installes (`Get-HotFix`). Il signale ce
+qui change : compte cree, compte ajoute a un groupe d'administration, service
+installe, port ouvert sur le reseau leve un incident ; un changement du
+systeme, du materiel ou des correctifs est enregistre. Le premier inventaire
+sert de reference. `sentinel-agent inventory` affiche l'inventaire courant en
+JSON. Sous Linux, le numero de serie n'est lisible que par root.
 
 ## Politiques de conformite (SCA)
 
@@ -172,6 +203,27 @@ fichiers declares.
   meme `id`. Pour la desactiver, inscrivez son `id` dans
   `sigma.d/disabled-rules.txt`.
 - Champs disponibles dans les regles : voir `crates/agent-siem/src/decode.rs`.
+
+### Conteneurs Docker et Podman
+
+Sous Linux, quand Docker tourne (socket `/var/run/docker.sock`) ou que Podman
+est installe, l'agent lit aussi les evenements de leurs conteneurs (`docker
+events`, `podman events` ; service `containers`, ou `docker` et `podman`) :
+creation, demarrage, `exec`, arret, manque de memoire, suppression. Le
+demarrage d'un conteneur est complete par `inspect` : mode privilegie,
+espaces de noms de l'hote, capacites ajoutees, profils de securite retires,
+peripheriques et chemins de l'hote montes. Aucun reglage : il suffit que
+l'analyse de journaux soit active, et un moteur est suivi des qu'il apparait.
+
+Regles livrees (fichier `crates/agent-scanner/rules/containers.yml`) :
+conteneur privilegie, qui monte la racine de l'hote, qui monte le socket du
+moteur de conteneurs, dote de capacites qui permettent d'en sortir, avec un
+disque de l'hote en acces direct, dans l'espace des processus de l'hote, sans
+profil de securite (incidents), et shell interactif ouvert dans un conteneur
+(evenement SIEM seulement, Docker seulement : Podman ne dit pas ce qu'un
+`exec` lance). Les moteurs sans root (conteneurs d'un utilisateur) ne sont
+pas suivis. L'inventaire du poste liste aussi les conteneurs, avec ce qui
+affaiblit leur isolation (onglet « Conteneurs » de Systeme & comptes).
 
 ## Integrite des fichiers
 

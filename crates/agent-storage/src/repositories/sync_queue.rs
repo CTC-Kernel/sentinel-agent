@@ -460,6 +460,31 @@ impl<'a> SyncQueueRepository<'a> {
         }).await
     }
 
+    /// Withdraw a deletion not sent to the platform yet: the record is back
+    /// (a shipped detection rule restored), and the deletion would remove it
+    /// again from the platform, then from here at the next reconciliation.
+    pub async fn cancel_grc_delete(&self, entity: SyncEntityType, id: &str) -> StorageResult<()> {
+        let tombstone = match entity {
+            SyncEntityType::Playbook => "playbook_delete",
+            SyncEntityType::DetectionRule => "detection_rule_delete",
+            SyncEntityType::Risk => "risk_delete",
+            SyncEntityType::AlertRule => "alert_rule_delete",
+            SyncEntityType::Webhook => "webhook_delete",
+            _ => return Err(StorageError::Query("Not a deletable GRC entity".into())),
+        };
+        let id = id.to_string();
+        self.db
+            .with_connection(move |conn| {
+                conn.execute(
+                    "DELETE FROM sync_queue WHERE entity_id = ?1 AND entity_type = ?2",
+                    rusqlite::params![id, tombstone],
+                )
+                .map_err(|e| StorageError::Query(e.to_string()))?;
+                Ok(())
+            })
+            .await
+    }
+
     /// Acknowledge EDR uploads and mark their records synchronized in one transaction.
     /// A newer queued edit must remain dirty for the next upload.
     pub async fn acknowledge_grc(&self, ids: &[i64], entity: SyncEntityType) -> StorageResult<()> {

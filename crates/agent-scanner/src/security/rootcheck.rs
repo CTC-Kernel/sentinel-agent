@@ -104,6 +104,34 @@ const ROOTKIT_FILES: &[(&str, &str)] = &[
     ("LRK", "/usr/lib/libproc.a"),
     ("Phalanx2", "/etc/khubd.p2"),
     ("Kaiten", "/dev/.kork"),
+    ("BPFDoor", "/dev/shm/kdmtmpflush"),
+    ("BPFDoor", "/var/run/haldrund.pid"),
+    ("Kinsing", "/etc/libsystem.so"),
+    ("Kinsing", "/tmp/kdevtmpfsi"),
+    ("XorDdos", "/etc/cron.hourly/gcc.sh"),
+    ("Winnti", "/usr/lib/libxselinux.so"),
+    ("Syslogk", "/proc/syslogk"),
+];
+
+/// Kernel modules of published rootkits, by the name they load under. A
+/// rootkit that hides itself is found by [`hidden_modules`]; these are the
+/// ones loaded as they are, or built without hiding.
+#[cfg_attr(not(target_os = "linux"), allow(dead_code))]
+const ROOTKIT_MODULES: &[(&str, &str)] = &[
+    ("Diamorphine", "diamorphine"),
+    ("Reptile", "reptile"),
+    ("Reptile", "reptile_module"),
+    ("Suterusu", "suterusu"),
+    ("KoviD", "kovid"),
+    ("Nuk3Gh0st", "nuk3gh0st"),
+    ("Puszek", "puszek"),
+    ("Syslogk", "syslogk"),
+    ("Adore-ng", "adore"),
+    ("Adore-ng", "adore_ng"),
+    ("Knark", "knark"),
+    ("Rooty", "rooty"),
+    ("Enyelkm", "enyelkm"),
+    ("KBeast", "ipsecs_kbeast_v1"),
 ];
 
 /// Something the checks found.
@@ -138,6 +166,11 @@ pub enum Finding {
         rootkit: String,
         path: String,
     },
+    /// A kernel module loaded under the name of a published rootkit.
+    RootkitModule {
+        rootkit: String,
+        name: String,
+    },
     /// A running process whose program was deleted from a temporary
     /// directory, or never was a file.
     DeletedExecutable {
@@ -161,6 +194,7 @@ impl Finding {
             Self::FileInDev { path } => format!("dev_file:{path}"),
             Self::HiddenExecutable { path } => format!("hidden_executable:{path}"),
             Self::RootkitFile { path, .. } => format!("rootkit_file:{path}"),
+            Self::RootkitModule { name, .. } => format!("rootkit_module:{name}"),
             Self::DeletedExecutable { pid, exe } => format!("deleted_exe:{pid}:{exe}"),
         }
     }
@@ -173,10 +207,10 @@ impl Finding {
                 IncidentSeverity::Critical,
                 85,
                 "hidden_process",
-                format!("Hidden process (PID {pid})"),
+                format!("Processus caché (PID {pid})"),
                 format!(
-                    "Process {pid} is running but the system does not list it. Hiding its \
-                     processes is what a rootkit does."
+                    "Le processus {pid} s'exécute mais le système ne le liste pas. Cacher ses \
+                     processus est ce que fait un rootkit."
                 ),
                 serde_json::json!({ "pid": pid }),
             ),
@@ -185,10 +219,11 @@ impl Finding {
                 IncidentSeverity::Critical,
                 85,
                 "hidden_port",
-                format!("Hidden listening port ({port}/tcp)"),
+                format!("Port en écoute caché ({port}/tcp)"),
                 format!(
-                    "TCP port {port} accepts connections but the system does not list it as \
-                     open. Hiding a listening port is what a rootkit does for its backdoor."
+                    "Le port TCP {port} accepte des connexions mais le système ne le liste pas \
+                     comme ouvert. Cacher un port en écoute est ce que fait un rootkit pour sa \
+                     porte dérobée."
                 ),
                 serde_json::json!({ "port": port, "protocol": "tcp" }),
             ),
@@ -197,10 +232,10 @@ impl Finding {
                 IncidentSeverity::Critical,
                 85,
                 "hidden_kernel_module",
-                format!("Hidden kernel module ({name})"),
+                format!("Module noyau caché ({name})"),
                 format!(
-                    "Kernel module '{name}' is loaded but absent from the list of modules. \
-                     A module that removes itself from the list is a kernel rootkit."
+                    "Le module noyau « {name} » est chargé mais absent de la liste des \
+                     modules. Un module qui se retire de la liste est un rootkit noyau."
                 ),
                 serde_json::json!({ "module": name }),
             ),
@@ -209,11 +244,11 @@ impl Finding {
                 IncidentSeverity::High,
                 75,
                 "preloaded_library",
-                format!("Library forced on every program ({library})"),
+                format!("Bibliothèque imposée à tous les programmes ({library})"),
                 format!(
-                    "{source} makes every program load {library}. This is how user-space \
-                     rootkits hide files and processes and capture credentials; a few \
-                     monitoring tools use it legitimately."
+                    "{source} fait charger {library} par chaque programme. C'est ainsi que les \
+                     rootkits en espace utilisateur cachent fichiers et processus et volent des \
+                     identifiants ; quelques outils de supervision le font légitimement."
                 ),
                 serde_json::json!({ "source": source, "library": library }),
             ),
@@ -222,11 +257,11 @@ impl Finding {
                 IncidentSeverity::Medium,
                 55,
                 "promiscuous_interface",
-                format!("Network interface capturing all traffic ({interface})"),
+                format!("Interface réseau qui capte tout le trafic ({interface})"),
                 format!(
-                    "Interface {interface} is in promiscuous mode: it receives the traffic of \
-                     the whole segment, as a capture tool makes it do. A virtual machine in \
-                     bridged mode has the same effect."
+                    "L'interface {interface} est en mode promiscuous : elle reçoit le trafic de \
+                     tout le segment, comme le lui fait faire un outil de capture. Une machine \
+                     virtuelle en mode pont a le même effet."
                 ),
                 serde_json::json!({ "interface": interface }),
             ),
@@ -235,10 +270,11 @@ impl Finding {
                 IncidentSeverity::Medium,
                 55,
                 "file_in_dev",
-                format!("Regular file in /dev ({path})"),
+                format!("Fichier ordinaire dans /dev ({path})"),
                 format!(
-                    "{path} is a regular file in the directory of devices, where only device \
-                     nodes belong. Rootkits keep their files there."
+                    "{path} est un fichier ordinaire dans le dossier des périphériques, où \
+                     n'ont leur place que des nœuds de périphérique. Des rootkits y rangent \
+                     leurs fichiers."
                 ),
                 serde_json::json!({ "path": path }),
             ),
@@ -247,10 +283,10 @@ impl Finding {
                 IncidentSeverity::Medium,
                 60,
                 "hidden_executable",
-                format!("Hidden program in a temporary directory ({path})"),
+                format!("Programme caché dans un dossier temporaire ({path})"),
                 format!(
-                    "{path} is a program whose name hides it, in a directory anyone may \
-                     write to."
+                    "{path} est un programme dont le nom le cache, dans un dossier où tout le \
+                     monde peut écrire."
                 ),
                 serde_json::json!({ "path": path }),
             ),
@@ -259,20 +295,33 @@ impl Finding {
                 IncidentSeverity::Critical,
                 80,
                 "rootkit_file",
-                format!("File of the {rootkit} rootkit ({path})"),
-                format!("{path} exists: it is a file the {rootkit} rootkit is known to leave."),
+                format!("Fichier du rootkit {rootkit} ({path})"),
+                format!("{path} existe : c'est un fichier que le rootkit {rootkit} laisse."),
                 serde_json::json!({ "rootkit": rootkit, "path": path }),
+            ),
+            Self::RootkitModule { rootkit, name } => (
+                IncidentType::Malware,
+                IncidentSeverity::Critical,
+                85,
+                "rootkit_module",
+                format!("Module noyau du rootkit {rootkit} ({name})"),
+                format!(
+                    "Le module noyau « {name} » est chargé : c'est le nom sous lequel le \
+                     rootkit {rootkit} se charge dans le noyau."
+                ),
+                serde_json::json!({ "rootkit": rootkit, "module": name }),
             ),
             Self::DeletedExecutable { pid, exe } => (
                 IncidentType::SuspiciousProcess,
                 IncidentSeverity::High,
                 70,
                 "deleted_executable",
-                format!("Process running a deleted program (PID {pid})"),
+                format!("Processus dont le programme a été supprimé (PID {pid})"),
                 format!(
-                    "Process {pid} runs {exe}, which no longer exists on disk: it was run from \
-                     a temporary location or from memory, then removed, as malware does to \
-                     leave no file behind."
+                    "Le processus {pid} exécute {exe}, qui n'existe plus sur le disque : il a \
+                     été lancé depuis un emplacement temporaire ou depuis la mémoire, puis \
+                     supprimé, comme le fait un logiciel malveillant pour ne laisser aucun \
+                     fichier."
                 ),
                 serde_json::json!({ "pid": pid, "exe": exe }),
             ),
@@ -391,6 +440,27 @@ pub fn hidden_modules(proc_modules: &str, sys_loaded: &[String]) -> Vec<String> 
         .collect();
     hidden.sort();
     hidden
+}
+
+/// Loaded modules (listed in `/proc/modules` or present in `/sys/module`)
+/// that carry the name of a published rootkit: (rootkit, module).
+pub fn rootkit_modules(proc_modules: &str, sys_loaded: &[String]) -> Vec<(String, String)> {
+    let mut loaded: Vec<&str> = proc_modules
+        .lines()
+        .filter_map(|line| line.split_whitespace().next())
+        .chain(sys_loaded.iter().map(String::as_str))
+        .collect();
+    loaded.sort_unstable();
+    loaded.dedup();
+    loaded
+        .into_iter()
+        .filter_map(|module| {
+            ROOTKIT_MODULES
+                .iter()
+                .find(|(_, name)| module.eq_ignore_ascii_case(name))
+                .map(|(rootkit, _)| ((*rootkit).to_string(), module.to_string()))
+        })
+        .collect()
 }
 
 /// The libraries named by `/etc/ld.so.preload`: one or several per line,
@@ -748,10 +818,16 @@ mod system {
         let mut findings = Vec::new();
 
         if let Ok(proc_modules) = std::fs::read_to_string("/proc/modules") {
+            let sys_loaded = loaded_modules_in_sys();
             findings.extend(
-                hidden_modules(&proc_modules, &loaded_modules_in_sys())
+                hidden_modules(&proc_modules, &sys_loaded)
                     .into_iter()
                     .map(|name| Finding::HiddenKernelModule { name }),
+            );
+            findings.extend(
+                rootkit_modules(&proc_modules, &sys_loaded)
+                    .into_iter()
+                    .map(|(rootkit, name)| Finding::RootkitModule { rootkit, name }),
             );
         }
         for library in std::fs::read_to_string("/etc/ld.so.preload")
@@ -801,7 +877,7 @@ mod system {
                     path: (*path).to_string(),
                 }),
         );
-        (findings, 8)
+        (findings, 9)
     }
 
     pub(super) const SWEEP_CHECKS: u32 = 2;
@@ -1124,6 +1200,38 @@ mod tests {
             hidden_modules(proc, &sys(&["ext4", "nf_tables", "diamorphine"])),
             ["diamorphine"]
         );
+    }
+
+    #[test]
+    fn a_module_named_as_a_published_rootkit_is_found() {
+        let proc = "ext4 1000000 2 - Live 0x0000000000000000\n\
+                    Reptile_Module 20000 0 - Live 0x0000000000000000\n";
+        let sys = |names: &[&str]| names.iter().map(|n| (*n).to_string()).collect::<Vec<_>>();
+        assert_eq!(
+            rootkit_modules(proc, &sys(&["ext4", "diamorphine"])),
+            vec![
+                ("Reptile".to_string(), "Reptile_Module".to_string()),
+                ("Diamorphine".to_string(), "diamorphine".to_string()),
+            ]
+        );
+        // A name that merely contains one is not a match.
+        assert!(rootkit_modules("adore_display 1 0 - Live 0x0\n", &[]).is_empty());
+        assert!(rootkit_modules("", &sys(&["nf_tables"])).is_empty());
+    }
+
+    #[test]
+    fn a_rootkit_module_is_a_critical_malware_incident() {
+        let incident = Finding::RootkitModule {
+            rootkit: "Diamorphine".into(),
+            name: "diamorphine".into(),
+        }
+        .incident();
+        assert_eq!(incident.severity, IncidentSeverity::Critical);
+        assert_eq!(
+            incident.title,
+            "Module noyau du rootkit Diamorphine (diamorphine)"
+        );
+        assert_eq!(incident.evidence["check"], "rootkit_module");
     }
 
     #[test]

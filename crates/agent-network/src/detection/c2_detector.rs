@@ -62,19 +62,19 @@ impl C2Detector {
         let process_info = conn
             .process_name
             .as_ref()
-            .map(|p| format!(" by process '{}'", p))
+            .map(|p| format!(" par le processus « {} »", p))
             .unwrap_or_default();
 
         NetworkSecurityAlert {
             alert_type: NetworkAlertType::SuspiciousPort,
             severity: AlertSeverity::Medium,
-            title: format!("Connection on a port associated with C2: {}", port),
+            title: format!("Connexion sur un port associé à un C2 : {}", port),
             description: format!(
-                "Established connection to remote port {} which is commonly used for C2 communication{}. \
-                Remote address: {}",
+                "Connexion établie vers le port distant {}, souvent utilisé pour communiquer avec un \
+                serveur de commande et contrôle{}. Adresse distante : {}.",
                 port,
                 process_info,
-                conn.remote_address.as_deref().unwrap_or("unknown")
+                conn.remote_address.as_deref().unwrap_or("inconnue")
             ),
             connection: Some(conn.clone()),
             evidence: json!({
@@ -100,15 +100,16 @@ impl C2Detector {
         let process_info = conn
             .process_name
             .as_ref()
-            .map(|p| format!(" by process '{}'", p))
+            .map(|p| format!(" par le processus « {} »", p))
             .unwrap_or_default();
 
         NetworkSecurityAlert {
             alert_type: NetworkAlertType::MaliciousDestination,
             severity: AlertSeverity::Critical,
-            title: format!("Connection to known malicious IP: {}", ip),
+            title: format!("Connexion à une adresse IP malveillante connue : {}", ip),
             description: format!(
-                "Active connection to IP address {} which is listed in threat intelligence as malicious{}.",
+                "Connexion active vers l'adresse IP {}, listée comme malveillante par le \
+                renseignement sur les menaces{}.",
                 ip, process_info
             ),
             connection: Some(conn.clone()),

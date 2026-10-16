@@ -156,8 +156,8 @@ fn page_catalog() -> [(Page, &'static str, &'static str, &'static str, &'static 
         (
             SystemInventory,
             "system_inventory",
-            icons::USERS,
-            "Comptes & services",
+            icons::DESKTOP,
+            "Système & comptes",
             "Actifs & Inventaire",
         ),
         (

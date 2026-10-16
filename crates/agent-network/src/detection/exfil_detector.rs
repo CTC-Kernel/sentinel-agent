@@ -153,17 +153,25 @@ impl ExfilDetector {
             alert_type: NetworkAlertType::ConnectionAnomaly,
             severity: AlertSeverity::Low,
             title: format!(
-                "Multiple connections to single destination: {}",
+                "Connexions multiples vers une même destination : {}",
                 destination
             ),
             description: format!(
-                "Detected {} simultaneous connections to external IP {}. \
-                Socket counts alone do not establish data exfiltration; investigate traffic volume and context. \
-                Processes involved: {:?}. Ports: {:?}",
+                "{} connexions simultanées vers l'adresse externe {}. \
+                Leur nombre seul ne prouve pas une exfiltration : examiner le volume et le contexte. \
+                Processus : {}. Ports : {}.",
                 connections.len(),
                 destination,
-                processes,
+                processes
+                    .iter()
+                    .map(|process| process.as_str())
+                    .collect::<Vec<_>>()
+                    .join(", "),
                 ports
+                    .iter()
+                    .map(u16::to_string)
+                    .collect::<Vec<_>>()
+                    .join(", ")
             ),
             connection: connections.first().map(|c| (*c).clone()),
             evidence: json!({

@@ -744,3 +744,60 @@ async fn test_two_databases_with_different_key_bytes_open_independently() {
     assert!(db1.file_size().unwrap() > 0);
     assert!(db2.file_size().unwrap() > 0);
 }
+
+// ─── Detection rules ────────────────────────────────────────────────────────
+
+#[tokio::test]
+async fn detection_rule_matches_are_counted_without_touching_the_rule() {
+    use agent_storage::repositories::grc::{DetectionRuleRepository, StoredDetectionRule};
+    let (_dir, db) = open_temp_db();
+    let repo = DetectionRuleRepository::new(&db);
+    repo.upsert(&StoredDetectionRule {
+        id: "default-reverse-shell".to_string(),
+        name: "Shell inversé".to_string(),
+        description: String::new(),
+        severity: "critical".to_string(),
+        conditions: "[]".to_string(),
+        actions: "[]".to_string(),
+        enabled: true,
+        created_at: "2026-10-01T00:00:00+00:00".to_string(),
+        last_match: None,
+        match_count: 0,
+        synced: true,
+    })
+    .await
+    .expect("upsert");
+
+    repo.record_matches(&[
+        (
+            "default-reverse-shell".to_string(),
+            2,
+            "2026-10-16T08:00:00+00:00".to_string(),
+        ),
+        // Deleted meanwhile: nothing to count.
+        (
+            "gone".to_string(),
+            1,
+            "2026-10-16T08:00:00+00:00".to_string(),
+        ),
+    ])
+    .await
+    .expect("record");
+    // An older match counts, but does not move the last match back.
+    repo.record_matches(&[(
+        "default-reverse-shell".to_string(),
+        1,
+        "2026-10-15T08:00:00+00:00".to_string(),
+    )])
+    .await
+    .expect("record");
+
+    let rules = repo.get_all().await.expect("get_all");
+    assert_eq!(rules.len(), 1);
+    assert_eq!(rules[0].match_count, 3);
+    assert_eq!(
+        rules[0].last_match.as_deref(),
+        Some("2026-10-16T08:00:00+00:00")
+    );
+    assert!(rules[0].synced, "a count is not an edit to upload");
+}

@@ -887,7 +887,7 @@ fn system_detail(
         }
         actions.push(widgets::DetailAction::secondary("Acquitter", icons::CHECK));
         actions.push(widgets::DetailAction::secondary(
-            "Autoriser ce type d'incident",
+            "Autoriser cet incident",
             icons::SHIELD_CHECK,
         ));
         actions.push(widgets::DetailAction::secondary("Signaler", icons::FLAG));
@@ -996,9 +996,14 @@ fn system_detail(
                         .with_time(time),
                 );
             } else if action_idx == allow_idx && state.require_admin(AUTHORIZE_REASON) {
+                // This incident, by its title: its type would also cover
+                // every other incident of the kind (an account created, a
+                // registry value, a library forced on every program are all
+                // unauthorized changes). A rule for a whole type is written
+                // in the authorizations, on purpose.
                 state.add_allowlist_rule_global(
                     crate::dto::AllowlistRuleType::SystemIncident,
-                    inc.incident_type.clone(),
+                    inc.title.clone(),
                     format!("Incident système autoris\u{00e9} : {}", inc.title),
                     "Op\u{00e9}rateur".to_string(),
                 );
@@ -1006,8 +1011,8 @@ fn system_detail(
                 state.threats.selected_threat = None;
                 state.toasts.push(
                     crate::widgets::toast::Toast::success(format!(
-                        "R\u{00e8}gle cr\u{00e9}\u{00e9}e : incidents '{}' autoris\u{00e9}s",
-                        inc.incident_type
+                        "R\u{00e8}gle cr\u{00e9}\u{00e9}e : \u{00ab} {} \u{00bb} autoris\u{00e9}",
+                        inc.title
                     ))
                     .with_time(time),
                 );

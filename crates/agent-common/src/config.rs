@@ -282,6 +282,14 @@ pub struct AgentConfig {
     /// only name one of these: nothing it carries is executed.
     #[serde(default)]
     pub response_commands: Vec<ResponseCommandConfig>,
+
+    /// Programs run at intervals whose output is watched, as Wazuh's
+    /// `command` and `full_command` sources: each line goes to the log
+    /// rules as an event of the service named after the command, and a
+    /// change of the output is reported with the lines that changed. None
+    /// by default.
+    #[serde(default)]
+    pub command_monitors: Vec<CommandMonitorConfig>,
 }
 
 /// A program a playbook may ask for by name.
@@ -301,6 +309,30 @@ pub struct ResponseCommandConfig {
 
 fn default_response_timeout_secs() -> u64 {
     60
+}
+
+/// A program run at intervals whose output is watched.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct CommandMonitorConfig {
+    /// The name its events and incidents carry, and the Sigma `service`
+    /// rules name it by (lower-case letters, digits, `-`, `_`).
+    pub name: String,
+    /// Absolute path of the program, run without a shell.
+    pub program: String,
+    /// Arguments given to it, as declared here.
+    #[serde(default)]
+    pub args: Vec<String>,
+    /// Seconds between two runs (300 by default, 60 at least).
+    #[serde(default = "default_command_interval_secs")]
+    pub interval_secs: u64,
+    /// Report a change of the output from one run to the next (on by
+    /// default). Off, the lines only go to the log rules.
+    #[serde(default = "default_true")]
+    pub report_changes: bool,
+}
+
+fn default_command_interval_secs() -> u64 {
+    300
 }
 
 fn default_log_analysis() -> bool {
@@ -577,6 +609,7 @@ impl Default for AgentConfig {
             fim_whodata: false,
             registry_keys: Vec::new(),
             response_commands: Vec::new(),
+            command_monitors: Vec::new(),
         }
     }
 }
@@ -1124,6 +1157,7 @@ mod tests {
             fim_whodata: false,
             registry_keys: Vec::new(),
             response_commands: Vec::new(),
+            command_monitors: Vec::new(),
         };
 
         let json = serde_json::to_string(&config).unwrap();
@@ -1489,6 +1523,22 @@ mod tests {
         assert_eq!(config.log_files[0].format, LogFileFormat::Web);
         assert_eq!(config.log_files[0].service.as_deref(), Some("nginx"));
         assert_eq!(config.log_files[1].format, LogFileFormat::Json);
+        assert_eq!(config.command_monitors.len(), 1);
+        assert_eq!(config.command_monitors[0].name, "listening-ports");
+        assert_eq!(config.command_monitors[0].interval_secs, 600);
+        assert!(config.command_monitors[0].report_changes);
+    }
+
+    #[test]
+    fn a_command_monitor_needs_only_a_name_and_a_program() {
+        let config = load_with_env(
+            r#"{ "command_monitors": [ { "name": "last-logons", "program": "/usr/bin/last" } ] }"#,
+            &env_map(&[]),
+        );
+        let monitor = &config.command_monitors[0];
+        assert!(monitor.args.is_empty());
+        assert_eq!(monitor.interval_secs, 300);
+        assert!(monitor.report_changes);
     }
 
     #[test]

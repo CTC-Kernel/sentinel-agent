@@ -59,7 +59,7 @@ pub fn is_command_name(name: &str) -> bool {
 
 /// Why a program may not be run as a response, when it may not.
 #[cfg(unix)]
-fn untrusted(program: &std::path::Path) -> Option<String> {
+pub(crate) fn untrusted(program: &std::path::Path) -> Option<String> {
     use std::os::unix::fs::MetadataExt;
     let metadata = match std::fs::metadata(program) {
         Ok(metadata) => metadata,
@@ -80,31 +80,33 @@ fn untrusted(program: &std::path::Path) -> Option<String> {
 }
 
 #[cfg(not(unix))]
-fn untrusted(program: &std::path::Path) -> Option<String> {
+pub(crate) fn untrusted(program: &std::path::Path) -> Option<String> {
     (!program.is_file()).then(|| "is not a file".to_string())
 }
 
 /// Why a declaration cannot be used, when it cannot.
 pub fn declaration_error(command: &ResponseCommandConfig) -> Option<String> {
-    if !is_command_name(&command.name) {
+    program_error(&command.name, &command.program)
+}
+
+/// Why a program the configuration declares under `name` may not be run by
+/// the agent, when it may not: the name is made of lower-case letters,
+/// digits, `-` and `_`, the program is given by absolute path, owned by root
+/// or the agent's account, and writable by nobody else. The same rules for
+/// the response commands and the watched commands.
+pub fn program_error(name: &str, program: &str) -> Option<String> {
+    if !is_command_name(name) {
         return Some(format!(
-            "'{}' is not a command name (lower-case letters, digits, '-' and '_')",
-            command.name
+            "'{name}' is not a command name (lower-case letters, digits, '-' and '_')"
         ));
     }
-    let program = std::path::Path::new(&command.program);
-    if !program.is_absolute() {
+    let path = std::path::Path::new(program);
+    if !path.is_absolute() {
         return Some(format!(
-            "'{}': the program '{}' is not given by absolute path",
-            command.name, command.program
+            "'{name}': the program '{program}' is not given by absolute path"
         ));
     }
-    untrusted(program).map(|reason| {
-        format!(
-            "'{}': the program {} {reason}",
-            command.name, command.program
-        )
-    })
+    untrusted(path).map(|reason| format!("'{name}': the program {program} {reason}"))
 }
 
 /// Take the response commands of the configuration. Returns the

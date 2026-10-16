@@ -528,6 +528,9 @@ pub struct ThreatsState {
     // Detection rules tab
     pub detection_rules: Vec<crate::dto::DetectionRule>,
     pub detection_rule_editing: bool,
+    /// List filter: 0 every rule, 1 the shipped ones, 2 the organisation's.
+    pub detection_rule_filter: usize,
+    pub detection_rule_search: String,
 
     // Forensic timeline tab
     pub forensic_time_range: crate::dto::TimelineRange,
@@ -654,6 +657,8 @@ impl Default for ThreatsState {
             playbook_log_page: 0,
             detection_rules: Vec::new(),
             detection_rule_editing: false,
+            detection_rule_filter: 0,
+            detection_rule_search: String::new(),
             forensic_time_range: crate::dto::TimelineRange::default(),
             forensic_source_filter: None,
             forensic_severity_filter: None,
@@ -2255,6 +2260,21 @@ impl AppState {
             AgentEvent::DetectionRulesLoaded { rules } => {
                 self.threats.detection_rules = rules;
             }
+            AgentEvent::DetectionRuleMatched {
+                rule_id,
+                matched_at,
+            } => {
+                if let Some(rule) = self
+                    .threats
+                    .detection_rules
+                    .iter_mut()
+                    .find(|rule| rule.id == rule_id)
+                {
+                    rule.match_count = rule.match_count.saturating_add(1);
+                    rule.last_match =
+                        Some(rule.last_match.map_or(matched_at, |t| t.max(matched_at)));
+                }
+            }
             AgentEvent::AlertingLoaded { rules, webhooks } => {
                 self.alerting.rules = rules;
                 self.alerting.webhooks = webhooks;
@@ -2886,6 +2906,41 @@ mod triage_persistence_tests {
         state.threats.remove_allowlist_rule(id);
         state.refresh_authorizations();
         assert!(!state.threats.system_incidents[0].allowlisted);
+    }
+
+    /// The authorization made from an incident's drawer names the incident:
+    /// another incident of the same type stays in triage.
+    #[test]
+    fn an_incident_authorized_by_its_title_leaves_the_others_of_its_type() {
+        let mut state = AppState::default();
+        let mut account = firewall_incident();
+        account.incident_type = "unauthorized_change".into();
+        account.title = "Compte créé : backup".into();
+        let mut registry = account.clone();
+        registry.title = "Valeur de registre ajoutée : HKLM\\...\\Run\\Updater".into();
+        for incident in [account.clone(), registry] {
+            state.apply_event(AgentEvent::SystemIncident { incident });
+        }
+        state.add_allowlist_rule_global(
+            crate::dto::AllowlistRuleType::SystemIncident,
+            account.title.clone(),
+            "Compte de sauvegarde".into(),
+            "Test".into(),
+        );
+        let allowlisted: Vec<bool> = state
+            .threats
+            .system_incidents
+            .iter()
+            .map(|incident| incident.allowlisted)
+            .collect();
+        assert_eq!(allowlisted.iter().filter(|a| **a).count(), 1);
+        assert!(
+            state
+                .threats
+                .system_incidents
+                .iter()
+                .any(|incident| incident.title.starts_with("Valeur") && !incident.allowlisted)
+        );
     }
 
     #[test]

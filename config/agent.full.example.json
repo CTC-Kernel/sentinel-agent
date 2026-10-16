@@ -55,6 +55,15 @@
   "fim_whodata": false,
   "registry_keys": [],
 
+  "command_monitors": [
+    {
+      "name": "listening-ports",
+      "program": "/usr/bin/ss",
+      "args": ["-tlnH"],
+      "interval_secs": 600
+    }
+  ],
+
   "response_commands": [
     {
       "name": "open-ticket",

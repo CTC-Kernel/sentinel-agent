@@ -10,6 +10,204 @@ Tous les changements notables apportés au projet **Sentinel GRC Agent** sont co
 
 ## 🚀 [Non publié]
 
+### 🎯 Règles de détection : un jeu par défaut prêt à l'emploi, des réponses qui agissent
+
+- **19 règles par défaut**, installées actives au premier démarrage de
+  l'agent (Windows, macOS, Linux), chacune rattachée à ses techniques MITRE
+  ATT&CK : vol d'identifiants (Mimikatz, mémoire de LSASS, base SAM), vol de
+  mots de passe sur macOS (fausse fenêtre AppleScript, trousseau), shell
+  inversé, minage de cryptomonnaie, PowerShell encodé ou chargé depuis
+  Internet, programmes de Windows détournés (certutil, regsvr32, mshta…),
+  suppression des sauvegardes et des clichés instantanés, effacement des
+  journaux, désactivation des protections (Defender, pare-feu, Gatekeeper,
+  SELinux, auditd), outils d'attaque connus, reconnaissance de l'annuaire,
+  groupe des administrateurs modifié, tâche planifiée ou service créé,
+  fichiers d'authentification, bibliothèque imposée (`ld.so.preload`),
+  programme ajouté au démarrage, fichier hosts, ports d'outils d'attaque,
+  trafic acheminé par Tor.
+- **Des règles comme les autres** : on les désactive, les modifie ou les
+  supprime dans l'onglet Règles ou sur la plateforme, qui les reçoit. Elles
+  détectent et notifient sans agir ; une réponse s'ajoute en les modifiant.
+  Une version suivante de l'agent qui en améliore une la met à jour, sauf si
+  elle a été modifiée ; une règle supprimée ne revient que par « Restaurer
+  les règles par défaut ».
+- **Les réponses d'une règle s'exécutent enfin** : le formulaire exigeait au
+  moins une action, qu'aucune correspondance ne déclenchait. Arrêter le
+  processus, mettre le fichier en quarantaine, bloquer l'adresse (plus
+  longtemps en cas de récidive), isoler le poste, alerter le SIEM externe
+  agissent désormais sur ce que la règle a trouvé, ou sont simulées quand la
+  simulation des playbooks est active. La notification dit ce qui a été fait.
+  Verrouiller un compte et lancer une commande, qui demandent un paramètre,
+  restent l'affaire des playbooks et ne sont plus proposés pour une règle.
+- **Compteur de correspondances** : il restait à zéro. Chaque correspondance
+  est comptée sur le poste, avec la date de la dernière, et l'onglet se met à
+  jour aussitôt.
+- **SIEM** : chaque correspondance est enregistrée comme les détections des
+  moteurs (pour la plateforme, et pour le SIEM externe quand il y en a un),
+  avec le processus, l'adresse ou le fichier trouvé.
+- **Onglet Règles** : modification d'une règle existante (mode administrateur,
+  comme la désactivation), filtres « Par défaut » et « Personnalisées »,
+  recherche (nom, technique ATT&CK, indicateur), description et réponse de
+  chaque règle, conditions regroupées par type. Une condition qui ne pourrait
+  jamais correspondre (port illisible, sévérité inconnue) ne s'enregistre
+  plus. Le test porte aussi sur les connexions.
+- **Notifications en français** : « Règle « X » déclenchée », et ce qui a été
+  trouvé (« Processus mimikatz.exe (PID 4120) : … »).
+
+### ⚡ Processus évalués à leur lancement
+
+- **Réglable dans l'interface** : « Processus évalués à leur lancement »
+  rejoint Paramètres › Détection et conformité. Sans elle, les règles ne
+  voient que les processus encore en cours au balayage de cinq minutes : une
+  commande brève (`vssadmin delete shadows`, `certutil -urlcache`…) leur
+  échappe. L'onglet Règles le signale tant qu'elle est coupée.
+- **Linux** : la source (connecteur de processus du noyau) n'était compilée
+  dans aucune version. Elle l'est, et a été essayée sur un vrai noyau Ubuntu
+  24.04 : un `sh -c` de quelques millisecondes est vu, et la réponse d'une
+  règle arrête le processus trouvé. Dans un conteneur qui partage le noyau
+  d'un autre système, elle peut manquer : le balayage périodique reste.
+
+### 🕳️ Rootkits : modules noyau connus, signatures récentes
+
+- **Modules noyau de rootkits publiés** : un module chargé sous le nom de
+  Diamorphine, Reptile, Suterusu, KoviD, Nuk3Gh0st, Puszek, Syslogk,
+  Adore-ng, Knark, Rooty, Enyelkm ou KBeast est un incident critique, même
+  quand il ne se cache pas (un module qui se cache l'était déjà).
+- **Fichiers de menaces récentes** : BPFDoor, Kinsing, XorDdos, Winnti et
+  Syslogk rejoignent la liste des fichiers laissés par des rootkits connus.
+
+### 🖥️ Journaux : sortie de commandes surveillée
+
+- **Commandes surveillées** (`command_monitors`), comme les sources
+  `command` et `full_command` de Wazuh : un programme déclaré (les ports en
+  écoute, les dernières connexions, un contrôle maison) est lancé à
+  intervalle régulier (5 minutes par défaut, 1 minute au plus souvent).
+- **Règles sur la sortie** : chaque ligne devient un événement du service
+  qui porte le nom de la commande ; une règle Sigma `logsource: service:
+  <nom>` s'y applique comme à un journal.
+- **Changement de sortie** : quand la sortie diffère du passage précédent,
+  un incident donne les lignes retirées et ajoutées (`report_changes`, actif
+  par défaut). La dernière sortie est conservée dans le dossier de données,
+  lisible par l'agent seul : un changement fait pendant l'arrêt de l'agent
+  est signalé à son premier passage.
+- **Mêmes garde-fous que les commandes de réponse** : nom en minuscules,
+  chemin absolu, lancé sans interpréteur, programme appartenant à root ou au
+  compte de l'agent et modifiable par personne d'autre, vérifié de nouveau
+  avant chaque lancement ; une minute et 256 Kio de sortie au plus, dans une
+  tâche de fond qui ne retarde jamais la réponse.
+- **Vérifié** sur une Ubuntu 24.04 réelle, avec `ss -tlnH` surveillé toutes
+  les minutes et une règle Sigma maison (`logsource: service:
+  listening-ports`, `message|contains: ':4444 '`) : la première sortie sert
+  de référence ; un écouteur ouvert ensuite sur le port 4444 donne, au
+  passage suivant, l'incident « Sortie de commande modifiée :
+  listening-ports » puis, une seconde après, l'alerte Sigma « Port de porte
+  dérobée en écoute ». La sortie conservée est en `0600`, l'agent s'arrête
+  en 4 s.
+
+### 🐳 Conteneurs Docker et Podman surveillés
+
+- **Événements des conteneurs** (Linux), comme le Docker listener de
+  Wazuh, et pour Podman en plus (le moteur de RHEL et Fedora, que Wazuh ne
+  suit pas) : l'agent suit `docker events` et `podman events` (création,
+  démarrage, `exec`, arrêt, manque de mémoire, suppression ; pas les
+  contrôles de santé, trop bavards) et les donne aux règles des journaux
+  (service `containers`, ou `docker` et `podman` pour un seul moteur). Un
+  moteur est suivi dès qu'il apparaît, Docker de nouveau après le
+  redémarrage de son démon ; aucun réglage. Un `docker` qui n'est que le
+  relais de Podman (`podman-docker`) n'est suivi qu'une fois.
+- **Démarrage examiné** : chaque conteneur qui démarre est décrit par
+  `inspect` : mode privilégié, espaces de noms de l'hôte, capacités
+  ajoutées, profils seccomp ou AppArmor retirés, périphériques et chemins de
+  l'hôte montés, compte qui l'exécute.
+- **Règles livrées** (`containers.yml`) : conteneur privilégié, qui monte la
+  racine de l'hôte, qui monte le socket du moteur de conteneurs, doté de
+  capacités qui permettent d'en sortir, avec un disque de l'hôte en accès
+  direct, dans l'espace des processus de l'hôte, sans profil de sécurité
+  (incidents, T1610/T1611) ; shell interactif ouvert dans un conteneur
+  (événement SIEM, T1609 ; Docker seulement, Podman ne dit pas ce qu'un
+  `exec` lance). Deux conteneurs privilégiés font deux incidents.
+- **Onglet « Conteneurs »** (Système & comptes, quand Docker ou Podman est
+  là) : chaque conteneur de l'hôte, en cours ou arrêté, avec son moteur, son
+  image, son état, le
+  compte qui l'exécute et ce qui affaiblit son isolation ; l'onglet compte
+  ceux qui peuvent prendre l'hôte. Il couvre ce que les événements ne voient
+  pas : un conteneur dangereux démarré avant l'agent. Les événements et
+  l'inventaire lisent `inspect` au même endroit et jugent pareil.
+- **Vérifié** sur une Ubuntu 24.04 réelle (noyau 6.8 sous QEMU) avec
+  Docker 27 : l'agent suit les événements une minute après son démarrage ;
+  un conteneur ordinaire (`docker run alpine sleep`, puis `docker exec
+  /bin/sh -c true`) ne lève rien ; `docker run --privileged --pid=host -v
+  /:/host` lève « Conteneur privilégié démarré », « Conteneur qui monte la
+  racine de l'hôte » et « Conteneur dans l'espace des processus de l'hôte » ;
+  l'agent s'arrête en 2 s. Le shell interactif, qui ne donne qu'un événement
+  SIEM, n'est vérifié que par les tests. L'inventaire du même hôte liste ses
+  quatre conteneurs (en cours et créé) : `--privileged --pid=host -v /:/host`
+  d'un côté, `--cap-add SYS_ADMIN` et le socket Docker monté de l'autre.
+  Avec Podman 4.9 installé à côté de Docker, les deux moteurs sont suivis
+  ensemble : `podman run --privileged -v /:/host` lève « Conteneur
+  privilégié démarré » et « Conteneur qui monte la racine de l'hôte »,
+  `docker run --privileged` son propre incident, un conteneur Podman
+  ordinaire rien ; l'inventaire liste les conteneurs des deux moteurs.
+
+### 🧾 Inventaire : système, matériel et correctifs Windows
+
+- **Fiche du système** (premier onglet de Système & comptes), comme le
+  syscollector de Wazuh : nom de la machine, système et version, noyau,
+  architecture, date de démarrage ; fabricant, modèle, numéro de série
+  (copiable), processeur, cœurs physiques et logiques, mémoire. Sources :
+  `/etc/os-release` et DMI (ou l'arbre de périphériques d'une carte ARM) sous
+  Linux, `system_profiler` sous macOS, CIM sous Windows.
+- **Correctifs Windows** (`Get-HotFix`) : onglet « Correctifs » (KB, type,
+  date d'installation), le plus récent rappelé sur la fiche du système.
+- **Changements enregistrés** : système mis à jour, noyau, matériel, numéro
+  de série (une autre machine sous la même identité d'agent), mémoire
+  (comptée en Gio entiers : les quelques Mo que réserve un nouveau noyau ne
+  sont pas un changement), correctif installé ou plus installé. Ils vont au
+  SIEM et à la liste des changements, sans incident : un correctif cumulatif
+  remplacé par le suivant quitte aussi la liste. Un champ que le système ne
+  donne pas cette fois (le numéro de série d'un agent lancé sans root) garde
+  sa valeur précédente.
+- **Corrigé** : une partie de l'inventaire que le premier relevé n'avait pas
+  pu lire (un outil en échec) faisait paraître tout son contenu nouveau au
+  relevé suivant, jusqu'à 15 incidents « compte créé » ou « port en
+  écoute ». Sa première liste lue lui sert désormais de référence.
+- **Vérifié** sur macOS (MacBook Pro M2 Pro : système, modèle, numéro de
+  série, processeur, mémoire) et sur une Ubuntu 24.04 ARM sous OrbStack
+  (« Ubuntu 24.04.5 LTS », noyau, processeurs, mémoire, en root comme sous un
+  compte ordinaire ; cette machine virtuelle n'a ni DMI ni arbre de
+  périphériques, fabricant et modèle restent inconnus et la fiche le
+  montre), sur une Ubuntu 24.04 sous QEMU, qui a un DMI (fabricant « QEMU »,
+  modèle « QEMU Virtual Machine », pas de numéro de série, comme QEMU), et
+  sur le Windows Server de la CI : le script PowerShell, lancé
+  pour de vrai, donne les comptes, les services, le nom du système, le
+  fabricant ou le modèle, et la liste des correctifs (identifiants KB, dates
+  d'installation lisibles).
+
+### 🗣️ Incidents et alertes en français
+
+- **Titres et descriptions en français** pour les détecteurs qui parlaient
+  encore anglais dans une interface française : processus suspects et outils
+  connus (mineurs, vol d'identifiants, post-exploitation), commandes
+  encodées, shells inversés, pare-feu et antivirus désactivés, Gatekeeper,
+  connexion SSH de root, nouveaux administrateurs, signes de rootkit,
+  registre Windows, inventaire, fichiers malveillants connus, YARA et Sigma
+  sans description, et les alertes réseau (C2, balises, domaines générés,
+  minage, Tor, IRC, connexions et ports suspects). Les titres des règles
+  Sigma et YARA restent ceux des règles.
+- **Une seule formulation des changements d'inventaire** : l'interface, le
+  SIEM et la plateforme reçoivent la même phrase française.
+- **Autoriser un incident n'autorise plus tout son type** : depuis la fiche
+  d'un incident système, « Autoriser cet incident » crée une règle sur son
+  titre. Elle portait sur son type, qui couvre bien plus : autoriser un
+  compte de sauvegarde créé faisait taire toute valeur de registre ajoutée,
+  toute bibliothèque imposée aux programmes, tout nouvel administrateur
+  (tous « changement non autorisé »). Une règle pour un type entier reste
+  possible, écrite dans les autorisations.
+- **Autorisations écrites avec un titre anglais** : une autorisation saisie à
+  la main qui citait un ancien titre (« Suspicious process detected: … »,
+  « Hidden listening port (… ») couvre toujours l'incident, comparée aussi
+  au titre français. Celles qui portent sur un type ne changent pas.
+
 ### 📦 Paquets Linux : toutes les distributions maintenues, x64 et ARM64
 
 - **Debian 12 refusait le .deb** : le lien de téléchargement
@@ -88,7 +286,7 @@ Tous les changements notables apportés au projet **Sentinel GRC Agent** sont co
 - **Fiche d'un contrôle de conformité** : elle montre ce qui est vérifié,
   pourquoi, et comment corriger (description, justification et correction
   des politiques SCA), la correction en premier quand le contrôle échoue.
-- **Comptes & services** (Actifs & inventaire) : l'inventaire du poste a son
+- **Système & comptes** (Actifs & inventaire) : l'inventaire du poste a son
   écran. Comptes (qui peut ouvrir une session, qui est administrateur),
   groupes et membres, services, ports en écoute (locaux ou exposés au
   réseau), et les changements depuis le démarrage de l'agent avec l'incident
@@ -149,10 +347,40 @@ Tous les changements notables apportés au projet **Sentinel GRC Agent** sont co
   SSH), la session ouverte est fermée, et les notifications de ce poste sans
   interface sont toutes délivrées. Code propre à Windows d'`agent-scanner` et
   d'`agent-common` contrôlé pour la cible Windows (types et clippy) ; tests de
-  tout l'espace de travail sous macOS. **Non vérifié** : l'auteur exact sur un
-  vrai auditd (le noyau partagé des machines OrbStack refuse l'audit) ; les
-  clés de registre et le reste du code Windows ailleurs que dans la CI ;
-  l'interface n'a été vue que dans son aperçu, avec des données d'exemple.
+  tout l'espace de travail sous macOS. L'auteur exact (`fim_whodata`) sur un
+  vrai auditd, dans une Ubuntu 24.04 (noyau 6.8) sous QEMU : la règle
+  `-w /srv/whodata -p wa -k sentinel_fim` est posée au démarrage, un ajout
+  fait par le compte `tester` donne « Modified on /srv/whodata/notes.txt by
+  /usr/bin/bash (uid tester) », sans « probable », et la règle est retirée à
+  l'arrêt (en 3 s). **Non vérifié** : les clés de registre et le reste du
+  code Windows ailleurs que dans la CI ; l'interface n'a été vue que dans son
+  aperçu, avec des données d'exemple.
+
+### 🐧 Linux : les journaux du service dans `/var/log/sentinel-grc`
+
+- **Le service écrit enfin ses journaux là où le paquet les attend** : il
+  visait `/var/log/sentinel`, en lecture seule sous `ProtectSystem=strict`,
+  et retombait sur son `/tmp` privé, vidé à chaque redémarrage. Il écrit
+  maintenant `/var/log/sentinel-grc/agent.log`, le dossier que créent les
+  paquets deb et rpm et qu'ouvrent l'unité systemd, AppArmor et l'application
+  de bureau. macOS (`/var/log/sentinel`) et Windows ne changent pas.
+- **logrotate prend ce fichier** : un seul `agent.log`, tourné chaque jour,
+  compressé, gardé 14 jours (les noms datés `agent.log.AAAA-MM-JJ` lui
+  échappaient). Il le copie puis le vide sur place (`copytruncate`), en tant
+  que `sentinel-grc` (`su`) : l'agent n'a pas de rechargement, et l'ancien
+  `systemctl reload` échouait sans bruit.
+- **Un processus root n'écrit plus dans ce dossier** : il appartient au compte
+  du service, qui pourrait y remplacer un fichier par un lien. L'assistant
+  privilégié et les commandes lancées en root gardent le journal système et
+  leur dossier de repli (`/root/.local/share/sentinel/logs`) ; le service ne
+  trouve jamais un `agent.log` à root qu'il ne pourrait pas ouvrir.
+- **Vérifié** sur Ubuntu 24.04 et Fedora 43 (machines OrbStack isolées,
+  protections systemd actives) : avant, dossier vide et journaux dans le
+  `/tmp` privé ; après, installation neuve et mise à jour, `agent.log` au
+  compte `sentinel-grc` dans un dossier 0700 ; `logrotate.service` le tourne
+  (copie identique, l'agent continue au début du fichier vidé, compression à
+  la rotation suivante). **Non vérifié** : AppArmor (absent du noyau
+  OrbStack), amd64, paquet construit en profil release avec l'interface.
 
 ### 🔒 Réponse : verrouillage de compte et commande de réponse
 

@@ -149,7 +149,8 @@ fn group_of(command: &GuiCommand) -> Group {
         | GuiCommand::DeletePlaybook { .. }
         | GuiCommand::SaveDetectionRule { .. }
         | GuiCommand::DeleteDetectionRule { .. }
-        | GuiCommand::ToggleDetectionRule { .. } => Group::Playbooks,
+        | GuiCommand::ToggleDetectionRule { .. }
+        | GuiCommand::RestoreDefaultDetectionRules => Group::Playbooks,
         GuiCommand::SaveRisk { .. }
         | GuiCommand::DeleteRisk { .. }
         | GuiCommand::SaveAsset { .. }

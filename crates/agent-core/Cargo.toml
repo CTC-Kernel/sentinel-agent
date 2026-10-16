@@ -25,7 +25,7 @@ base64.workspace = true
 agent-common = { path = "../agent-common" }
 agent-storage = { path = "../agent-storage" }
 agent-sync = { path = "../agent-sync" }
-agent-scanner = { path = "../agent-scanner", features = ["osv"] }
+agent-scanner = { path = "../agent-scanner", features = ["osv", "proc-connector"] }
 agent-network = { path = "../agent-network" }
 agent-fim = { path = "../agent-fim" }
 agent-siem = { path = "../agent-siem" }

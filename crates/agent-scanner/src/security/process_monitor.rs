@@ -16,96 +16,121 @@ const SUSPICIOUS_PROCESSES: &[(&str, &str, IncidentType, bool)] = &[
     // Crypto miners - use contains match as they may have version suffixes
     (
         "xmrig",
-        "XMRig crypto miner",
+        "Mineur de cryptomonnaie XMRig",
         IncidentType::CryptoMiner,
         false,
     ),
-    ("minerd", "CPU miner", IncidentType::CryptoMiner, true),
-    ("cgminer", "ASIC/GPU miner", IncidentType::CryptoMiner, true),
+    (
+        "minerd",
+        "Mineur sur processeur",
+        IncidentType::CryptoMiner,
+        true,
+    ),
+    (
+        "cgminer",
+        "Mineur ASIC/GPU",
+        IncidentType::CryptoMiner,
+        true,
+    ),
     (
         "bfgminer",
-        "ASIC/GPU miner",
+        "Mineur ASIC/GPU",
         IncidentType::CryptoMiner,
         true,
     ),
-    ("cpuminer", "CPU miner", IncidentType::CryptoMiner, false),
     (
-        "ethminer",
-        "Ethereum miner",
-        IncidentType::CryptoMiner,
-        true,
-    ),
-    ("xmr-stak", "Monero miner", IncidentType::CryptoMiner, false),
-    ("t-rex", "T-Rex GPU miner", IncidentType::CryptoMiner, true),
-    ("nbminer", "NBMiner", IncidentType::CryptoMiner, true),
-    (
-        "phoenixminer",
-        "Phoenix miner",
+        "cpuminer",
+        "Mineur sur processeur",
         IncidentType::CryptoMiner,
         false,
     ),
-    ("lolminer", "lolMiner", IncidentType::CryptoMiner, true),
-    ("gminer", "GMiner", IncidentType::CryptoMiner, true),
+    (
+        "ethminer",
+        "Mineur Ethereum",
+        IncidentType::CryptoMiner,
+        true,
+    ),
+    (
+        "xmr-stak",
+        "Mineur Monero",
+        IncidentType::CryptoMiner,
+        false,
+    ),
+    ("t-rex", "Mineur GPU T-Rex", IncidentType::CryptoMiner, true),
+    ("nbminer", "Mineur NBMiner", IncidentType::CryptoMiner, true),
+    (
+        "phoenixminer",
+        "Mineur Phoenix",
+        IncidentType::CryptoMiner,
+        false,
+    ),
+    (
+        "lolminer",
+        "Mineur lolMiner",
+        IncidentType::CryptoMiner,
+        true,
+    ),
+    ("gminer", "Mineur GMiner", IncidentType::CryptoMiner, true),
     // Reverse shells / network tools - EXACT match only to avoid false positives
     // (nc would match launchd, syncd, etc.)
     (
         "nc",
-        "netcat - potential reverse shell",
+        "netcat : shell inversé possible",
         IncidentType::ReverseShell,
         true,
     ),
     (
         "ncat",
-        "ncat - potential reverse shell",
+        "ncat : shell inversé possible",
         IncidentType::ReverseShell,
         true,
     ),
     (
         "netcat",
-        "netcat - potential reverse shell",
+        "netcat : shell inversé possible",
         IncidentType::ReverseShell,
         true,
     ),
     (
         "socat",
-        "socat - potential tunnel",
+        "socat : tunnel possible",
         IncidentType::ReverseShell,
         true,
     ),
     // Credential theft tools - exact match
     (
         "mimikatz",
-        "Mimikatz credential stealer",
+        "Vol d'identifiants (Mimikatz)",
         IncidentType::CredentialTheft,
         false,
     ),
     (
         "lazagne",
-        "LaZagne credential stealer",
+        "Vol d'identifiants (LaZagne)",
         IncidentType::CredentialTheft,
         false,
     ),
     (
         "secretsdump",
-        "Impacket secretsdump",
+        "Extraction de secrets (Impacket secretsdump)",
         IncidentType::CredentialTheft,
         false,
     ),
     (
         "procdump",
-        "ProcDump (may dump credentials)",
+        "ProcDump (peut extraire des identifiants)",
         IncidentType::CredentialTheft,
         true,
     ),
     (
         "gsecdump",
-        "Credential dump tool",
+        "Outil d'extraction d'identifiants",
         IncidentType::CredentialTheft,
         true,
     ),
     (
         "wce.exe",
-        "Windows Credential Editor",
+        "Vol d'identifiants (Windows Credential Editor)",
         IncidentType::CredentialTheft,
         true,
     ),
@@ -113,39 +138,44 @@ const SUSPICIOUS_PROCESSES: &[(&str, &str, IncidentType, bool)] = &[
     // (beacon would match findmybeaconingd, empire would match empirestate, etc.)
     (
         "meterpreter",
-        "Metasploit payload",
+        "Charge Metasploit",
         IncidentType::Malware,
         false,
     ),
     (
         "beacon.exe",
-        "Cobalt Strike beacon",
+        "Balise Cobalt Strike",
         IncidentType::Malware,
         true,
     ),
     (
         "empire.exe",
-        "PowerShell Empire",
+        "Post-exploitation (PowerShell Empire)",
         IncidentType::Malware,
         true,
     ),
-    ("covenant", "Covenant C2", IncidentType::Malware, true),
+    (
+        "covenant",
+        "Commande et contrôle (Covenant)",
+        IncidentType::Malware,
+        true,
+    ),
     // Privilege escalation - exact match
     (
         "getsystem",
-        "Privilege escalation",
+        "Élévation de privilèges",
         IncidentType::PrivilegeEscalation,
         true,
     ),
     (
         "pspy",
-        "Process spy - enumeration tool",
+        "pspy : espionnage des processus",
         IncidentType::PrivilegeEscalation,
         true,
     ),
     (
         "pspy64",
-        "Process spy - enumeration tool",
+        "pspy : espionnage des processus",
         IncidentType::PrivilegeEscalation,
         true,
     ),
@@ -427,8 +457,8 @@ impl ProcessMonitor {
                     SecurityIncident::new(
                         *incident_type,
                         severity,
-                        format!("Suspicious process detected: {}", proc.name),
-                        format!("{} - {}", proc.name, description),
+                        format!("Processus suspect : {}", proc.name),
+                        format!("{} : {}.", proc.name, description),
                     )
                     .with_evidence(serde_json::json!({
                         "process_name": proc.name,
@@ -450,7 +480,7 @@ impl ProcessMonitor {
                     &proc.name,
                     proc.pid,
                     proc.path.as_deref(),
-                    &format!("Matches custom pattern: {}", pattern),
+                    &format!("correspond au motif déclaré « {} »", pattern),
                     70,
                 ));
             }
@@ -471,8 +501,8 @@ impl ProcessMonitor {
                     SecurityIncident::new(
                         IncidentType::SuspiciousProcess,
                         IncidentSeverity::Medium,
-                        format!("Encoded command execution: {}", proc.name),
-                        "Process running with encoded/obfuscated command line",
+                        format!("Commande encodée : {}", proc.name),
+                        "Le processus s'exécute avec une ligne de commande encodée ou masquée.",
                     )
                     .with_evidence(serde_json::json!({
                         "process_name": proc.name,
@@ -492,8 +522,8 @@ impl ProcessMonitor {
                     SecurityIncident::new(
                         IncidentType::ReverseShell,
                         IncidentSeverity::Critical,
-                        format!("Reverse shell detected: {}", proc.name),
-                        "Process appears to be establishing a reverse shell connection",
+                        format!("Shell inversé : {}", proc.name),
+                        "Le processus semble ouvrir un shell inversé vers une autre machine.",
                     )
                     .with_evidence(serde_json::json!({
                         "process_name": proc.name,
@@ -632,7 +662,10 @@ fn sigma_incidents_for(
                 rule.title, process.name, process.pid
             );
             let description = if rule.description.is_empty() {
-                format!("Sigma rule \"{}\" matched this process.", rule.title)
+                format!(
+                    "La règle Sigma « {} » correspond à ce processus.",
+                    rule.title
+                )
             } else {
                 rule.description.clone()
             };

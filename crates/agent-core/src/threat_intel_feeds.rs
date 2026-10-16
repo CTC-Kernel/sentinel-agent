@@ -512,10 +512,10 @@ pub fn known_malware_incident(path: &str, sha256: &str) -> SecurityIncident {
     SecurityIncident::new(
         IncidentType::Malware,
         IncidentSeverity::Critical,
-        format!("Known malicious file: {path}"),
+        format!("Fichier malveillant connu : {path}"),
         format!(
-            "{path} is a file listed as malicious by the threat intelligence feeds \
-             (SHA-256 {sha256})."
+            "{path} est listé comme malveillant par les flux de renseignement sur les \
+             menaces (SHA-256 {sha256})."
         ),
     )
     .with_confidence(95)
