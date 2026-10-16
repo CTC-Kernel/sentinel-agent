@@ -62,6 +62,15 @@ ignore = [
     # image -> ravif -> rav1e, no maintained alternative available.
     "RUSTSEC-2026-0105", # core2 unmaintained
     { crate = "core2", reason = "all versions yanked; transitive via image->ravif->rav1e, no alternative" },
+    # zip: every release before 9.0.3 was yanked in October 2026 over
+    # extraction advisories (GHSA-vv5m-jxxh-4627, GHSA-4v9h-p7m9-rh26,
+    # GHSA-4684-h2q9-2vcp), all in `ZipArchive::extract` /
+    # `ZipStreamReader::extract`. Pulled only by candle-core 0.9.2 (agent_llm,
+    # via mistralrs), which reads .npz/.pth entries in memory and never
+    # extracts; the agent does not use zip itself. No candle-core release
+    # takes zip 9 yet (0.11 needs ^8.6, yanked too). Pinned to this version so
+    # the next zip in the lock file is checked again.
+    { crate = "zip@7.2.0", reason = "all 7.x/8.x yanked over extract() advisories; candle-core only reads entries in memory, no release on zip 9 yet" },
     # quick-xml 0.30 DoS advisories, pulled transitively via eframe 0.31's
     # Linux accessibility bridge (accesskit -> atspi -> zbus_xml), not on our
     # parsing paths. Resolved by upgrading eframe to 0.33+ (separate tracked
