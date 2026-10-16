@@ -28,6 +28,7 @@ use super::LoopState;
 use super::fim::FimBatch;
 use crate::AgentRuntime;
 use crate::INCIDENT_FLUSH_INTERVAL_SECS;
+use crate::inventory_upload::PendingInventory;
 use crate::supervised_tasks::TaskSet;
 use crate::threat_pipeline::PipelineResult;
 
@@ -81,6 +82,8 @@ pub(crate) enum Outbound {
     SiemEvents(Vec<SiemEvent>),
     /// Another attempt at the incidents the platform has not received yet.
     QueuedIncidents,
+    /// The system inventory, whole or the sections that changed.
+    SystemInventory(Box<PendingInventory>),
 }
 
 impl Outbound {
@@ -98,6 +101,7 @@ impl Outbound {
             Self::SiemFindings { .. } => "SIEM findings",
             Self::SiemEvents(_) => "SIEM events",
             Self::QueuedIncidents => "incidents waiting for the platform",
+            Self::SystemInventory(_) => "system inventory",
         }
     }
 }
@@ -249,6 +253,7 @@ impl AgentRuntime {
             Outbound::QueuedIncidents => {
                 self.flush_queued_incidents().await;
             }
+            Outbound::SystemInventory(pending) => self.upload_system_inventory(*pending).await,
         }
     }
 

@@ -11,6 +11,7 @@
 use crate::client::HttpClient;
 use crate::credentials::CredentialsRepository;
 use crate::error::{SyncError, SyncResult};
+use crate::system_inventory::{SystemInventoryResponse, SystemInventoryUpload};
 use crate::types::{
     AcknowledgedResponse,
     // Alert rule sync
@@ -710,6 +711,26 @@ impl AuthenticatedClient {
         );
         let request = UsbEventSyncRequest { events };
         self.post_json(&format!("/v1/agents/{}/usb-events", agent_id), &request)
+            .await
+    }
+
+    /// Upload the system inventory to the SaaS: the whole of it, or the
+    /// sections that changed (see [`crate::system_inventory`]).
+    pub async fn upload_system_inventory(
+        &self,
+        upload: &SystemInventoryUpload,
+    ) -> SyncResult<SystemInventoryResponse> {
+        let agent_id = self.agent_id().await?;
+        debug!(
+            "Uploading the system inventory for agent {} ({})",
+            agent_id,
+            if upload.full {
+                "whole".to_string()
+            } else {
+                format!("{} section(s)", upload.sections().len())
+            }
+        );
+        self.post_json(&format!("/v1/agents/{}/system-inventory", agent_id), upload)
             .await
     }
 

@@ -6,7 +6,8 @@
 //!
 //! Every change is recorded as a SIEM event; the ones an intruder leaves
 //! behind (an account, a service, a listening port) raise an incident that
-//! follows the same path as any other.
+//! follows the same path as any other. The inventory itself is sent to the
+//! platform when it changes (see [`crate::inventory_upload`]).
 
 use agent_common::config::AgentConfig;
 use agent_common::constants::AGENT_VERSION;
@@ -17,6 +18,8 @@ use std::time::{Duration, Instant};
 use tracing::{debug, info, warn};
 
 use super::AgentRuntime;
+use crate::inventory_upload::{InventoryUploads, PendingInventory};
+use crate::main_loop::Outbound;
 
 /// Time between two inventories.
 const INVENTORY_EVERY: Duration = Duration::from_secs(10 * 60);
@@ -42,6 +45,8 @@ pub(crate) struct InventoryWatch {
     path: std::path::PathBuf,
     /// What changed since the agent started, most recent first.
     recent: std::collections::VecDeque<RecentChange>,
+    /// What the platform holds of the inventory.
+    pub(crate) uploads: InventoryUploads,
 }
 
 impl InventoryWatch {
@@ -52,6 +57,19 @@ impl InventoryWatch {
             last: None,
             path,
             recent: std::collections::VecDeque::new(),
+            uploads: InventoryUploads::default(),
+        }
+    }
+
+    /// An inventory kept in `path`, none taken yet.
+    #[cfg(test)]
+    pub(crate) fn at(path: std::path::PathBuf) -> Self {
+        Self {
+            state: InventoryState::default(),
+            last: None,
+            path,
+            recent: std::collections::VecDeque::new(),
+            uploads: InventoryUploads::default(),
         }
     }
 
@@ -142,47 +160,79 @@ impl AgentRuntime {
                 return (Vec::new(), Vec::new());
             }
         };
+        self.record_inventory(current, chrono::Utc::now()).await
+    }
+
+    /// Record the inventory `current`, taken at `taken_at`: what changed
+    /// since the previous one, for the interface and the platform.
+    pub(crate) async fn record_inventory(
+        &self,
+        current: agent_scanner::inventory::SystemInventory,
+        taken_at: chrono::DateTime<chrono::Utc>,
+    ) -> (Vec<SecurityIncident>, Vec<SiemEvent>) {
         if current.is_empty() {
             debug!("Inventory: nothing could be collected");
             return (Vec::new(), Vec::new());
         }
 
-        let mut guard = self.inventory.lock().unwrap_or_else(|e| e.into_inner());
-        let Some(watch) = guard.as_mut() else {
-            return (Vec::new(), Vec::new());
-        };
-        let first = watch.state.inventory.is_none();
-        let system = current.system.as_ref().and_then(|system| system.os_label());
-        let (users, services, ports) = (
-            current.users.len(),
-            current.services.len(),
-            current.listening_ports.len(),
-        );
-        let taken_at = chrono::Utc::now();
-        let changes = watch.state.update(current, taken_at);
-        if let Err(e) = watch.state.save(&watch.path) {
-            warn!("Failed to save the inventory: {}", e);
-        }
-        watch.remember(&changes, taken_at);
-        #[cfg(feature = "gui")]
-        if let Some(inventory) = watch.gui_inventory() {
-            self.emit_gui_event(agent_gui::events::AgentEvent::SystemInventory { inventory });
-        }
-        if first {
-            info!(
-                "First inventory taken: {}, {} accounts, {} services, {} listening ports",
-                system.as_deref().unwrap_or("system not described"),
-                users,
-                services,
-                ports
+        let (changes, upload) = {
+            let mut guard = self.inventory.lock().unwrap_or_else(|e| e.into_inner());
+            let Some(watch) = guard.as_mut() else {
+                return (Vec::new(), Vec::new());
+            };
+            let first = watch.state.inventory.is_none();
+            let system = current.system.as_ref().and_then(|system| system.os_label());
+            let (users, services, ports) = (
+                current.users.len(),
+                current.services.len(),
+                current.listening_ports.len(),
             );
-        } else if !changes.is_empty() {
-            info!("Inventory: {} change(s)", changes.len());
+            let changes = watch.state.update(current, taken_at);
+            if let Err(e) = watch.state.save(&watch.path) {
+                warn!("Failed to save the inventory: {}", e);
+            }
+            watch.remember(&changes, taken_at);
+            #[cfg(feature = "gui")]
+            if let Some(inventory) = watch.gui_inventory() {
+                self.emit_gui_event(agent_gui::events::AgentEvent::SystemInventory { inventory });
+            }
+            if first {
+                info!(
+                    "First inventory taken: {}, {} accounts, {} services, {} listening ports",
+                    system.as_deref().unwrap_or("system not described"),
+                    users,
+                    services,
+                    ports
+                );
+            } else if !changes.is_empty() {
+                info!("Inventory: {} change(s)", changes.len());
+            }
+            // A standalone agent has no client: nothing leaves.
+            let upload = if self.authenticated_client.is_some() {
+                watch.upload_due(taken_at)
+            } else {
+                None
+            };
+            (changes, upload)
+        };
+        if let Some(pending) = upload {
+            self.outbox
+                .push(Outbound::SystemInventory(Box::new(pending)))
+                .await;
         }
         let host = hostname::get()
             .map(|h| h.to_string_lossy().to_string())
             .unwrap_or_default();
         report(&changes, &host)
+    }
+}
+
+impl InventoryWatch {
+    /// What the platform should receive of the inventory now, if anything.
+    fn upload_due(&mut self, now: chrono::DateTime<chrono::Utc>) -> Option<PendingInventory> {
+        let inventory = self.state.inventory.as_ref()?;
+        let snapshot = crate::inventory_upload::snapshot(inventory, now);
+        self.uploads.next(snapshot, now)
     }
 }
 
@@ -193,12 +243,7 @@ impl InventoryWatch {
         use agent_gui::dto;
         use agent_scanner::inventory::is_privileged_group;
         let inventory = self.state.inventory.as_ref()?;
-        let administrators: std::collections::BTreeSet<&str> = inventory
-            .groups
-            .iter()
-            .filter(|group| is_privileged_group(&group.name))
-            .flat_map(|group| group.members.iter().map(String::as_str))
-            .collect();
+        let administrators = crate::inventory_upload::administrators(inventory);
         let severity = |severity: agent_scanner::IncidentSeverity| match severity {
             agent_scanner::IncidentSeverity::Critical => dto::Severity::Critical,
             agent_scanner::IncidentSeverity::High => dto::Severity::High,
@@ -327,6 +372,7 @@ mod tests {
             last: None,
             path: std::path::PathBuf::new(),
             recent: std::collections::VecDeque::new(),
+            uploads: InventoryUploads::default(),
         };
         let first = chrono::Utc::now() - chrono::Duration::minutes(10);
         watch.remember(&[account("backup", "1001")], first);
@@ -409,6 +455,76 @@ mod tests {
         assert_eq!(records[1].name, "inventory_service_removed");
         assert_eq!(records[1].severity, 3);
         assert_eq!(records[1].category, EventCategory::Configuration);
+    }
+
+    /// `runtime` keeps its inventory in `dir`, none taken yet.
+    fn watch_in(runtime: &AgentRuntime, dir: &tempfile::TempDir) {
+        *runtime.inventory.lock().unwrap() =
+            Some(InventoryWatch::at(dir.path().join("inventory.json")));
+    }
+
+    fn one_account() -> agent_scanner::inventory::SystemInventory {
+        let InventoryChange::UserAdded(user) = account("alice", "1000") else {
+            unreachable!()
+        };
+        agent_scanner::inventory::SystemInventory {
+            users: vec![user],
+            ..Default::default()
+        }
+    }
+
+    #[tokio::test]
+    async fn a_standalone_agent_keeps_its_inventory_to_itself() {
+        let test = crate::main_loop::testing::standalone_runtime();
+        let dir = tempfile::tempdir().unwrap();
+        watch_in(&test.runtime, &dir);
+        test.runtime
+            .record_inventory(one_account(), chrono::Utc::now())
+            .await;
+        assert!(test.runtime.outbox.take_queued().await.is_empty());
+        // The inventory was taken all the same.
+        assert!(dir.path().join("inventory.json").exists());
+    }
+
+    #[tokio::test]
+    async fn the_inventory_leaves_whole_and_waits_after_a_refusal() {
+        let test = crate::main_loop::testing::unenrolled_runtime();
+        let dir = tempfile::tempdir().unwrap();
+        watch_in(&test.runtime, &dir);
+        let now = chrono::Utc::now();
+        test.runtime.record_inventory(one_account(), now).await;
+        let mut queued = test.runtime.outbox.take_queued().await;
+        let Some(Outbound::SystemInventory(pending)) = queued.pop() else {
+            panic!("no inventory queued");
+        };
+        assert!(queued.is_empty());
+        assert!(pending.upload.full);
+        assert_eq!(
+            pending.upload.users.as_ref().map(|users| users.total),
+            Some(1)
+        );
+
+        // Never enrolled: refused without reaching the network.
+        test.runtime
+            .send_outbound(Outbound::SystemInventory(pending))
+            .await;
+        let failures = |runtime: &AgentRuntime| {
+            let guard = runtime.inventory.lock().unwrap();
+            guard.as_ref().unwrap().uploads.failures()
+        };
+        assert_eq!(failures(&test.runtime), 1);
+
+        // Not asked again before its time, then asked the whole again.
+        let later = |minutes| now + chrono::TimeDelta::minutes(minutes);
+        test.runtime.record_inventory(one_account(), later(5)).await;
+        assert!(test.runtime.outbox.take_queued().await.is_empty());
+        test.runtime
+            .record_inventory(one_account(), later(10))
+            .await;
+        assert!(matches!(
+            test.runtime.outbox.take_queued().await.as_slice(),
+            [Outbound::SystemInventory(pending)] if pending.upload.full
+        ));
     }
 
     #[test]
