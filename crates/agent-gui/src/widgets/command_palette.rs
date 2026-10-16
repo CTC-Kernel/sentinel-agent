@@ -221,7 +221,7 @@ impl<'a> CommandPalette<'a> {
             .order(egui::Order::Foreground)
             .anchor(egui::Align2::LEFT_TOP, egui::vec2(0.0, 0.0))
             .show(ctx, |ui| {
-                let screen = ctx.screen_rect();
+                let screen = ctx.content_rect();
                 let (backdrop_rect, backdrop_response) =
                     ui.allocate_exact_size(screen.size(), Sense::click());
 
@@ -240,7 +240,7 @@ impl<'a> CommandPalette<'a> {
 
         // Palette window
         let palette_width = theme::COMMAND_PALETTE_WIDTH;
-        let screen = ctx.screen_rect();
+        let screen = ctx.content_rect();
         let palette_x = (screen.width() - palette_width) / 2.0;
         let palette_y = screen.height() * 0.2;
 

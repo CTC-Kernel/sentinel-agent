@@ -16,6 +16,7 @@ use egui::{Align2, Color32, CornerRadius, Rect, Sense, Stroke, Ui, Vec2, pos2, v
 
 use crate::icons;
 use crate::theme;
+use crate::theme::LinearFade as _;
 
 /// What the top bar renders this frame.
 pub struct TopBarContext<'a> {
@@ -74,17 +75,17 @@ const SEARCH_W: f32 = 380.0;
 const SEARCH_MIN_W: f32 = 150.0;
 
 /// Render the top bar and return the action the operator triggered, if any.
-pub fn top_bar(ctx: &egui::Context, cx: &TopBarContext<'_>) -> Option<TopBarAction> {
+pub fn top_bar(ui: &mut Ui, cx: &TopBarContext<'_>) -> Option<TopBarAction> {
     let mut action = None;
 
-    egui::TopBottomPanel::top("global_top_bar")
-        .exact_height(theme::TOPBAR_HEIGHT)
+    egui::Panel::top("global_top_bar")
+        .exact_size(theme::TOPBAR_HEIGHT)
         .frame(
             egui::Frame::new()
                 .fill(theme::bg_secondary())
                 .inner_margin(egui::Margin::ZERO),
         )
-        .show(ctx, |ui: &mut Ui| {
+        .show_inside(ui, |ui: &mut Ui| {
             let rect = ui.max_rect();
 
             // Brand segment shares the sidebar's surface, so chrome reads as
@@ -373,7 +374,7 @@ fn kbd_hint(ui: &Ui, right_center: egui::Pos2, label: &str) -> Rect {
     painter.rect_filled(
         rect,
         CornerRadius::same(theme::ROUNDING_SM),
-        theme::overlay_color().linear_multiply(0.06),
+        theme::overlay_color().linear_fade(0.06),
     );
     painter.galley(
         pos2(
@@ -635,7 +636,7 @@ fn icon_button(
         painter.circle_filled(
             rect.center(),
             ICON_BTN / 2.0 - 4.0,
-            theme::ACCENT.linear_multiply(0.10 + pulse * 0.18),
+            theme::ACCENT.linear_fade(0.10 + pulse * 0.18),
         );
         ui.ctx().request_repaint();
     }
@@ -674,7 +675,7 @@ fn primary_action(ui: &mut Ui, rect: Rect, label: &str, busy: bool, hint: &str) 
     let radius = CornerRadius::same(theme::BUTTON_ROUNDING);
 
     let fill = if busy {
-        theme::ACCENT.linear_multiply(theme::OPACITY_PRESSED)
+        theme::ACCENT.linear_fade(theme::OPACITY_PRESSED)
     } else if response.is_pointer_button_down_on() {
         theme::ACCENT_PRESSED
     } else if hovered {

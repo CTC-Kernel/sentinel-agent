@@ -5,6 +5,7 @@
 
 use crate::icons;
 use crate::theme;
+use crate::theme::LinearFade as _;
 use egui::{Color32, CornerRadius, Sense, Ui};
 
 /// Alert severity levels.
@@ -195,9 +196,9 @@ impl<'a> Alert<'a> {
 
                                 let bg = if is_hovered {
                                     if primary {
-                                        accent_color.linear_multiply(theme::OPACITY_HOVER)
+                                        accent_color.linear_fade(theme::OPACITY_HOVER)
                                     } else {
-                                        accent_color.linear_multiply(theme::OPACITY_SUBTLE)
+                                        accent_color.linear_fade(theme::OPACITY_SUBTLE)
                                     }
                                 } else {
                                     button_bg

@@ -10,6 +10,7 @@ use crate::dto::FimChangeType;
 use crate::events::GuiCommand;
 use crate::icons;
 use crate::theme;
+use crate::theme::LinearFade as _;
 use crate::widgets;
 
 pub struct FimPage;
@@ -721,7 +722,7 @@ fn week_bars(ui: &mut Ui, alerts: &std::collections::VecDeque<crate::dto::GuiFim
             } else if i == 6 {
                 theme::accent_text()
             } else {
-                theme::accent_text().linear_multiply(0.55)
+                theme::accent_text().linear_fade(0.55)
             },
         );
         let weekday = (today - chrono::Duration::days(6 - i as i64)).weekday();

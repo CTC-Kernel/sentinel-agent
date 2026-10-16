@@ -8,9 +8,10 @@
 //! other surface.
 
 use crate::theme;
+use crate::theme::LinearFade as _;
 
 /// Draw the splash for `elapsed` seconds since launch.
-pub fn splash_screen(ctx: &egui::Context, elapsed: f32) {
+pub fn splash_screen(ui: &mut egui::Ui, elapsed: f32) {
     // Respect reduced-motion: skip fade animations, show static splash.
     let (alpha, progress) = if theme::is_reduced_motion() {
         (1.0_f32, (elapsed / theme::SPLASH_DURATION).min(1.0))
@@ -27,9 +28,9 @@ pub fn splash_screen(ctx: &egui::Context, elapsed: f32) {
     };
     egui::CentralPanel::default()
         .frame(egui::Frame::new().fill(theme::bg_primary()))
-        .show(ctx, |ui: &mut egui::Ui| {
+        .show_inside(ui, |ui: &mut egui::Ui| {
             let size = ui.available_size();
-            ui.allocate_new_ui(
+            ui.scope_builder(
                 egui::UiBuilder::new().max_rect(egui::Rect::from_center_size(
                     egui::pos2(size.x / 2.0, size.y / 2.0),
                     egui::vec2(theme::SPLASH_CONTENT_WIDTH, theme::SPLASH_CONTENT_HEIGHT),
@@ -45,7 +46,7 @@ pub fn splash_screen(ctx: &egui::Context, elapsed: f32) {
                             include_bytes!("../../assets/IA.png"),
                         )
                         .max_width(theme::ENROLLMENT_LOGO_WIDTH)
-                        .tint(egui::Color32::WHITE.linear_multiply(alpha));
+                        .tint(egui::Color32::WHITE.linear_fade(alpha));
                         ui.add(logo);
 
                         ui.add_space(theme::SPACE_LG);
@@ -54,7 +55,7 @@ pub fn splash_screen(ctx: &egui::Context, elapsed: f32) {
                         ui.label(
                             egui::RichText::new("SENTINEL")
                                 .font(theme::font_splash())
-                                .color(theme::text_primary().linear_multiply(alpha))
+                                .color(theme::text_primary().linear_fade(alpha))
                                 .extra_letter_spacing(theme::TRACKING_WIDE * 4.0),
                         );
 
@@ -64,7 +65,7 @@ pub fn splash_screen(ctx: &egui::Context, elapsed: f32) {
                         ui.label(
                             egui::RichText::new("GRC NEXUS \u{00b7} ENDPOINT")
                                 .font(theme::font_label())
-                                .color(theme::accent_text().linear_multiply(alpha))
+                                .color(theme::accent_text().linear_fade(alpha))
                                 .extra_letter_spacing(theme::TRACKING_WIDE * 3.0),
                         );
 
@@ -88,7 +89,7 @@ pub fn splash_screen(ctx: &egui::Context, elapsed: f32) {
                         painter.rect_filled(
                             fill_rect,
                             egui::CornerRadius::same(theme::PROGRESS_BAR_ROUNDING),
-                            theme::ACCENT.linear_multiply(alpha),
+                            theme::ACCENT.linear_fade(alpha),
                         );
 
                         ui.add_space(theme::SPACE_LG);
@@ -97,7 +98,7 @@ pub fn splash_screen(ctx: &egui::Context, elapsed: f32) {
                         ui.label(
                             egui::RichText::new("CYBER THREAT CONSULTING")
                                 .font(theme::font_micro())
-                                .color(theme::text_tertiary().linear_multiply(alpha))
+                                .color(theme::text_tertiary().linear_fade(alpha))
                                 .extra_letter_spacing(theme::TRACKING_WIDE * 2.0),
                         );
                     });

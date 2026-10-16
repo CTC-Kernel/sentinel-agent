@@ -16,6 +16,7 @@ use crate::dto::{ChatRole, GuiCheckStatus, LlmTab, Severity};
 use crate::events::GuiCommand;
 use crate::icons;
 use crate::theme;
+use crate::theme::LinearFade as _;
 use crate::widgets;
 use crate::widgets::tabs::{Tab, TabBar};
 
@@ -178,69 +179,79 @@ impl LLMPanel {
                         state.ai.prompt_context = contexts[index];
                     }
                     ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-                        egui::menu::menu_custom_button(
-                            ui,
-                            toolbar_menu_button(icons::ELLIPSIS, "Conversation"),
-                            |ui| {
-                                ui.set_min_width(220.0);
-                                let has_messages = !state.ai.chat_history.is_empty();
-                                if ui
-                                    .add_enabled(
-                                        has_messages,
-                                        egui::Button::new(format!(
-                                            "{}  Copier la conversation",
-                                            icons::COPY
-                                        )),
-                                    )
-                                    .clicked()
-                                {
-                                    let text = state
-                                        .ai
-                                        .chat_history
-                                        .iter()
-                                        .map(|m| {
-                                            format!(
-                                                "{} · {}\n{}",
-                                                m.role.label_fr(),
-                                                crate::format::local_time(m.timestamp),
-                                                m.content
-                                            )
-                                        })
-                                        .collect::<Vec<_>>()
-                                        .join("\n\n");
-                                    ui.ctx().copy_text(text);
-                                    ui.close_menu();
+                        egui::containers::menu::MenuButton::from_button(toolbar_menu_button(
+                            icons::ELLIPSIS,
+                            "Conversation",
+                        ))
+                        // Items close the menu themselves, as before the menu API change.
+                        .config(
+                            egui::containers::menu::MenuConfig::new()
+                                .close_behavior(egui::PopupCloseBehavior::CloseOnClickOutside),
+                        )
+                        .ui(ui, |ui| {
+                            ui.set_min_width(220.0);
+                            let has_messages = !state.ai.chat_history.is_empty();
+                            if ui
+                                .add_enabled(
+                                    has_messages,
+                                    egui::Button::new(format!(
+                                        "{}  Copier la conversation",
+                                        icons::COPY
+                                    )),
+                                )
+                                .clicked()
+                            {
+                                let text = state
+                                    .ai
+                                    .chat_history
+                                    .iter()
+                                    .map(|m| {
+                                        format!(
+                                            "{} · {}\n{}",
+                                            m.role.label_fr(),
+                                            crate::format::local_time(m.timestamp),
+                                            m.content
+                                        )
+                                    })
+                                    .collect::<Vec<_>>()
+                                    .join("\n\n");
+                                ui.ctx().copy_text(text);
+                                ui.close();
+                            }
+                            if ui
+                                .add_enabled(
+                                    has_messages && !state.ai.is_processing,
+                                    egui::Button::new(format!(
+                                        "{}  Effacer l’historique…",
+                                        icons::TRASH
+                                    )),
+                                )
+                                .clicked()
+                            {
+                                state.ai.confirm_clear_chat = true;
+                                ui.close();
+                            }
+                        });
+                        egui::containers::menu::MenuButton::from_button(toolbar_menu_button(
+                            icons::COMMENTS,
+                            "Suggestions",
+                        ))
+                        // Items close the menu themselves, as before the menu API change.
+                        .config(
+                            egui::containers::menu::MenuConfig::new()
+                                .close_behavior(egui::PopupCloseBehavior::CloseOnClickOutside),
+                        )
+                        .ui(ui, |ui| {
+                            ui.set_min_width(280.0);
+                            for (label, prompt) in Self::prompt_presets(state.ai.work_mode) {
+                                if ui.button(*label).on_hover_text(*prompt).clicked() {
+                                    state.ai.input_text = prompt.to_string();
+                                    state.ai.pending_voice_send = false;
+                                    focus_draft = true;
+                                    ui.close();
                                 }
-                                if ui
-                                    .add_enabled(
-                                        has_messages && !state.ai.is_processing,
-                                        egui::Button::new(format!(
-                                            "{}  Effacer l’historique…",
-                                            icons::TRASH
-                                        )),
-                                    )
-                                    .clicked()
-                                {
-                                    state.ai.confirm_clear_chat = true;
-                                    ui.close_menu();
-                                }
-                            },
-                        );
-                        egui::menu::menu_custom_button(
-                            ui,
-                            toolbar_menu_button(icons::COMMENTS, "Suggestions"),
-                            |ui| {
-                                ui.set_min_width(280.0);
-                                for (label, prompt) in Self::prompt_presets(state.ai.work_mode) {
-                                    if ui.button(*label).on_hover_text(*prompt).clicked() {
-                                        state.ai.input_text = prompt.to_string();
-                                        state.ai.pending_voice_send = false;
-                                        focus_draft = true;
-                                        ui.close_menu();
-                                    }
-                                }
-                            },
-                        );
+                            }
+                        });
                     });
                 });
             });
@@ -315,7 +326,7 @@ impl LLMPanel {
         // top bar. Each panel below re-applies the page's clip.
         let page_clip = workspace_rect.intersect(ui.clip_rect());
         workspace.set_clip_rect(page_clip);
-        egui::TopBottomPanel::bottom("assistant_composer")
+        egui::Panel::bottom("assistant_composer")
             .frame(egui::Frame::NONE)
             .resizable(false)
             .show_inside(&mut workspace, |ui| {
@@ -830,7 +841,7 @@ impl LLMPanel {
         }
         let before = state.ai.voice_settings.clone();
         let mut open = true;
-        let max_height = (ctx.screen_rect().height() - 80.0).max(240.0);
+        let max_height = (ctx.content_rect().height() - 80.0).max(240.0);
         egui::Window::new(
             egui::RichText::new(format!("{}  Réglages vocaux", icons::GEAR))
                 .font(theme::font_body_strong()),
@@ -2162,7 +2173,7 @@ impl LLMPanel {
                 ui.label(
                     egui::RichText::new("●")
                         .size(theme::ICON_SM)
-                        .color(dot_color.linear_multiply(pulse)),
+                        .color(dot_color.linear_fade(pulse)),
                 );
                 ui.add_space(theme::SPACE_SM);
 
@@ -2254,11 +2265,11 @@ impl LLMPanel {
                                     .font(theme::font_small())
                                     .color(theme::accent_text()),
                             )
-                            .fill(theme::ACCENT.linear_multiply(theme::OPACITY_SUBTLE))
+                            .fill(theme::ACCENT.linear_fade(theme::OPACITY_SUBTLE))
                             .corner_radius(egui::CornerRadius::same(theme::SPACE_SM as u8))
                             .stroke(egui::Stroke::new(
                                 theme::BORDER_THIN,
-                                theme::ACCENT.linear_multiply(theme::OPACITY_MUTED),
+                                theme::ACCENT.linear_fade(theme::OPACITY_MUTED),
                             ));
 
                             if ui
@@ -2482,7 +2493,7 @@ impl LLMPanel {
             // ── Error message ───────────────────────────────────────────
             if let Some(ref error) = error_msg {
                 egui::Frame::new()
-                    .fill(theme::ERROR.linear_multiply(theme::OPACITY_SUBTLE))
+                    .fill(theme::ERROR.linear_fade(theme::OPACITY_SUBTLE))
                     .corner_radius(egui::CornerRadius::same(theme::SPACE_SM as u8))
                     .inner_margin(egui::Margin::same(theme::SPACE_SM as i8))
                     .show(ui, |ui: &mut egui::Ui| {
@@ -2672,11 +2683,11 @@ impl LLMPanel {
                             .font(theme::font_body())
                             .color(theme::readable_color(theme::ERROR)),
                     )
-                    .fill(theme::ERROR.linear_multiply(theme::OPACITY_SUBTLE))
+                    .fill(theme::ERROR.linear_fade(theme::OPACITY_SUBTLE))
                     .corner_radius(egui::CornerRadius::same(theme::SPACE_SM as u8))
                     .stroke(egui::Stroke::new(
                         theme::BORDER_THIN,
-                        theme::ERROR.linear_multiply(theme::OPACITY_MUTED),
+                        theme::ERROR.linear_fade(theme::OPACITY_MUTED),
                     ));
 
                     if ui.add(cancel_btn).clicked() {
@@ -3073,7 +3084,7 @@ impl LLMPanel {
                     ui.label(
                         egui::RichText::new(icon)
                             .size(theme::ICON_MD)
-                            .color(color.linear_multiply(theme::OPACITY_STRONG)),
+                            .color(color.linear_fade(theme::OPACITY_STRONG)),
                     );
                     ui.add_space(theme::SPACE_SM);
                     ui.vertical(|ui: &mut egui::Ui| {
@@ -3532,8 +3543,8 @@ mod tests {
                 state.ai.provider_loaded = true;
                 state.ai.provider_draft.provider = provider;
                 state.ai.provider_key.0 = "secret-for-test".into();
-                let _ = ctx.run(egui::RawInput::default(), |ctx| {
-                    egui::CentralPanel::default().show(ctx, |ui| {
+                let _ = ctx.run_ui(egui::RawInput::default(), |ui| {
+                    egui::CentralPanel::default().show_inside(ui, |ui| {
                         assert!(LLMPanel::provider_settings(ui, &mut state).is_none());
                     });
                 });
@@ -3566,19 +3577,19 @@ mod tests {
                     });
                 }
                 for frame in 0..3 {
-                    let output = ctx.run(
+                    let output = ctx.run_ui(
                         egui::RawInput {
                             screen_rect: Some(egui::Rect::from_min_size(egui::Pos2::ZERO, size)),
                             ..Default::default()
                         },
-                        |ctx| {
-                            egui::TopBottomPanel::top("header")
-                                .exact_height(56.0)
-                                .show(ctx, |_| {});
-                            egui::SidePanel::left("sidebar")
-                                .exact_width(if size.x < 1000.0 { 64.0 } else { 244.0 })
-                                .show(ctx, |_| {});
-                            egui::CentralPanel::default().show(ctx, |ui| {
+                        |ui| {
+                            egui::Panel::top("header")
+                                .exact_size(56.0)
+                                .show_inside(ui, |_| {});
+                            egui::Panel::left("sidebar")
+                                .exact_size(if size.x < 1000.0 { 64.0 } else { 244.0 })
+                                .show_inside(ui, |_| {});
+                            egui::CentralPanel::default().show_inside(ui, |ui| {
                                 egui::ScrollArea::vertical().show(ui, |ui| {
                                     crate::app::page_column(ui, |ui| {
                                         LLMPanel.show(ui, &mut state);

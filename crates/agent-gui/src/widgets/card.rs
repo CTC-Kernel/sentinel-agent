@@ -12,6 +12,7 @@
 use egui::{CornerRadius, Frame, Margin, Ui};
 
 use crate::theme;
+use crate::theme::LinearFade as _;
 
 /// How much a card lifts as the pointer crosses it.
 const HOVER_LIFT: f32 = 0.55;
@@ -94,7 +95,7 @@ impl Card {
                 theme::tinted_surface(theme::ERROR),
                 egui::Stroke::new(
                     theme::BORDER_THIN,
-                    theme::readable_color(theme::ERROR).linear_multiply(theme::OPACITY_MEDIUM),
+                    theme::readable_color(theme::ERROR).linear_fade(theme::OPACITY_MEDIUM),
                 ),
             ),
             _ => (

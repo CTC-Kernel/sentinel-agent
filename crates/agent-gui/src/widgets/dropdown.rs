@@ -135,7 +135,7 @@ impl<'a, T> Dropdown<'a, T> {
             job.wrap.max_width = (rect.width() - theme::SPACE_MD - theme::SPACE * 2.0).max(0.0);
             job.wrap.max_rows = 1;
             job.wrap.break_anywhere = true;
-            let galley = ui.fonts(|fonts| fonts.layout_job(job));
+            let galley = ui.fonts_mut(|fonts| fonts.layout_job(job));
             painter.galley(
                 egui::pos2(
                     rect.min.x + theme::SPACE_MD,
@@ -190,7 +190,7 @@ impl<'a, T> Dropdown<'a, T> {
                 }
                 + theme::SPACE_SM)
                 .min(theme::DROPDOWN_MAX_HEIGHT + theme::DROPDOWN_POPUP_MARGIN);
-            let screen = ui.ctx().screen_rect();
+            let screen = ui.ctx().content_rect();
             let fits_below = rect.max.y + theme::SPACE_XS + list_height <= screen.bottom();
             let fits_above = rect.min.y - theme::SPACE_XS - list_height >= screen.top();
             let above = !fits_below && fits_above;
@@ -235,7 +235,10 @@ impl<'a, T> Dropdown<'a, T> {
                                 let response = ui.add(
                                     egui::TextEdit::singleline(&mut search_text)
                                         .hint_text("Rechercher…")
-                                        .frame(false)
+                                        .frame(
+                                            egui::Frame::NONE
+                                                .inner_margin(egui::Margin::symmetric(4, 2)),
+                                        )
                                         .desired_width(width - theme::INPUT_HEIGHT),
                                 );
                                 if response.changed() {
@@ -505,7 +508,7 @@ mod regression_tests {
         });
         let mut selection = None;
         for frame in 0..3 {
-            let _ = ctx.run(
+            let _ = ctx.run_ui(
                 egui::RawInput {
                     screen_rect: Some(egui::Rect::from_min_size(
                         egui::Pos2::ZERO,
@@ -526,8 +529,8 @@ mod regression_tests {
                     },
                     ..Default::default()
                 },
-                |ctx| {
-                    egui::CentralPanel::default().show(ctx, |ui| {
+                |ui| {
+                    egui::CentralPanel::default().show_inside(ui, |ui| {
                         selection = Dropdown::new("filtered_test", &["Alpha", "Beta", "Alpine"], 0)
                             .searchable()
                             .show(ui);

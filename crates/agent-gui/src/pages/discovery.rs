@@ -6,6 +6,7 @@
 use crate::app::AppState;
 use crate::icons;
 use crate::theme;
+use crate::theme::LinearFade as _;
 use crate::widgets;
 use egui::Ui;
 
@@ -113,7 +114,7 @@ impl DiscoveryPage {
                                         ui.painter().rect_filled(
                                             fill_rect.expand(expansion),
                                             egui::CornerRadius::same(theme::ROUNDING_SM),
-                                            theme::ACCENT.linear_multiply(alpha),
+                                            theme::ACCENT.linear_fade(alpha),
                                         );
                                     }
                                 } else {
@@ -126,8 +127,7 @@ impl DiscoveryPage {
                                         ui.painter().rect_filled(
                                             fill_rect.expand(expansion),
                                             egui::CornerRadius::same(theme::ROUNDING_SM),
-                                            theme::ACCENT
-                                                .linear_multiply(alpha * (0.8 + pulse * 0.2)),
+                                            theme::ACCENT.linear_fade(alpha * (0.8 + pulse * 0.2)),
                                         );
                                     }
                                 }
@@ -153,8 +153,7 @@ impl DiscoveryPage {
                                         ui.painter().rect_filled(
                                             visible_shimmer,
                                             egui::CornerRadius::same(theme::ROUNDING_XS),
-                                            theme::overlay_color()
-                                                .linear_multiply(theme::OPACITY_TINT),
+                                            theme::overlay_color().linear_fade(theme::OPACITY_TINT),
                                         );
                                     }
                                 }

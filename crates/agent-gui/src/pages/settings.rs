@@ -702,7 +702,9 @@ impl SettingsPage {
                                 .hint_text("https://…")
                                 .desired_width(input_width - theme::SPACE_LG)
                                 .char_limit(2048)
-                                .frame(false)
+                                .frame(
+                                    egui::Frame::NONE.inner_margin(egui::Margin::symmetric(4, 2)),
+                                )
                                 .font(theme::font_mono()),
                         );
                     });

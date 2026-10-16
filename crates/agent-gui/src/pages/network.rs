@@ -10,6 +10,7 @@ use crate::dto::GuiAgentStatus;
 use crate::events::GuiCommand;
 use crate::icons;
 use crate::theme;
+use crate::theme::LinearFade as _;
 use crate::widgets;
 
 pub struct NetworkPage;
@@ -862,7 +863,7 @@ impl NetworkPage {
                     ui.label(
                         egui::RichText::new(icons::WARNING)
                             .size(theme::ICON_2XL)
-                            .color(theme::ERROR.linear_multiply(theme::OPACITY_MEDIUM)),
+                            .color(theme::ERROR.linear_fade(theme::OPACITY_MEDIUM)),
                     );
                     ui.add_space(theme::SPACE_SM);
                     ui.label(

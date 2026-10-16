@@ -48,7 +48,7 @@ pub(super) fn show(ctx: &egui::Context, state: &AppState) {
             let relative: Vec<[f64; 2]> = values.iter().map(|p| [p[0] - last_time, p[1]]).collect();
             Plot::new(id.with("plot")).height(240.0).include_y(0.0).include_y(100.0)
                 .x_axis_label("Secondes avant la dernière mesure").y_axis_label("Utilisation (%)")
-                .show(ui, |plot| plot.line(Line::new(PlotPoints::from(relative)).name(title).color(theme::chart_color(theme::INFO))));
+                .show(ui, |plot| plot.line(Line::new(title, PlotPoints::from(relative)).color(theme::chart_color(theme::INFO))));
             widgets::detail_section(ui, "Dernières mesures");
             egui::Grid::new(id.with("samples")).striped(true).show(ui, |ui| {
                 ui.strong("Ancienneté"); ui.strong("Utilisation"); ui.end_row();

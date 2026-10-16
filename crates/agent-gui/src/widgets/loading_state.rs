@@ -31,7 +31,7 @@ pub fn loading_skeleton(ui: &mut Ui, rows: usize) {
         let base_alpha = 0.06 + phase * 0.04;
         let alpha_byte = (base_alpha * 255.0).clamp(0.0, 255.0) as u8;
         let fill = if dark {
-            Color32::from_white_alpha(alpha_byte)
+            theme::white_alpha(alpha_byte)
         } else {
             Color32::from_black_alpha(alpha_byte)
         };
@@ -46,7 +46,7 @@ pub fn loading_skeleton(ui: &mut Ui, rows: usize) {
         let col_widths = [0.15, 0.25, 0.35, 0.15];
         let col_alpha_byte = (base_alpha * 1.5 * 255.0).clamp(0.0, 255.0) as u8;
         let col_fill = if dark {
-            Color32::from_white_alpha(col_alpha_byte)
+            theme::white_alpha(col_alpha_byte)
         } else {
             Color32::from_black_alpha(col_alpha_byte)
         };

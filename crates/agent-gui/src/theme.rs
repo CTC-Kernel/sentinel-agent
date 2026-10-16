@@ -476,7 +476,7 @@ pub fn separator() -> Color32 {
 }
 
 /// Theme-aware overlay color (white in dark mode, black in light mode).
-/// Use with `.linear_multiply(alpha)` for consistent overlays.
+/// Use with `.linear_fade(alpha)` for consistent overlays.
 #[inline]
 pub fn overlay_color() -> Color32 {
     if is_dark_mode() {
@@ -873,7 +873,7 @@ pub const TRACKING_NORMAL: f32 = 0.5;
 pub const TRACKING_WIDE: f32 = 1.0;
 
 // ============================================================================
-// Opacity constants (use with .linear_multiply())
+// Opacity constants (use with .linear_fade())
 // ============================================================================
 
 /// Extremely subtle (borders, dividers).
@@ -1056,9 +1056,9 @@ pub fn glass_card_bg() -> Color32 {
 /// Lit edge of a glass surface (top-left).
 pub fn glass_border_top() -> Color32 {
     if is_dark_mode() {
-        Color32::from_white_alpha(20)
+        white_alpha(20)
     } else {
-        Color32::from_white_alpha(200)
+        white_alpha(200)
     }
 }
 
@@ -1345,13 +1345,13 @@ pub fn configure_fonts(ctx: &egui::Context) {
     static MONO_MEDIUM: &[u8] = include_bytes!("../assets/fonts/JetBrainsMono-Medium.ttf");
     static FA_SOLID: &[u8] = include_bytes!("../assets/fonts/fa-solid-900.ttf");
 
-    // Inter's hhea ascent (0.97em) is generous; trimming the line box keeps
+    // Inter's hhea ascent (0.97em) is generous; lifting the glyphs keeps
     // dense tables and nav rows optically centred without clipping accents.
     let ui_tweak = egui::FontTweak {
         scale: 1.0,
-        y_offset_factor: -0.01,
+        y_offset_factor: -0.0433,
         y_offset: 0.0,
-        baseline_offset_factor: -0.0333,
+        ..Default::default()
     };
     // Font Awesome's cap height (0.84em) overshoots Inter's (0.73em); nudging
     // the glyphs down aligns icon centres with the text they label.
@@ -1359,7 +1359,7 @@ pub fn configure_fonts(ctx: &egui::Context) {
         scale: 0.92,
         y_offset_factor: 0.04,
         y_offset: 0.0,
-        baseline_offset_factor: 0.0,
+        ..Default::default()
     };
 
     for (name, bytes) in [
@@ -1370,7 +1370,7 @@ pub fn configure_fonts(ctx: &egui::Context) {
     ] {
         fonts.font_data.insert(
             name.to_owned(),
-            std::sync::Arc::new(egui::FontData::from_static(bytes).tweak(ui_tweak)),
+            std::sync::Arc::new(egui::FontData::from_static(bytes).tweak(ui_tweak.clone())),
         );
     }
     for (name, bytes) in [
@@ -1499,6 +1499,7 @@ pub fn apply_theme(ctx: &egui::Context, dark: bool) {
         bar_inner_margin: 4.0,
         bar_outer_margin: 2.0,
         floating: true,
+        content_margin: Margin::ZERO,
         floating_width: 4.0,
         floating_allocated_width: 0.0,
         foreground_color: false,
@@ -1508,6 +1509,11 @@ pub fn apply_theme(ctx: &egui::Context, dark: bool) {
         dormant_handle_opacity: 0.28,
         active_handle_opacity: 0.7,
         interact_handle_opacity: 0.95,
+        // No edge fade: pages already end on their own spacing.
+        fade: egui::style::ScrollFadeStyle {
+            strength: 0.0,
+            size: 0.0,
+        },
     };
 
     // ── Visuals ────────────────────────────────────────────────────
@@ -1546,7 +1552,7 @@ pub fn apply_theme(ctx: &egui::Context, dark: bool) {
     visuals.widgets.hovered.fg_stroke = Stroke::new(1.0_f32, text_primary());
     visuals.widgets.hovered.corner_radius = control_radius;
     visuals.widgets.hovered.bg_stroke =
-        Stroke::new(BORDER_THIN, ACCENT.linear_multiply(OPACITY_MODERATE));
+        Stroke::new(BORDER_THIN, ACCENT.linear_fade(OPACITY_MODERATE));
     visuals.widgets.hovered.expansion = 0.0;
 
     // Active: pressed / engaged.
@@ -1565,7 +1571,7 @@ pub fn apply_theme(ctx: &egui::Context, dark: bool) {
     visuals.widgets.open.bg_stroke = Stroke::new(BORDER_THIN, border());
 
     // Selection / focus — a 2px accent ring, always visible (WCAG 2.4.7).
-    visuals.selection.bg_fill = ACCENT.linear_multiply(if dark { 0.32 } else { 0.22 });
+    visuals.selection.bg_fill = ACCENT.linear_fade(if dark { 0.32 } else { 0.22 });
     visuals.selection.stroke = Stroke::new(BORDER_THICK, accent_text());
 
     // Windows, popups and menus.
@@ -1603,7 +1609,7 @@ pub fn apply_theme(ctx: &egui::Context, dark: bool) {
     style.interaction.selectable_labels = true;
     style.interaction.tooltip_delay = 0.4;
     style.interaction.tooltip_grace_time = 0.2;
-    ctx.set_style(style);
+    ctx.set_global_style(style);
 }
 
 /// Build a shadow from its parts (offset, blur, spread, alpha).
@@ -1675,7 +1681,7 @@ impl Elevation {
             color: if is_dark_mode() {
                 Color32::from_black_alpha(alpha)
             } else {
-                Color32::from_rgba_unmultiplied(34, 58, 100, alpha)
+                rgba_unmultiplied(34, 58, 100, alpha)
             },
         }
     }
@@ -1690,7 +1696,7 @@ impl Elevation {
             color: if is_dark_mode() {
                 Color32::from_black_alpha(alpha)
             } else {
-                Color32::from_rgba_unmultiplied(34, 58, 100, alpha)
+                rgba_unmultiplied(34, 58, 100, alpha)
             },
         }
     }
@@ -1714,7 +1720,7 @@ pub fn elevation_shapes(
     let mut shapes = [egui::Shape::Noop, egui::Shape::Noop];
     for (slot, mut shadow) in shapes.iter_mut().zip([level.ambient(), level.key()]) {
         shadow.blur = (shadow.blur as f32 * t) as u8;
-        shadow.color = shadow.color.linear_multiply(t);
+        shadow.color = shadow.color.linear_fade(t);
         *slot = egui::Shape::Rect(shadow.as_shape(rect, radius));
     }
     shapes
@@ -1757,7 +1763,7 @@ pub fn paint_surface_rim(painter: &egui::Painter, rect: egui::Rect, radius: Corn
                 rect.left() + f32::from(radius.nw),
                 rect.right() - f32::from(radius.ne),
             ),
-            Color32::from_white_alpha(34),
+            white_alpha(34),
         );
     } else {
         // The light surface catches a white top edge; its lower edge carries
@@ -1767,14 +1773,14 @@ pub fn paint_surface_rim(painter: &egui::Painter, rect: egui::Rect, radius: Corn
                 egui::pos2(rect.left() + f32::from(radius.nw), rect.top() + 1.0),
                 egui::pos2(rect.right() - f32::from(radius.ne), rect.top() + 1.0),
             ],
-            Stroke::new(1.0_f32, Color32::from_white_alpha(230)),
+            Stroke::new(1.0_f32, white_alpha(230)),
         );
         painter.line_segment(
             [
                 egui::pos2(rect.left() + f32::from(radius.sw), rect.bottom() - 1.0),
                 egui::pos2(rect.right() - f32::from(radius.se), rect.bottom() - 1.0),
             ],
-            Stroke::new(1.0_f32, Color32::from_rgba_unmultiplied(63, 94, 145, 22)),
+            Stroke::new(1.0_f32, rgba_unmultiplied(63, 94, 145, 22)),
         );
     }
 }
@@ -1806,7 +1812,7 @@ pub fn shadow_2xl() -> Shadow {
 
 /// Helper for a subtle glow effect around a rect.
 pub fn glow_stroke(color: Color32) -> Stroke {
-    Stroke::new(BORDER_THIN, color.linear_multiply(OPACITY_MEDIUM))
+    Stroke::new(BORDER_THIN, color.linear_fade(OPACITY_MEDIUM))
 }
 
 /// Make a semantic color readable as text on the current theme's card surface.
@@ -1833,7 +1839,7 @@ pub fn chart_color(color: Color32) -> Color32 {
 #[inline]
 pub fn chart_grid() -> Color32 {
     if is_dark_mode() {
-        border_subtle().linear_multiply(0.72)
+        border_subtle().linear_fade(0.72)
     } else {
         Color32::from_rgb(207, 214, 208) // #CFD6D0
     }
@@ -1923,7 +1929,7 @@ pub fn focus_ring_light() -> egui::Stroke {
 
 /// Get a disabled version of a color.
 pub fn disabled_color(color: Color32) -> Color32 {
-    color.linear_multiply(OPACITY_DISABLED)
+    color.linear_fade(OPACITY_DISABLED)
 }
 
 /// A color at a given alpha.
@@ -1933,7 +1939,59 @@ pub fn disabled_color(color: Color32) -> Color32 {
 /// overlays; for state washes prefer the opaque helpers below.
 #[inline]
 pub fn with_alpha(color: Color32, alpha: u8) -> Color32 {
-    Color32::from_rgba_unmultiplied(color.r(), color.g(), color.b(), alpha)
+    rgba_unmultiplied(color.r(), color.g(), color.b(), alpha)
+}
+
+/// `r, g, b` at `alpha`, premultiplied in linear space.
+///
+/// That is how egui built every translucent colour up to 0.31, and the
+/// glows, tints and overlays of this palette were tuned against it. Since
+/// 0.32 `Color32::from_rgba_unmultiplied` and `from_white_alpha` premultiply
+/// in gamma space, which renders the same alpha several times fainter (the
+/// workspace glow at alpha 20 kept a quarter of its light). Translucent
+/// colours are built here so they keep the look they were designed with.
+pub fn rgba_unmultiplied(r: u8, g: u8, b: u8, alpha: u8) -> Color32 {
+    use egui::ecolor::{gamma_u8_from_linear_f32, linear_f32_from_gamma_u8};
+    match alpha {
+        0 => Color32::TRANSPARENT,
+        255 => Color32::from_rgb(r, g, b),
+        alpha => {
+            let alpha_lin = f32::from(alpha) / 255.0;
+            let [r, g, b] = [r, g, b]
+                .map(|value| gamma_u8_from_linear_f32(linear_f32_from_gamma_u8(value) * alpha_lin));
+            Color32::from_rgba_premultiplied(r, g, b, alpha)
+        }
+    }
+}
+
+/// White at `alpha`, premultiplied like [`rgba_unmultiplied`].
+#[inline]
+pub fn white_alpha(alpha: u8) -> Color32 {
+    rgba_unmultiplied(255, 255, 255, alpha)
+}
+
+/// Fading a colour towards transparent the way egui 0.31 did.
+///
+/// `Color32::linear_multiply` kept its name in egui 0.32 but now fades in
+/// gamma space, like `gamma_multiply`: the washes, hovers and glows built
+/// with it came out several times dimmer (see [`rgba_unmultiplied`]).
+pub trait LinearFade {
+    /// Multiply every channel, alpha included, by `factor` in linear space.
+    fn linear_fade(self, factor: f32) -> Color32;
+}
+
+impl LinearFade for Color32 {
+    fn linear_fade(self, factor: f32) -> Color32 {
+        use egui::ecolor::{
+            gamma_u8_from_linear_f32, linear_f32_from_gamma_u8, linear_u8_from_linear_f32,
+        };
+        debug_assert!(0.0 <= factor && factor.is_finite());
+        let [r, g, b, a] = self.to_array();
+        let [r, g, b] = [r, g, b]
+            .map(|value| gamma_u8_from_linear_f32(linear_f32_from_gamma_u8(value) * factor));
+        let a = linear_u8_from_linear_f32(f32::from(a) / 255.0 * factor);
+        Color32::from_rgba_premultiplied(r, g, b, a)
+    }
 }
 
 // ── Interaction washes ──────────────────────────────────────────────────
@@ -2492,8 +2550,8 @@ mod motion_tests {
                     egui::Theme::Light
                 }
             );
-            assert_eq!(ctx.style().visuals.dark_mode, dark);
-            assert_eq!(ctx.style().visuals.window_fill, bg_secondary());
+            assert_eq!(ctx.global_style().visuals.dark_mode, dark);
+            assert_eq!(ctx.global_style().visuals.window_fill, bg_secondary());
         }
     }
 
@@ -2502,10 +2560,33 @@ mod motion_tests {
         let ctx = egui::Context::default();
         set_reduced_motion(true);
         apply_theme(&ctx, true);
-        assert_eq!(ctx.style().animation_time, 0.0);
+        assert_eq!(ctx.global_style().animation_time, 0.0);
 
         set_reduced_motion(false);
         apply_theme(&ctx, true);
-        assert_eq!(ctx.style().animation_time, ANIM_FAST);
+        assert_eq!(ctx.global_style().animation_time, ANIM_FAST);
+    }
+}
+
+#[cfg(test)]
+mod translucency_tests {
+    use super::*;
+
+    // Reference values computed with egui 0.31's premultiplication, which the
+    // palette was tuned against: egui 0.34 itself gives [3, 8, 18, 20],
+    // [20, 20, 20, 20] and [15, 15, 15, 15] for the same calls.
+    #[test]
+    fn translucent_colours_keep_their_egui_031_values() {
+        assert_eq!(
+            rgba_unmultiplied(37, 99, 235, 20).to_array(),
+            [5, 25, 72, 20]
+        );
+        assert_eq!(white_alpha(20).to_array(), [79, 79, 79, 20]);
+        assert_eq!(
+            Color32::WHITE.linear_fade(0.06).to_array(),
+            [69, 69, 69, 15]
+        );
+        assert_eq!(rgba_unmultiplied(1, 2, 3, 0), Color32::TRANSPARENT);
+        assert_eq!(rgba_unmultiplied(1, 2, 3, 255), Color32::from_rgb(1, 2, 3));
     }
 }

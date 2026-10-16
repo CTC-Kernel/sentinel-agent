@@ -40,7 +40,7 @@ pub fn show(ctx: &egui::Context, state: &mut AppState) -> DialogOutcome {
         state.security.changing_password || state.settings.admin_password_hash.is_empty();
 
     let mut outcome = DialogOutcome::Pending;
-    let width = DIALOG_WIDTH.min(ctx.screen_rect().width() - theme::SPACE_LG * 2.0);
+    let width = DIALOG_WIDTH.min(ctx.content_rect().width() - theme::SPACE_LG * 2.0);
     let modal = egui::Modal::new(egui::Id::new("admin_dialog"))
         .backdrop_color(theme::backdrop_color(theme::BACKDROP_ALPHA))
         .frame(

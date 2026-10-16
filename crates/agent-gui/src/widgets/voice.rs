@@ -5,6 +5,7 @@
 
 use crate::icons;
 use crate::theme;
+use crate::theme::LinearFade as _;
 use egui::{Response, Sense, Stroke, Ui};
 
 /// A premium, animated voice toggle button.
@@ -37,7 +38,7 @@ pub fn voice_toggle_button(ui: &mut Ui, is_listening: bool) -> Response {
         if is_listening && !theme::is_reduced_motion() {
             let pulse = (t * 4.0).sin().abs() as f32; // Pulse factor 0.0 -> 1.0
             let aura_radius = (size / 2.0) + (pulse * 6.0);
-            let aura_color = theme::ACCENT.linear_multiply(0.2 * (1.0 - pulse));
+            let aura_color = theme::ACCENT.linear_fade(0.2 * (1.0 - pulse));
 
             ui.painter()
                 .circle_filled(rect.center(), aura_radius, aura_color);
@@ -45,11 +46,11 @@ pub fn voice_toggle_button(ui: &mut Ui, is_listening: bool) -> Response {
 
         // --- 2. Main Backdrop ---
         let fill_color = if is_listening {
-            theme::ACCENT.linear_multiply(0.15)
+            theme::ACCENT.linear_fade(0.15)
         } else if is_hovered {
             theme::bg_elevated()
         } else {
-            theme::bg_secondary().linear_multiply(0.5)
+            theme::bg_secondary().linear_fade(0.5)
         };
 
         let border_color = if is_listening {
@@ -75,7 +76,7 @@ pub fn voice_toggle_button(ui: &mut Ui, is_listening: bool) -> Response {
 
         // --- 3. Glow (Active) ---
         if is_listening {
-            let glow_color = theme::ACCENT.linear_multiply(0.3);
+            let glow_color = theme::ACCENT.linear_fade(0.3);
             ui.painter().circle_stroke(
                 rect.center(),
                 (size / 2.0) + 1.0,

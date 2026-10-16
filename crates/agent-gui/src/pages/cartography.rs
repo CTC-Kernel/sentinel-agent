@@ -8,6 +8,7 @@ use crate::dto::GuiDiscoveredDevice;
 use crate::events::GuiCommand;
 use crate::icons;
 use crate::theme;
+use crate::theme::LinearFade as _;
 use crate::widgets;
 use egui::{Color32, Pos2, Ui, Vec2};
 
@@ -220,7 +221,7 @@ impl CartographyPage {
         }
 
         // Background grid simulation (Subtle institutional lines)
-        let grid_color = theme::border().linear_multiply(theme::OPACITY_SUBTLE);
+        let grid_color = theme::border().linear_fade(theme::OPACITY_SUBTLE);
         for i in 1..GRID_DIVISIONS {
             let x = rect.min.x + (rect.width() * i as f32 / GRID_DIVISIONS as f32);
             painter.line_segment(
@@ -311,7 +312,7 @@ impl CartographyPage {
             painter.circle_filled(
                 screen_pos,
                 base_radius * (1.5 + 0.3 * breathing),
-                color.linear_multiply(0.08 + 0.04 * breathing),
+                color.linear_fade(0.08 + 0.04 * breathing),
             );
 
             // 2. Core Glow for Gateway or Selected
@@ -321,7 +322,7 @@ impl CartographyPage {
                 painter.circle_filled(
                     screen_pos,
                     base_radius * 2.0,
-                    color.linear_multiply(intensity * breathing),
+                    color.linear_fade(intensity * breathing),
                 );
             }
 
@@ -367,7 +368,7 @@ impl CartographyPage {
             painter.rect_filled(
                 plate,
                 theme::ROUNDING_SM,
-                theme::bg_secondary().linear_multiply(0.92),
+                theme::bg_secondary().linear_fade(0.92),
             );
             painter.galley(
                 plate.center() - galley.size() / 2.0,

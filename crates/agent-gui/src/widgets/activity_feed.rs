@@ -8,6 +8,7 @@ use egui::{Color32, CornerRadius, RichText, Ui, Vec2};
 use crate::app::AppState;
 use crate::icons;
 use crate::theme;
+use crate::theme::LinearFade as _;
 
 /// Activity event type for display.
 #[derive(Debug, Clone)]
@@ -127,9 +128,8 @@ pub fn activity_feed(ui: &mut Ui, state: &AppState, max_items: usize) {
                         crate::animation::request_ambient_repaint(ui.ctx());
                         (
                             "EN DIRECT",
-                            theme::SUCCESS.linear_multiply(
-                                theme::OPACITY_MEDIUM + theme::OPACITY_MEDIUM * pulse,
-                            ),
+                            theme::SUCCESS
+                                .linear_fade(theme::OPACITY_MEDIUM + theme::OPACITY_MEDIUM * pulse),
                             theme::readable_color(theme::SUCCESS),
                         )
                     }
@@ -212,7 +212,7 @@ fn activity_row(ui: &mut Ui, event: &ActivityEvent, _idx: usize) {
         painter.rect_filled(
             bar_rect,
             CornerRadius::same(theme::ROUNDING_XS),
-            color.linear_multiply(theme::OPACITY_STRONG),
+            color.linear_fade(theme::OPACITY_STRONG),
         );
 
         // Icon

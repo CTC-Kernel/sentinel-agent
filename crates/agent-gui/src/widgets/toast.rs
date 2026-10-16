@@ -5,6 +5,7 @@
 
 use crate::icons;
 use crate::theme;
+use crate::theme::LinearFade as _;
 use egui::{CornerRadius, Stroke, Ui, epaint::StrokeKind};
 
 /// Toast notification level.
@@ -207,7 +208,7 @@ pub fn render_toasts_at(ui: &mut Ui, toasts: &[Toast], position: ToastPosition) 
         let galley = ui.painter().layout_no_wrap(
             text,
             theme::font_body(),
-            theme::text_primary().linear_multiply(alpha),
+            theme::text_primary().linear_fade(alpha),
         );
 
         let toast_width = stack_width;
@@ -251,10 +252,10 @@ pub fn render_toasts_at(ui: &mut Ui, toasts: &[Toast], position: ToastPosition) 
         ui.painter().rect(
             toast_rect,
             toast_rounding,
-            theme::glass_card_bg().linear_multiply(alpha),
+            theme::glass_card_bg().linear_fade(alpha),
             Stroke::new(
                 theme::BORDER_HAIRLINE,
-                theme::border_subtle().linear_multiply(alpha),
+                theme::border_subtle().linear_fade(alpha),
             ),
             StrokeKind::Inside,
         );
@@ -271,7 +272,7 @@ pub fn render_toasts_at(ui: &mut Ui, toasts: &[Toast], position: ToastPosition) 
                 sw: theme::TOAST_ROUNDING,
                 ..Default::default()
             },
-            color.linear_multiply(alpha),
+            color.linear_fade(alpha),
         );
 
         // Text (shifted right to account for accent bar)
@@ -279,11 +280,8 @@ pub fn render_toasts_at(ui: &mut Ui, toasts: &[Toast], position: ToastPosition) 
             toast_rect.min.x + theme::TOAST_TEXT_INSET,
             toast_rect.center().y - galley.size().y / 2.0,
         );
-        ui.painter().galley(
-            text_pos,
-            galley,
-            theme::text_primary().linear_multiply(alpha),
-        );
+        ui.painter()
+            .galley(text_pos, galley, theme::text_primary().linear_fade(alpha));
 
         // Close button if dismissible (MIN_TOUCH_TARGET for accessibility)
         let mut reading = ui.rect_contains_pointer(toast_rect);
@@ -318,9 +316,9 @@ pub fn render_toasts_at(ui: &mut Ui, toasts: &[Toast], position: ToastPosition) 
 
             // Draw close button
             let close_color = if close_hovered {
-                theme::text_primary().linear_multiply(alpha)
+                theme::text_primary().linear_fade(alpha)
             } else {
-                theme::text_secondary().linear_multiply(alpha)
+                theme::text_secondary().linear_fade(alpha)
             };
 
             ui.painter().text(

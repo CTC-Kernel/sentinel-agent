@@ -136,7 +136,7 @@ impl Modal {
 
         // The native modal layer contains pointer and keyboard interaction.
         // Enter activates only the focused button, never a global default.
-        let screen = ctx.screen_rect();
+        let screen = ctx.content_rect();
         self.width = self
             .width
             .min((screen.width() - theme::SPACE_LG * 2.0).max(1.0));
@@ -413,7 +413,7 @@ mod tests {
         crate::theme::configure_fonts(&ctx);
         Modal::open(&ctx, "danger_test");
         for frame in 0..4 {
-            let _ = ctx.run(
+            let _ = ctx.run_ui(
                 egui::RawInput {
                     events: if frame == 3 {
                         vec![egui::Event::Key {
@@ -428,11 +428,11 @@ mod tests {
                     },
                     ..Default::default()
                 },
-                |ctx| {
+                |ui| {
                     assert_eq!(
                         Modal::new("danger_test", "Supprimer ?")
                             .style(ModalStyle::Danger)
-                            .show(ctx),
+                            .show(ui.ctx()),
                         ModalResult::None
                     );
                 },
@@ -448,7 +448,7 @@ mod tests {
         let ctx = egui::Context::default();
         crate::theme::configure_fonts(&ctx);
         let frame = || {
-            ctx.run(
+            ctx.run_ui(
                 egui::RawInput {
                     screen_rect: Some(egui::Rect::from_min_size(
                         egui::Pos2::ZERO,
@@ -456,13 +456,13 @@ mod tests {
                     )),
                     ..Default::default()
                 },
-                |ctx| {
-                    egui::CentralPanel::default().show(ctx, |ui| {
+                |ui| {
+                    egui::CentralPanel::default().show_inside(ui, |ui| {
                         ui.label("page");
                     });
                     Modal::new("deadlock_test", "Confirmer ?")
                         .message("Cette action est journalisée.")
-                        .show(ctx);
+                        .show(ui.ctx());
                 },
             )
         };

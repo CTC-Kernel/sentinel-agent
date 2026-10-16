@@ -4,6 +4,7 @@
 //! Divider/separator widget with various styles.
 
 use crate::theme;
+use crate::theme::LinearFade as _;
 use egui::{Color32, Ui};
 
 /// Divider style variants.
@@ -255,7 +256,7 @@ impl<'a> Divider<'a> {
                     for i in 0..segments {
                         let t = i as f32 / segments as f32;
                         let alpha = if t < 0.5 { t * 2.0 } else { (1.0 - t) * 2.0 };
-                        let segment_color = color.linear_multiply(alpha);
+                        let segment_color = color.linear_fade(alpha);
 
                         let segment_rect = egui::Rect::from_min_max(
                             egui::pos2(rect.min.x + i as f32 * segment_width, rect.min.y),
@@ -270,7 +271,7 @@ impl<'a> Divider<'a> {
                     for i in 0..segments {
                         let t = i as f32 / segments as f32;
                         let alpha = if t < 0.5 { t * 2.0 } else { (1.0 - t) * 2.0 };
-                        let segment_color = color.linear_multiply(alpha);
+                        let segment_color = color.linear_fade(alpha);
 
                         let segment_rect = egui::Rect::from_min_max(
                             egui::pos2(rect.min.x, rect.min.y + i as f32 * segment_height),

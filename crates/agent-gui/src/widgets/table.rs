@@ -383,7 +383,7 @@ fn truncated(ui: &mut Ui, text: RichText, full: &str, font: &FontId) -> Response
     }
     // The label was given the cell's width; the unwrapped measure says
     // whether that was enough for the whole value.
-    let needed = ui.fonts(|fonts| {
+    let needed = ui.fonts_mut(|fonts| {
         fonts
             .layout_no_wrap(full.to_owned(), font.clone(), Color32::PLACEHOLDER)
             .size()
@@ -458,7 +458,7 @@ mod tests {
         // Two frames: egui lays the first one out as a sizing pass, in which
         // labels extend instead of truncating.
         for _ in 0..2 {
-            let _ = ctx.run(
+            let _ = ctx.run_ui(
                 egui::RawInput {
                     screen_rect: Some(egui::Rect::from_min_size(
                         egui::Pos2::ZERO,
@@ -466,8 +466,8 @@ mod tests {
                     )),
                     ..Default::default()
                 },
-                |ctx| {
-                    egui::CentralPanel::default().show(ctx, |ui| {
+                |ui| {
+                    egui::CentralPanel::default().show_inside(ui, |ui| {
                         let cell = egui::Rect::from_min_size(
                             ui.cursor().min,
                             egui::vec2(120.0, theme::TABLE_ROW_HEIGHT),
@@ -481,7 +481,7 @@ mod tests {
         }
         let rect = painted.expect("cell painted");
         assert!(rect.width() <= 120.5, "cell overflowed: {}", rect.width());
-        let line = ctx.fonts(|f| f.row_height(&theme::font_mono()));
+        let line = ctx.fonts_mut(|f| f.row_height(&theme::font_mono()));
         assert!(
             rect.height() <= line * 1.5,
             "cell wrapped: {}",
@@ -494,7 +494,7 @@ mod tests {
         let ctx = egui::Context::default();
         theme::configure_fonts(&ctx);
         let mut height = 0.0;
-        let _ = ctx.run(
+        let _ = ctx.run_ui(
             egui::RawInput {
                 screen_rect: Some(egui::Rect::from_min_size(
                     egui::Pos2::ZERO,
@@ -502,8 +502,8 @@ mod tests {
                 )),
                 ..Default::default()
             },
-            |ctx| {
-                egui::CentralPanel::default().show(ctx, |ui| {
+            |ui| {
+                egui::CentralPanel::default().show_inside(ui, |ui| {
                     let r = ui.vertical(|ui| {
                         cell_stack(ui, "OpenSSL", "3.0.2-0ubuntu1.15");
                     });

@@ -5,6 +5,7 @@
 
 use crate::icons;
 use crate::theme;
+use crate::theme::LinearFade as _;
 use egui::{Color32, CornerRadius, Sense, Ui};
 
 /// Checkbox size variants.
@@ -265,7 +266,7 @@ impl<'a> RadioButton<'a> {
                 (theme::bg_tertiary(), theme::border())
             } else if selected {
                 (
-                    theme::ACCENT.linear_multiply(theme::OPACITY_SUBTLE),
+                    theme::ACCENT.linear_fade(theme::OPACITY_SUBTLE),
                     theme::ACCENT,
                 )
             } else if is_hovered {
@@ -563,9 +564,9 @@ pub fn switch(ui: &mut Ui, label: &str, on: &mut bool) -> bool {
                 thumb_center,
                 thumb_size / 2.0 + 4.0,
                 if *on {
-                    theme::ACCENT.linear_multiply(theme::OPACITY_TINT)
+                    theme::ACCENT.linear_fade(theme::OPACITY_TINT)
                 } else {
-                    theme::text_tertiary().linear_multiply(theme::OPACITY_TINT)
+                    theme::text_tertiary().linear_fade(theme::OPACITY_TINT)
                 },
             );
         }

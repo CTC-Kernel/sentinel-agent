@@ -10,6 +10,7 @@ use crate::theme;
 use crate::widgets;
 
 use super::types::ThreatEvent;
+use crate::theme::LinearFade as _;
 
 /// Number of half-hour buckets in 24 hours.
 const BUCKET_COUNT: usize = 48;
@@ -101,7 +102,7 @@ pub(super) fn event_timeline(ui: &mut Ui, threats: &[ThreatEvent]) {
             painter.vline(
                 marker_x,
                 rect.y_range(),
-                egui::Stroke::new(2.0_f32, theme::ACCENT.linear_multiply(marker_alpha)),
+                egui::Stroke::new(2.0_f32, theme::ACCENT.linear_fade(marker_alpha)),
             );
         }
 

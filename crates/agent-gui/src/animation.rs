@@ -89,7 +89,7 @@ pub fn smooth_step(t: f32) -> f32 {
 #[inline]
 pub fn lerp_color(a: Color32, b: Color32, t: f32) -> Color32 {
     let t = t.clamp(0.0, 1.0);
-    Color32::from_rgba_unmultiplied(
+    theme::rgba_unmultiplied(
         ((a.r() as f32) * (1.0 - t) + (b.r() as f32) * t).clamp(0.0, 255.0) as u8,
         ((a.g() as f32) * (1.0 - t) + (b.g() as f32) * t).clamp(0.0, 255.0) as u8,
         ((a.b() as f32) * (1.0 - t) + (b.b() as f32) * t).clamp(0.0, 255.0) as u8,

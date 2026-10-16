@@ -6,6 +6,7 @@
 use super::types::ThreatEvent;
 use crate::dto::{MitreTactic, MitreTechnique};
 use crate::theme;
+use crate::theme::LinearFade as _;
 use crate::widgets;
 
 /// Map a detection (kind + subtype) to a MITRE ATT&CK technique.
@@ -418,7 +419,7 @@ fn paint_tactic_tile(
         )
     } else {
         (
-            theme::bg_tertiary().linear_multiply(0.6),
+            theme::bg_tertiary().linear_fade(0.6),
             egui::Stroke::new(
                 theme::BORDER_HAIRLINE,
                 crate::animation::lerp_color(theme::border_subtle(), theme::border(), hover),

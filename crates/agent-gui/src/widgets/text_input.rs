@@ -245,18 +245,17 @@ pub fn text_input_with_options(
         ),
     );
 
-    let text_response = ui.allocate_new_ui(egui::UiBuilder::new().max_rect(text_rect), |ui| {
+    let text_response = ui.scope_builder(egui::UiBuilder::new().max_rect(text_rect), |ui| {
         ui.set_clip_rect(text_rect.intersect(ui.clip_rect()));
         ui.add_sized(
             text_rect.size(),
             egui::TextEdit::singleline(value)
                 .hint_text(egui::RichText::new(placeholder).color(theme::text_tertiary()))
                 .font(theme::font_body())
-                .margin(egui::Margin::symmetric(
+                .frame(egui::Frame::NONE.inner_margin(egui::Margin::symmetric(
                     0,
                     (theme::SPACE_XS + theme::BORDER_THICK) as i8,
-                ))
-                .frame(false)
+                )))
                 .desired_width(text_rect.width()),
         )
     });
@@ -488,7 +487,7 @@ impl<'a> SearchInput<'a> {
             egui::pos2(field.right() - clear_slot, field.bottom()),
         );
         let font = self.font.unwrap_or_else(theme::font_body_sm);
-        let editor = ui.allocate_new_ui(egui::UiBuilder::new().max_rect(text_rect), |ui| {
+        let editor = ui.scope_builder(egui::UiBuilder::new().max_rect(text_rect), |ui| {
             // Clip the editor to the frame: a long value scrolls under the
             // magnifier and the clear button instead of painting over them.
             ui.set_clip_rect(text_rect.intersect(ui.clip_rect()));
@@ -500,8 +499,7 @@ impl<'a> SearchInput<'a> {
                     .font(font)
                     .vertical_align(egui::Align::Center)
                     .text_color(theme::text_primary())
-                    .frame(false)
-                    .margin(egui::Margin::ZERO)
+                    .frame(egui::Frame::NONE)
                     .desired_width(text_rect.width()),
             )
         });
@@ -704,7 +702,7 @@ impl<'a> PasswordInput<'a> {
         } else {
             theme::font_body()
         };
-        let editor = ui.allocate_new_ui(egui::UiBuilder::new().max_rect(text_rect), |ui| {
+        let editor = ui.scope_builder(egui::UiBuilder::new().max_rect(text_rect), |ui| {
             ui.set_clip_rect(text_rect.intersect(ui.clip_rect()));
             ui.add_sized(
                 text_rect.size(),
@@ -715,8 +713,7 @@ impl<'a> PasswordInput<'a> {
                     .font(font)
                     .vertical_align(egui::Align::Center)
                     .text_color(theme::text_primary())
-                    .frame(false)
-                    .margin(egui::Margin::ZERO)
+                    .frame(egui::Frame::NONE)
                     .desired_width(text_rect.width()),
             )
         });

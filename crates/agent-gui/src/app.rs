@@ -16,6 +16,7 @@ use std::sync::{Arc, Mutex};
 use crate::enrollment::{EnrollmentCommand, EnrollmentWizard};
 use crate::events::{AgentEvent, GuiCommand};
 pub use crate::state::{AppState, SyncHistoryEntry};
+use crate::theme::LinearFade as _;
 use crate::tray_bridge::{TrayAction, TrayBridge};
 use crate::{icons, pages, theme, widgets};
 use eframe::egui;
@@ -934,7 +935,8 @@ impl SentinelApp {
 
     /// Render the premium satellite tray view.
     /// Compact tray popup: one glance at the agent's posture, two ways out.
-    fn show_tray_satellite_view(&mut self, ctx: &egui::Context) {
+    fn show_tray_satellite_view(&mut self, ui: &mut egui::Ui) {
+        let ctx = &ui.ctx().clone();
         let restore_window = |ctx: &egui::Context| {
             ctx.send_viewport_cmd(egui::ViewportCommand::Decorations(true));
             ctx.send_viewport_cmd(egui::ViewportCommand::InnerSize(egui::vec2(
@@ -949,7 +951,7 @@ impl SentinelApp {
                     .fill(theme::bg_primary())
                     .inner_margin(egui::Margin::same(theme::SPACE_MD as i8)),
             )
-            .show(ctx, |ui: &mut egui::Ui| {
+            .show_inside(ui, |ui: &mut egui::Ui| {
                 ui.vertical(|ui: &mut egui::Ui| {
                     // ── Header ──────────────────────────────────────
                     ui.horizontal(|ui: &mut egui::Ui| {
@@ -1029,8 +1031,7 @@ impl SentinelApp {
                         .fill(theme::tinted_surface(posture_color))
                         .stroke(egui::Stroke::new(
                             theme::BORDER_HAIRLINE,
-                            theme::readable_color(posture_color)
-                                .linear_multiply(theme::OPACITY_MEDIUM),
+                            theme::readable_color(posture_color).linear_fade(theme::OPACITY_MEDIUM),
                         ))
                         .corner_radius(egui::CornerRadius::same(theme::ROUNDING_MD))
                         .inner_margin(egui::Margin::symmetric(12, 9))
@@ -1127,7 +1128,10 @@ impl eframe::App for SentinelApp {
         }
     }
 
-    fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
+    /// Everything that must keep running while the window is hidden in the
+    /// tray: eframe skips [`Self::ui`] then, but still calls this whenever a
+    /// repaint is requested (runtime messages and tray actions request one).
+    fn logic(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         // Apply theme once on first frame, and re-apply when dark_mode toggles.
         if !self.theme_applied {
             // Reduced motion first: the theme reads it for egui's animation time.
@@ -1231,11 +1235,10 @@ impl eframe::App for SentinelApp {
         // Process incoming events.
         self.process_events();
 
-        for command in crate::llm_panel::LLMPanel::voice_settings_window(ctx, &mut self.state) {
-            self.send_command(command);
-        }
-
-        // Jarvis Widget Viewport (standalone window)
+        // Jarvis Widget Viewport (standalone window). Shown from here rather
+        // than from `ui`: it is its own always-on-top window, which the tray
+        // can open while the main window is hidden, and a viewport not shown
+        // during a pass is closed.
         if self.state.jarvis_visible {
             if self.state.ai.take_warm_up() {
                 self.send_command(GuiCommand::LlmWarmUp {
@@ -1250,8 +1253,8 @@ impl eframe::App for SentinelApp {
                 .with_transparent(!cfg!(target_os = "linux"))
                 .with_always_on_top();
 
-            ctx.show_viewport_immediate(viewport_id, builder, |ctx, _class| {
-                self.show_jarvis_widget(ctx);
+            ctx.show_viewport_immediate(viewport_id, builder, |ui, _class| {
+                self.show_jarvis_widget(ui);
             });
         }
 
@@ -1345,12 +1348,9 @@ impl eframe::App for SentinelApp {
             }
         }
 
-        // ── Splash screen (first ~2.5 seconds) ──
+        // ── Splash screen (first ~2.5 seconds), painted by `ui` ──
         if !self.splash_done && !self.show_tray_satellite {
-            let elapsed = self.splash_start.elapsed().as_secs_f32();
-            if elapsed < theme::SPLASH_DURATION {
-                self.show_splash(ctx, elapsed);
-                ctx.request_repaint();
+            if self.splash_start.elapsed().as_secs_f32() < theme::SPLASH_DURATION {
                 return;
             }
             self.splash_done = true;
@@ -1375,6 +1375,24 @@ impl eframe::App for SentinelApp {
             // Don't render when hidden, but keep processing events.
             // Request a low-rate repaint so we still check tray events.
             ctx.request_repaint_after(std::time::Duration::from_secs(1));
+        }
+    }
+
+    fn ui(&mut self, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
+        let ctx = &ui.ctx().clone();
+
+        for command in crate::llm_panel::LLMPanel::voice_settings_window(ctx, &mut self.state) {
+            self.send_command(command);
+        }
+
+        if !self.splash_done && !self.show_tray_satellite {
+            let elapsed = self.splash_start.elapsed().as_secs_f32();
+            self.show_splash(ui, elapsed);
+            ctx.request_repaint();
+            return;
+        }
+
+        if !self.visible {
             return;
         }
 
@@ -1386,7 +1404,7 @@ impl eframe::App for SentinelApp {
                         .fill(theme::bg_primary())
                         .inner_margin(0.0),
                 )
-                .show(ctx, |ui: &mut egui::Ui| {
+                .show_inside(ui, |ui: &mut egui::Ui| {
                     if let Some(cmd) = self.enrollment_wizard.show(ui) {
                         match &cmd {
                             EnrollmentCommand::Finish => {
@@ -1429,7 +1447,7 @@ impl eframe::App for SentinelApp {
 
         // ── Satellite Tray View (Premium Animated Radar) ──
         if self.show_tray_satellite {
-            self.show_tray_satellite_view(ctx);
+            self.show_tray_satellite_view(ui);
             // In satellite mode, we might want to still have the main window hidden or shown.
             // For now, if satellite is on, we take over the whole frame (borderless small window style).
             return;
@@ -1467,8 +1485,8 @@ impl eframe::App for SentinelApp {
 
         // Global top bar (full width, above the sidebar): persistent location,
         // search, primary action, sync, notifications, assistant, theme.
-        self.show_top_bar(ctx);
-        self.show_pause_banner(ctx);
+        self.show_top_bar(ui);
+        self.show_pause_banner(ui);
 
         let mut navigate: Option<Page> = None;
 
@@ -1485,10 +1503,10 @@ impl eframe::App for SentinelApp {
                 theme::ANIM_NORMAL,
             )
         };
-        egui::SidePanel::left("sidebar")
-            .exact_width(sidebar_width)
+        egui::Panel::left("sidebar")
+            .exact_size(sidebar_width)
             .frame(egui::Frame::new().inner_margin(egui::Margin::ZERO))
-            .show(ctx, |ui: &mut egui::Ui| {
+            .show_inside(ui, |ui: &mut egui::Ui| {
                 widgets::Sidebar::paint_background(ui, ui.max_rect());
                 let sync_state = widgets::sidebar::SidebarSyncState {
                     syncing: self.state.sync.in_progress,
@@ -1542,7 +1560,7 @@ impl eframe::App for SentinelApp {
                         bottom: theme::SPACE_LG as i8,
                     }),
             )
-            .show(ctx, |ui: &mut egui::Ui| {
+            .show_inside(ui, |ui: &mut egui::Ui| {
                 // A single quiet brand light leaves the data field neutral.
                 theme::paint_workspace_backdrop(ui.painter(), ui.max_rect());
 
@@ -1726,7 +1744,7 @@ impl eframe::App for SentinelApp {
                 .fixed_pos(egui::pos2(0.0, 0.0))
                 .order(egui::Order::Foreground)
                 .show(ctx, |ui: &mut egui::Ui| {
-                    let screen = ctx.screen_rect();
+                    let screen = ctx.content_rect();
                     ui.set_min_size(screen.size());
                     self.state.toasts = widgets::render_toasts(ui, &self.state.toasts);
                 });
@@ -1761,9 +1779,9 @@ impl SentinelApp {
     /// sub-headers for page-specific controls.
     /// While protection is paused, a strip under the top bar says so on
     /// every page, with the time it resumes and a way to resume now.
-    fn show_pause_banner(&mut self, ctx: &egui::Context) {
+    fn show_pause_banner(&mut self, ui: &mut egui::Ui) {
         if self.state.settings.is_paused
-            && widgets::pause_banner(ctx, self.state.settings.pause_until)
+            && widgets::pause_banner(ui, self.state.settings.pause_until)
         {
             self.state.end_pause();
             self.dispatch(GuiCommand::Resume);
@@ -1773,16 +1791,16 @@ impl SentinelApp {
         }
     }
 
-    fn show_top_bar(&mut self, ctx: &egui::Context) {
+    fn show_top_bar(&mut self, ui: &mut egui::Ui) {
         let (icon, label, section) = page_catalog()
             .into_iter()
             .find(|(p, ..)| *p == self.page)
             .map(|(_, _, icon, label, section)| (icon, label, Some(section)))
             .unwrap_or((icons::DASHBOARD, "Sentinel", None));
 
-        let collapsed = self.sidebar_collapsed_now(ctx);
+        let collapsed = self.sidebar_collapsed_now(ui.ctx());
         let action = widgets::top_bar(
-            ctx,
+            ui,
             &widgets::TopBarContext {
                 page_icon: icon,
                 page_label: label,
@@ -1824,7 +1842,7 @@ impl SentinelApp {
     /// Whether the sidebar is a rail this frame: the saved preference on a
     /// wide window; below the breakpoint, collapsed unless re-opened.
     fn sidebar_collapsed_now(&mut self, ctx: &egui::Context) -> bool {
-        let narrow = ctx.screen_rect().width() < theme::SIDEBAR_BREAKPOINT;
+        let narrow = ctx.content_rect().width() < theme::SIDEBAR_BREAKPOINT;
         if narrow != self.narrow_layout {
             self.narrow_layout = narrow;
             self.narrow_expanded = false;
@@ -1945,7 +1963,7 @@ impl SentinelApp {
             "action:run_check" => self.send_command(GuiCommand::RunCheck),
             "action:force_sync" => self.send_command(GuiCommand::ForceSync),
             // Flipping the flag makes the next frame re-apply the theme
-            // (see the `dark_mode != last_dark_mode` branch in `update`).
+            // (see the `dark_mode != last_dark_mode` branch in `logic`).
             "action:toggle_theme" => {
                 self.state.settings.follow_system_theme = false;
                 self.state.settings.dark_mode = !self.state.settings.dark_mode;
@@ -1963,27 +1981,25 @@ impl SentinelApp {
     }
 
     /// Render the splash screen.
-    fn show_splash(&self, ctx: &egui::Context, elapsed: f32) {
-        widgets::splash_screen(ctx, elapsed);
+    fn show_splash(&self, ui: &mut egui::Ui, elapsed: f32) {
+        widgets::splash_screen(ui, elapsed);
     }
 
     /// Render the standalone premium Jarvis AI widget.
-    fn show_jarvis_widget(&mut self, ctx: &egui::Context) {
+    fn show_jarvis_widget(&mut self, ui: &mut egui::Ui) {
+        let ctx = &ui.ctx().clone();
         // Apply themes specifically for the viewport
         theme::apply_theme(ctx, self.state.settings.dark_mode);
 
         egui::CentralPanel::default()
             .frame(
                 egui::Frame::NONE
-                    .fill(theme::bg_primary().linear_multiply(0.85))
+                    .fill(theme::bg_primary().linear_fade(0.85))
                     .corner_radius(theme::ROUNDING_LG)
                     .outer_margin(1.0)
-                    .stroke(egui::Stroke::new(
-                        1.0_f32,
-                        theme::ACCENT.linear_multiply(0.5),
-                    )),
+                    .stroke(egui::Stroke::new(1.0_f32, theme::ACCENT.linear_fade(0.5))),
             )
-            .show(ctx, |ui| {
+            .show_inside(ui, |ui| {
                 ui.vertical(|ui| {
                     // --- Header: Premium Jarvis Branding ---
                     ui.add_space(theme::SPACE_MD);
@@ -2299,7 +2315,7 @@ mod module_navigation_tests {
         let ctx = egui::Context::default();
         let render = |page: &Page, events: Vec<egui::Event>| {
             let mut offset = 0.0;
-            let _ = ctx.run(
+            let _ = ctx.run_ui(
                 egui::RawInput {
                     screen_rect: Some(egui::Rect::from_min_size(
                         egui::Pos2::ZERO,
@@ -2308,9 +2324,9 @@ mod module_navigation_tests {
                     events,
                     ..Default::default()
                 },
-                |ctx| {
-                    egui::CentralPanel::default().show(ctx, |ui| {
-                        offset = page_scroll_area(ctx, page)
+                |ui| {
+                    egui::CentralPanel::default().show_inside(ui, |ui| {
+                        offset = page_scroll_area(&ctx, page)
                             .show(ui, |ui| {
                                 ui.allocate_space(egui::vec2(600.0, 2000.0));
                             })
@@ -2332,6 +2348,7 @@ mod module_navigation_tests {
                 egui::Event::MouseWheel {
                     unit: egui::MouseWheelUnit::Point,
                     delta: egui::vec2(0.0, -180.0),
+                    phase: egui::TouchPhase::Move,
                     modifiers: egui::Modifiers::NONE,
                 },
             ],

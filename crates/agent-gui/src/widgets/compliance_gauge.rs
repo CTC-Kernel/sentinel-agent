@@ -7,6 +7,7 @@ use egui::{Pos2, Ui, Vec2};
 use std::f32::consts::PI;
 
 use crate::theme;
+use crate::theme::LinearFade as _;
 
 /// Draw a clean circular compliance gauge.
 ///
@@ -97,7 +98,7 @@ pub fn compliance_gauge_captioned(ui: &mut Ui, score: Option<f32>, radius: f32, 
                     points_glow,
                     egui::Stroke::new(
                         stroke_width + theme::SPACE_XS,
-                        color.linear_multiply(theme::OPACITY_TINT),
+                        color.linear_fade(theme::OPACITY_TINT),
                     ),
                 ));
 

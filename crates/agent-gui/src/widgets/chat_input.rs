@@ -13,6 +13,7 @@ use egui::{Response, Sense, Ui};
 
 use crate::icons;
 use crate::theme;
+use crate::theme::LinearFade as _;
 
 /// What the field reports for the frame.
 pub struct ChatInputResponse {
@@ -100,7 +101,7 @@ impl<'a> ChatInput<'a> {
 
         if ui.is_rect_visible(field) {
             let fill = if self.processing {
-                theme::bg_tertiary().linear_multiply(theme::OPACITY_PRESSED)
+                theme::bg_tertiary().linear_fade(theme::OPACITY_PRESSED)
             } else if frame_response.hovered() || focused {
                 theme::bg_elevated()
             } else {
@@ -135,7 +136,7 @@ impl<'a> ChatInput<'a> {
             ),
             egui::pos2(field.right() - slot - theme::SPACE_XS, field.bottom()),
         );
-        let editor = ui.allocate_new_ui(egui::UiBuilder::new().max_rect(text_rect), |ui| {
+        let editor = ui.scope_builder(egui::UiBuilder::new().max_rect(text_rect), |ui| {
             ui.set_clip_rect(text_rect.intersect(ui.clip_rect()));
             let text_edit = if self.multiline {
                 egui::TextEdit::multiline(self.value).return_key(egui::KeyboardShortcut::new(
@@ -156,11 +157,10 @@ impl<'a> ChatInput<'a> {
                         egui::Align::Center
                     })
                     .text_color(theme::text_primary())
-                    .frame(false)
-                    .margin(egui::Margin::symmetric(
+                    .frame(egui::Frame::NONE.inner_margin(egui::Margin::symmetric(
                         0,
                         if self.multiline { 8 } else { 0 },
-                    ))
+                    )))
                     .desired_width(text_rect.width())
                     .min_size(text_rect.size()),
             )
@@ -246,7 +246,7 @@ impl egui::Widget for SendButton {
             } else {
                 (
                     theme::bg_elevated(),
-                    theme::text_tertiary().linear_multiply(theme::OPACITY_DISABLED),
+                    theme::text_tertiary().linear_fade(theme::OPACITY_DISABLED),
                 )
             };
             let radius = rect.height() / 2.0;
@@ -330,13 +330,13 @@ mod tests {
             if let Some(id) = edit_id {
                 ctx.memory_mut(|m| m.request_focus(id));
             }
-            let _ = ctx.run(
+            let _ = ctx.run_ui(
                 egui::RawInput {
                     events,
                     ..Default::default()
                 },
-                |ctx| {
-                    egui::CentralPanel::default().show(ctx, |ui| {
+                |ui| {
+                    egui::CentralPanel::default().show_inside(ui, |ui| {
                         let response = ChatInput::new(&mut text, "Question")
                             .multiline()
                             .processing(frame == 4)

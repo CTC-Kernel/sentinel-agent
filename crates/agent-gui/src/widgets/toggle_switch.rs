@@ -7,6 +7,7 @@ use egui::{Color32, CornerRadius, Response, Sense, Stroke, Ui, Vec2};
 
 use crate::animation;
 use crate::theme;
+use crate::theme::LinearFade as _;
 
 /// Draw a premium iOS-style toggle switch.
 ///
@@ -71,7 +72,7 @@ pub fn toggle_switch_labeled(ui: &mut Ui, on: &mut bool, label: &str) -> Respons
                 CornerRadius::same(
                     (track_rect.height() / 2.0 + theme::BORDER_THICK).min(255.0) as u8
                 ),
-                bg_on.linear_multiply(glow_alpha),
+                bg_on.linear_fade(glow_alpha),
             );
         }
 
@@ -120,7 +121,7 @@ pub fn toggle_switch_labeled(ui: &mut Ui, on: &mut bool, label: &str) -> Respons
             knob_radius - theme::BORDER_THIN,
             Stroke::new(
                 theme::BORDER_THIN,
-                theme::overlay_color().linear_multiply(
+                theme::overlay_color().linear_fade(
                     (theme::KNOB_HIGHLIGHT_BASE * highlight_pulse / 255.0).clamp(0.0, 1.0),
                 ),
             ),
@@ -154,13 +155,13 @@ mod tests {
         let ctx = egui::Context::default();
         let mut on = false;
         let mut id = None;
-        let _ = ctx.run(egui::RawInput::default(), |ctx| {
-            egui::CentralPanel::default().show(ctx, |ui| {
+        let _ = ctx.run_ui(egui::RawInput::default(), |ui| {
+            egui::CentralPanel::default().show_inside(ui, |ui| {
                 id = Some(toggle_switch_labeled(ui, &mut on, "Règle de détection").id);
             });
         });
         ctx.memory_mut(|m| m.request_focus(id.unwrap()));
-        let _ = ctx.run(
+        let _ = ctx.run_ui(
             egui::RawInput {
                 events: vec![egui::Event::Key {
                     key: egui::Key::Space,
@@ -171,8 +172,8 @@ mod tests {
                 }],
                 ..Default::default()
             },
-            |ctx| {
-                egui::CentralPanel::default().show(ctx, |ui| {
+            |ui| {
+                egui::CentralPanel::default().show_inside(ui, |ui| {
                     assert!(toggle_switch_labeled(ui, &mut on, "Règle de détection").changed());
                 });
             },

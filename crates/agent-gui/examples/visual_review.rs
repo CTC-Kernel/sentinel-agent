@@ -24,7 +24,14 @@ struct Review {
     _enrollment: mpsc::Receiver<agent_gui::enrollment::EnrollmentCommand>,
 }
 impl eframe::App for Review {
-    fn update(&mut self, ctx: &egui::Context, frame: &mut eframe::Frame) {
+    fn logic(&mut self, ctx: &egui::Context, frame: &mut eframe::Frame) {
+        if !self.components && !self.details {
+            eframe::App::logic(&mut self.app, ctx, frame);
+        }
+    }
+
+    fn ui(&mut self, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
+        let ctx = &ui.ctx().clone();
         if self.finished {
             ctx.send_viewport_cmd(egui::ViewportCommand::Close);
             return;
@@ -54,10 +61,10 @@ impl eframe::App for Review {
         }
         if self.components {
             agent_gui::theme::apply_theme(ctx, !self.light);
-            component_review(ctx);
+            component_review(ui);
         } else if self.details {
             agent_gui::theme::apply_theme(ctx, !self.light);
-            egui::CentralPanel::default().show(ctx, |ui| {
+            egui::CentralPanel::default().show_inside(ui, |ui| {
                 egui::ScrollArea::vertical()
                     .vertical_scroll_offset(440.0)
                     .show(ui, |ui| {
@@ -65,7 +72,7 @@ impl eframe::App for Review {
                     });
             });
         } else {
-            self.app.update(ctx, frame);
+            eframe::App::ui(&mut self.app, ui, frame);
         }
         if self.detail_modal {
             detail_modal_review(ctx);
@@ -247,7 +254,7 @@ fn main() -> Result<(), eframe::Error> {
     )
 }
 
-fn component_review(ctx: &egui::Context) {
+fn component_review(ui: &mut egui::Ui) {
     use agent_gui::{theme, widgets};
     use widgets::data_table::{ColumnWidth, DataTable, SortDirection, TableColumn, TableSort};
     egui::CentralPanel::default()
@@ -256,7 +263,7 @@ fn component_review(ctx: &egui::Context) {
                 .fill(theme::bg_primary())
                 .inner_margin(24.0),
         )
-        .show(ctx, |ui| {
+        .show_inside(ui, |ui| {
             ui.label(
                 egui::RichText::new("SENTINEL / DESIGN REVIEW")
                     .font(theme::font_label())

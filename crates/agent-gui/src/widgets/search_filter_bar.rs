@@ -170,7 +170,7 @@ mod tests {
         theme::configure_fonts(&ctx);
         let mut search = String::from("serveur");
         let mut frame = |events| {
-            let _ = ctx.run(
+            let _ = ctx.run_ui(
                 egui::RawInput {
                     screen_rect: Some(egui::Rect::from_min_size(
                         egui::Pos2::ZERO,
@@ -179,8 +179,8 @@ mod tests {
                     events,
                     ..Default::default()
                 },
-                |ctx| {
-                    egui::CentralPanel::default().show(ctx, |ui| {
+                |ui| {
+                    egui::CentralPanel::default().show_inside(ui, |ui| {
                         SearchFilterBar::new(&mut search, "Rechercher un équipement").show(ui);
                     });
                 },

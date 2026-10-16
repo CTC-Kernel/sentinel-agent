@@ -865,7 +865,7 @@ mod tests {
             let ctx = egui::Context::default();
             theme::configure_fonts(&ctx);
             theme::apply_theme(&ctx, true);
-            let _ = ctx.run(
+            let _ = ctx.run_ui(
                 egui::RawInput {
                     screen_rect: Some(egui::Rect::from_min_size(
                         egui::Pos2::ZERO,
@@ -873,8 +873,8 @@ mod tests {
                     )),
                     ..Default::default()
                 },
-                |ctx| {
-                    egui::CentralPanel::default().show(ctx, |ui| {
+                |ui| {
+                    egui::CentralPanel::default().show_inside(ui, |ui| {
                         let right = ui.available_rect_before_wrap().right();
                         let response = ui
                             .scope(|ui| {
@@ -936,7 +936,7 @@ mod tests {
                 let ctx = egui::Context::default();
                 theme::configure_fonts(&ctx);
                 theme::apply_theme(&ctx, dark);
-                let _ = ctx.run(
+                let _ = ctx.run_ui(
                     egui::RawInput {
                         screen_rect: Some(egui::Rect::from_min_size(
                             egui::Pos2::ZERO,
@@ -944,8 +944,8 @@ mod tests {
                         )),
                         ..Default::default()
                     },
-                    |ctx| {
-                        egui::CentralPanel::default().show(ctx, |ui| {
+                    |ui| {
+                        egui::CentralPanel::default().show_inside(ui, |ui| {
                             let bounds = ui.available_rect_before_wrap();
                             let response = ui
                                 .scope(|ui| {

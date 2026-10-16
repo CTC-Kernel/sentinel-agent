@@ -17,20 +17,17 @@ pub const PAUSE_BANNER_HEIGHT: f32 = 44.0;
 
 /// Draw the strip as a top panel. Returns `true` when "Reprendre
 /// maintenant" was clicked.
-pub fn pause_banner(
-    ctx: &egui::Context,
-    resumes_at: Option<chrono::DateTime<chrono::Utc>>,
-) -> bool {
+pub fn pause_banner(ui: &mut egui::Ui, resumes_at: Option<chrono::DateTime<chrono::Utc>>) -> bool {
     let tint = theme::readable_color(theme::WARNING);
     let mut resume = false;
-    egui::TopBottomPanel::top("pause_banner")
-        .exact_height(PAUSE_BANNER_HEIGHT)
+    egui::Panel::top("pause_banner")
+        .exact_size(PAUSE_BANNER_HEIGHT)
         .frame(
             egui::Frame::new()
                 .fill(theme::tinted_surface(theme::WARNING))
                 .inner_margin(egui::Margin::symmetric(theme::SPACE as i8, 0)),
         )
-        .show(ctx, |ui| {
+        .show_inside(ui, |ui| {
             ui.horizontal_centered(|ui| {
                 let until = resumes_at
                     .map(|at| format!(" — reprise automatique à {}", crate::format::local_time(at)))
