@@ -931,7 +931,7 @@ mod tests {
         let mut wizard = EnrollmentWizard::default();
         let mut title_y = Vec::new();
         for frame in 0..8 {
-            let output = ctx.run(
+            let output = ctx.run_ui(
                 egui::RawInput {
                     screen_rect: Some(egui::Rect::from_min_size(
                         egui::Pos2::ZERO,
@@ -944,6 +944,7 @@ mod tests {
                             egui::Event::MouseWheel {
                                 unit: egui::MouseWheelUnit::Point,
                                 delta: egui::vec2(0.0, -150.0),
+                                phase: egui::TouchPhase::Move,
                                 modifiers: egui::Modifiers::NONE,
                             },
                         ]
@@ -952,8 +953,8 @@ mod tests {
                     },
                     ..Default::default()
                 },
-                |ctx| {
-                    egui::CentralPanel::default().show(ctx, |ui| {
+                |ui| {
+                    egui::CentralPanel::default().show_inside(ui, |ui| {
                         wizard.show(ui);
                     });
                 },

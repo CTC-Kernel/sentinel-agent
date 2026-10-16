@@ -157,7 +157,7 @@ mod tests {
         }
         fn frame(&mut self, events: Vec<egui::Event>) {
             let ctx = self.ctx.clone();
-            let _ = ctx.run(
+            let _ = ctx.run_ui(
                 egui::RawInput {
                     screen_rect: Some(Rect::from_min_size(
                         egui::Pos2::ZERO,
@@ -167,8 +167,8 @@ mod tests {
                     events,
                     ..Default::default()
                 },
-                |ctx| {
-                    egui::CentralPanel::default().show(ctx, |ui| {
+                |ui| {
+                    egui::CentralPanel::default().show_inside(ui, |ui| {
                         self.id = ui.next_auto_id().with(("data_card", "Mesures"));
                         data_card(ui, "Mesures", |ui| {
                             self.calls += 1;

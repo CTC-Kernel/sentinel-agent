@@ -22,8 +22,8 @@ pub fn navigate_list(
     open: &mut bool,
 ) -> bool {
     if len == 0
-        || ctx.wants_keyboard_input()
-        || ctx.memory(|m| m.any_popup_open())
+        || ctx.egui_wants_keyboard_input()
+        || egui::Popup::is_any_open(ctx)
         || crate::widgets::modal::any_modal_open(ctx)
     {
         return false;

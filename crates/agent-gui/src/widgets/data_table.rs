@@ -5,6 +5,7 @@
 
 use crate::icons;
 use crate::theme;
+use crate::theme::LinearFade as _;
 use egui::{Color32, CornerRadius, Sense, Ui};
 
 /// Sort direction for table columns.
@@ -292,7 +293,7 @@ impl<'a> DataTable<'a> {
         }
 
         // Draw header cells
-        ui.allocate_new_ui(egui::UiBuilder::new().max_rect(header_rect), |ui| {
+        ui.scope_builder(egui::UiBuilder::new().max_rect(header_rect), |ui| {
             ui.spacing_mut().item_spacing.x = 0.0;
             ui.horizontal(|ui| {
                 for (i, col) in self.columns.iter().enumerate() {
@@ -419,7 +420,7 @@ impl<'a> DataTable<'a> {
                                     egui::Align2::RIGHT_CENTER,
                                     icon,
                                     theme::font_icon(theme::ICON_XS),
-                                    text_color.linear_multiply(icon_alpha),
+                                    text_color.linear_fade(icon_alpha),
                                 );
                             }
                         }
@@ -700,15 +701,17 @@ fn paint_cell_text(
         // The full text on hover, without registering a widget that would
         // take the hover away from the row underneath.
         if ui.rect_contains_pointer(inner) {
-            egui::show_tooltip_at_pointer(
-                ui.ctx(),
+            egui::Tooltip::always_open(
+                ui.ctx().clone(),
                 ui.layer_id(),
                 ui.id()
                     .with(("cell_tip", cell.min.x as i32, cell.min.y as i32)),
-                |ui| {
-                    ui.label(text);
-                },
-            );
+                egui::PopupAnchor::Pointer,
+            )
+            .gap(12.0)
+            .show(|ui| {
+                ui.label(text);
+            });
         }
         // Truncate to what fits, leaving room for the ellipsis.
         let mut visible = text.to_owned();
@@ -861,7 +864,7 @@ mod tests {
             } else {
                 vec![]
             };
-            let _ = ctx.run(
+            let _ = ctx.run_ui(
                 egui::RawInput {
                     screen_rect: Some(egui::Rect::from_min_size(
                         egui::Pos2::ZERO,
@@ -870,8 +873,8 @@ mod tests {
                     events,
                     ..Default::default()
                 },
-                |ctx| {
-                    egui::CentralPanel::default().show(ctx, |ui| {
+                |ui| {
+                    egui::CentralPanel::default().show_inside(ui, |ui| {
                         if pass > 0 {
                             ui.label("Résultats actualisés");
                         }

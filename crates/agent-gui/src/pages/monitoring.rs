@@ -16,6 +16,7 @@ use crate::dto::{SiemLogSeverity, SiemLogSource};
 use crate::events::GuiCommand;
 use crate::icons;
 use crate::theme;
+use crate::theme::LinearFade as _;
 use crate::widgets;
 
 // ── Constants ───────────────────────────────────────────────────────────────
@@ -601,8 +602,7 @@ impl MonitoringPage {
                             } else {
                                 let time = ui.input(|i| i.time);
                                 let pulse = ((time * 1.5).sin() * 0.5 + 0.5) as f32;
-                                theme::readable_color(theme::SUCCESS)
-                                    .linear_multiply(0.5 + pulse * 0.5)
+                                theme::readable_color(theme::SUCCESS).linear_fade(0.5 + pulse * 0.5)
                             };
                             ui.label(RichText::new("●").size(theme::ICON_MICRO).color(dot_color));
                             crate::animation::request_ambient_repaint(ui.ctx());
@@ -697,8 +697,8 @@ impl MonitoringPage {
                         ],
                     ];
                     plot_ui.line(
-                        Line::new(PlotPoints::new(warn_pts))
-                            .color(theme::chart_color(theme::WARNING).linear_multiply(0.35))
+                        Line::new("", PlotPoints::new(warn_pts))
+                            .color(theme::chart_color(theme::WARNING).linear_fade(0.35))
                             .width(0.5_f32)
                             .style(egui_plot::LineStyle::dashed_dense()),
                     );
@@ -715,8 +715,8 @@ impl MonitoringPage {
                         ],
                     ];
                     plot_ui.line(
-                        Line::new(PlotPoints::new(crit_pts))
-                            .color(theme::chart_color(theme::ERROR).linear_multiply(0.35))
+                        Line::new("", PlotPoints::new(crit_pts))
+                            .color(theme::chart_color(theme::ERROR).linear_fade(0.35))
                             .width(0.5_f32)
                             .style(egui_plot::LineStyle::dashed_dense()),
                     );
@@ -724,14 +724,14 @@ impl MonitoringPage {
 
                 // Gradient fill under curve
                 plot_ui.line(
-                    Line::new(PlotPoints::new(history_pts.clone()))
-                        .color(line_color.linear_multiply(theme::OPACITY_SUBTLE))
+                    Line::new("", PlotPoints::new(history_pts.clone()))
+                        .color(line_color.linear_fade(theme::OPACITY_SUBTLE))
                         .fill(0.0_f32),
                 );
 
                 // Main data line
                 plot_ui.line(
-                    Line::new(PlotPoints::new(history_pts))
+                    Line::new("", PlotPoints::new(history_pts))
                         .color(line_color)
                         .width(1.8_f32),
                 );
@@ -746,14 +746,14 @@ impl MonitoringPage {
 
                     // Outer glow
                     plot_ui.points(
-                        egui_plot::Points::new(PlotPoints::new(vec![latest]))
-                            .color(line_color.linear_multiply(0.15 + pulse * 0.15))
+                        egui_plot::Points::new("", PlotPoints::new(vec![latest]))
+                            .color(line_color.linear_fade(0.15 + pulse * 0.15))
                             .radius(6.0_f32),
                     );
 
                     // Core point
                     plot_ui.points(
-                        egui_plot::Points::new(PlotPoints::new(vec![latest]))
+                        egui_plot::Points::new("", PlotPoints::new(vec![latest]))
                             .color(line_color)
                             .radius(2.5_f32),
                     );
@@ -996,7 +996,7 @@ impl MonitoringPage {
                 ui.label(
                     RichText::new(icons::SHARE_NODES)
                         .size(48.0)
-                        .color(theme::text_tertiary().linear_multiply(0.5)),
+                        .color(theme::text_tertiary().linear_fade(0.5)),
                 );
                 ui.add_space(theme::SPACE_MD);
                 ui.label(
@@ -1189,7 +1189,7 @@ impl MonitoringPage {
             let painter = ui.painter_at(rect);
 
             // Subtle grid lines
-            let grid_color = theme::border().linear_multiply(theme::OPACITY_MODERATE);
+            let grid_color = theme::border().linear_fade(theme::OPACITY_MODERATE);
             for i in 1..4 {
                 let y = rect.min.y + (rect.height() * i as f32 / 4.0);
                 painter.line_segment(

@@ -18,6 +18,7 @@ use egui::{CornerRadius, Margin, Ui, Vec2};
 use crate::app::Page;
 use crate::icons;
 use crate::theme;
+use crate::theme::LinearFade as _;
 
 /// Sync state passed to the sidebar for the status indicator.
 pub struct SidebarSyncState {
@@ -598,7 +599,7 @@ impl Sidebar {
             painter.circle_filled(
                 egui::pos2(dot_x, center_y),
                 theme::STATUS_DOT_SIZE / 2.0 + pulse * 3.0,
-                trailing.color.linear_multiply(0.25 * (1.0 - pulse)),
+                trailing.color.linear_fade(0.25 * (1.0 - pulse)),
             );
             crate::animation::request_ambient_repaint(ui.ctx());
         }
@@ -813,7 +814,7 @@ mod navigation_tests {
         let mut target = None;
         let mut offset = 0.0;
         for pass in 0..4 {
-            let _ = ctx.run(
+            let _ = ctx.run_ui(
                 egui::RawInput {
                     screen_rect: Some(egui::Rect::from_min_size(
                         egui::Pos2::ZERO,
@@ -822,8 +823,8 @@ mod navigation_tests {
                     time: Some(pass as f64),
                     ..Default::default()
                 },
-                |ctx| {
-                    egui::CentralPanel::default().show(ctx, |ui| {
+                |ui| {
+                    egui::CentralPanel::default().show_inside(ui, |ui| {
                         let scroll = egui::ScrollArea::vertical().show(ui, |ui| {
                             for index in 0..20 {
                                 if index == 19 {

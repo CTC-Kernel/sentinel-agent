@@ -5,6 +5,7 @@
 
 use crate::app::AppState;
 use crate::dto::{EdrTab, GuiAgentStatus, ResponseStatus};
+use crate::theme::LinearFade as _;
 use crate::{icons, theme, widgets};
 use egui::{Color32, RichText, Ui};
 
@@ -288,7 +289,7 @@ fn signal_orbit(ui: &mut Ui, sources: &[(&str, usize); 4], pending: usize, color
                 center + direction * (radius + 17.0),
                 center + direction * (radius + 20.0),
             ],
-            egui::Stroke::new(1.0_f32, accent.linear_multiply(0.35)),
+            egui::Stroke::new(1.0_f32, accent.linear_fade(0.35)),
         );
     }
     let max = sources.iter().map(|(_, n)| *n).max().unwrap_or(0).max(1);

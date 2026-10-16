@@ -5,6 +5,7 @@
 
 use crate::icons;
 use crate::theme;
+use crate::theme::LinearFade as _;
 use egui::{Color32, CornerRadius, Ui};
 
 /// Progress bar style.
@@ -96,11 +97,7 @@ pub fn progress_bar_styled(
             painter.rect_filled(fill_rect, rounding, theme::chart_color(fill_color));
             if fill_width > height {
                 let cap = egui::pos2(fill_rect.right() - height / 2.0, fill_rect.center().y);
-                painter.circle_filled(
-                    cap,
-                    height * 0.34,
-                    theme::overlay_color().linear_multiply(0.22),
-                );
+                painter.circle_filled(cap, height * 0.34, theme::overlay_color().linear_fade(0.22));
             }
         }
     }
@@ -294,7 +291,7 @@ pub fn step_indicator(ui: &mut Ui, steps: &[&str], current_step: usize) {
                         (theme::ACCENT, theme::text_on_accent(), None)
                     } else if is_current {
                         (
-                            theme::ACCENT.linear_multiply(theme::OPACITY_TINT),
+                            theme::ACCENT.linear_fade(theme::OPACITY_TINT),
                             theme::ACCENT,
                             Some(egui::Stroke::new(theme::BORDER_THICK, theme::ACCENT)),
                         )

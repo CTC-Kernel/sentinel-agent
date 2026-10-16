@@ -147,7 +147,7 @@ impl<'a> DetailDrawer<'a> {
         let mut clicked_action: Option<usize> = None;
         let mut should_close = false;
 
-        let screen = ctx.screen_rect();
+        let screen = ctx.content_rect();
         let modal_width = self
             .width
             .min(screen.width() * MAX_WIDTH_RATIO)
@@ -771,7 +771,7 @@ mod regression_tests {
                 ],
                 _ => vec![],
             };
-            let _ = ctx.run(
+            let _ = ctx.run_ui(
                 egui::RawInput {
                     screen_rect: Some(egui::Rect::from_min_size(
                         egui::Pos2::ZERO,
@@ -781,14 +781,14 @@ mod regression_tests {
                     time: Some(frame as f64 / 60.0),
                     ..Default::default()
                 },
-                |ctx| {
-                    egui::CentralPanel::default().show(ctx, |ui| {
+                |ui| {
+                    egui::CentralPanel::default().show_inside(ui, |ui| {
                         let response = ui.button("Action sous le panneau");
                         underlying = response.rect;
                         assert!(!response.clicked(), "drawer leaked a click to the page");
                     });
                     DetailDrawer::new("test_drawer", "Détail", "").show(
-                        ctx,
+                        ui.ctx(),
                         &mut open,
                         |ui| {
                             ui.label("Contenu");
@@ -809,15 +809,15 @@ mod regression_tests {
         let long = "x".repeat(400);
         let mut open = true;
         for frame in 0..4 {
-            let _ = ctx.run(
+            let _ = ctx.run_ui(
                 egui::RawInput {
                     screen_rect: Some(screen),
                     time: Some(frame as f64),
                     ..Default::default()
                 },
-                |ctx| {
+                |ui| {
                     DetailDrawer::new("overflow_modal", &long, "").show(
-                        ctx,
+                        ui.ctx(),
                         &mut open,
                         |ui| {
                             for _ in 0..30 {

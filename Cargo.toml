@@ -61,10 +61,10 @@ tokio-rustls = "0.26"
 ring = "0.17"
 rustls-platform-verifier = "0.6"
 rand = "0.9"
-eframe = { version = "0.31", features = ["wgpu"] }
-egui = "0.31"
-egui_extras = { version = "0.31", features = ["image"] }
-egui_plot = "0.31"
+eframe = { version = "0.34", features = ["wgpu"] }
+egui = "0.34"
+egui_extras = { version = "0.34", features = ["image"] }
+egui_plot = "0.35"
 notify = { version = "7", features = ["macos_fsevent"] }
 rayon = "1.10"
 battery = { package = "starship-battery", version = "0.10" }

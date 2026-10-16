@@ -8,6 +8,7 @@
 //! premium appearance across light and dark modes.
 
 use crate::theme;
+use crate::theme::LinearFade as _;
 use egui::{Color32, CornerRadius, Ui};
 
 /// Badge semantic variant.
@@ -234,7 +235,7 @@ pub fn status_dot_animated(ui: &mut Ui, color: Color32, pulse: bool) -> egui::Re
             ui.painter().circle_filled(
                 center,
                 size / 2.0 + theme::BORDER_THICK,
-                color.linear_multiply(alpha * theme::OPACITY_TINT),
+                color.linear_fade(alpha * theme::OPACITY_TINT),
             );
             ui.ctx()
                 .request_repaint_after(std::time::Duration::from_millis(100));

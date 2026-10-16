@@ -233,7 +233,7 @@ fn editor_form(ui: &mut egui::Ui, state: &mut AppState, editor: &mut Editor) {
             ui.add(
                 egui::TextEdit::multiline(&mut editor.reason)
                     .hint_text("Pourquoi cette activité est-elle légitime ?")
-                    .frame(false)
+                    .frame(egui::Frame::NONE.inner_margin(egui::Margin::symmetric(4, 2)))
                     .desired_rows(3)
                     .desired_width(f32::INFINITY),
             );

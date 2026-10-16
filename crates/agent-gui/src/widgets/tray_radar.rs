@@ -3,6 +3,7 @@
 
 //! Premium animated radar chart for tray-lite dashboard.
 
+use crate::theme::LinearFade as _;
 use egui::{Color32, Painter, Pos2, Stroke, Ui, Vec2};
 use std::f32::consts::TAU;
 
@@ -78,7 +79,7 @@ impl TrayRadar {
         aura.vertices.push(egui::epaint::Vertex {
             pos: center,
             uv: egui::epaint::WHITE_UV,
-            color: crate::theme::chart_color(crate::theme::ACCENT).linear_multiply(0.10),
+            color: crate::theme::chart_color(crate::theme::ACCENT).linear_fade(0.10),
         });
         for index in 0..48_u32 {
             let angle = TAU * index as f32 / 48.0;
@@ -195,7 +196,7 @@ impl TrayRadar {
         // Fill with gradient-like transparency
         painter.add(egui::Shape::convex_polygon(
             pts.clone(),
-            theme::chart_color(theme::ACCENT).linear_multiply(theme::OPACITY_TINT),
+            theme::chart_color(theme::ACCENT).linear_fade(theme::OPACITY_TINT),
             Stroke::new(theme::BORDER_THICK, theme::chart_color(theme::ACCENT)),
         ));
 
@@ -209,11 +210,7 @@ impl TrayRadar {
             for i in (0..8).rev() {
                 let r = 3.0 + i as f32 * 1.5 + pulse * 2.0;
                 let alpha = 0.1 / (i as f32 * 0.5 + 1.0).powi(2);
-                painter.circle_filled(
-                    pt,
-                    r,
-                    theme::chart_color(theme::ACCENT).linear_multiply(alpha),
-                );
+                painter.circle_filled(pt, r, theme::chart_color(theme::ACCENT).linear_fade(alpha));
             }
         }
     }
@@ -228,7 +225,7 @@ impl TrayRadar {
             [center, scan_end],
             Stroke::new(
                 theme::BORDER_MEDIUM,
-                theme::chart_color(theme::ACCENT).linear_multiply(theme::OPACITY_DISABLED),
+                theme::chart_color(theme::ACCENT).linear_fade(theme::OPACITY_DISABLED),
             ),
         );
     }

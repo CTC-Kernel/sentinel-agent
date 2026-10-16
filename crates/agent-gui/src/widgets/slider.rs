@@ -4,6 +4,7 @@
 //! Slider widget for numeric value selection.
 
 use crate::theme;
+use crate::theme::LinearFade as _;
 use egui::{Color32, CornerRadius, Sense, Ui};
 
 // ── Style dimensions ────────────────────────────────────────────────────────
@@ -263,7 +264,7 @@ impl Slider {
                 let is_dragging = response.dragged();
 
                 let thumb_color = if is_dragging {
-                    accent.linear_multiply(theme::OPACITY_HOVER)
+                    accent.linear_fade(theme::OPACITY_HOVER)
                 } else {
                     accent
                 };
@@ -282,7 +283,7 @@ impl Slider {
                         thumb_radius + theme::SPACE_XS,
                         egui::Stroke::new(
                             theme::BORDER_THICK,
-                            accent.linear_multiply(theme::OPACITY_MEDIUM),
+                            accent.linear_fade(theme::OPACITY_MEDIUM),
                         ),
                     );
                 }
@@ -387,8 +388,8 @@ mod tests {
     fn keyboard_can_adjust_and_reach_both_range_bounds() {
         let ctx = egui::Context::default();
         let mut value = 15.0;
-        let _ = ctx.run(egui::RawInput::default(), |ctx| {
-            egui::CentralPanel::default().show(ctx, |ui| {
+        let _ = ctx.run_ui(egui::RawInput::default(), |ui| {
+            egui::CentralPanel::default().show_inside(ui, |ui| {
                 Slider::new(5.0, 25.0).step(5.0).show(ui, &mut value);
             });
         });
@@ -400,7 +401,7 @@ mod tests {
             (egui::Key::ArrowRight, 25.0),
             (egui::Key::Home, 5.0),
         ] {
-            let _ = ctx.run(
+            let _ = ctx.run_ui(
                 egui::RawInput {
                     events: vec![egui::Event::Key {
                         key,
@@ -411,8 +412,8 @@ mod tests {
                     }],
                     ..Default::default()
                 },
-                |ctx| {
-                    egui::CentralPanel::default().show(ctx, |ui| {
+                |ui| {
+                    egui::CentralPanel::default().show_inside(ui, |ui| {
                         Slider::new(5.0, 25.0).step(5.0).show(ui, &mut value);
                     });
                 },

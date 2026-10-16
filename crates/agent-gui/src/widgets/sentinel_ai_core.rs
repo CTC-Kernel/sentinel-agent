@@ -6,6 +6,7 @@
 //! Uses custom egui painting with multiple layers of rotation and pulsing
 //! to create a high-fidelity holographic effect representing the Sentinel AI.
 
+use crate::theme::LinearFade as _;
 use egui::{Color32, Painter, Pos2, Stroke, Ui, Vec2};
 use std::f32::consts::TAU;
 
@@ -124,10 +125,10 @@ impl SentinelAICore {
         match self.voice_state {
             VoiceState::Listening(level) => {
                 // Blue denotes input activity without implying a healthy endpoint.
-                base_color = theme::INFO.linear_multiply(1.0 + level.clamp(0.0, 1.0) * 0.35);
+                base_color = theme::INFO.linear_fade(1.0 + level.clamp(0.0, 1.0) * 0.35);
             }
             VoiceState::Speaking(vol) => {
-                base_color = motif_color().linear_multiply(1.0 + vol * 0.35);
+                base_color = motif_color().linear_fade(1.0 + vol * 0.35);
             }
             _ => {}
         }
@@ -148,7 +149,7 @@ impl SentinelAICore {
             painter.circle_stroke(
                 center,
                 radius * 1.04,
-                Stroke::new(1.0_f32, motif_color().linear_multiply(0.28)),
+                Stroke::new(1.0_f32, motif_color().linear_fade(0.28)),
             );
         }
 
@@ -195,7 +196,7 @@ impl SentinelAICore {
             painter.circle_stroke(
                 center,
                 wave_r,
-                Stroke::new(theme::BORDER_THIN, base_color.linear_multiply(alpha)),
+                Stroke::new(theme::BORDER_THIN, base_color.linear_fade(alpha)),
             );
         }
     }
@@ -227,7 +228,7 @@ impl SentinelAICore {
                 outer_r,
                 start,
                 end,
-                Stroke::new(theme::BORDER_THIN, color_primary.linear_multiply(0.4)),
+                Stroke::new(theme::BORDER_THIN, color_primary.linear_fade(0.4)),
             );
         }
 
@@ -282,13 +283,13 @@ impl SentinelAICore {
         let active_r = core_r * pulse;
 
         // Inner glow
-        painter.circle_filled(center, active_r, score_color.linear_multiply(0.3));
+        painter.circle_filled(center, active_r, score_color.linear_fade(0.3));
 
         // Solid center
         painter.circle_filled(center, active_r * 0.5, score_color);
 
         // White core highlight
-        painter.circle_filled(center, active_r * 0.2, Color32::WHITE.linear_multiply(0.8));
+        painter.circle_filled(center, active_r * 0.2, Color32::WHITE.linear_fade(0.8));
     }
 
     fn draw_orbitals(&self, painter: &Painter, center: Pos2, radius: f32, t: f32, parallax: Vec2) {
@@ -308,19 +309,19 @@ impl SentinelAICore {
             painter.circle_filled(pos, 2.0, motif_color());
 
             // Sub-glow
-            painter.circle_filled(pos, 4.0, motif_color().linear_multiply(0.2));
+            painter.circle_filled(pos, 4.0, motif_color().linear_fade(0.2));
 
             // Connector line (subtle)
             painter.line_segment(
                 [center, pos],
-                Stroke::new(theme::BORDER_HAIRLINE, motif_color().linear_multiply(0.05)),
+                Stroke::new(theme::BORDER_HAIRLINE, motif_color().linear_fade(0.05)),
             );
         }
     }
 
     fn draw_hud(&self, painter: &Painter, center: Pos2, radius: f32) {
         use crate::theme;
-        let color = motif_color().linear_multiply(0.3);
+        let color = motif_color().linear_fade(0.3);
 
         // Crosshair lines
         let len = radius * 1.2;
@@ -384,13 +385,13 @@ mod tests {
         crate::theme::set_reduced_motion(reduced);
         let mut output = Default::default();
         for frame in 0..6 {
-            output = ctx.run(
+            output = ctx.run_ui(
                 egui::RawInput {
                     time: Some(frame as f64),
                     ..Default::default()
                 },
-                |ctx| {
-                    egui::CentralPanel::default().show(ctx, |ui| {
+                |ui| {
+                    egui::CentralPanel::default().show_inside(ui, |ui| {
                         SentinelAICore::new(80.0)
                             .processing(processing)
                             .voice(voice)

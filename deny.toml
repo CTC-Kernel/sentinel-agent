@@ -71,10 +71,11 @@ ignore = [
     # takes zip 9 yet (0.11 needs ^8.6, yanked too). Pinned to this version so
     # the next zip in the lock file is checked again.
     { crate = "zip@7.2.0", reason = "all 7.x/8.x yanked over extract() advisories; candle-core only reads entries in memory, no release on zip 9 yet" },
-    # quick-xml 0.30 DoS advisories, pulled transitively via eframe 0.31's
-    # Linux accessibility bridge (accesskit -> atspi -> zbus_xml), not on our
-    # parsing paths. Resolved by upgrading eframe to 0.33+ (separate tracked
-    # migration with breaking egui API changes).
+    # quick-xml DoS advisories, fixed in 0.41. The 0.30 copy from eframe 0.31's
+    # accessibility bridge left with eframe 0.34; what remains is 0.38 via
+    # plist <- starship-battery (the OS's own battery plist) and 0.39 via
+    # wayland-scanner, a build-time proc-macro reading Wayland protocol XML.
+    # Neither parses data an attacker controls.
     "RUSTSEC-2026-0194", # quick-xml quadratic duplicate-attribute check
     "RUSTSEC-2026-0195", # quick-xml unbounded namespace allocation
 ]

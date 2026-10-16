@@ -4,6 +4,7 @@
 //! Empty state widget for pages with no data.
 
 use crate::theme;
+use crate::theme::LinearFade as _;
 use crate::widgets::button;
 use egui::{RichText, Ui};
 
@@ -167,7 +168,7 @@ pub fn pending_state(ui: &mut Ui, message: &str) {
                 painter.circle_filled(
                     pos,
                     theme::SPACE_XS,
-                    theme::chart_color(theme::ACCENT).linear_multiply(alpha),
+                    theme::chart_color(theme::ACCENT).linear_fade(alpha),
                 );
             }
             ui.ctx()

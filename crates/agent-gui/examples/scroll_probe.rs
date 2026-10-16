@@ -148,7 +148,7 @@ fn probe_palette(width: f32, height: f32) -> bool {
     palette.query = "cve".to_string();
     let commands = agent_gui::app::entity_commands(&state);
     let mut frame = |events: Vec<egui::Event>| {
-        let out = ctx.run(
+        let out = ctx.run_ui(
             egui::RawInput {
                 screen_rect: Some(egui::Rect::from_min_size(
                     egui::Pos2::ZERO,
@@ -157,13 +157,13 @@ fn probe_palette(width: f32, height: f32) -> bool {
                 events,
                 ..Default::default()
             },
-            |ctx| {
-                egui::CentralPanel::default().show(ctx, |ui| {
+            |ui| {
+                egui::CentralPanel::default().show_inside(ui, |ui| {
                     ui.label("page");
                 });
                 widgets::CommandPalette::new(&commands)
                     .max_results(commands.len())
-                    .show(ctx, &mut palette);
+                    .show(ui.ctx(), &mut palette);
             },
         );
         out.shapes
@@ -188,6 +188,7 @@ fn probe_palette(width: f32, height: f32) -> bool {
         after = frame(vec![egui::Event::MouseWheel {
             unit: egui::MouseWheelUnit::Point,
             delta: egui::vec2(0.0, -120.0),
+            phase: egui::TouchPhase::Move,
             modifiers: egui::Modifiers::NONE,
         }]);
     }
@@ -220,7 +221,7 @@ fn benchmark_pages(width: f32, height: f32) {
             let mut samples = Vec::new();
             for frame in 0..110 {
                 let start = std::time::Instant::now();
-                let output = ctx.run(
+                let output = ctx.run_ui(
                     egui::RawInput {
                         screen_rect: Some(egui::Rect::from_min_size(
                             egui::Pos2::ZERO,
@@ -229,8 +230,8 @@ fn benchmark_pages(width: f32, height: f32) {
                         time: Some(frame as f64 / 60.0),
                         ..Default::default()
                     },
-                    |ctx| {
-                        egui::CentralPanel::default().show(ctx, |ui| {
+                    |ui| {
+                        egui::CentralPanel::default().show_inside(ui, |ui| {
                             egui::ScrollArea::vertical().show(ui, |ui| {
                                 agent_gui::app::page_column(ui, |ui| {
                                     real_page(ui, page, &mut state)
@@ -300,7 +301,7 @@ fn probe_details(width: f32, height: f32) {
             if frame == 3 {
                 agent_gui::widgets::open_data_panel(&ctx, title);
             }
-            let _ = ctx.run(
+            let _ = ctx.run_ui(
                 egui::RawInput {
                     screen_rect: Some(egui::Rect::from_min_size(
                         egui::Pos2::ZERO,
@@ -309,8 +310,8 @@ fn probe_details(width: f32, height: f32) {
                     time: Some(frame as f64 * 0.1),
                     ..Default::default()
                 },
-                |ctx| {
-                    egui::CentralPanel::default().show(ctx, |ui| {
+                |ui| {
+                    egui::CentralPanel::default().show_inside(ui, |ui| {
                         egui::ScrollArea::vertical().show(ui, |ui| {
                             agent_gui::app::page_column(ui, |ui| real_page(ui, page, &mut state));
                         });
@@ -395,7 +396,7 @@ fn main() {
             let mut content_width = 0.0_f32;
             let mut frame = |events: Vec<egui::Event>, state: &mut AppState| {
                 let _ =
-                    ctx.run(
+                    ctx.run_ui(
                         egui::RawInput {
                             screen_rect: Some(egui::Rect::from_min_size(
                                 egui::Pos2::ZERO,
@@ -404,12 +405,12 @@ fn main() {
                             events,
                             ..Default::default()
                         },
-                        |ctx| {
+                        |ui| {
                             egui::CentralPanel::default()
                                 .frame(egui::Frame::new().fill(theme::bg_primary()).inner_margin(
                                     egui::Margin::symmetric(0, theme::SPACE_LG as i8),
                                 ))
-                                .show(ctx, |ui| {
+                                .show_inside(ui, |ui| {
                                     scroll_id =
                                         Some(ui.make_persistent_id(egui::Id::new("probe_scroll")));
                                     let out = egui::ScrollArea::vertical()
@@ -443,7 +444,7 @@ fn main() {
                 println!(
                     "  debug {page}: layer under pointer {:?}, over area {}",
                     layer.map(|l| (l.order, l.id.short_debug_format())),
-                    ctx.is_pointer_over_area()
+                    ctx.is_pointer_over_egui()
                 );
             }
             for _ in 0..3 {
@@ -451,6 +452,7 @@ fn main() {
                     vec![egui::Event::MouseWheel {
                         unit: egui::MouseWheelUnit::Point,
                         delta: egui::vec2(0.0, -120.0),
+                        phase: egui::TouchPhase::Move,
                         modifiers: egui::Modifiers::NONE,
                     }],
                     &mut state,

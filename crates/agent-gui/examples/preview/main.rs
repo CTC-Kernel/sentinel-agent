@@ -216,7 +216,8 @@ impl eframe::App for Preview {
         }
     }
 
-    fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
+    fn ui(&mut self, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
+        let ctx = &ui.ctx().clone();
         if !self.started {
             // PREVIEW_REDUCED freezes ambient motion, so two captures of the
             // same code are pixel-identical and a refactor can be diffed.
@@ -234,7 +235,7 @@ impl eframe::App for Preview {
         // First-run surfaces replace the whole shell, exactly as in the app.
         match self.requested.as_str() {
             "splash" => {
-                widgets::splash_screen(ctx, 1.2);
+                widgets::splash_screen(ui, 1.2);
                 self.end_frame(ctx);
                 ctx.request_repaint();
                 return;
@@ -246,7 +247,7 @@ impl eframe::App for Preview {
                             .fill(theme::bg_primary())
                             .inner_margin(0.0),
                     )
-                    .show(ctx, |ui| {
+                    .show_inside(ui, |ui| {
                         let _ = self.wizard.show(ui);
                     });
                 self.end_frame(ctx);
@@ -282,10 +283,10 @@ impl eframe::App for Preview {
         };
 
         // Same rule as the shell: below the breakpoint the rail is forced.
-        let collapsed = self.collapsed || ctx.screen_rect().width() < theme::SIDEBAR_BREAKPOINT;
+        let collapsed = self.collapsed || ctx.content_rect().width() < theme::SIDEBAR_BREAKPOINT;
         let (page_icon, page_label, page_section) = location(&self.requested);
         if let Some(action) = widgets::top_bar(
-            ctx,
+            ui,
             &widgets::TopBarContext {
                 page_icon,
                 page_label,
@@ -314,13 +315,13 @@ impl eframe::App for Preview {
         if let Some(state) = self.state.as_deref()
             && state.settings.is_paused
         {
-            let _ = widgets::pause_banner(ctx, state.settings.pause_until);
+            let _ = widgets::pause_banner(ui, state.settings.pause_until);
         }
 
-        egui::SidePanel::left("sidebar")
-            .exact_width(widgets::Sidebar::width(collapsed))
+        egui::Panel::left("sidebar")
+            .exact_size(widgets::Sidebar::width(collapsed))
             .frame(egui::Frame::new().inner_margin(egui::Margin::ZERO))
-            .show(ctx, |ui| {
+            .show_inside(ui, |ui| {
                 widgets::Sidebar::paint_background(ui, ui.max_rect());
                 if let Some(page) = widgets::Sidebar::show(
                     ui,
@@ -367,7 +368,7 @@ impl eframe::App for Preview {
                     .fill(theme::bg_primary())
                     .inner_margin(egui::Margin::symmetric(0, theme::SPACE_LG as i8)),
             )
-            .show(ctx, |ui| {
+            .show_inside(ui, |ui| {
                 theme::paint_workspace_backdrop(ui.painter(), ui.max_rect());
                 let mut scroll = agent_gui::app::page_scroll_area(ctx, &self.page);
                 if self.shot_after.is_some() {
@@ -434,7 +435,7 @@ impl Preview {
                     "PREVIEW_OUT: {}x{} (screen {:?})",
                     image.width(),
                     image.height(),
-                    ctx.screen_rect().size()
+                    ctx.content_rect().size()
                 );
                 if let Err(err) = image::save_buffer(
                     path,
@@ -485,7 +486,7 @@ impl Preview {
                     .fixed_pos(egui::pos2(0.0, 0.0))
                     .order(egui::Order::Foreground)
                     .show(ctx, |ui| {
-                        ui.set_min_size(ctx.screen_rect().size());
+                        ui.set_min_size(ctx.content_rect().size());
                         self.toasts = widgets::render_toasts(ui, &self.toasts);
                     });
 

@@ -7,6 +7,7 @@ use egui::{Color32, CornerRadius, Response, Sense, Stroke, Ui, WidgetText, epain
 
 use crate::animation;
 use crate::theme;
+use crate::theme::LinearFade as _;
 
 /// Position content independently from the surrounding layout direction.
 ///
@@ -163,7 +164,7 @@ fn draw_premium_button(
             } else if is_hovered {
                 Stroke::new(
                     theme::BORDER_THIN,
-                    theme::ACCENT.linear_multiply(theme::OPACITY_MODERATE),
+                    theme::ACCENT.linear_fade(theme::OPACITY_MODERATE),
                 )
             } else {
                 Stroke::new(theme::BORDER_THIN, theme::border())
@@ -233,7 +234,7 @@ fn draw_premium_button(
                 ],
                 Stroke::new(
                     theme::BORDER_HAIRLINE,
-                    highlight.linear_multiply(if is_primary { 0.22 } else { 0.08 }),
+                    highlight.linear_fade(if is_primary { 0.22 } else { 0.08 }),
                 ),
             );
             if hover_t > 0.0 {
@@ -242,7 +243,7 @@ fn draw_premium_button(
                     CornerRadius::same(theme::BUTTON_ROUNDING + 1),
                     Stroke::new(
                         theme::BORDER_HAIRLINE,
-                        theme::accent_text().linear_multiply(0.28 * hover_t),
+                        theme::accent_text().linear_fade(0.28 * hover_t),
                     ),
                     StrokeKind::Outside,
                 );
@@ -275,7 +276,7 @@ fn draw_premium_button(
                 theme::SPINNER_RADIUS,
                 Stroke::new(
                     theme::BORDER_MEDIUM,
-                    text_color.linear_multiply(theme::OPACITY_TINT),
+                    text_color.linear_fade(theme::OPACITY_TINT),
                 ),
             );
 
@@ -313,7 +314,7 @@ fn draw_premium_button(
 
                     ui.painter().line_segment(
                         [p1, p2],
-                        Stroke::new(theme::BORDER_THICK, text_color.linear_multiply(alpha)),
+                        Stroke::new(theme::BORDER_THICK, text_color.linear_fade(alpha)),
                     );
                 }
 
@@ -401,7 +402,7 @@ fn draw_destructive_button(
         let is_clicked = enabled && !loading && response.is_pointer_button_down_on();
 
         let fill = if !enabled {
-            theme::DANGER_FILL.linear_multiply(theme::OPACITY_DISABLED)
+            theme::DANGER_FILL.linear_fade(theme::OPACITY_DISABLED)
         } else if is_clicked {
             theme::DANGER_PRESSED
         } else if is_hovered {
@@ -413,7 +414,7 @@ fn draw_destructive_button(
         let text_color = if enabled {
             theme::text_on_accent()
         } else {
-            theme::text_on_accent().linear_multiply(theme::OPACITY_MEDIUM)
+            theme::text_on_accent().linear_fade(theme::OPACITY_MEDIUM)
         };
 
         // Shadow
@@ -517,7 +518,7 @@ pub fn ghost_button(ui: &mut Ui, text: impl Into<WidgetText>) -> Response {
                 ],
                 Stroke::new(
                     theme::BORDER_THIN,
-                    text_color.linear_multiply(theme::OPACITY_PRESSED),
+                    text_color.linear_fade(theme::OPACITY_PRESSED),
                 ),
             );
         }
@@ -571,7 +572,7 @@ pub fn icon_button_with_color(
             bg_color,
             Stroke::new(
                 theme::BORDER_HAIRLINE,
-                theme::border_subtle().linear_multiply(0.35 + hover_t * 0.65),
+                theme::border_subtle().linear_fade(0.35 + hover_t * 0.65),
             ),
             StrokeKind::Inside,
         );
@@ -810,10 +811,7 @@ fn draw_spinner(ui: &Ui, rect: egui::Rect, text_size: egui::Vec2, color: Color32
     ui.painter().circle_stroke(
         spinner_rect.center(),
         theme::SPINNER_RADIUS,
-        Stroke::new(
-            theme::BORDER_MEDIUM,
-            color.linear_multiply(theme::OPACITY_TINT),
-        ),
+        Stroke::new(theme::BORDER_MEDIUM, color.linear_fade(theme::OPACITY_TINT)),
     );
 
     if theme::is_reduced_motion() {
@@ -849,7 +847,7 @@ fn draw_spinner(ui: &Ui, rect: egui::Rect, text_size: egui::Vec2, color: Color32
 
             ui.painter().line_segment(
                 [p1, p2],
-                Stroke::new(theme::BORDER_THICK, color.linear_multiply(alpha)),
+                Stroke::new(theme::BORDER_THICK, color.linear_fade(alpha)),
             );
         }
 
@@ -867,7 +865,7 @@ pub fn fab_button(ui: &mut Ui, icon: &str) -> Response {
         let is_clicked = response.is_pointer_button_down_on();
 
         let fill = if is_clicked {
-            theme::ACCENT.linear_multiply(theme::OPACITY_STRONG)
+            theme::ACCENT.linear_fade(theme::OPACITY_STRONG)
         } else if is_hovered {
             theme::ACCENT_HOVER
         } else {
@@ -911,8 +909,8 @@ mod interaction_tests {
     fn unavailable_actions_do_not_accept_clicks_or_keyboard_focus() {
         let ctx = egui::Context::default();
         theme::configure_fonts(&ctx);
-        let _ = ctx.run(egui::RawInput::default(), |ctx| {
-            egui::CentralPanel::default().show(ctx, |ui| {
+        let _ = ctx.run_ui(egui::RawInput::default(), |ui| {
+            egui::CentralPanel::default().show_inside(ui, |ui| {
                 for response in [
                     primary_button(ui, "Disabled", false),
                     primary_button_loading(ui, "Loading", true, true),
@@ -932,8 +930,8 @@ mod interaction_tests {
         let ctx = egui::Context::default();
         theme::configure_fonts(&ctx);
         let mut id = None;
-        let _ = ctx.run(egui::RawInput::default(), |ctx| {
-            egui::CentralPanel::default().show(ctx, |ui| {
+        let _ = ctx.run_ui(egui::RawInput::default(), |ui| {
+            egui::CentralPanel::default().show_inside(ui, |ui| {
                 id = Some(primary_button(ui, "Analyser", true).id);
             });
         });
@@ -949,8 +947,8 @@ mod interaction_tests {
             ..Default::default()
         };
         let mut clicked = false;
-        let _ = ctx.run(input, |ctx| {
-            egui::CentralPanel::default().show(ctx, |ui| {
+        let _ = ctx.run_ui(input, |ui| {
+            egui::CentralPanel::default().show_inside(ui, |ui| {
                 clicked = primary_button(ui, "Analyser", true).clicked();
             });
         });

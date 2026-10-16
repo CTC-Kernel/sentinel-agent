@@ -21,6 +21,7 @@ use super::types::{
     self, ThreatEvent, build_threat_list, change_type_label, compute_risk_score, kind_badge,
     network_alert_type_label, risk_score_color, severity_display, system_incident_type_label,
 };
+use crate::theme::LinearFade as _;
 
 /// Render the overview tab content.
 /// Render the overview tab content.
@@ -1739,9 +1740,9 @@ impl RadarPalette {
     /// of darkening it.
     fn fade(&self, color: egui::Color32, alpha: f32) -> egui::Color32 {
         if self.dark {
-            color.linear_multiply(alpha)
+            color.linear_fade(alpha)
         } else {
-            egui::Color32::from_rgba_unmultiplied(
+            theme::rgba_unmultiplied(
                 color.r(),
                 color.g(),
                 color.b(),
@@ -2018,7 +2019,7 @@ fn paint_radar_body(painter: &egui::Painter, canvas: &RadarCanvas, palette: &Rad
     painter.circle_filled(
         canvas.center,
         canvas.radius + theme::SPACE_XS,
-        theme::bg_secondary().linear_multiply(0.96),
+        theme::bg_secondary().linear_fade(0.96),
     );
     if !palette.dark {
         let mut surface = egui::epaint::Mesh::default();
@@ -2501,7 +2502,7 @@ fn paint_radar_hub_and_telemetry(
     painter.circle_filled(
         canvas.center,
         1.5,
-        theme::text_on_accent().linear_multiply(theme::OPACITY_MODERATE),
+        theme::text_on_accent().linear_fade(theme::OPACITY_MODERATE),
     );
     painter.text(
         canvas.rect.right_top() + egui::vec2(-18.0, 16.0),
