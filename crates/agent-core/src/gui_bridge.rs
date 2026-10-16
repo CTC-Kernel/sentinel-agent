@@ -129,6 +129,7 @@ impl AgentRuntime {
             hardening_benchmark: self.config.hardening_benchmark,
             fim_report_changes: self.config.fim_report_changes,
             fim_whodata: self.config.fim_whodata,
+            process_events: self.config.process_event_telemetry,
             log_rules: self.log_rules_summary.clone(),
         }
     }

@@ -330,11 +330,14 @@ pub enum DetectionOption {
     FimReportChanges,
     /// Who changed a watched file, from the system audit (Linux).
     FimWhodata,
+    /// Every process evaluated as it starts, not only at the periodic scan.
+    ProcessEvents,
 }
 
 impl DetectionOption {
     /// Every option, in the order the settings show them.
-    pub const ALL: [Self; 6] = [
+    pub const ALL: [Self; 7] = [
+        Self::ProcessEvents,
         Self::LogAnalysis,
         Self::RootkitDetection,
         Self::SystemInventory,
@@ -352,6 +355,7 @@ impl DetectionOption {
             Self::HardeningBenchmark => "hardening_benchmark",
             Self::FimReportChanges => "fim_report_changes",
             Self::FimWhodata => "fim_whodata",
+            Self::ProcessEvents => "process_event_telemetry",
         }
     }
 
@@ -363,6 +367,7 @@ impl DetectionOption {
             Self::HardeningBenchmark => "Socle de durcissement",
             Self::FimReportChanges => "Lignes modifi\u{00e9}es (int\u{00e9}grit\u{00e9})",
             Self::FimWhodata => "Auteur exact des changements (audit)",
+            Self::ProcessEvents => "Processus \u{00e9}valu\u{00e9}s \u{00e0} leur lancement",
         }
     }
 
@@ -393,6 +398,13 @@ impl DetectionOption {
                  pour nommer le compte et le programme de chaque modification. Demande auditd ; \
                  sur un syst\u{00e8}me tr\u{00e8}s actif, une mise \u{00e0} jour produit beaucoup d'enregistrements."
             }
+            Self::ProcessEvents => {
+                "Chaque processus passe par les r\u{00e8}gles de d\u{00e9}tection d\u{00e8}s son lancement, m\u{00ea}me s'il ne \
+                 dure qu'une seconde (vssadmin, certutil\u{2026}) ; sans elle, seuls les processus encore \
+                 en cours au balayage de cinq minutes sont vus. Le syst\u{00e8}me signale les lancements : \
+                 connecteur du noyau sous Linux, Endpoint Security sous macOS (acc\u{00e8}s complet au \
+                 disque), trace du noyau sous Windows."
+            }
         }
     }
 
@@ -414,6 +426,8 @@ pub struct GuiDetectionOptions {
     pub fim_report_changes: bool,
     #[serde(default)]
     pub fim_whodata: bool,
+    #[serde(default)]
+    pub process_events: bool,
     /// What the log analysis loaded, in one line (`None`: off).
     #[serde(default)]
     pub log_rules: Option<String>,
@@ -428,6 +442,7 @@ impl GuiDetectionOptions {
             DetectionOption::HardeningBenchmark => self.hardening_benchmark,
             DetectionOption::FimReportChanges => self.fim_report_changes,
             DetectionOption::FimWhodata => self.fim_whodata,
+            DetectionOption::ProcessEvents => self.process_events,
         }
     }
 }
@@ -1170,6 +1185,111 @@ pub struct AllowlistRule {
     pub created_by: String,
 }
 
+/// Incident titles written in English up to version 4.0.53, and the French
+/// title the agent gives the same incident since. Longest first where one
+/// begins with another.
+const LEGACY_TITLE_PREFIXES: &[(&str, &str)] = &[
+    ("Suspicious process detected: ", "Processus suspect : "),
+    ("Crypto miner detected: ", "Mineur de cryptomonnaie : "),
+    (
+        "System change detected: Gatekeeper disabled",
+        "Changement système : Gatekeeper désactivé",
+    ),
+    (
+        "System change detected: SSH root login enabled",
+        "Changement système : connexion SSH de root autorisée",
+    ),
+    ("System change detected: ", "Changement système : "),
+    ("Firewall protection disabled", "Pare-feu désactivé"),
+    ("Antivirus protection disabled: ", "Antivirus désactivé : "),
+    ("Known malicious file: ", "Fichier malveillant connu : "),
+    ("Encoded command execution: ", "Commande encodée : "),
+    ("Reverse shell detected: ", "Shell inversé : "),
+    (
+        "Registry start-up value added: ",
+        "Valeur de registre ajoutée : ",
+    ),
+    (
+        "Registry start-up value changed: ",
+        "Valeur de registre modifiée : ",
+    ),
+    ("Hidden process (", "Processus caché ("),
+    ("Hidden listening port (", "Port en écoute caché ("),
+    ("Hidden kernel module (", "Module noyau caché ("),
+    (
+        "Library forced on every program (",
+        "Bibliothèque imposée à tous les programmes (",
+    ),
+    (
+        "Network interface capturing all traffic (",
+        "Interface réseau qui capte tout le trafic (",
+    ),
+    ("Regular file in /dev (", "Fichier ordinaire dans /dev ("),
+    (
+        "Hidden program in a temporary directory (",
+        "Programme caché dans un dossier temporaire (",
+    ),
+    (
+        "Process running a deleted program (",
+        "Processus dont le programme a été supprimé (",
+    ),
+    (
+        "Account created with the identifier of root: ",
+        "Compte créé avec l'identifiant de root : ",
+    ),
+    ("Account created: ", "Compte créé : "),
+    (
+        "Account given the identifier of root: ",
+        "Compte doté de l'identifiant de root : ",
+    ),
+    (
+        "Account given a login shell: ",
+        "Compte doté d'un shell de connexion : ",
+    ),
+    (
+        "Account added to an administration group: ",
+        "Compte ajouté à un groupe d'administration : ",
+    ),
+    ("Service installed: ", "Service installé : "),
+    (
+        "Command of a service changed: ",
+        "Commande d'un service modifiée : ",
+    ),
+    ("New listening port: ", "Nouveau port en écoute : "),
+];
+
+/// An authorization pattern that quotes an English incident title, rewritten
+/// for the French title; `None` when it quotes none.
+pub fn legacy_title_pattern(pattern: &str) -> Option<String> {
+    let starts_with = |prefix: &str| {
+        pattern
+            .get(..prefix.len())
+            .is_some_and(|head| head.eq_ignore_ascii_case(prefix))
+    };
+    // "File of the Diamorphine rootkit (/path)" → "Fichier du rootkit
+    // Diamorphine (/path)".
+    if starts_with("File of the ") {
+        let rest = &pattern["File of the ".len()..];
+        let at = rest.to_ascii_lowercase().find(" rootkit (")?;
+        return Some(format!(
+            "Fichier du rootkit {}{}",
+            &rest[..at],
+            &rest[at + " rootkit".len()..]
+        ));
+    }
+    let (english, french) = LEGACY_TITLE_PREFIXES
+        .iter()
+        .find(|(english, _)| starts_with(english))?;
+    let rest = &pattern[english.len()..];
+    // "{member} in {group}" became "{member} dans {group}".
+    let rest = if english.starts_with("Account added to an administration group") {
+        rest.replacen(" in ", " dans ", 1)
+    } else {
+        rest.to_string()
+    };
+    Some(format!("{french}{rest}"))
+}
+
 /// Whether any rule of `kind` covers `value`. Shared by the GUI triage view and
 /// the agent core (notifications, detection rules, playbooks) so both always
 /// agree on what an authorization covers.
@@ -1225,6 +1345,19 @@ impl AllowlistRule {
                 _ => false,
             };
         }
+        if self.pattern_matches(pattern, value) {
+            return true;
+        }
+        // A pattern written when the incident titles were English still
+        // covers the incident, now titled in French.
+        self.rule_type == AllowlistRuleType::SystemIncident
+            && legacy_title_pattern(pattern)
+                .is_some_and(|french| self.pattern_matches(&french, value))
+    }
+
+    /// `pattern` (exact, or with `*` wildcards) against `value`: case
+    /// sensitive for a path only.
+    fn pattern_matches(&self, pattern: &str, value: &str) -> bool {
         if !pattern.contains('*') {
             return if self.rule_type == AllowlistRuleType::FilePath {
                 value == pattern
@@ -2431,6 +2564,67 @@ pub struct GuiSiemStats {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    fn incident_rule(pattern: &str) -> AllowlistRule {
+        AllowlistRule {
+            id: Uuid::nil(),
+            rule_type: AllowlistRuleType::SystemIncident,
+            pattern: pattern.to_string(),
+            description: String::new(),
+            created_at: Utc::now(),
+            created_by: "test".to_string(),
+        }
+    }
+
+    #[test]
+    fn an_authorization_written_against_an_english_title_still_covers_the_incident() {
+        for (pattern, title) in [
+            (
+                "Suspicious process detected: backup.sh",
+                "Processus suspect : backup.sh",
+            ),
+            ("suspicious process detected: *", "Processus suspect : nc"),
+            ("Firewall protection disabled", "Pare-feu désactivé"),
+            (
+                "System change detected: SSH root login enabled",
+                "Changement système : connexion SSH de root autorisée",
+            ),
+            (
+                "Hidden listening port (*",
+                "Port en écoute caché (31337/tcp)",
+            ),
+            (
+                "Account added to an administration group: svc-backup in sudo",
+                "Compte ajouté à un groupe d'administration : svc-backup dans sudo",
+            ),
+            (
+                "File of the Diamorphine rootkit (*)",
+                "Fichier du rootkit Diamorphine (/proc/diamorphine)",
+            ),
+            ("Service installed: *", "Service installé : sentinel-backup"),
+        ] {
+            assert!(
+                incident_rule(pattern).matches(title),
+                "{pattern} -> {title}"
+            );
+        }
+        // Still only what it named.
+        assert!(
+            !incident_rule("Suspicious process detected: backup.sh")
+                .matches("Processus suspect : nc")
+        );
+        // A French pattern and a type keep working as before.
+        assert!(incident_rule("Processus suspect : *").matches("Processus suspect : nc"));
+        assert!(incident_rule("unauthorized_change").matches("unauthorized_change"));
+        assert_eq!(legacy_title_pattern("Processus suspect : nc"), None);
+    }
+
+    #[test]
+    fn only_incident_authorizations_read_english_titles() {
+        let mut rule = incident_rule("Suspicious process detected: *");
+        rule.rule_type = AllowlistRuleType::ProcessPattern;
+        assert!(!rule.matches("Processus suspect : nc"));
+    }
 
     #[test]
     fn test_agent_summary_serialization() {

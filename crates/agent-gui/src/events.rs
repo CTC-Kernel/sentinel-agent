@@ -376,6 +376,11 @@ pub enum AgentEvent {
         /// Detection rule entries to merge into GUI state.
         rules: Vec<crate::dto::DetectionRule>,
     },
+    /// A detection rule matched: its count and last match move on.
+    DetectionRuleMatched {
+        rule_id: String,
+        matched_at: DateTime<Utc>,
+    },
     /// Alert rules and webhooks loaded from backend.
     AlertingLoaded {
         /// Alert rule entries to merge into GUI state.
@@ -563,6 +568,8 @@ pub enum GuiCommand {
     DeleteDetectionRule { rule_id: String },
     /// Toggle detection rule enabled state.
     ToggleDetectionRule { rule_id: String, enabled: bool },
+    /// Install again the shipped detection rules that were deleted.
+    RestoreDefaultDetectionRules,
     /// Save or update a risk entry.
     SaveRisk { risk: Box<crate::dto::RiskEntry> },
     /// Delete a risk entry.
@@ -808,6 +815,7 @@ mod tests {
                 rule_id: "r".into(),
                 enabled: true,
             },
+            GuiCommand::RestoreDefaultDetectionRules,
         ] {
             assert_eq!(cmd.admin_reason(), None, "{cmd:?}");
         }

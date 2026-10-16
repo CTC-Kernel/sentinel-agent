@@ -231,7 +231,10 @@ impl AgentRuntime {
             }
             Outbound::NetworkAlerts(alerts) => self.upload_network_alerts(&alerts).await,
             Outbound::CorrelationAlerts(alerts) => self.report_correlation_alerts(&alerts).await,
-            Outbound::PipelineResult(result) => self.upload_pipeline_result(&result).await,
+            Outbound::PipelineResult(result) => {
+                self.record_rule_matches(&result.rule_matches).await;
+                self.upload_pipeline_result(&result).await
+            }
             Outbound::SiemFileChange { alert, description } => {
                 self.record_fim_alert_in_siem(&alert, description).await
             }

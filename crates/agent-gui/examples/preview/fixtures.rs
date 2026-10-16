@@ -102,6 +102,7 @@ pub fn seed(state: &mut AppState) {
             hardening_benchmark: false,
             fim_report_changes: true,
             fim_whodata: false,
+            process_events: false,
             log_rules: Some(
                 "18 règle(s) sur les journaux, 8 corrélation(s), 0 sur les processus".into(),
             ),
@@ -2222,6 +2223,28 @@ pub fn seed(state: &mut AppState) {
             },
         )
         .collect();
+    // The rules shipped with the agent; one was deleted, so the restore
+    // button shows.
+    state.threats.detection_rules.extend(
+        agent_gui::detection_catalog::default_rules(days_ago(30))
+            .into_iter()
+            .filter(|rule| rule.id != "default-tor")
+            .map(|mut rule| {
+                match rule.id.as_str() {
+                    "default-powershell-obfuscation" => {
+                        rule.match_count = 3;
+                        rule.last_match = Some(ago(95));
+                    }
+                    "default-autostart-change" => {
+                        rule.match_count = 1;
+                        rule.last_match = Some(ago(400));
+                    }
+                    "default-attack-ports" => rule.enabled = false,
+                    _ => {}
+                }
+                rule
+            }),
+    );
 
     // ── Alerting: rules and webhooks ──────────────────────────────────
     state.alerting.rules = vec![

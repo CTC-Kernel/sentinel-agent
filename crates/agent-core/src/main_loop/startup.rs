@@ -159,6 +159,17 @@ impl AgentRuntime {
         // Same for a host isolation: lifted if it expired, applied again if not.
         crate::host_isolation::reconcile_host_isolation().await;
 
+        // The detection rules shipped with the agent, ready to use. Before
+        // the platform's rules are downloaded: those installed now wait in
+        // the upload queue and are not taken for rules the platform deleted.
+        if let Some(ref db) = self.db
+            && let Err(e) =
+                crate::default_rules::install_default_rules(db, !self.config.standalone, false)
+                    .await
+        {
+            warn!("Shipped detection rules not installed: {}", e);
+        }
+
         if self.config.standalone {
             // ── Standalone: no platform, local protection only ──
             info!(

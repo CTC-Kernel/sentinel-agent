@@ -783,6 +783,36 @@ impl<'a> DetectionRuleRepository<'a> {
         }).await
     }
 
+    /// Count matches of rules: `(rule id, number of matches, last match as
+    /// RFC 3339)`. The rule's definition and its upload state do not change:
+    /// the platform counts the matches it receives on its side. A rule
+    /// deleted meanwhile is skipped.
+    pub async fn record_matches(&self, matches: &[(String, u32, String)]) -> StorageResult<()> {
+        let matches = matches.to_vec();
+        self.db
+            .with_connection_mut(move |conn| {
+                let tx = conn
+                    .transaction()
+                    .map_err(|e| StorageError::Query(e.to_string()))?;
+                for (id, count, last_match) in &matches {
+                    tx.execute(
+                        "UPDATE detection_rules SET match_count = match_count + ?2, \
+                         last_match = CASE WHEN last_match IS NULL OR last_match < ?3 \
+                         THEN ?3 ELSE last_match END WHERE id = ?1",
+                        rusqlite::params![id, count, last_match],
+                    )
+                    .map_err(|e| {
+                        StorageError::Query(format!(
+                            "Failed to count detection rule matches: {}",
+                            e
+                        ))
+                    })?;
+                }
+                tx.commit().map_err(|e| StorageError::Query(e.to_string()))
+            })
+            .await
+    }
+
     pub async fn get_all(&self) -> StorageResult<Vec<StoredDetectionRule>> {
         self.db.with_connection(|conn| {
             let mut stmt = conn.prepare("SELECT id, name, description, severity, conditions, actions, enabled, created_at, last_match, match_count, synced FROM detection_rules").map_err(|e| StorageError::Query(format!("Failed to prepare query: {}", e)))?;

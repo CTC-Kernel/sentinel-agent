@@ -35,7 +35,6 @@ pub mod siem_enrichment;
 pub mod sounds;
 pub mod state;
 pub mod supervised_tasks;
-#[cfg(feature = "gui")]
 pub mod sync_converters;
 pub mod system_utils;
 pub mod tracing_layer;
@@ -61,6 +60,7 @@ mod asset_sync;
 mod command_monitor;
 mod compliance;
 mod configure_cmd;
+pub mod default_rules;
 pub mod edr_actions;
 mod enrollment;
 mod fim_attribution;

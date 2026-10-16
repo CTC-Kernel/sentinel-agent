@@ -10,6 +10,72 @@ Tous les changements notables apportés au projet **Sentinel GRC Agent** sont co
 
 ## 🚀 [Non publié]
 
+### 🎯 Règles de détection : un jeu par défaut prêt à l'emploi, des réponses qui agissent
+
+- **19 règles par défaut**, installées actives au premier démarrage de
+  l'agent (Windows, macOS, Linux), chacune rattachée à ses techniques MITRE
+  ATT&CK : vol d'identifiants (Mimikatz, mémoire de LSASS, base SAM), vol de
+  mots de passe sur macOS (fausse fenêtre AppleScript, trousseau), shell
+  inversé, minage de cryptomonnaie, PowerShell encodé ou chargé depuis
+  Internet, programmes de Windows détournés (certutil, regsvr32, mshta…),
+  suppression des sauvegardes et des clichés instantanés, effacement des
+  journaux, désactivation des protections (Defender, pare-feu, Gatekeeper,
+  SELinux, auditd), outils d'attaque connus, reconnaissance de l'annuaire,
+  groupe des administrateurs modifié, tâche planifiée ou service créé,
+  fichiers d'authentification, bibliothèque imposée (`ld.so.preload`),
+  programme ajouté au démarrage, fichier hosts, ports d'outils d'attaque,
+  trafic acheminé par Tor.
+- **Des règles comme les autres** : on les désactive, les modifie ou les
+  supprime dans l'onglet Règles ou sur la plateforme, qui les reçoit. Elles
+  détectent et notifient sans agir ; une réponse s'ajoute en les modifiant.
+  Une version suivante de l'agent qui en améliore une la met à jour, sauf si
+  elle a été modifiée ; une règle supprimée ne revient que par « Restaurer
+  les règles par défaut ».
+- **Les réponses d'une règle s'exécutent enfin** : le formulaire exigeait au
+  moins une action, qu'aucune correspondance ne déclenchait. Arrêter le
+  processus, mettre le fichier en quarantaine, bloquer l'adresse (plus
+  longtemps en cas de récidive), isoler le poste, alerter le SIEM externe
+  agissent désormais sur ce que la règle a trouvé, ou sont simulées quand la
+  simulation des playbooks est active. La notification dit ce qui a été fait.
+  Verrouiller un compte et lancer une commande, qui demandent un paramètre,
+  restent l'affaire des playbooks et ne sont plus proposés pour une règle.
+- **Compteur de correspondances** : il restait à zéro. Chaque correspondance
+  est comptée sur le poste, avec la date de la dernière, et l'onglet se met à
+  jour aussitôt.
+- **SIEM** : chaque correspondance est enregistrée comme les détections des
+  moteurs (pour la plateforme, et pour le SIEM externe quand il y en a un),
+  avec le processus, l'adresse ou le fichier trouvé.
+- **Onglet Règles** : modification d'une règle existante (mode administrateur,
+  comme la désactivation), filtres « Par défaut » et « Personnalisées »,
+  recherche (nom, technique ATT&CK, indicateur), description et réponse de
+  chaque règle, conditions regroupées par type. Une condition qui ne pourrait
+  jamais correspondre (port illisible, sévérité inconnue) ne s'enregistre
+  plus. Le test porte aussi sur les connexions.
+- **Notifications en français** : « Règle « X » déclenchée », et ce qui a été
+  trouvé (« Processus mimikatz.exe (PID 4120) : … »).
+
+### ⚡ Processus évalués à leur lancement
+
+- **Réglable dans l'interface** : « Processus évalués à leur lancement »
+  rejoint Paramètres › Détection et conformité. Sans elle, les règles ne
+  voient que les processus encore en cours au balayage de cinq minutes : une
+  commande brève (`vssadmin delete shadows`, `certutil -urlcache`…) leur
+  échappe. L'onglet Règles le signale tant qu'elle est coupée.
+- **Linux** : la source (connecteur de processus du noyau) n'était compilée
+  dans aucune version. Elle l'est, et a été essayée sur un vrai noyau Ubuntu
+  24.04 : un `sh -c` de quelques millisecondes est vu, et la réponse d'une
+  règle arrête le processus trouvé. Dans un conteneur qui partage le noyau
+  d'un autre système, elle peut manquer : le balayage périodique reste.
+
+### 🕳️ Rootkits : modules noyau connus, signatures récentes
+
+- **Modules noyau de rootkits publiés** : un module chargé sous le nom de
+  Diamorphine, Reptile, Suterusu, KoviD, Nuk3Gh0st, Puszek, Syslogk,
+  Adore-ng, Knark, Rooty, Enyelkm ou KBeast est un incident critique, même
+  quand il ne se cache pas (un module qui se cache l'était déjà).
+- **Fichiers de menaces récentes** : BPFDoor, Kinsing, XorDdos, Winnti et
+  Syslogk rejoignent la liste des fichiers laissés par des rootkits connus.
+
 ### 🖥️ Journaux : sortie de commandes surveillée
 
 - **Commandes surveillées** (`command_monitors`), comme les sources
@@ -137,9 +203,10 @@ Tous les changements notables apportés au projet **Sentinel GRC Agent** sont co
   toute bibliothèque imposée aux programmes, tout nouvel administrateur
   (tous « changement non autorisé »). Une règle pour un type entier reste
   possible, écrite dans les autorisations.
-- **À reprendre** : une autorisation saisie à la main qui citait un titre
-  anglais d'incident ne le reconnaît plus ; celles qui portent sur un type
-  ne changent pas.
+- **Autorisations écrites avec un titre anglais** : une autorisation saisie à
+  la main qui citait un ancien titre (« Suspicious process detected: … »,
+  « Hidden listening port (… ») couvre toujours l'incident, comparée aussi
+  au titre français. Celles qui portent sur un type ne changent pas.
 
 ### 📦 Paquets Linux : toutes les distributions maintenues, x64 et ARM64
 

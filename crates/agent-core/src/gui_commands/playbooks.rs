@@ -27,6 +27,7 @@ pub(crate) async fn handle(ctx: &mut CommandContext, command: GuiCommand) {
         GuiCommand::ToggleDetectionRule { rule_id, enabled } => {
             toggle_detection_rule(ctx, rule_id, enabled).await
         }
+        GuiCommand::RestoreDefaultDetectionRules => restore_default_detection_rules(ctx).await,
         other => super::misrouted("playbooks", &other),
     }
 }
@@ -390,19 +391,7 @@ async fn save_detection_rule(ctx: &mut CommandContext, rule: Box<agent_gui::dto:
         let payload_clone = payload.clone();
         ctx.tasks
             .spawn_expected("save detection rule", expected::SHORT, async move {
-                let stored = agent_storage::repositories::grc::StoredDetectionRule {
-                    id: rule_clone.id.to_string(),
-                    name: rule_clone.name.clone(),
-                    description: rule_clone.description.clone(),
-                    severity: rule_clone.severity.as_str().to_string(),
-                    conditions: serde_json::to_string(&rule_clone.conditions).unwrap_or_default(),
-                    actions: serde_json::to_string(&rule_clone.actions).unwrap_or_default(),
-                    enabled: rule_clone.enabled,
-                    created_at: rule_clone.created_at.to_rfc3339(),
-                    last_match: rule_clone.last_match.map(|d| d.to_rfc3339()),
-                    match_count: rule_clone.match_count as i32,
-                    synced: false,
-                };
+                let stored = agent_core::threat_pipeline::rule_to_stored(&rule_clone, false);
                 let repo =
                     agent_storage::repositories::grc::DetectionRuleRepository::new(&db_clone);
                 if let Err(e) = repo.upsert(&stored).await {
@@ -419,6 +408,36 @@ async fn save_detection_rule(ctx: &mut CommandContext, rule: Box<agent_gui::dto:
                 }
             });
     }
+}
+
+/// Install again the shipped detection rules that were deleted, then show
+/// the rules as they now are.
+async fn restore_default_detection_rules(ctx: &mut CommandContext) {
+    info!("[AUDIT] GUI restored the shipped detection rules");
+    let Some(db) = ctx.db.clone() else {
+        warn!("Shipped detection rules not restored: no database");
+        return;
+    };
+    let tx = ctx.events.clone();
+    let queue_for_upload = ctx.sync_client.is_some();
+    ctx.tasks.spawn_expected(
+        "restore shipped detection rules",
+        expected::SHORT,
+        async move {
+            if let Err(e) =
+                agent_core::default_rules::install_default_rules(&db, queue_for_upload, true).await
+            {
+                warn!("Shipped detection rules not restored: {}", e);
+                return;
+            }
+            match agent_core::default_rules::load_rules(&db).await {
+                Ok(rules) => {
+                    let _ = tx.send(AgentEvent::DetectionRulesLoaded { rules });
+                }
+                Err(e) => warn!("Detection rules not reloaded: {}", e),
+            }
+        },
+    );
 }
 
 /// Delete a detection rule.
