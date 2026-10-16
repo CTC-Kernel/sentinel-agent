@@ -29,9 +29,18 @@ is_critical = true
 [[controls]]
 check_id = "firewall_active"
 control_id = "4.4"
-control_name = "Implement Host-Based Firewalls"
+control_name = "Implement and Manage a Firewall on Servers"
 category = "Secure Configuration"
-description = "Implement and manage a host-based firewall or port filtering tool"
+description = "Implement and manage a firewall on servers, where supported"
+weight = 0.9
+is_critical = true
+
+[[controls]]
+check_id = "firewall_active"
+control_id = "4.5"
+control_name = "Implement and Manage a Firewall on End-User Devices"
+category = "Secure Configuration"
+description = "Implement and manage a host-based firewall or port-filtering tool on end-user devices"
 weight = 0.9
 is_critical = true
 

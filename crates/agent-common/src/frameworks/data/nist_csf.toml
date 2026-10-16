@@ -2,317 +2,273 @@
 id = "NIST_CSF"
 name = "NIST Cybersecurity Framework"
 version = "2.0"
-description = "Framework for improving critical infrastructure cybersecurity"
+description = "Framework for managing cybersecurity risk (CSF 2.0, February 2024)"
 applicability = ["Critical Infrastructure", "Federal Agencies", "Global Organizations"]
 reference_url = "https://www.nist.gov/cyberframework"
 
-# Disk Encryption
+# Subcategory ids and texts of CSF 2.0. Former CSF 1.1 ids (in comments) were
+# moved with NIST's "CSF 2.0 Core With Withdrawn CSF 1.1 Elements": when a 1.1
+# subcategory was incorporated into several 2.0 ones, only those the check
+# actually shows are kept. Dropped because the 2.0 text no longer describes
+# what the check verifies: DE.AE-03 (now correlation only; log generation is
+# PR.PS-04), RC.RP-01 for backups (recovery plan execution), DE.CM-01 for the
+# host firewall (network monitoring), ID.AM-04 for certificates (supplier
+# services inventory), PR.DS-6 for containers (image signing is not checked)
+# and for Linux hardening (neither PR.DS-01 nor DE.CM-09 fits).
+
+# disk_encryption — CSF 1.1: PR.DS-1, PR.DS-5
 [[controls]]
 check_id = "disk_encryption"
-control_id = "PR.DS-1"
-control_name = "Data-at-rest is protected"
+control_id = "PR.DS-01"
+control_name = "The confidentiality, integrity, and availability of data-at-rest are protected"
 category = "Protect"
-description = "Data-at-rest is protected using encryption"
+description = "Full-disk encryption protects data at rest"
 weight = 0.9
 is_critical = true
 
-[[controls]]
-check_id = "disk_encryption"
-control_id = "PR.DS-5"
-control_name = "Protections against data leaks"
-category = "Protect"
-description = "Protections against data leaks are implemented"
-weight = 0.7
-is_critical = false
-
-# Firewall
+# firewall_active — CSF 1.1: PR.AC-5, DE.CM-1
 [[controls]]
 check_id = "firewall_active"
-control_id = "PR.AC-5"
-control_name = "Network integrity is protected"
+control_id = "PR.IR-01"
+control_name = "Networks and environments are protected from unauthorized logical access and usage"
 category = "Protect"
-description = "Network integrity is protected using network segmentation"
+description = "The host firewall filters network access to the device"
 weight = 0.9
 is_critical = true
 
-[[controls]]
-check_id = "firewall_active"
-control_id = "DE.CM-1"
-control_name = "Network is monitored"
-category = "Detect"
-description = "The network is monitored to detect potential cybersecurity events"
-weight = 0.7
-is_critical = false
-
-# Antivirus
+# antivirus_active — CSF 1.1: DE.CM-4, PR.DS-6
 [[controls]]
 check_id = "antivirus_active"
-control_id = "DE.CM-4"
-control_name = "Malicious code is detected"
+control_id = "DE.CM-09"
+control_name = "Computing hardware and software, runtime environments, and their data are monitored to find potentially adverse events"
 category = "Detect"
-description = "Malicious code is detected"
+description = "Active, up-to-date anti-malware monitors the device for malicious code"
 weight = 0.9
 is_critical = true
 
-[[controls]]
-check_id = "antivirus_active"
-control_id = "PR.DS-6"
-control_name = "Integrity checking mechanisms"
-category = "Protect"
-description = "Integrity checking mechanisms are used to verify software integrity"
-weight = 0.6
-is_critical = false
-
-# MFA
+# mfa_enabled — CSF 1.1: PR.AC-7
 [[controls]]
 check_id = "mfa_enabled"
-control_id = "PR.AC-7"
-control_name = "Users and devices are authenticated"
+control_id = "PR.AA-03"
+control_name = "Users, services, and hardware are authenticated"
 category = "Protect"
-description = "Users, devices, and other assets are authenticated commensurate with risk"
+description = "Multi-factor authentication is configured"
 weight = 0.95
 is_critical = true
 
-# Password Policy
+# password_policy — CSF 1.1: PR.AC-1
 [[controls]]
 check_id = "password_policy"
-control_id = "PR.AC-1"
-control_name = "Identities and credentials are issued"
+control_id = "PR.AA-01"
+control_name = "Identities and credentials for authorized users, services, and hardware are managed by the organization"
 category = "Protect"
-description = "Identities and credentials are issued, managed, verified, revoked"
+description = "The local password policy enforces credential strength"
 weight = 0.8
 is_critical = true
 
-# System Updates
+# patches_current — CSF 1.1: PR.IP-12, ID.RA-1
 [[controls]]
 check_id = "patches_current"
-control_id = "PR.IP-12"
-control_name = "Vulnerability management plan"
+control_id = "PR.PS-02"
+control_name = "Software is maintained, replaced, and removed commensurate with risk"
 category = "Protect"
-description = "A vulnerability management plan is developed and implemented"
+description = "Available security updates are installed"
 weight = 0.9
 is_critical = true
 
 [[controls]]
 check_id = "patches_current"
-control_id = "ID.RA-1"
-control_name = "Asset vulnerabilities identified"
+control_id = "ID.RA-01"
+control_name = "Vulnerabilities in assets are identified, validated, and recorded"
 category = "Identify"
-description = "Asset vulnerabilities are identified and documented"
+description = "Missing security updates are identified and recorded"
 weight = 0.7
 is_critical = false
 
-# Audit Logging
+# audit_logging — CSF 1.1: DE.AE-3, PR.PT-1
 [[controls]]
 check_id = "audit_logging"
-control_id = "DE.AE-3"
-control_name = "Event data are collected"
-category = "Detect"
-description = "Event data are collected and correlated"
+control_id = "PR.PS-04"
+control_name = "Log records are generated and made available for continuous monitoring"
+category = "Protect"
+description = "The system audit/event logging service is enabled"
 weight = 0.85
 is_critical = true
 
-[[controls]]
-check_id = "audit_logging"
-control_id = "PR.PT-1"
-control_name = "Audit logs are determined"
-category = "Protect"
-description = "Audit/log records are determined, documented, implemented"
-weight = 0.8
-is_critical = true
-
-# Session Lock
+# screen_lock — CSF 1.1: PR.AC-4
 [[controls]]
 check_id = "screen_lock"
-control_id = "PR.AC-4"
-control_name = "Access permissions managed"
+control_id = "PR.AA-05"
+control_name = "Access permissions, entitlements, and authorizations are defined in a policy, managed, enforced, and reviewed, and incorporate the principles of least privilege and separation of duties"
 category = "Protect"
-description = "Access permissions and authorizations are managed"
+description = "An unattended session locks automatically"
 weight = 0.6
 is_critical = false
 
-# Backup
+# backup_configured — CSF 1.1: PR.IP-4, RC.RP-1
 [[controls]]
 check_id = "backup_configured"
-control_id = "PR.IP-4"
-control_name = "Backups are conducted"
+control_id = "PR.DS-11"
+control_name = "Backups of data are created, protected, maintained, and tested"
 category = "Protect"
-description = "Backups of information are conducted, maintained, and tested"
+description = "A backup is configured and the latest one is less than 30 days old"
 weight = 0.85
 is_critical = true
 
-[[controls]]
-check_id = "backup_configured"
-control_id = "RC.RP-1"
-control_name = "Recovery plan is executed"
-category = "Recover"
-description = "Recovery plan is executed during or after a cybersecurity incident"
-weight = 0.8
-is_critical = true
-
-# Admin Accounts
+# admin_accounts — CSF 1.1: PR.AC-4
 [[controls]]
 check_id = "admin_accounts"
-control_id = "PR.AC-4"
-control_name = "Access permissions managed"
+control_id = "PR.AA-05"
+control_name = "Access permissions, entitlements, and authorizations are defined in a policy, managed, enforced, and reviewed, and incorporate the principles of least privilege and separation of duties"
 category = "Protect"
-description = "Access permissions and authorizations are managed"
+description = "Local administrator rights are limited"
 weight = 0.8
 is_critical = true
 
-# Remote Access
+# remote_access_secure — CSF 1.1: PR.AC-3
 [[controls]]
 check_id = "remote_access_secure"
-control_id = "PR.AC-3"
-control_name = "Remote access is managed"
+control_id = "PR.IR-01"
+control_name = "Networks and environments are protected from unauthorized logical access and usage"
 category = "Protect"
-description = "Remote access is managed"
+description = "Remote access services (RDP, SSH, screen sharing) are restricted and hardened"
 weight = 0.85
 is_critical = true
 
-# Kernel Hardening
 [[controls]]
-check_id = "kernel_hardening"
-control_id = "PR.IP-1"
-control_name = "Baseline configuration"
+check_id = "remote_access_secure"
+control_id = "PR.AA-03"
+control_name = "Users, services, and hardware are authenticated"
 category = "Protect"
-description = "A baseline configuration is created and maintained"
+description = "Remote sessions require authentication before connection (RDP NLA, no SSH password login)"
 weight = 0.7
 is_critical = false
 
-# Time Sync
+# kernel_hardening — CSF 1.1: PR.IP-1
+[[controls]]
+check_id = "kernel_hardening"
+control_id = "PR.PS-01"
+control_name = "Configuration management practices are established and applied"
+category = "Protect"
+description = "Kernel security settings (ASLR, DEP, IP forwarding) follow the baseline"
+weight = 0.7
+is_critical = false
+
+# time_sync — CSF 1.1: PR.PT-1
 [[controls]]
 check_id = "time_sync"
-control_id = "PR.PT-1"
-control_name = "Audit logs are determined"
+control_id = "PR.PS-04"
+control_name = "Log records are generated and made available for continuous monitoring"
 category = "Protect"
 description = "Accurate time synchronization for log correlation"
 weight = 0.5
 is_critical = false
 
-# Obsolete Protocols
+# obsolete_protocols — CSF 1.1: PR.DS-2
 [[controls]]
 check_id = "obsolete_protocols"
-control_id = "PR.DS-2"
-control_name = "Data-in-transit is protected"
+control_id = "PR.DS-02"
+control_name = "The confidentiality, integrity, and availability of data-in-transit are protected"
 category = "Protect"
-description = "Data-in-transit is protected"
+description = "Obsolete protocols (SMBv1, SSLv3, TLS 1.0/1.1) are disabled"
 weight = 0.75
 is_critical = false
 
-# USB Storage
+# usb_storage_disabled — CSF 1.1: PR.PT-2
 [[controls]]
 check_id = "usb_storage_disabled"
-control_id = "PR.PT-2"
-control_name = "Removable media is protected"
+control_id = "PR.PS-01"
+control_name = "Configuration management practices are established and applied"
 category = "Protect"
-description = "Removable media is protected and its use restricted"
+description = "Removable storage use is restricted by policy"
 weight = 0.6
 is_critical = false
 
-# Bluetooth
+# bluetooth_disabled — CSF 1.1: PR.AC-5
 [[controls]]
 check_id = "bluetooth_disabled"
-control_id = "PR.AC-5"
-control_name = "Network integrity is protected"
+control_id = "PR.IR-01"
+control_name = "Networks and environments are protected from unauthorized logical access and usage"
 category = "Protect"
 description = "Wireless communication is controlled"
 weight = 0.5
 is_critical = false
 
-# Browser Security
+# browser_security — CSF 1.1: PR.IP-1
 [[controls]]
 check_id = "browser_security"
-control_id = "PR.IP-1"
-control_name = "Baseline configuration"
+control_id = "PR.PS-01"
+control_name = "Configuration management practices are established and applied"
 category = "Protect"
 description = "Browser security baseline is maintained"
 weight = 0.6
 is_critical = false
 
-# Guest Account
+# guest_account_disabled — CSF 1.1: PR.AC-1
 [[controls]]
 check_id = "guest_account_disabled"
-control_id = "PR.AC-1"
-control_name = "Identities and credentials are issued"
+control_id = "PR.AA-01"
+control_name = "Identities and credentials for authorized users, services, and hardware are managed by the organization"
 category = "Protect"
 description = "Guest and shared accounts are controlled"
 weight = 0.5
 is_critical = false
 
-# Auto Login
+# auto_login_disabled — CSF 1.1: PR.AC-7
 [[controls]]
 check_id = "auto_login_disabled"
-control_id = "PR.AC-7"
-control_name = "Users are authenticated"
+control_id = "PR.AA-03"
+control_name = "Users, services, and hardware are authenticated"
 category = "Protect"
 description = "Automatic login is disabled to ensure authentication"
 weight = 0.7
 is_critical = false
 
-# Log Rotation
+# log_rotation — CSF 1.1: PR.PT-1
 [[controls]]
 check_id = "log_rotation"
-control_id = "PR.PT-1"
-control_name = "Audit logs maintained"
+control_id = "PR.PS-04"
+control_name = "Log records are generated and made available for continuous monitoring"
 category = "Protect"
 description = "Log files are properly rotated and retained"
 weight = 0.5
 is_critical = false
 
-# IPv6 Config
+# ipv6_hardening — CSF 1.1: PR.AC-5
 [[controls]]
 check_id = "ipv6_hardening"
-control_id = "PR.AC-5"
-control_name = "Network integrity"
+control_id = "PR.IR-01"
+control_name = "Networks and environments are protected from unauthorized logical access and usage"
 category = "Protect"
 description = "IPv6 is properly configured or disabled if not needed"
 weight = 0.4
 is_critical = false
 
-# Windows Hardening
+# windows_hardening — CSF 1.1: PR.IP-1, PR.PT-3
 [[controls]]
 check_id = "windows_hardening"
-control_id = "PR.IP-1"
-control_name = "Baseline configuration"
+control_id = "PR.PS-01"
+control_name = "Configuration management practices are established and applied"
 category = "Protect"
-description = "Windows security baseline configuration is maintained"
+description = "Windows security baseline configuration (least functionality) is maintained"
 weight = 0.9
 is_critical = true
 
-[[controls]]
-check_id = "windows_hardening"
-control_id = "PR.PT-3"
-control_name = "Least functionality principle"
-category = "Protect"
-description = "Systems are configured with least functionality principle"
-weight = 0.8
-is_critical = true
-
-# Linux Hardening
+# linux_hardening — CSF 1.1: PR.IP-1, PR.DS-6
 [[controls]]
 check_id = "linux_hardening"
-control_id = "PR.IP-1"
-control_name = "Baseline configuration"
+control_id = "PR.PS-01"
+control_name = "Configuration management practices are established and applied"
 category = "Protect"
 description = "Linux kernel security baseline configuration is maintained"
 weight = 0.9
 is_critical = true
 
-[[controls]]
-check_id = "linux_hardening"
-control_id = "PR.DS-6"
-control_name = "Integrity checking mechanisms"
-category = "Protect"
-description = "Kernel integrity protection mechanisms are enabled"
-weight = 0.8
-is_critical = true
-
-# Update Status
+# update_status — CSF 1.1: PR.IP-12, ID.RA-1
 [[controls]]
 check_id = "update_status"
-control_id = "PR.IP-12"
-control_name = "Vulnerability management plan"
+control_id = "PR.PS-02"
+control_name = "Software is maintained, replaced, and removed commensurate with risk"
 category = "Protect"
 description = "Patch management and update status monitoring"
 weight = 0.95
@@ -320,78 +276,78 @@ is_critical = true
 
 [[controls]]
 check_id = "update_status"
-control_id = "ID.RA-1"
-control_name = "Asset vulnerabilities identified"
+control_id = "ID.RA-01"
+control_name = "Vulnerabilities in assets are identified, validated, and recorded"
 category = "Identify"
 description = "Pending updates and vulnerabilities are tracked"
 weight = 0.85
 is_critical = true
 
-# Secure Boot
+# secure_boot — CSF 1.1: PR.DS-6
 [[controls]]
 check_id = "secure_boot"
-control_id = "PR.DS-6"
-control_name = "Integrity checking mechanisms"
-category = "Protect"
-description = "UEFI Secure Boot ensures boot-time integrity"
+control_id = "DE.CM-09"
+control_name = "Computing hardware and software, runtime environments, and their data are monitored to find potentially adverse events"
+category = "Detect"
+description = "UEFI Secure Boot verifies boot software integrity at every start"
 weight = 0.85
 is_critical = true
 
-# GPO Password Policy
+# gpo_password_policy — CSF 1.1: PR.AC-1
 [[controls]]
 check_id = "gpo_password_policy"
-control_id = "PR.AC-1"
-control_name = "Identities and credentials are issued"
+control_id = "PR.AA-01"
+control_name = "Identities and credentials for authorized users, services, and hardware are managed by the organization"
 category = "Protect"
 description = "Domain password policies enforce credential strength"
 weight = 0.85
 is_critical = true
 
-# GPO Lockout Policy
+# gpo_account_lockout — CSF 1.1: PR.AC-7
 [[controls]]
 check_id = "gpo_account_lockout"
-control_id = "PR.AC-7"
-control_name = "Users are authenticated"
+control_id = "PR.AA-03"
+control_name = "Users, services, and hardware are authenticated"
 category = "Protect"
 description = "Account lockout protects against authentication attacks"
 weight = 0.8
 is_critical = true
 
-# GPO Audit Policy
+# gpo_audit_policy — CSF 1.1: DE.AE-3
 [[controls]]
 check_id = "gpo_audit_policy"
-control_id = "DE.AE-3"
-control_name = "Event data are collected"
-category = "Detect"
+control_id = "PR.PS-04"
+control_name = "Log records are generated and made available for continuous monitoring"
+category = "Protect"
 description = "Domain audit policies ensure security events are logged"
 weight = 0.85
 is_critical = true
 
-# Privileged Groups
+# privileged_groups — CSF 1.1: PR.AC-4
 [[controls]]
 check_id = "privileged_groups"
-control_id = "PR.AC-4"
-control_name = "Access permissions managed"
+control_id = "PR.AA-05"
+control_name = "Access permissions, entitlements, and authorizations are defined in a policy, managed, enforced, and reviewed, and incorporate the principles of least privilege and separation of duties"
 category = "Protect"
 description = "Privileged group membership is monitored and controlled"
 weight = 0.9
 is_critical = true
 
-# LDAP Security
+# ldap_security — CSF 1.1: PR.DS-2
 [[controls]]
 check_id = "ldap_security"
-control_id = "PR.DS-2"
-control_name = "Data-in-transit is protected"
+control_id = "PR.DS-02"
+control_name = "The confidentiality, integrity, and availability of data-in-transit are protected"
 category = "Protect"
 description = "LDAP communications are secured with TLS"
 weight = 0.8
 is_critical = true
 
-# DNS Security
+# dns_security — CSF 1.1: PR.DS-2, PR.PT-4
 [[controls]]
 check_id = "dns_security"
-control_id = "PR.DS-2"
-control_name = "Data-in-transit is protected"
+control_id = "PR.DS-02"
+control_name = "The confidentiality, integrity, and availability of data-in-transit are protected"
 category = "Protect"
 description = "DNS queries protected with encryption (DoH/DoT)"
 weight = 0.85
@@ -399,18 +355,18 @@ is_critical = true
 
 [[controls]]
 check_id = "dns_security"
-control_id = "PR.PT-4"
-control_name = "Communications and control networks are protected"
+control_id = "PR.IR-01"
+control_name = "Networks and environments are protected from unauthorized logical access and usage"
 category = "Protect"
 description = "Secure DNS prevents DNS-based attacks and data exfiltration"
 weight = 0.8
 is_critical = true
 
-# SSH Hardening
+# ssh_hardening — CSF 1.1: PR.AC-7, PR.PT-4, PR.AC-4
 [[controls]]
 check_id = "ssh_hardening"
-control_id = "PR.AC-7"
-control_name = "Users, devices, and other assets are authenticated"
+control_id = "PR.AA-03"
+control_name = "Users, services, and hardware are authenticated"
 category = "Protect"
 description = "SSH key-based authentication and hardened configuration"
 weight = 0.9
@@ -418,8 +374,8 @@ is_critical = true
 
 [[controls]]
 check_id = "ssh_hardening"
-control_id = "PR.PT-4"
-control_name = "Communications and control networks are protected"
+control_id = "PR.IR-01"
+control_name = "Networks and environments are protected from unauthorized logical access and usage"
 category = "Protect"
 description = "SSH secure protocols and ciphers"
 weight = 0.85
@@ -427,56 +383,29 @@ is_critical = true
 
 [[controls]]
 check_id = "ssh_hardening"
-control_id = "PR.AC-4"
-control_name = "Access permissions and authorizations are managed"
+control_id = "PR.AA-05"
+control_name = "Access permissions, entitlements, and authorizations are defined in a policy, managed, enforced, and reviewed, and incorporate the principles of least privilege and separation of duties"
 category = "Protect"
 description = "SSH access restricted (no root login, authorized users only)"
 weight = 0.85
 is_critical = true
 
-# Container Security
+# container_security — CSF 1.1: PR.IP-1, PR.PT-3, PR.DS-6
 [[controls]]
 check_id = "container_security"
-control_id = "PR.IP-1"
-control_name = "Baseline configuration is created and maintained"
+control_id = "PR.PS-01"
+control_name = "Configuration management practices are established and applied"
 category = "Protect"
-description = "Container runtime security baseline (rootless, seccomp, MAC)"
+description = "Container runtime security baseline (rootless, seccomp, MAC, minimal privileges)"
 weight = 0.9
 is_critical = true
 
-[[controls]]
-check_id = "container_security"
-control_id = "PR.PT-3"
-control_name = "Least functionality principle is incorporated"
-category = "Protect"
-description = "Containers run with minimal privileges and capabilities"
-weight = 0.85
-is_critical = true
-
-[[controls]]
-check_id = "container_security"
-control_id = "PR.DS-6"
-control_name = "Integrity checking mechanisms are used"
-category = "Protect"
-description = "Container image signing and integrity verification"
-weight = 0.8
-is_critical = true
-
-# Certificate Validation
+# certificate_validation — CSF 1.1: PR.DS-2, ID.AM-4
 [[controls]]
 check_id = "certificate_validation"
-control_id = "PR.DS-2"
-control_name = "Data-in-transit is protected"
+control_id = "PR.DS-02"
+control_name = "The confidentiality, integrity, and availability of data-in-transit are protected"
 category = "Protect"
 description = "Valid certificates ensure secure data transmission"
 weight = 0.9
-is_critical = true
-
-[[controls]]
-check_id = "certificate_validation"
-control_id = "ID.AM-4"
-control_name = "External information systems are catalogued"
-category = "Identify"
-description = "Certificate inventory and expiration tracking"
-weight = 0.8
 is_critical = true

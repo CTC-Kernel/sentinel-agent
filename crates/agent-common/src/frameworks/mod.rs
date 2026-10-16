@@ -4,13 +4,16 @@
 //! Compliance framework mappings.
 //!
 //! Maps agent checks to regulatory frameworks:
-//! - NIST CSF (Cybersecurity Framework)
+//! - NIST CSF 2.0 (Cybersecurity Framework, subcategory ids of 2.0)
 //! - CIS Controls v8
 //! - PCI DSS v4.0
 //! - ISO 27001:2022
-//! - ANSSI Guide d'Hygiène Informatique
+//! - ANSSI Guide d'Hygiène Informatique v2.0 (measures M01–M42)
+//! - SOC 2, NIS 2, DORA, HDS v2
 //!
-//! Framework data is loaded from embedded TOML files at compile time.
+//! Framework data is loaded from embedded TOML files at compile time. Control
+//! codes and titles follow the platform's control catalogues so that a check
+//! result can be attached to the matching control there.
 
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -486,5 +489,293 @@ mod tests {
 
         let score = score.unwrap();
         assert!(score.overall_score >= 0.0 && score.overall_score <= 100.0);
+    }
+
+    /// Official measure titles of the ANSSI guide v2.0 (M01..M42), as the
+    /// platform catalogue imports them (`ANSSI_HYGIENE_SEED_CONTROLS`).
+    const ANSSI_HYGIENE_MEASURES: [&str; 42] = [
+        "Former les équipes opérationnelles à la sécurité des systèmes d’information",
+        "Sensibiliser les utilisateurs aux bonnes pratiques élémentaires de sécurité informatique",
+        "Maîtriser les risques de l’infogérance",
+        "Identifier les informations et serveurs les plus sensibles et maintenir un schéma du réseau",
+        "Disposer d’un inventaire exhaustif des comptes privilégiés et le maintenir à jour",
+        "Organiser les procédures d’arrivée, de départ et de changement de fonction des utilisateurs",
+        "Autoriser la connexion au réseau de l’entité aux seuls équipements maîtrisés",
+        "Identifier nommément chaque personne accédant au système et distinguer les rôles utilisateur/administrateur",
+        "Attribuer les bons droits sur les ressources sensibles du système d’information",
+        "Définir et vérifier des règles de choix et de dimensionnement des mots de passe",
+        "Protéger les mots de passe stockés sur les systèmes",
+        "Changer les éléments d’authentification par défaut sur les équipements et services",
+        "Privilégier lorsque c’est possible une authentification forte",
+        "Mettre en place un niveau de sécurité minimal sur l’ensemble du parc informatique",
+        "Se protéger des menaces relatives à l’utilisation de supports amovibles",
+        "Utiliser un outil de gestion centralisée afin d’homogénéiser les politiques de sécurité",
+        "Activer et configurer le pare-feu local des postes de travail",
+        "Chiffrer les données sensibles transmises par voie Internet",
+        "Segmenter le réseau et mettre en place un cloisonnement entre ces zones",
+        "S’assurer de la sécurité des réseaux d’accès Wi-Fi et de la séparation des usages",
+        "Utiliser des protocoles sécurisés dès qu’ils existent",
+        "Mettre en place une passerelle d’accès sécurisé à Internet",
+        "Cloisonner les services visibles depuis Internet du reste du système d’information",
+        "Protéger sa messagerie professionnelle",
+        "Sécuriser les interconnexions réseau dédiées avec les partenaires",
+        "Contrôler et protéger l’accès aux salles serveurs et aux locaux techniques",
+        "Interdire l’accès à Internet depuis les postes ou serveurs utilisés pour l’administration du système d’information",
+        "Utiliser un réseau dédié et cloisonné pour l’administration du système d’information",
+        "Limiter au strict besoin opérationnel les droits d’administration sur les postes de travail",
+        "Prendre des mesures de sécurisation physique des terminaux nomades",
+        "Chiffrer les données sensibles, en particulier sur le matériel potentiellement perdable",
+        "Sécuriser la connexion réseau des postes utilisés en situation de nomadisme",
+        "Adopter des politiques de sécurité dédiées aux terminaux mobiles",
+        "Définir une politique de mise à jour des composants du système d’information",
+        "Anticiper la fin de la maintenance des logiciels et systèmes et limiter les adhérences logicielles",
+        "Activer et configurer les journaux des composants les plus importants",
+        "Définir et appliquer une politique de sauvegarde des composants critiques",
+        "Procéder à des contrôles et audits de sécurité réguliers puis appliquer les actions correctives associées",
+        "Désigner un référent en sécurité des systèmes d’information et le faire connaître auprès du personnel",
+        "Définir une procédure de gestion des incidents de sécurité",
+        "Mener une analyse de risques formelle",
+        "Privilégier l’usage de produits et de services qualifiés par l’ANSSI",
+    ];
+
+    /// HDS v2 requirements of the platform catalogue (`HDS_SEED_CONTROLS`).
+    const HDS_REQUIREMENTS: &[(&str, &str)] = &[
+        (
+            "HDS.1.1",
+            "Politique de sécurité de l'information couvrant l'hébergement de données de santé",
+        ),
+        (
+            "HDS.1.2",
+            "Responsable de la sécurité de l'information désigné pour le périmètre HDS",
+        ),
+        (
+            "HDS.1.3",
+            "Appréciation des risques intégrant les risques propres aux données de santé hébergées",
+        ),
+        (
+            "HDS.1.4",
+            "Périmètre de certification : activités d'hébergement exercées parmi les six activités (CSP, art. R. 1111-9)",
+        ),
+        (
+            "HDS.1.5",
+            "SMSI certifié ISO/IEC 27001 couvrant le périmètre de certification HDS",
+        ),
+        (
+            "HDS.1.6",
+            "Sous-traitants réalisant une activité d'hébergement certifiés HDS pour cette activité",
+        ),
+        (
+            "HDS.2.3",
+            "Assistance au client pour le traitement des demandes d'exercice des droits des personnes (RGPD, art. 28, par. 3, e)",
+        ),
+        (
+            "HDS.2.4",
+            "Traitement des données de santé uniquement sur instruction documentée du client (RGPD, art. 28, par. 3, a)",
+        ),
+        (
+            "HDS.2.5",
+            "Engagement de confidentialité des personnes autorisées à traiter les données de santé (RGPD, art. 28, par. 3, b)",
+        ),
+        (
+            "HDS.3.1",
+            "Authentification forte des utilisateurs et des administrateurs",
+        ),
+        ("HDS.3.2", "Chiffrement des données de santé au repos"),
+        ("HDS.3.3", "Chiffrement des flux de données de santé"),
+        ("HDS.3.4", "Traçabilité des accès aux données de santé"),
+        (
+            "HDS.4.1",
+            "Sauvegardes externalisées des données de santé et tests de restauration",
+        ),
+        (
+            "HDS.4.2",
+            "Plan de continuité et de reprise d'activité de l'hébergement",
+        ),
+        (
+            "HDS.4.3",
+            "Engagements de niveau de service : indicateurs de qualité et de performance",
+        ),
+        (
+            "HDS.4.4",
+            "Réversibilité : restitution des données de santé au client en fin de prestation",
+        ),
+        (
+            "HDS.5.1",
+            "Hébergement des données de santé exclusivement dans l'Espace économique européen (EEE)",
+        ),
+        (
+            "HDS.5.2",
+            "Information du client sur tout accès aux données de santé depuis un pays hors de l'EEE",
+        ),
+        (
+            "HDS.5.3",
+            "Publication de la cartographie des transferts de données de santé hors de l'EEE",
+        ),
+        (
+            "HDS.5.4",
+            "Information du client sur les risques d'accès par des autorités de pays tiers et les mesures d'atténuation",
+        ),
+        (
+            "HDS.6.1",
+            "Contrat d'hébergement comportant les clauses obligatoires (CSP, art. R. 1111-11)",
+        ),
+        (
+            "HDS.6.2",
+            "Gestion des incidents de sécurité affectant les données de santé",
+        ),
+        (
+            "HDS.6.3",
+            "Notification au client des incidents et violations affectant ses données de santé (RGPD, art. 33, par. 2)",
+        ),
+    ];
+
+    /// The 106 subcategory ids of NIST CSF 2.0.
+    const NIST_CSF_2_0_SUBCATEGORIES: [&str; 106] = [
+        "GV.OC-01", "GV.OC-02", "GV.OC-03", "GV.OC-04", "GV.OC-05", "GV.RM-01", "GV.RM-02",
+        "GV.RM-03", "GV.RM-04", "GV.RM-05", "GV.RM-06", "GV.RM-07", "GV.SC-01", "GV.SC-02",
+        "GV.SC-03", "GV.SC-04", "GV.SC-05", "GV.SC-06", "GV.SC-07", "GV.SC-08", "GV.SC-09",
+        "GV.SC-10", "GV.RR-01", "GV.RR-02", "GV.RR-03", "GV.RR-04", "GV.PO-01", "GV.PO-02",
+        "GV.OV-01", "GV.OV-02", "GV.OV-03", "ID.AM-01", "ID.AM-02", "ID.AM-03", "ID.AM-04",
+        "ID.AM-05", "ID.AM-07", "ID.AM-08", "ID.RA-01", "ID.RA-02", "ID.RA-03", "ID.RA-04",
+        "ID.RA-05", "ID.RA-06", "ID.RA-07", "ID.RA-08", "ID.RA-09", "ID.RA-10", "ID.IM-01",
+        "ID.IM-02", "ID.IM-03", "ID.IM-04", "PR.AA-01", "PR.AA-02", "PR.AA-03", "PR.AA-04",
+        "PR.AA-05", "PR.AA-06", "PR.AT-01", "PR.AT-02", "PR.DS-01", "PR.DS-02", "PR.DS-10",
+        "PR.DS-11", "PR.PS-01", "PR.PS-02", "PR.PS-03", "PR.PS-04", "PR.PS-05", "PR.PS-06",
+        "PR.IR-01", "PR.IR-02", "PR.IR-03", "PR.IR-04", "DE.CM-01", "DE.CM-02", "DE.CM-03",
+        "DE.CM-06", "DE.CM-09", "DE.AE-02", "DE.AE-03", "DE.AE-04", "DE.AE-06", "DE.AE-07",
+        "DE.AE-08", "RS.MA-01", "RS.MA-02", "RS.MA-03", "RS.MA-04", "RS.MA-05", "RS.AN-03",
+        "RS.AN-06", "RS.AN-07", "RS.AN-08", "RS.CO-02", "RS.CO-03", "RS.MI-01", "RS.MI-02",
+        "RC.RP-01", "RC.RP-02", "RC.RP-03", "RC.RP-04", "RC.RP-05", "RC.RP-06", "RC.CO-03",
+        "RC.CO-04",
+    ];
+
+    /// Every (check, control) row of a framework, for table-level assertions.
+    fn rows(registry: &FrameworkRegistry, framework_id: &str) -> Vec<(String, ControlMapping)> {
+        let mut rows: Vec<(String, ControlMapping)> = registry
+            .mappings
+            .iter()
+            .flat_map(|(check_id, mappings)| {
+                mappings
+                    .iter()
+                    .filter(|m| m.framework_id == framework_id)
+                    .map(move |m| (check_id.clone(), m.clone()))
+            })
+            .collect();
+        rows.sort_by(|a, b| (&a.0, &a.1.control_id).cmp(&(&b.0, &b.1.control_id)));
+        rows
+    }
+
+    /// The ANSSI table only cites the 42 official measures of the guide v2.0,
+    /// under their official title, so the platform can import its rows.
+    #[test]
+    fn anssi_rows_cite_official_guide_measures() {
+        let registry = FrameworkRegistry::new();
+        let rows = rows(&registry, "ANSSI_HYGIENE");
+        assert!(!rows.is_empty());
+
+        let mut offenders = Vec::new();
+        for (check_id, m) in &rows {
+            let official = m
+                .control_id
+                .strip_prefix('M')
+                .filter(|n| n.len() == 2)
+                .and_then(|n| n.parse::<usize>().ok())
+                .filter(|n| (1..=42).contains(n))
+                .map(|n| ANSSI_HYGIENE_MEASURES[n - 1]);
+            match official {
+                None => offenders.push(format!("{check_id}: {} is not M01..M42", m.control_id)),
+                Some(title) if title != m.control_name => offenders.push(format!(
+                    "{check_id}: {} is named '{}', official title is '{title}'",
+                    m.control_id, m.control_name
+                )),
+                Some(_) => {}
+            }
+        }
+        assert!(
+            offenders.is_empty(),
+            "ANSSI rows:\n{}",
+            offenders.join("\n")
+        );
+    }
+
+    /// The NIST table uses CSF 2.0 subcategory ids (no CSF 1.1 id such as PR.AC-5).
+    #[test]
+    fn nist_csf_rows_use_csf_2_0_subcategories() {
+        let registry = FrameworkRegistry::new();
+        let rows = rows(&registry, "NIST_CSF");
+        assert!(!rows.is_empty());
+
+        let offenders: Vec<String> = rows
+            .iter()
+            .filter(|(_, m)| !NIST_CSF_2_0_SUBCATEGORIES.contains(&m.control_id.as_str()))
+            .map(|(check_id, m)| format!("{check_id}: {}", m.control_id))
+            .collect();
+        assert!(
+            offenders.is_empty(),
+            "not CSF 2.0 subcategories: {offenders:?}"
+        );
+    }
+
+    /// The HDS table cites HDS v2 requirements under their catalogue title, not
+    /// ISO/IEC 27001 annex A controls.
+    #[test]
+    fn hds_rows_cite_hds_v2_requirements() {
+        let registry = FrameworkRegistry::new();
+        let rows = rows(&registry, "HDS");
+        assert!(!rows.is_empty());
+
+        let mut offenders = Vec::new();
+        for (check_id, m) in &rows {
+            match HDS_REQUIREMENTS
+                .iter()
+                .find(|(code, _)| *code == m.control_id)
+            {
+                None => offenders.push(format!(
+                    "{check_id}: {} is not an HDS v2 requirement",
+                    m.control_id
+                )),
+                Some((_, title)) if *title != m.control_name => offenders.push(format!(
+                    "{check_id}: {} is named '{}', catalogue title is '{title}'",
+                    m.control_id, m.control_name
+                )),
+                Some(_) => {}
+            }
+        }
+        assert!(offenders.is_empty(), "HDS rows:\n{}", offenders.join("\n"));
+    }
+
+    /// CIS v8 splits host firewalls into servers (4.4) and end-user devices (4.5);
+    /// the firewall check runs on both.
+    #[test]
+    fn firewall_maps_to_both_cis_v8_firewall_safeguards() {
+        let registry = FrameworkRegistry::new();
+        let ids: Vec<&str> = registry
+            .get_mappings_by_framework("firewall_active", "CIS_V8")
+            .iter()
+            .map(|m| m.control_id.as_str())
+            .collect();
+        assert!(ids.contains(&"4.4"), "{ids:?}");
+        assert!(ids.contains(&"4.5"), "{ids:?}");
+    }
+
+    /// A check cites a given control of a framework at most once, otherwise its
+    /// weight counts twice in the framework score.
+    #[test]
+    fn no_check_cites_the_same_control_twice() {
+        let registry = FrameworkRegistry::new();
+        let mut seen = std::collections::HashSet::new();
+        let mut duplicates = Vec::new();
+        for (check_id, mappings) in &registry.mappings {
+            for m in mappings {
+                if !seen.insert((
+                    check_id.clone(),
+                    m.framework_id.clone(),
+                    m.control_id.clone(),
+                )) {
+                    duplicates.push(format!("{check_id} → {} {}", m.framework_id, m.control_id));
+                }
+            }
+        }
+        assert!(duplicates.is_empty(), "duplicate rows: {duplicates:?}");
     }
 }

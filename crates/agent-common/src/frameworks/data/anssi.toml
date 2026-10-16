@@ -2,293 +2,299 @@
 id = "ANSSI_HYGIENE"
 name = "ANSSI Guide d'Hygiène Informatique"
 version = "2.0"
-description = "42 mesures essentielles pour la sécurité des SI - TPE/PME"
+description = "42 mesures du Guide d'hygiène informatique (ANSSI, 2017) ; seules les mesures qu'une vérification de poste démontre sont rattachées"
 applicability = ["TPE/PME", "France", "Europe"]
 reference_url = "https://www.ssi.gouv.fr/guide/guide-dhygiene-informatique/"
 
+# Codes M01–M42 et intitulés = mesures officielles du guide v2.0, tels que le
+# catalogue de la plateforme les importe (ANSSI_HYGIENE_SEED_CONTROLS). Une
+# vérification n'est rattachée qu'à une mesure dont le texte cite ce qu'elle
+# contrôle. Aucune mesure ne couvre le verrouillage de session (cité seulement
+# comme sujet de sensibilisation, M02), le démarrage sécurisé, les paramètres du
+# noyau, le magasin de certificats ou les conteneurs : screen_lock, secure_boot,
+# kernel_hardening, certificate_validation et container_security n'ont donc pas
+# de rattachement ANSSI.
+
 # ========================================================================
-# DOMAIN: Authentifier et contrôler les accès (9-14)
+# II — Connaître le système d'information
 # ========================================================================
 
 [[controls]]
-check_id = "password_policy"
-control_id = "M09"
-control_name = "Identifier nommément chaque utilisateur"
-category = "Authentification et Contrôle d'Accès"
-description = "Attribuer un identifiant unique à chaque utilisateur et interdire les comptes partagés"
-weight = 0.9
+check_id = "privileged_groups"
+control_id = "M05"
+control_name = "Disposer d’un inventaire exhaustif des comptes privilégiés et le maintenir à jour"
+category = "Connaître le système d'information"
+description = "Les membres des groupes privilégiés (Domain Admins, Enterprise Admins, Schema Admins, Administrateurs locaux) sont relevés à chaque analyse"
+weight = 0.85
 is_critical = true
+
+[[controls]]
+check_id = "admin_accounts"
+control_id = "M05"
+control_name = "Disposer d’un inventaire exhaustif des comptes privilégiés et le maintenir à jour"
+category = "Connaître le système d'information"
+description = "Les comptes administrateurs locaux du poste sont relevés à chaque analyse"
+weight = 0.6
+is_critical = false
+
+# ========================================================================
+# III — Authentifier et contrôler les accès
+# ========================================================================
+
+[[controls]]
+check_id = "guest_account_disabled"
+control_id = "M08"
+control_name = "Identifier nommément chaque personne accédant au système et distinguer les rôles utilisateur/administrateur"
+category = "Authentifier et contrôler les accès"
+description = "Le compte invité, compte générique non nominatif, est désactivé"
+weight = 0.6
+is_critical = false
 
 [[controls]]
 check_id = "password_policy"
 control_id = "M10"
-control_name = "Définir des règles de mots de passe"
-category = "Authentification et Contrôle d'Accès"
-description = "Définir et faire appliquer des règles de choix et de dimensionnement des mots de passe"
+control_name = "Définir et vérifier des règles de choix et de dimensionnement des mots de passe"
+category = "Authentifier et contrôler les accès"
+description = "La politique de mots de passe locale impose une longueur minimale et la complexité"
 weight = 0.95
 is_critical = true
 
 [[controls]]
-check_id = "mfa_enabled"
-control_id = "M11"
-control_name = "Protéger les mots de passe stockés"
-category = "Authentification et Contrôle d'Accès"
-description = "Protéger les mots de passe stockés sur les systèmes avec des mécanismes robustes"
+check_id = "gpo_password_policy"
+control_id = "M10"
+control_name = "Définir et vérifier des règles de choix et de dimensionnement des mots de passe"
+category = "Authentifier et contrôler les accès"
+description = "La politique de mots de passe de domaine impose longueur, complexité, historique et durée de vie"
 weight = 0.9
 is_critical = true
 
 [[controls]]
-check_id = "mfa_enabled"
-control_id = "M12"
-control_name = "Changer les authentifications par défaut"
-category = "Authentification et Contrôle d'Accès"
-description = "Modifier les éléments d'authentification par défaut sur les équipements et services"
-weight = 0.95
+check_id = "gpo_account_lockout"
+control_id = "M10"
+control_name = "Définir et vérifier des règles de choix et de dimensionnement des mots de passe"
+category = "Authentifier et contrôler les accès"
+description = "Les comptes sont bloqués après plusieurs échecs de connexion, moyen de vérification cité par la mesure"
+weight = 0.85
 is_critical = true
+
+[[controls]]
+check_id = "guest_account_disabled"
+control_id = "M10"
+control_name = "Définir et vérifier des règles de choix et de dimensionnement des mots de passe"
+category = "Authentifier et contrôler les accès"
+description = "La connexion anonyme par le compte invité est désactivée, moyen de vérification cité par la mesure"
+weight = 0.5
+is_critical = false
+
+[[controls]]
+check_id = "ldap_security"
+control_id = "M10"
+control_name = "Définir et vérifier des règles de choix et de dimensionnement des mots de passe"
+category = "Authentifier et contrôler les accès"
+description = "L'annuaire LDAP refuse la connexion anonyme (anonymous bind), moyen de vérification cité par la mesure"
+weight = 0.6
+is_critical = false
 
 [[controls]]
 check_id = "mfa_enabled"
 control_id = "M13"
-control_name = "Authentifications fortes"
-category = "Authentification et Contrôle d'Accès"
-description = "Privilégier les authentifications multi-facteurs pour les accès sensibles"
+control_name = "Privilégier lorsque c’est possible une authentification forte"
+category = "Authentifier et contrôler les accès"
+description = "Une authentification à deux facteurs est configurée sur le poste"
 weight = 0.9
 is_critical = true
 
-[[controls]]
-check_id = "admin_accounts"
-control_id = "M14"
-control_name = "Gérer les droits d'accès"
-category = "Authentification et Contrôle d'Accès"
-description = "Attribuer les droits d'accès selon le principe du moindre privilège"
-weight = 0.85
-is_critical = true
-
 # ========================================================================
-# DOMAIN: Sécuriser les postes (15-19)
+# IV — Sécuriser les postes
 # ========================================================================
 
 [[controls]]
 check_id = "antivirus_active"
-control_id = "M15"
-control_name = "Utiliser un antivirus"
-category = "Sécurité des Postes"
-description = "Installer et maintenir à jour un logiciel antivirus sur tous les postes"
+control_id = "M14"
+control_name = "Mettre en place un niveau de sécurité minimal sur l’ensemble du parc informatique"
+category = "Sécuriser les postes"
+description = "Un antivirus actif et à jour équipe le poste, comme la mesure l'exige"
 weight = 0.95
 is_critical = true
-
-[[controls]]
-check_id = "screen_lock"
-control_id = "M16"
-control_name = "Verrouillage automatique des sessions"
-category = "Sécurité des Postes"
-description = "Activer le verrouillage automatique des sessions après période d'inactivité"
-weight = 0.8
-is_critical = false
-
-[[controls]]
-check_id = "patches_current"
-control_id = "M17"
-control_name = "Appliquer les mises à jour"
-category = "Sécurité des Postes"
-description = "Se tenir informé et appliquer rapidement les mises à jour de sécurité"
-weight = 0.95
-is_critical = true
-
-[[controls]]
-check_id = "update_status"
-control_id = "M17"
-control_name = "Appliquer les mises à jour"
-category = "Sécurité des Postes"
-description = "Suivre l'état des mises à jour de sécurité sur les postes"
-weight = 0.9
-is_critical = true
-
-[[controls]]
-check_id = "disk_encryption"
-control_id = "M18"
-control_name = "Chiffrer les données sensibles"
-category = "Sécurité des Postes"
-description = "Chiffrer les données sensibles transmises et stockées"
-weight = 0.9
-is_critical = true
-
-[[controls]]
-check_id = "secure_boot"
-control_id = "M19"
-control_name = "Sécuriser le démarrage"
-category = "Sécurité des Postes"
-description = "Activer le démarrage sécurisé pour prévenir les compromissions au boot"
-weight = 0.85
-is_critical = true
-
-# ========================================================================
-# DOMAIN: Sécuriser le réseau (20-25)
-# ========================================================================
 
 [[controls]]
 check_id = "firewall_active"
-control_id = "M20"
-control_name = "Installer un pare-feu"
-category = "Sécurité Réseau"
-description = "Installer et configurer un pare-feu sur chaque poste et à l'entrée du réseau"
-weight = 0.95
-is_critical = true
-
-[[controls]]
-check_id = "dns_security"
-control_id = "M23"
-control_name = "Sécuriser DNS et communications"
-category = "Sécurité Réseau"
-description = "Utiliser DNS sécurisé et chiffrer les communications réseau"
-weight = 0.8
-is_critical = false
-
-[[controls]]
-check_id = "remote_access_secure"
-control_id = "M24"
-control_name = "Sécuriser les accès distants"
-category = "Sécurité Réseau"
-description = "Utiliser des VPN et des tunnels chiffrés pour les accès distants"
-weight = 0.9
-is_critical = true
-
-[[controls]]
-check_id = "ssh_hardening"
-control_id = "M25"
-control_name = "Contrôler l'accès aux équipements"
-category = "Sécurité Réseau"
-description = "Durcir la configuration SSH et contrôler l'accès aux équipements"
+control_id = "M14"
+control_name = "Mettre en place un niveau de sécurité minimal sur l’ensemble du parc informatique"
+category = "Sécuriser les postes"
+description = "Le pare-feu local du poste est actif, comme la mesure l'exige"
 weight = 0.85
 is_critical = true
-
-# ========================================================================
-# DOMAIN: Sécuriser l'administration (26-29)
-# ========================================================================
-
-[[controls]]
-check_id = "admin_accounts"
-control_id = "M26"
-control_name = "Comptes d'administration dédiés"
-category = "Sécurité Administration"
-description = "Utiliser des comptes dédiés pour les tâches d'administration"
-weight = 0.9
-is_critical = true
-
-[[controls]]
-check_id = "audit_logging"
-control_id = "M27"
-control_name = "Journaliser les événements"
-category = "Sécurité Administration"
-description = "Configurer et centraliser la journalisation des événements de sécurité"
-weight = 0.85
-is_critical = true
-
-[[controls]]
-check_id = "certificate_validation"
-control_id = "M28"
-control_name = "Gérer les certificats numériques"
-category = "Sécurité Administration"
-description = "Valider et gérer correctement les certificats numériques"
-weight = 0.8
-is_critical = false
-
-[[controls]]
-check_id = "antivirus_active"
-control_id = "M29"
-control_name = "Détecter les comportements suspects"
-category = "Sécurité Administration"
-description = "Utiliser la protection antivirus/antimalware pour détecter les comportements malveillants"
-weight = 0.85
-is_critical = true
-
-# ========================================================================
-# DOMAIN: Gérer le nomadisme (30-32)
-# ========================================================================
 
 [[controls]]
 check_id = "disk_encryption"
-control_id = "M30"
-control_name = "Chiffrer les équipements mobiles"
-category = "Gestion du Nomadisme"
-description = "Chiffrer intégralement les disques des équipements nomades"
-weight = 0.9
-is_critical = true
-
-[[controls]]
-check_id = "remote_access_secure"
-control_id = "M31"
-control_name = "Utiliser un VPN"
-category = "Gestion du Nomadisme"
-description = "Utiliser un VPN pour tous les accès distants au SI"
-weight = 0.9
-is_critical = true
-
-# ========================================================================
-# DOMAIN: Maintenir le SI à jour (33-35)
-# ========================================================================
-
-# M33-M35: No direct automated checks (vulnerability scanning, asset/software inventory
-# are organizational processes, not endpoint compliance checks)
-
-# ========================================================================
-# DOMAIN: Superviser, auditer, réagir (36-39)
-# ========================================================================
-
-[[controls]]
-check_id = "kernel_hardening"
-control_id = "M36"
-control_name = "Surveiller l'intégrité des fichiers"
-category = "Supervision et Audit"
-description = "Kernel hardening protège l'intégrité des fichiers système critiques"
-weight = 0.85
-is_critical = true
-
-[[controls]]
-check_id = "backup_configured"
-control_id = "M37"
-control_name = "Sauvegarder les données"
-category = "Supervision et Audit"
-description = "Effectuer des sauvegardes régulières et tester leur restauration"
-weight = 0.95
-is_critical = true
-
-[[controls]]
-check_id = "audit_logging"
-control_id = "M39"
-control_name = "Analyser les journaux"
-category = "Supervision et Audit"
-description = "Analyser régulièrement les journaux pour détecter les anomalies"
-weight = 0.85
-is_critical = true
-
-# ========================================================================
-# DOMAIN: Pour aller plus loin (40-42)
-# ========================================================================
-
-[[controls]]
-check_id = "container_security"
-control_id = "M40"
-control_name = "Sécuriser virtualisation/containers"
-category = "Mesures Avancées"
-description = "Sécuriser les environnements de virtualisation et conteneurs"
-weight = 0.8
-is_critical = false
-
-[[controls]]
-check_id = "disk_encryption"
-control_id = "M41"
-control_name = "Chiffrement robuste"
-category = "Mesures Avancées"
-description = "Utiliser des algorithmes et solutions de chiffrement conformes aux recommandations ANSSI"
+control_id = "M14"
+control_name = "Mettre en place un niveau de sécurité minimal sur l’ensemble du parc informatique"
+category = "Sécuriser les postes"
+description = "Les partitions qui portent les données des utilisateurs sont chiffrées, comme la mesure l'exige"
 weight = 0.85
 is_critical = true
 
 [[controls]]
 check_id = "usb_storage_disabled"
-control_id = "M42"
-control_name = "Prévention fuite de données"
-category = "Mesures Avancées"
-description = "Contrôler les ports USB pour prévenir la fuite de données"
+control_id = "M15"
+control_name = "Se protéger des menaces relatives à l’utilisation de supports amovibles"
+category = "Sécuriser les postes"
+description = "Les supports de stockage USB sont bloqués par politique sur le poste"
 weight = 0.8
 is_critical = false
+
+[[controls]]
+check_id = "firewall_active"
+control_id = "M17"
+control_name = "Activer et configurer le pare-feu local des postes de travail"
+category = "Sécuriser les postes"
+description = "Le pare-feu local (pare-feu Windows, iptables/nftables/ufw, pare-feu macOS) est actif"
+weight = 0.95
+is_critical = true
+
+# ========================================================================
+# V — Sécuriser le réseau
+# ========================================================================
+
+[[controls]]
+check_id = "obsolete_protocols"
+control_id = "M21"
+control_name = "Utiliser des protocoles sécurisés dès qu’ils existent"
+category = "Sécuriser le réseau"
+description = "SMBv1, SSLv3, TLS 1.0 et TLS 1.1 sont désactivés"
+weight = 0.85
+is_critical = true
+
+[[controls]]
+check_id = "ssh_hardening"
+control_id = "M21"
+control_name = "Utiliser des protocoles sécurisés dès qu’ils existent"
+category = "Sécuriser le réseau"
+description = "SSH en version 2 uniquement, avec des algorithmes de chiffrement et de MAC robustes"
+weight = 0.85
+is_critical = true
+
+[[controls]]
+check_id = "ldap_security"
+control_id = "M21"
+control_name = "Utiliser des protocoles sécurisés dès qu’ils existent"
+category = "Sécuriser le réseau"
+description = "Les échanges avec l'annuaire LDAP sont protégés par TLS"
+weight = 0.85
+is_critical = true
+
+[[controls]]
+check_id = "dns_security"
+control_id = "M21"
+control_name = "Utiliser des protocoles sécurisés dès qu’ils existent"
+category = "Sécuriser le réseau"
+description = "La résolution DNS est chiffrée (DNS over TLS ou DNS over HTTPS) et validée par DNSSEC"
+weight = 0.7
+is_critical = false
+
+[[controls]]
+check_id = "remote_access_secure"
+control_id = "M21"
+control_name = "Utiliser des protocoles sécurisés dès qu’ils existent"
+category = "Sécuriser le réseau"
+description = "Le bureau à distance exige l'authentification préalable (NLA) et un niveau de chiffrement élevé"
+weight = 0.7
+is_critical = false
+
+# ========================================================================
+# VI — Sécuriser l'administration
+# ========================================================================
+
+[[controls]]
+check_id = "admin_accounts"
+control_id = "M29"
+control_name = "Limiter au strict besoin opérationnel les droits d’administration sur les postes de travail"
+category = "Sécuriser l'administration"
+description = "Le nombre de comptes administrateurs locaux du poste reste limité (alerte au-delà de 3)"
+weight = 0.9
+is_critical = true
+
+# ========================================================================
+# VII — Gérer le nomadisme
+# ========================================================================
+
+[[controls]]
+check_id = "disk_encryption"
+control_id = "M31"
+control_name = "Chiffrer les données sensibles, en particulier sur le matériel potentiellement perdable"
+category = "Gérer le nomadisme"
+description = "Le disque est chiffré intégralement (BitLocker, LUKS, FileVault), solution que la mesure recommande en premier"
+weight = 0.95
+is_critical = true
+
+# ========================================================================
+# VIII — Maintenir à jour le système d'information
+# ========================================================================
+
+[[controls]]
+check_id = "patches_current"
+control_id = "M34"
+control_name = "Définir une politique de mise à jour des composants du système d’information"
+category = "Maintenir à jour le système d'information"
+description = "Les mises à jour de sécurité disponibles sont installées"
+weight = 0.95
+is_critical = true
+
+[[controls]]
+check_id = "update_status"
+control_id = "M34"
+control_name = "Définir une politique de mise à jour des composants du système d’information"
+category = "Maintenir à jour le système d'information"
+description = "Service de mise à jour actif, dernière installation, mises à jour en attente et configuration WSUS suivis"
+weight = 0.9
+is_critical = true
+
+# ========================================================================
+# IX — Superviser, auditer, réagir
+# ========================================================================
+
+[[controls]]
+check_id = "audit_logging"
+control_id = "M36"
+control_name = "Activer et configurer les journaux des composants les plus importants"
+category = "Superviser, auditer, réagir"
+description = "Le service de journalisation d'audit du système est actif"
+weight = 0.9
+is_critical = true
+
+[[controls]]
+check_id = "gpo_audit_policy"
+control_id = "M36"
+control_name = "Activer et configurer les journaux des composants les plus importants"
+category = "Superviser, auditer, réagir"
+description = "La stratégie d'audit journalise les ouvertures de session, la gestion des comptes et l'usage des privilèges"
+weight = 0.85
+is_critical = true
+
+[[controls]]
+check_id = "log_rotation"
+control_id = "M36"
+control_name = "Activer et configurer les journaux des composants les plus importants"
+category = "Superviser, auditer, réagir"
+description = "La rotation et la taille maximale des journaux sont configurées, paramètres cités par la mesure"
+weight = 0.6
+is_critical = false
+
+[[controls]]
+check_id = "time_sync"
+control_id = "M36"
+control_name = "Activer et configurer les journaux des composants les plus importants"
+category = "Superviser, auditer, réagir"
+description = "L'horloge est synchronisée par NTP, condition posée par la mesure pour corréler les journaux"
+weight = 0.5
+is_critical = false
+
+[[controls]]
+check_id = "backup_configured"
+control_id = "M37"
+control_name = "Définir et appliquer une politique de sauvegarde des composants critiques"
+category = "Superviser, auditer, réagir"
+description = "Une sauvegarde est configurée et la dernière date de moins de 30 jours"
+weight = 0.95
+is_critical = true

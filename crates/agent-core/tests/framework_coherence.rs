@@ -77,6 +77,61 @@ fn every_control_mapping_targets_a_real_check() {
     );
 }
 
+/// A check is tagged with a framework exactly when it has a control mapping in
+/// that framework. Tags decide which checks run when the server restricts the
+/// active frameworks: a tag without a mapping runs a check that proves nothing
+/// for the framework, a mapping without a tag never gets its check run.
+///
+/// SOC 2 is left out: its table maps checks that are not tagged SOC2.
+#[test]
+fn check_tags_match_control_mappings() {
+    const FRAMEWORKS: &[&str] = &[
+        "ANSSI_HYGIENE",
+        "NIST_CSF",
+        "HDS",
+        "CIS_V8",
+        "PCI_DSS",
+        "ISO_27001",
+        "NIS2",
+        "DORA",
+    ];
+
+    let mut registry = CheckRegistry::new();
+    register_builtin_checks(&mut registry);
+    let fw_registry = FrameworkRegistry::new();
+
+    let mut offenders = Vec::new();
+    for check in registry.all() {
+        let def = check.definition();
+        for &fw in FRAMEWORKS {
+            let tagged = def
+                .frameworks
+                .iter()
+                .any(|t| normalize_framework_id(t) == Some(fw));
+            let mapped = !fw_registry
+                .get_mappings_by_framework(check.id(), fw)
+                .is_empty();
+            if tagged != mapped {
+                offenders.push(format!(
+                    "check '{}': tagged {} = {}, mapped in {} = {}",
+                    check.id(),
+                    fw,
+                    tagged,
+                    fw,
+                    mapped
+                ));
+            }
+        }
+    }
+    offenders.sort();
+
+    assert!(
+        offenders.is_empty(),
+        "check tags and control mappings disagree:\n{}",
+        offenders.join("\n")
+    );
+}
+
 /// The canonical framework list and the check tags should not diverge silently:
 /// at least the frameworks that ship with a scoring catalog must each be tagged
 /// by one or more checks, otherwise the framework has zero technical coverage.

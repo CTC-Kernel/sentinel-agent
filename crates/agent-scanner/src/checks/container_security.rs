@@ -124,7 +124,6 @@ impl ContainerSecurityCheck {
             .framework("NIST_CSF")
             .framework("ISO_27001")
             .framework("HDS")
-            .framework("ANSSI_HYGIENE")
             .platforms(vec![
                 "linux".to_string(),
                 "macos".to_string(),
