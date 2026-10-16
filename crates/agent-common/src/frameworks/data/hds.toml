@@ -1,457 +1,336 @@
-# Certification HDS (hébergeur de données de santé), référentiel version 2.
-#
-# La certification exige un système de management de la sécurité conforme à
-# ISO/IEC 27001. Ce catalogue reprend les contrôles de l'annexe A
-# d'ISO/IEC 27001:2022 vérifiables sur un poste (mêmes identifiants).
-# Les exigences propres au référentiel HDS — contractuelles, localisation des
-# données, transparence envers les clients — relèvent de l'organisation et ne
-# sont pas mesurables par l'agent.
-
 [framework]
 id = "HDS"
 name = "HDS — Hébergeur de données de santé"
 version = "2"
-description = "Socle ISO/IEC 27001:2022 exigé par la certification HDS : contrôles de l'annexe A vérifiables sur un poste"
+description = "Référentiel de certification HDS v2 : exigences d'hébergement vérifiables sur un poste, socle ISO/IEC 27001 exigé sur le périmètre HDS"
 applicability = ["Hébergeurs de données de santé", "France"]
 reference_url = "https://esante.gouv.fr/produits-services/hds"
 
-[[controls]]
-check_id = "disk_encryption"
-control_id = "A.8.24"
-control_name = "Use of cryptography"
-category = "Technological Controls"
-description = "Rules for the effective use of cryptography shall be defined and implemented"
-weight = 0.9
-is_critical = true
+# Codes HDS.x.y et intitulés = exigences du catalogue de la plateforme
+# (HDS_SEED_CONTROLS). Une vérification est rattachée à l'exigence HDS propre
+# qu'elle démontre (authentification forte, chiffrement au repos et des flux,
+# traçabilité, sauvegardes). Les autres vérifications démontrent une mesure de
+# l'annexe A d'ISO/IEC 27001 (citée dans la description) : HDS v2 n'a pas
+# d'exigence technique propre pour elles, il exige le SMSI ISO/IEC 27001 sur le
+# périmètre HDS, d'où leur rattachement à HDS.1.5 avec un poids réduit.
+# Gouvernance (HDS.1.1–1.4, 1.6), obligations de sous-traitant (HDS.2.x),
+# continuité, niveaux de service et réversibilité (HDS.4.2–4.4), localisation
+# (HDS.5.x), contrat et incidents (HDS.6.x) ne se vérifient pas sur un poste.
 
-[[controls]]
-check_id = "firewall_active"
-control_id = "A.8.20"
-control_name = "Network security"
-category = "Technological Controls"
-description = "Networks and network devices shall be secured, managed and controlled"
-weight = 0.9
-is_critical = true
-
-[[controls]]
-check_id = "firewall_active"
-control_id = "A.8.21"
-control_name = "Security of network services"
-category = "Technological Controls"
-description = "Security mechanisms, service levels and service requirements of network services shall be identified"
-weight = 0.8
-is_critical = false
-
-[[controls]]
-check_id = "antivirus_active"
-control_id = "A.8.7"
-control_name = "Protection against malware"
-category = "Technological Controls"
-description = "Protection against malware shall be implemented and supported by appropriate user awareness"
-weight = 0.95
-is_critical = true
+# ========================================================================
+# HDS.3 — Sécurité technique
+# ========================================================================
 
 [[controls]]
 check_id = "mfa_enabled"
-control_id = "A.8.5"
-control_name = "Secure authentication"
-category = "Technological Controls"
-description = "Secure authentication technologies and procedures shall be implemented based on information access restrictions"
+control_id = "HDS.3.1"
+control_name = "Authentification forte des utilisateurs et des administrateurs"
+category = "Sécurité technique"
+description = "Une authentification multifacteur est configurée sur le poste"
 weight = 0.95
 is_critical = true
 
 [[controls]]
-check_id = "password_policy"
-control_id = "A.5.17"
-control_name = "Authentication information"
-category = "People Controls"
-description = "Allocation and management of authentication information shall be controlled"
+check_id = "disk_encryption"
+control_id = "HDS.3.2"
+control_name = "Chiffrement des données de santé au repos"
+category = "Sécurité technique"
+description = "Le disque qui peut porter des données de santé est chiffré (BitLocker, LUKS, FileVault)"
+weight = 0.9
+is_critical = true
+
+[[controls]]
+check_id = "obsolete_protocols"
+control_id = "HDS.3.3"
+control_name = "Chiffrement des flux de données de santé"
+category = "Sécurité technique"
+description = "SMBv1, SSLv3, TLS 1.0 et TLS 1.1 sont désactivés : les flux du poste ne peuvent pas être négociés en chiffrement faible"
 weight = 0.85
 is_critical = true
 
 [[controls]]
-check_id = "patches_current"
-control_id = "A.8.8"
-control_name = "Management of technical vulnerabilities"
-category = "Technological Controls"
-description = "Information about technical vulnerabilities of information systems in use shall be obtained"
-weight = 0.9
+check_id = "certificate_validation"
+control_id = "HDS.3.3"
+control_name = "Chiffrement des flux de données de santé"
+category = "Sécurité technique"
+description = "Le magasin de certificats ne contient ni certificat expiré, ni racine auto-signée ajoutée, ni signature faible (MD5, SHA-1)"
+weight = 0.8
 is_critical = true
 
 [[controls]]
-check_id = "patches_current"
-control_id = "A.8.19"
-control_name = "Installation of software on operational systems"
-category = "Technological Controls"
-description = "Procedures and measures shall be implemented to securely manage software installation"
-weight = 0.75
-is_critical = false
-
-[[controls]]
-check_id = "audit_logging"
-control_id = "A.8.15"
-control_name = "Logging"
-category = "Technological Controls"
-description = "Logs that record activities, exceptions, faults and other relevant events shall be produced"
-weight = 0.9
+check_id = "ldap_security"
+control_id = "HDS.3.3"
+control_name = "Chiffrement des flux de données de santé"
+category = "Sécurité technique"
+description = "Les échanges avec l'annuaire LDAP sont protégés par TLS"
+weight = 0.8
 is_critical = true
 
 [[controls]]
-check_id = "audit_logging"
-control_id = "A.8.16"
-control_name = "Monitoring activities"
-category = "Technological Controls"
-description = "Networks, systems and applications shall be monitored for anomalous behaviour"
-weight = 0.85
-is_critical = true
-
-[[controls]]
-check_id = "screen_lock"
-control_id = "A.8.1"
-control_name = "User endpoint devices"
-category = "Technological Controls"
-description = "Information stored on, processed by or accessible via user endpoint devices shall be protected"
-weight = 0.7
-is_critical = false
-
-[[controls]]
-check_id = "backup_configured"
-control_id = "A.8.13"
-control_name = "Information backup"
-category = "Technological Controls"
-description = "Backup copies of information, software and systems shall be maintained and regularly tested"
-weight = 0.9
-is_critical = true
-
-[[controls]]
-check_id = "admin_accounts"
-control_id = "A.5.18"
-control_name = "Access rights"
-category = "People Controls"
-description = "Access rights to information and other associated assets shall be provisioned, reviewed, modified and removed"
-weight = 0.85
-is_critical = true
-
-[[controls]]
-check_id = "admin_accounts"
-control_id = "A.8.2"
-control_name = "Privileged access rights"
-category = "Technological Controls"
-description = "The allocation and use of privileged access rights shall be restricted and managed"
-weight = 0.9
+check_id = "ssh_hardening"
+control_id = "HDS.3.3"
+control_name = "Chiffrement des flux de données de santé"
+category = "Sécurité technique"
+description = "SSH en version 2 uniquement, avec des algorithmes de chiffrement et de MAC robustes"
+weight = 0.8
 is_critical = true
 
 [[controls]]
 check_id = "remote_access_secure"
-control_id = "A.8.22"
-control_name = "Segregation of networks"
-category = "Technological Controls"
-description = "Groups of information services, users and information systems shall be segregated in networks"
-weight = 0.8
-is_critical = true
-
-[[controls]]
-check_id = "kernel_hardening"
-control_id = "A.8.9"
-control_name = "Configuration management"
-category = "Technological Controls"
-description = "Configurations, including security configurations, of hardware, software, services and networks shall be established"
-weight = 0.8
-is_critical = true
-
-[[controls]]
-check_id = "time_sync"
-control_id = "A.8.17"
-control_name = "Clock synchronization"
-category = "Technological Controls"
-description = "The clocks of information processing systems used by the organization shall be synchronized"
+control_id = "HDS.3.3"
+control_name = "Chiffrement des flux de données de santé"
+category = "Sécurité technique"
+description = "Le bureau à distance exige l'authentification préalable (NLA) et un niveau de chiffrement élevé"
 weight = 0.6
 is_critical = false
 
 [[controls]]
-check_id = "obsolete_protocols"
-control_id = "A.8.24"
-control_name = "Use of cryptography"
-category = "Technological Controls"
-description = "Rules for the effective use of cryptography, including secure protocols, shall be defined"
-weight = 0.8
+check_id = "audit_logging"
+control_id = "HDS.3.4"
+control_name = "Traçabilité des accès aux données de santé"
+category = "Sécurité technique"
+description = "Le service de journalisation d'audit du système est actif"
+weight = 0.9
+is_critical = true
+
+[[controls]]
+check_id = "gpo_audit_policy"
+control_id = "HDS.3.4"
+control_name = "Traçabilité des accès aux données de santé"
+category = "Sécurité technique"
+description = "La stratégie d'audit journalise les ouvertures de session, la gestion des comptes et l'usage des privilèges"
+weight = 0.9
+is_critical = true
+
+[[controls]]
+check_id = "log_rotation"
+control_id = "HDS.3.4"
+control_name = "Traçabilité des accès aux données de santé"
+category = "Sécurité technique"
+description = "La rotation et la conservation des journaux sont configurées"
+weight = 0.6
+is_critical = false
+
+[[controls]]
+check_id = "time_sync"
+control_id = "HDS.3.4"
+control_name = "Traçabilité des accès aux données de santé"
+category = "Sécurité technique"
+description = "L'horloge est synchronisée par NTP : les traces sont horodatées de façon fiable"
+weight = 0.6
+is_critical = false
+
+# ========================================================================
+# HDS.4 — Disponibilité, continuité et réversibilité
+# ========================================================================
+
+[[controls]]
+check_id = "backup_configured"
+control_id = "HDS.4.1"
+control_name = "Sauvegardes externalisées des données de santé et tests de restauration"
+category = "Disponibilité, continuité et réversibilité"
+description = "Une sauvegarde est configurée et la dernière date de moins de 30 jours (externalisation et tests de restauration non vérifiés par l'agent)"
+weight = 0.9
+is_critical = true
+
+# ========================================================================
+# HDS.1.5 — Socle ISO/IEC 27001 sur le périmètre HDS
+# ========================================================================
+
+[[controls]]
+check_id = "firewall_active"
+control_id = "HDS.1.5"
+control_name = "SMSI certifié ISO/IEC 27001 couvrant le périmètre de certification HDS"
+category = "Gouvernance, périmètre et SMSI"
+description = "ISO/IEC 27001 A.8.20 Sécurité des réseaux : le pare-feu du poste est actif"
+weight = 0.5
+is_critical = false
+
+[[controls]]
+check_id = "antivirus_active"
+control_id = "HDS.1.5"
+control_name = "SMSI certifié ISO/IEC 27001 couvrant le périmètre de certification HDS"
+category = "Gouvernance, périmètre et SMSI"
+description = "ISO/IEC 27001 A.8.7 Protection contre les logiciels malveillants : antivirus actif et à jour"
+weight = 0.5
+is_critical = false
+
+[[controls]]
+check_id = "password_policy"
+control_id = "HDS.1.5"
+control_name = "SMSI certifié ISO/IEC 27001 couvrant le périmètre de certification HDS"
+category = "Gouvernance, périmètre et SMSI"
+description = "ISO/IEC 27001 A.5.17 Informations d'authentification : politique de mots de passe locale"
+weight = 0.5
+is_critical = false
+
+[[controls]]
+check_id = "gpo_password_policy"
+control_id = "HDS.1.5"
+control_name = "SMSI certifié ISO/IEC 27001 couvrant le périmètre de certification HDS"
+category = "Gouvernance, périmètre et SMSI"
+description = "ISO/IEC 27001 A.5.17 Informations d'authentification : politique de mots de passe de domaine"
+weight = 0.5
+is_critical = false
+
+[[controls]]
+check_id = "gpo_account_lockout"
+control_id = "HDS.1.5"
+control_name = "SMSI certifié ISO/IEC 27001 couvrant le périmètre de certification HDS"
+category = "Gouvernance, périmètre et SMSI"
+description = "ISO/IEC 27001 A.8.5 Authentification sécurisée : verrouillage des comptes après échecs"
+weight = 0.5
+is_critical = false
+
+[[controls]]
+check_id = "auto_login_disabled"
+control_id = "HDS.1.5"
+control_name = "SMSI certifié ISO/IEC 27001 couvrant le périmètre de certification HDS"
+category = "Gouvernance, périmètre et SMSI"
+description = "ISO/IEC 27001 A.8.5 Authentification sécurisée : ouverture de session automatique désactivée"
+weight = 0.5
+is_critical = false
+
+[[controls]]
+check_id = "guest_account_disabled"
+control_id = "HDS.1.5"
+control_name = "SMSI certifié ISO/IEC 27001 couvrant le périmètre de certification HDS"
+category = "Gouvernance, périmètre et SMSI"
+description = "ISO/IEC 27001 A.5.16 Gestion des identités : compte invité désactivé"
+weight = 0.5
+is_critical = false
+
+[[controls]]
+check_id = "admin_accounts"
+control_id = "HDS.1.5"
+control_name = "SMSI certifié ISO/IEC 27001 couvrant le périmètre de certification HDS"
+category = "Gouvernance, périmètre et SMSI"
+description = "ISO/IEC 27001 A.8.2 Droits d'accès privilégiés : comptes administrateurs locaux limités"
+weight = 0.5
+is_critical = false
+
+[[controls]]
+check_id = "privileged_groups"
+control_id = "HDS.1.5"
+control_name = "SMSI certifié ISO/IEC 27001 couvrant le périmètre de certification HDS"
+category = "Gouvernance, périmètre et SMSI"
+description = "ISO/IEC 27001 A.8.2 Droits d'accès privilégiés : membres des groupes privilégiés contrôlés"
+weight = 0.5
+is_critical = false
+
+[[controls]]
+check_id = "screen_lock"
+control_id = "HDS.1.5"
+control_name = "SMSI certifié ISO/IEC 27001 couvrant le périmètre de certification HDS"
+category = "Gouvernance, périmètre et SMSI"
+description = "ISO/IEC 27001 A.8.1 Terminaux utilisateurs : verrouillage automatique de session"
+weight = 0.5
+is_critical = false
+
+[[controls]]
+check_id = "patches_current"
+control_id = "HDS.1.5"
+control_name = "SMSI certifié ISO/IEC 27001 couvrant le périmètre de certification HDS"
+category = "Gouvernance, périmètre et SMSI"
+description = "ISO/IEC 27001 A.8.8 Gestion des vulnérabilités techniques : mises à jour de sécurité installées"
+weight = 0.5
+is_critical = false
+
+[[controls]]
+check_id = "update_status"
+control_id = "HDS.1.5"
+control_name = "SMSI certifié ISO/IEC 27001 couvrant le périmètre de certification HDS"
+category = "Gouvernance, périmètre et SMSI"
+description = "ISO/IEC 27001 A.8.8 Gestion des vulnérabilités techniques : état des mises à jour suivi"
+weight = 0.5
+is_critical = false
+
+[[controls]]
+check_id = "kernel_hardening"
+control_id = "HDS.1.5"
+control_name = "SMSI certifié ISO/IEC 27001 couvrant le périmètre de certification HDS"
+category = "Gouvernance, périmètre et SMSI"
+description = "ISO/IEC 27001 A.8.9 Gestion des configurations : paramètres de sécurité du noyau"
+weight = 0.5
+is_critical = false
+
+[[controls]]
+check_id = "windows_hardening"
+control_id = "HDS.1.5"
+control_name = "SMSI certifié ISO/IEC 27001 couvrant le périmètre de certification HDS"
+category = "Gouvernance, périmètre et SMSI"
+description = "ISO/IEC 27001 A.8.9 Gestion des configurations : configuration de sécurité Windows"
+weight = 0.5
+is_critical = false
+
+[[controls]]
+check_id = "linux_hardening"
+control_id = "HDS.1.5"
+control_name = "SMSI certifié ISO/IEC 27001 couvrant le périmètre de certification HDS"
+category = "Gouvernance, périmètre et SMSI"
+description = "ISO/IEC 27001 A.8.9 Gestion des configurations : durcissement du noyau Linux"
+weight = 0.5
+is_critical = false
+
+[[controls]]
+check_id = "secure_boot"
+control_id = "HDS.1.5"
+control_name = "SMSI certifié ISO/IEC 27001 couvrant le périmètre de certification HDS"
+category = "Gouvernance, périmètre et SMSI"
+description = "ISO/IEC 27001 A.8.9 Gestion des configurations : démarrage sécurisé UEFI actif"
+weight = 0.5
+is_critical = false
+
+[[controls]]
+check_id = "container_security"
+control_id = "HDS.1.5"
+control_name = "SMSI certifié ISO/IEC 27001 couvrant le périmètre de certification HDS"
+category = "Gouvernance, périmètre et SMSI"
+description = "ISO/IEC 27001 A.8.9 Gestion des configurations : environnement d'exécution des conteneurs durci"
+weight = 0.5
 is_critical = false
 
 [[controls]]
 check_id = "usb_storage_disabled"
-control_id = "A.8.12"
-control_name = "Data leakage prevention"
-category = "Technological Controls"
-description = "Data leakage prevention measures shall be applied to systems, networks and any other devices"
-weight = 0.7
+control_id = "HDS.1.5"
+control_name = "SMSI certifié ISO/IEC 27001 couvrant le périmètre de certification HDS"
+category = "Gouvernance, périmètre et SMSI"
+description = "ISO/IEC 27001 A.8.12 Prévention de la fuite de données : stockage USB bloqué"
+weight = 0.5
 is_critical = false
 
 [[controls]]
 check_id = "bluetooth_disabled"
-control_id = "A.8.20"
-control_name = "Network security"
-category = "Technological Controls"
-description = "Wireless network security measures shall be implemented"
+control_id = "HDS.1.5"
+control_name = "SMSI certifié ISO/IEC 27001 couvrant le périmètre de certification HDS"
+category = "Gouvernance, périmètre et SMSI"
+description = "ISO/IEC 27001 A.8.20 Sécurité des réseaux : Bluetooth désactivé"
+weight = 0.5
+is_critical = false
+
+[[controls]]
+check_id = "ipv6_hardening"
+control_id = "HDS.1.5"
+control_name = "SMSI certifié ISO/IEC 27001 couvrant le périmètre de certification HDS"
+category = "Gouvernance, périmètre et SMSI"
+description = "ISO/IEC 27001 A.8.20 Sécurité des réseaux : annonces de routeur IPv6 ignorées"
+weight = 0.5
+is_critical = false
+
+[[controls]]
+check_id = "dns_security"
+control_id = "HDS.1.5"
+control_name = "SMSI certifié ISO/IEC 27001 couvrant le périmètre de certification HDS"
+category = "Gouvernance, périmètre et SMSI"
+description = "ISO/IEC 27001 A.8.20 Sécurité des réseaux : résolution DNS chiffrée et validée"
 weight = 0.5
 is_critical = false
 
 [[controls]]
 check_id = "browser_security"
-control_id = "A.8.23"
-control_name = "Web filtering"
-category = "Technological Controls"
-description = "Access to external websites shall be managed to reduce exposure to malicious content"
-weight = 0.7
-is_critical = false
-
-[[controls]]
-check_id = "log_rotation"
-control_id = "A.8.15"
-control_name = "Logging"
-category = "Technological Controls"
-description = "Log facilities and log information shall be protected against tampering and unauthorized access"
-weight = 0.6
-is_critical = false
-
-[[controls]]
-check_id = "guest_account_disabled"
-control_id = "A.5.16"
-control_name = "Identity management"
-category = "People Controls"
-description = "The full life cycle of identities shall be managed"
-weight = 0.6
-is_critical = false
-
-[[controls]]
-check_id = "auto_login_disabled"
-control_id = "A.8.5"
-control_name = "Secure authentication"
-category = "Technological Controls"
-description = "Automatic login shall be disabled to ensure proper authentication"
-weight = 0.65
-is_critical = false
-
-[[controls]]
-check_id = "ipv6_hardening"
-control_id = "A.8.20"
-control_name = "Network security"
-category = "Technological Controls"
-description = "Network protocols shall be properly configured"
+control_id = "HDS.1.5"
+control_name = "SMSI certifié ISO/IEC 27001 couvrant le périmètre de certification HDS"
+category = "Gouvernance, périmètre et SMSI"
+description = "ISO/IEC 27001 A.8.23 Filtrage web : politiques de sécurité du navigateur gérées"
 weight = 0.5
 is_critical = false
-
-[[controls]]
-check_id = "windows_hardening"
-control_id = "A.8.9"
-control_name = "Configuration management"
-category = "Technological Controls"
-description = "Windows security configurations shall be established and maintained"
-weight = 0.9
-is_critical = true
-
-[[controls]]
-check_id = "windows_hardening"
-control_id = "A.8.8"
-control_name = "Management of technical vulnerabilities"
-category = "Technological Controls"
-description = "Windows hardening reduces technical vulnerabilities"
-weight = 0.85
-is_critical = true
-
-[[controls]]
-check_id = "linux_hardening"
-control_id = "A.8.9"
-control_name = "Configuration management"
-category = "Technological Controls"
-description = "Linux kernel security configurations shall be maintained"
-weight = 0.9
-is_critical = true
-
-[[controls]]
-check_id = "linux_hardening"
-control_id = "A.8.8"
-control_name = "Management of technical vulnerabilities"
-category = "Technological Controls"
-description = "Kernel hardening mitigates technical vulnerabilities"
-weight = 0.85
-is_critical = true
-
-[[controls]]
-check_id = "update_status"
-control_id = "A.8.8"
-control_name = "Management of technical vulnerabilities"
-category = "Technological Controls"
-description = "Update status tracking ensures vulnerabilities are addressed"
-weight = 0.95
-is_critical = true
-
-[[controls]]
-check_id = "update_status"
-control_id = "A.8.19"
-control_name = "Installation of software on operational systems"
-category = "Technological Controls"
-description = "Software updates are tracked and managed"
-weight = 0.8
-is_critical = true
-
-[[controls]]
-check_id = "secure_boot"
-control_id = "A.8.9"
-control_name = "Configuration management"
-category = "Technological Controls"
-description = "UEFI Secure Boot ensures system integrity at boot time"
-weight = 0.8
-is_critical = true
-
-[[controls]]
-check_id = "gpo_password_policy"
-control_id = "A.5.17"
-control_name = "Authentication information"
-category = "People Controls"
-description = "Domain password policies enforce authentication information controls"
-weight = 0.9
-is_critical = true
-
-[[controls]]
-check_id = "gpo_account_lockout"
-control_id = "A.8.5"
-control_name = "Secure authentication"
-category = "Technological Controls"
-description = "Account lockout policies prevent authentication attacks"
-weight = 0.85
-is_critical = true
-
-[[controls]]
-check_id = "gpo_audit_policy"
-control_id = "A.8.15"
-control_name = "Logging"
-category = "Technological Controls"
-description = "Domain audit policies ensure comprehensive security logging"
-weight = 0.9
-is_critical = true
-
-[[controls]]
-check_id = "privileged_groups"
-control_id = "A.8.2"
-control_name = "Privileged access rights"
-category = "Technological Controls"
-description = "Privileged group membership shall be restricted and managed"
-weight = 0.9
-is_critical = true
-
-[[controls]]
-check_id = "privileged_groups"
-control_id = "A.5.18"
-control_name = "Access rights"
-category = "People Controls"
-description = "Access rights to privileged groups shall be provisioned and reviewed"
-weight = 0.85
-is_critical = true
-
-[[controls]]
-check_id = "ldap_security"
-control_id = "A.8.24"
-control_name = "Use of cryptography"
-category = "Technological Controls"
-description = "LDAP communications shall use cryptographic protection (LDAPS)"
-weight = 0.85
-is_critical = true
-
-[[controls]]
-check_id = "ldap_security"
-control_id = "A.5.15"
-control_name = "Access control"
-category = "Organizational Controls"
-description = "Directory services access shall be controlled"
-weight = 0.8
-is_critical = true
-
-[[controls]]
-check_id = "dns_security"
-control_id = "A.8.20"
-control_name = "Networks security"
-category = "Technological Controls"
-description = "DNS infrastructure shall be secured against attacks"
-weight = 0.85
-is_critical = true
-
-[[controls]]
-check_id = "dns_security"
-control_id = "A.8.24"
-control_name = "Use of cryptography"
-category = "Technological Controls"
-description = "DNS queries shall be encrypted using DoH/DoT"
-weight = 0.8
-is_critical = true
-
-[[controls]]
-check_id = "ssh_hardening"
-control_id = "A.8.5"
-control_name = "Secure authentication"
-category = "Technological Controls"
-description = "SSH authentication shall use secure methods (key-based)"
-weight = 0.9
-is_critical = true
-
-[[controls]]
-check_id = "ssh_hardening"
-control_id = "A.8.20"
-control_name = "Networks security"
-category = "Technological Controls"
-description = "SSH configuration shall follow security best practices"
-weight = 0.85
-is_critical = true
-
-[[controls]]
-check_id = "ssh_hardening"
-control_id = "A.8.24"
-control_name = "Use of cryptography"
-category = "Technological Controls"
-description = "SSH shall use strong cryptographic algorithms"
-weight = 0.8
-is_critical = true
-
-[[controls]]
-check_id = "container_security"
-control_id = "A.8.9"
-control_name = "Configuration management"
-category = "Technological Controls"
-description = "Container runtime configurations shall be managed securely"
-weight = 0.9
-is_critical = true
-
-[[controls]]
-check_id = "container_security"
-control_id = "A.8.25"
-control_name = "Secure development life cycle"
-category = "Technological Controls"
-description = "Container images shall be developed and deployed securely"
-weight = 0.85
-is_critical = true
-
-[[controls]]
-check_id = "container_security"
-control_id = "A.8.3"
-control_name = "Information access restriction"
-category = "Technological Controls"
-description = "Containers shall run with least privilege (rootless, minimal capabilities)"
-weight = 0.85
-is_critical = true
-
-[[controls]]
-check_id = "certificate_validation"
-control_id = "A.8.24"
-control_name = "Use of cryptography"
-category = "Technological Controls"
-description = "Valid and trusted certificates shall be used for cryptographic protection"
-weight = 0.9
-is_critical = true
-
-[[controls]]
-check_id = "certificate_validation"
-control_id = "A.5.14"
-control_name = "Information transfer"
-category = "Organizational Controls"
-description = "Certificate-based security for information transfer"
-weight = 0.85
-is_critical = true
