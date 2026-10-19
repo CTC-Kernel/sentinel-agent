@@ -178,7 +178,7 @@ dependencies = [
  "tracing-subscriber",
  "url",
  "uuid 1.28.0",
- "windows 0.61.3",
+ "windows 0.62.2",
  "zeroize",
 ]
 
@@ -248,7 +248,7 @@ dependencies = [
  "uuid 1.28.0",
  "walkdir",
  "whisper-rs",
- "windows 0.61.3",
+ "windows 0.62.2",
  "windows-service",
  "winres",
  "zeroize",
@@ -307,7 +307,7 @@ dependencies = [
  "tray-icon",
  "uuid 1.28.0",
  "winapi",
- "windows 0.61.3",
+ "windows 0.62.2",
  "zeroize",
 ]
 
@@ -328,7 +328,7 @@ dependencies = [
  "thiserror 2.0.21",
  "tokio",
  "tracing",
- "windows 0.61.3",
+ "windows 0.62.2",
 ]
 
 [[package]]
@@ -432,7 +432,7 @@ dependencies = [
  "tokio",
  "tokio-rusqlite",
  "tracing",
- "windows 0.61.3",
+ "windows 0.62.2",
  "zeroize",
 ]
 
