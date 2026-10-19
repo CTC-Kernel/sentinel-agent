@@ -43,7 +43,7 @@ signal-hook = "0.3"
 sysinfo = "0.35"
 async-trait = "0.1"
 semver = { version = "1", features = ["serde"] }
-hmac = "0.12"
+hmac = "0.13"
 # Administrator password hashing (Argon2id, PHC strings with a random salt).
 argon2 = { version = "0.5", features = ["std"] }
 # Without their default `libxdo` feature: on Linux it only serves the
