@@ -20,6 +20,9 @@ never used AVX2 (measured: −35 % generation speed, +45 % time to first token).
   are `unsafe` (the caller checks the CPU). Parity test at the end of the file.
 - `src/quantized/mod.rs`, `src/quantized/k_quants.rs`: the AVX2 module is
   always compiled on x86/x86_64 and chosen when `with_avx()` is true.
+- `Cargo.toml`, `src/npy.rs`, `src/pickle.rs`: `zip` 9 instead of 7.2. Every
+  zip release before 9.0.3 was yanked over `extract()` advisories
+  (RUSTSEC-2026-0367, -0368, -0369); zip 9 returns entry names as a `Result`.
 
 ## Updating candle
 
