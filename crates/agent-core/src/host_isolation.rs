@@ -6,15 +6,30 @@
 //! Cuts the endpoint off the network while keeping what is needed to lift the
 //! isolation again:
 //! - loopback;
-//! - DNS and DHCP, so the endpoint keeps an address and can still resolve the
-//!   platform's name;
+//! - DHCP, as far as keeping a lease needs: requests broadcast to
+//!   `255.255.255.255` port 67 and replies on port 68. A renewal sent straight
+//!   to the server is blocked; the client renews by broadcast once it reaches
+//!   its rebinding time (RFC 2131, 4.4.5);
+//! - DNS (port 53) to the resolvers the system uses, read when isolating
+//!   (`/etc/resolv.conf` and systemd-resolved's upstream servers on Linux,
+//!   `scutil --dns` on macOS, the connected adapters' servers on Windows), so
+//!   the platform's name still resolves. When none can be found, DNS is
+//!   blocked rather than opened to every address: a platform configured by
+//!   name may then be unreachable, and the isolation is lifted from the
+//!   endpoint or when its duration elapses;
 //! - the Sentinel GRC platform (addresses resolved when isolating), so the
 //!   agent stays reachable. A standalone agent has no platform: it is released
 //!   from its own interface, or when the requested duration elapses.
 //!
-//! The isolation is recorded on disk: after a restart it is applied again
-//! (pf and iptables rules do not survive a reboot) or lifted if its duration
-//! has elapsed meanwhile.
+//! Inbound, the endpoint accepts the replies to those exchanges (pf state,
+//! Linux conntrack, the Windows Firewall's stateful filtering), DHCP replies
+//! and IPv6 neighbour discovery. Queries relayed by the resolvers can still
+//! carry data (DNS tunnelling): the exception limits which servers the
+//! endpoint talks to, not what it asks them.
+//!
+//! The isolation is recorded on disk, resolvers included: after a restart it
+//! is applied again with the same addresses (pf and iptables rules do not
+//! survive a reboot) or lifted if its duration has elapsed meanwhile.
 //!
 //! # Firewall used
 //!
@@ -40,7 +55,20 @@ const PF_ANCHOR: &str = "com.apple/sentinel-isolation";
 const IPTABLES_CHAIN_IN: &str = "SENTINEL_ISO_IN";
 const IPTABLES_CHAIN_OUT: &str = "SENTINEL_ISO_OUT";
 const NETSH_RULE_PREFIX: &str = "SentinelIsolation_";
-const NETSH_RULES: &[&str] = &["OutTCP", "OutUDP", "OutICMPv4", "InTCP", "InUDP"];
+const NETSH_RULES: &[&str] = &[
+    "OutTCP",
+    "OutUDP",
+    "OutICMPv4",
+    "OutDnsTCP",
+    "OutDnsUDP",
+    "OutDHCP",
+    "InTCP",
+    "InUDP",
+];
+/// Windows: DNS servers of the connected adapters, one per line.
+const WINDOWS_DNS_SERVERS: &str = "$up = @(Get-NetIPInterface -ConnectionState Connected).InterfaceIndex; \
+     Get-DnsClientServerAddress | Where-Object { $up -contains $_.InterfaceIndex } | \
+     ForEach-Object { $_.ServerAddresses }";
 
 const MAX_REASON_CHARS: usize = 300;
 
@@ -57,6 +85,11 @@ pub struct IsolationState {
     /// Addresses still reachable: the platform's.
     #[serde(default)]
     pub allowed: Vec<IpAddr>,
+    /// DNS servers still reachable on port 53, read when isolating. `None`
+    /// in a record that predates them: they are read again when the rules
+    /// are re-applied.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub dns_servers: Option<Vec<IpAddr>>,
     /// macOS: token returned when enabling pf, needed to release that enable.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub pf_token: Option<String>,
@@ -94,15 +127,24 @@ impl Command {
 // ── pf (macOS) ──────────────────────────────────────────────────────────────
 
 /// pf rules of the isolation anchor.
-pub(crate) fn pf_rules(allowed: &[IpAddr]) -> String {
+///
+/// The DHCP rules keep no state: a reply comes from a server or relay other
+/// than the broadcast address the request went to, so no state would match
+/// it, and one created by an inbound packet would open the way back to
+/// whoever sent it.
+pub(crate) fn pf_rules(allowed: &[IpAddr], dns_servers: &[IpAddr]) -> String {
     let mut rules = String::from(
         "# Sentinel GRC - host isolation. Managed by the agent, do not edit.\n\
          pass quick on lo0 all\n\
-         pass out quick inet proto udp from any port 68 to any port 67 keep state\n\
-         pass in quick inet proto udp from any port 67 to any port 68 keep state\n\
-         pass out quick proto { tcp, udp } from any to any port 53 keep state\n",
+         pass out quick inet proto udp from any port 68 to 255.255.255.255 port 67 no state\n\
+         pass in quick inet proto udp from any port 67 to any port 68 no state\n",
     );
-    if allowed.iter().any(IpAddr::is_ipv6) {
+    for ip in dns_servers {
+        rules.push_str(&format!(
+            "pass out quick proto {{ tcp, udp }} from any to {ip} port 53 keep state\n"
+        ));
+    }
+    if allowed.iter().chain(dns_servers).any(IpAddr::is_ipv6) {
         // Neighbour discovery, without which no IPv6 address is reachable.
         rules.push_str("pass quick inet6 proto icmp6 all\n");
     }
@@ -157,10 +199,19 @@ pub(crate) fn iptables_release() -> Vec<Command> {
 }
 
 /// Commands applying the iptables isolation for one address family.
-pub(crate) fn iptables_apply(allowed: &[IpAddr], ipv6: bool) -> Vec<Command> {
+///
+/// Inbound, only the replies from the platform and the resolvers are
+/// accepted (conntrack), so a flow opened with anyone else before the
+/// isolation gets nothing more in.
+pub(crate) fn iptables_apply(
+    allowed: &[IpAddr],
+    dns_servers: &[IpAddr],
+    ipv6: bool,
+) -> Vec<Command> {
     let program = if ipv6 { "ip6tables" } else { "iptables" };
     let cmd = |args: &[&str]| Command::new(program, args);
     let (chain_in, chain_out) = (IPTABLES_CHAIN_IN, IPTABLES_CHAIN_OUT);
+    let in_family = |ip: &&IpAddr| ip.is_ipv6() == ipv6;
 
     let mut commands = vec![
         cmd(&["-N", chain_in]),
@@ -173,25 +224,71 @@ pub(crate) fn iptables_apply(allowed: &[IpAddr], ipv6: bool) -> Vec<Command> {
         commands.push(cmd(&["-A", chain_in, "-p", "ipv6-icmp", "-j", "ACCEPT"]));
         commands.push(cmd(&["-A", chain_out, "-p", "ipv6-icmp", "-j", "ACCEPT"]));
     } else {
+        // DHCP replies come from a server or relay the broadcast request did
+        // not name, so conntrack cannot pair them with it.
         commands.push(cmd(&[
-            "-A", chain_out, "-p", "udp", "--sport", "68", "--dport", "67", "-j", "ACCEPT",
+            "-A",
+            chain_out,
+            "-p",
+            "udp",
+            "-d",
+            "255.255.255.255",
+            "--sport",
+            "68",
+            "--dport",
+            "67",
+            "-j",
+            "ACCEPT",
         ]));
         commands.push(cmd(&[
             "-A", chain_in, "-p", "udp", "--sport", "67", "--dport", "68", "-j", "ACCEPT",
         ]));
-    }
-    for protocol in ["udp", "tcp"] {
+        // ICMP errors about the flows let through (path MTU discovery).
         commands.push(cmd(&[
-            "-A", chain_out, "-p", protocol, "--dport", "53", "-j", "ACCEPT",
-        ]));
-        commands.push(cmd(&[
-            "-A", chain_in, "-p", protocol, "--sport", "53", "-j", "ACCEPT",
+            "-A",
+            chain_in,
+            "-p",
+            "icmp",
+            "-m",
+            "conntrack",
+            "--ctstate",
+            "RELATED",
+            "-j",
+            "ACCEPT",
         ]));
     }
-    for ip in allowed.iter().filter(|ip| ip.is_ipv6() == ipv6) {
+    for ip in dns_servers.iter().filter(in_family) {
+        let ip = ip.to_string();
+        for protocol in ["udp", "tcp"] {
+            commands.push(cmd(&[
+                "-A", chain_out, "-p", protocol, "-d", &ip, "--dport", "53", "-j", "ACCEPT",
+            ]));
+        }
+    }
+    for ip in allowed.iter().filter(in_family) {
         let ip = ip.to_string();
         commands.push(cmd(&["-A", chain_out, "-d", &ip, "-j", "ACCEPT"]));
-        commands.push(cmd(&["-A", chain_in, "-s", &ip, "-j", "ACCEPT"]));
+    }
+    let mut peers: Vec<&IpAddr> = allowed
+        .iter()
+        .chain(dns_servers)
+        .filter(in_family)
+        .collect();
+    peers.sort_unstable();
+    peers.dedup();
+    for ip in peers {
+        commands.push(cmd(&[
+            "-A",
+            chain_in,
+            "-s",
+            &ip.to_string(),
+            "-m",
+            "conntrack",
+            "--ctstate",
+            "ESTABLISHED",
+            "-j",
+            "ACCEPT",
+        ]));
     }
     commands.extend([
         cmd(&["-A", chain_in, "-j", "DROP"]),
@@ -295,11 +392,30 @@ fn netsh_rule_name(rule: &str) -> String {
 
 /// Commands applying the Windows Firewall isolation.
 ///
-/// Block rules win over allow rules, so they are scoped to leave DNS (port
-/// 53), DHCP (ports 67/68) and the allowed addresses out.
-pub(crate) fn netsh_apply(allowed: &[IpAddr]) -> Vec<Command> {
+/// Block rules win over allow rules, so they are scoped to leave the allowed
+/// addresses out, and for the resolvers and the DHCP broadcast address only
+/// the ports they serve (53, 67). Replies come back through the firewall's
+/// stateful filtering.
+pub(crate) fn netsh_apply(allowed: &[IpAddr], dns_servers: &[IpAddr]) -> Vec<Command> {
+    let both_families = |keep: &[IpAddr]| {
+        format!(
+            "{},{}",
+            netsh_blocked_addresses(keep, false),
+            netsh_blocked_addresses(keep, true)
+        )
+    };
+    // A resolver that is also a platform address stays fully open.
+    let resolvers: Vec<IpAddr> = dns_servers
+        .iter()
+        .filter(|ip| !allowed.contains(ip))
+        .copied()
+        .collect();
+    let mut keep: Vec<IpAddr> = allowed.iter().chain(&resolvers).copied().collect();
+    let tcp_blocked = both_families(&keep);
+    keep.push(IpAddr::V4(Ipv4Addr::BROADCAST));
+    let udp_blocked = both_families(&keep);
     let v4 = netsh_blocked_addresses(allowed, false);
-    let all = format!("{v4},{}", netsh_blocked_addresses(allowed, true));
+    let all = both_families(allowed);
     let rule = |name: &str, direction: &str, extra: &[String]| -> Command {
         let mut args: Vec<String> = ["advfirewall", "firewall", "add", "rule"]
             .iter()
@@ -314,14 +430,13 @@ pub(crate) fn netsh_apply(allowed: &[IpAddr]) -> Vec<Command> {
             args,
         }
     };
-    vec![
+    let mut commands = vec![
         rule(
             "OutTCP",
             "out",
             &[
                 "protocol=TCP".to_string(),
-                "remoteport=1-52,54-65535".to_string(),
-                format!("remoteip={all}"),
+                format!("remoteip={tcp_blocked}"),
             ],
         ),
         rule(
@@ -329,14 +444,43 @@ pub(crate) fn netsh_apply(allowed: &[IpAddr]) -> Vec<Command> {
             "out",
             &[
                 "protocol=UDP".to_string(),
-                "remoteport=1-52,54-66,68-65535".to_string(),
-                format!("remoteip={all}"),
+                format!("remoteip={udp_blocked}"),
             ],
         ),
         rule(
             "OutICMPv4",
             "out",
             &["protocol=icmpv4".to_string(), format!("remoteip={v4}")],
+        ),
+    ];
+    // An empty `remoteip` would mean every address: no resolver, no rule.
+    if !resolvers.is_empty() {
+        let listed = resolvers
+            .iter()
+            .map(ToString::to_string)
+            .collect::<Vec<_>>()
+            .join(",");
+        for (name, protocol) in [("OutDnsTCP", "TCP"), ("OutDnsUDP", "UDP")] {
+            commands.push(rule(
+                name,
+                "out",
+                &[
+                    format!("protocol={protocol}"),
+                    "remoteport=1-52,54-65535".to_string(),
+                    format!("remoteip={listed}"),
+                ],
+            ));
+        }
+    }
+    commands.extend([
+        rule(
+            "OutDHCP",
+            "out",
+            &[
+                "protocol=UDP".to_string(),
+                "remoteport=1-66,68-65535".to_string(),
+                format!("remoteip={}", Ipv4Addr::BROADCAST),
+            ],
         ),
         rule(
             "InTCP",
@@ -352,7 +496,8 @@ pub(crate) fn netsh_apply(allowed: &[IpAddr]) -> Vec<Command> {
                 format!("remoteip={all}"),
             ],
         ),
-    ]
+    ]);
+    commands
 }
 
 /// Commands lifting the Windows Firewall isolation.
@@ -414,6 +559,107 @@ async fn control_channel_addresses(config: &AgentConfig) -> Result<Vec<IpAddr>, 
         )));
     }
     Ok(addresses)
+}
+
+// ── DNS resolvers ───────────────────────────────────────────────────────────
+
+/// Address of a resolver as written in a configuration; the zone of a
+/// link-local address (`fe80::1%en0`) is dropped.
+fn resolver_address(text: &str) -> Option<IpAddr> {
+    text.split('%').next()?.trim().parse().ok()
+}
+
+/// `nameserver` entries of a resolv.conf file.
+pub(crate) fn resolv_conf_nameservers(text: &str) -> Vec<IpAddr> {
+    text.lines()
+        .filter_map(|line| {
+            let mut words = line.split_whitespace();
+            (words.next() == Some("nameserver"))
+                .then(|| words.next().and_then(resolver_address))
+                .flatten()
+        })
+        .collect()
+}
+
+/// `nameserver[N] : address` entries printed by `scutil --dns`.
+pub(crate) fn scutil_nameservers(output: &str) -> Vec<IpAddr> {
+    output
+        .lines()
+        .filter_map(|line| {
+            let (label, value) = line.split_once(':')?;
+            label
+                .trim()
+                .starts_with("nameserver[")
+                .then(|| resolver_address(value))
+                .flatten()
+        })
+        .collect()
+}
+
+/// Resolvers that need a firewall exception, sorted and without duplicates.
+/// Loopback is open anyway; unspecified, multicast and broadcast addresses
+/// name no server, nor do the deprecated site-local `fec0::/10` placeholders
+/// Windows lists for an adapter without IPv6 DNS.
+pub(crate) fn usable_resolvers(found: impl IntoIterator<Item = IpAddr>) -> Vec<IpAddr> {
+    let mut resolvers: Vec<IpAddr> = found
+        .into_iter()
+        .map(|ip| ip.to_canonical())
+        .filter(|ip| {
+            !ip.is_loopback()
+                && !ip.is_unspecified()
+                && !ip.is_multicast()
+                && match ip {
+                    IpAddr::V4(v4) => !v4.is_broadcast(),
+                    IpAddr::V6(v6) => v6.segments()[0] & 0xffc0 != 0xfec0,
+                }
+        })
+        .collect();
+    resolvers.sort_unstable();
+    resolvers.dedup();
+    resolvers
+}
+
+/// DNS servers the system uses. Empty when none can be found.
+async fn system_resolvers() -> Vec<IpAddr> {
+    let found = if cfg!(target_os = "macos") {
+        // Every resolver, the scoped ones (per interface, VPN) included.
+        match run(&Command::new("scutil", &["--dns"])).await {
+            Ok(printed) => scutil_nameservers(&printed),
+            Err(e) => {
+                warn!("DNS servers could not be read: {}", e);
+                Vec::new()
+            }
+        }
+    } else if cfg!(target_os = "windows") {
+        match run(&Command::new(
+            "powershell",
+            &[
+                "-NoProfile",
+                "-NonInteractive",
+                "-Command",
+                WINDOWS_DNS_SERVERS,
+            ],
+        ))
+        .await
+        {
+            Ok(printed) => printed.lines().filter_map(resolver_address).collect(),
+            Err(e) => {
+                warn!("DNS servers could not be read: {}", e);
+                Vec::new()
+            }
+        }
+    } else {
+        // With systemd-resolved, /etc/resolv.conf names only its local stub
+        // (127.0.0.53); the servers it forwards to are listed apart.
+        let mut found = Vec::new();
+        for path in ["/etc/resolv.conf", "/run/systemd/resolve/resolv.conf"] {
+            if let Ok(text) = tokio::fs::read_to_string(path).await {
+                found.extend(resolv_conf_nameservers(&text));
+            }
+        }
+        found
+    };
+    usable_resolvers(found)
 }
 
 // ── State on disk ───────────────────────────────────────────────────────────
@@ -507,7 +753,7 @@ async fn run_all_or_rollback(commands: &[Command], rollback: &[Command]) -> Resu
 }
 
 /// Apply the firewall rules. Returns the pf token on macOS.
-async fn apply_rules(allowed: &[IpAddr]) -> Result<Option<String>, String> {
+async fn apply_rules(allowed: &[IpAddr], dns_servers: &[IpAddr]) -> Result<Option<String>, String> {
     if cfg!(target_os = "macos") {
         let rules_path = pf_rules_path();
         if let Some(parent) = rules_path.parent() {
@@ -515,7 +761,7 @@ async fn apply_rules(allowed: &[IpAddr]) -> Result<Option<String>, String> {
                 .await
                 .map_err(|e| format!("cannot create {}: {e}", parent.display()))?;
         }
-        tokio::fs::write(&rules_path, pf_rules(allowed))
+        tokio::fs::write(&rules_path, pf_rules(allowed, dns_servers))
             .await
             .map_err(|e| format!("cannot write {}: {e}", rules_path.display()))?;
         let rules_file = rules_path.to_string_lossy().to_string();
@@ -555,15 +801,15 @@ async fn apply_rules(allowed: &[IpAddr]) -> Result<Option<String>, String> {
             );
         }
         run_all_best_effort(&netsh_release()).await;
-        run_all_or_rollback(&netsh_apply(allowed), &netsh_release()).await?;
+        run_all_or_rollback(&netsh_apply(allowed, dns_servers), &netsh_release()).await?;
         Ok(None)
     } else {
         let release = iptables_release();
         run_all_best_effort(&release).await;
-        run_all_or_rollback(&iptables_apply(allowed, false), &release).await?;
+        run_all_or_rollback(&iptables_apply(allowed, dns_servers, false), &release).await?;
         // A kernel without IPv6 has nothing to filter there.
         if Path::new("/proc/sys/net/ipv6").exists() {
-            run_all_or_rollback(&iptables_apply(allowed, true), &release).await?;
+            run_all_or_rollback(&iptables_apply(allowed, dns_servers, true), &release).await?;
         }
         Ok(None)
     }
@@ -617,12 +863,16 @@ pub async fn isolate_host(reason: &str, duration_secs: u64) -> Result<IsolationS
     let config = AgentConfig::load(None)
         .map_err(|e| CommonError::internal(format!("Isolation refused: {e}")))?;
     let allowed = control_channel_addresses(&config).await?;
+    let dns_servers = system_resolvers().await;
+    if dns_servers.is_empty() {
+        warn!("No DNS server found: name resolution stays blocked while the endpoint is isolated");
+    }
 
     info!(
-        "Isolating the endpoint from the network ({}); still reachable: {:?}",
-        reason, allowed
+        "Isolating the endpoint from the network ({}); still reachable: {:?}, DNS servers: {:?}",
+        reason, allowed, dns_servers
     );
-    let pf_token = apply_rules(&allowed)
+    let pf_token = apply_rules(&allowed, &dns_servers)
         .await
         .map_err(|e| CommonError::internal(format!("Host isolation failed: {e}")))?;
 
@@ -633,6 +883,7 @@ pub async fn isolate_host(reason: &str, duration_secs: u64) -> Result<IsolationS
             .then(|| now.saturating_add(i64::try_from(duration_secs).unwrap_or(i64::MAX))),
         reason: reason.chars().take(MAX_REASON_CHARS).collect(),
         allowed,
+        dns_servers: Some(dns_servers),
         pf_token,
     };
     if let Err(e) = store_state(&state_path(), &state).await {
@@ -692,10 +943,18 @@ pub async fn reconcile_host_isolation() {
                 "Endpoint is isolated ({}): applying the rules again",
                 state.reason
             );
-            match apply_rules(&state.allowed).await {
+            let dns_servers = match &state.dns_servers {
+                Some(servers) => servers.clone(),
+                None => system_resolvers().await,
+            };
+            match apply_rules(&state.allowed, &dns_servers).await {
                 Ok(pf_token) => {
                     set_isolated(true);
-                    let refreshed = IsolationState { pf_token, ..state };
+                    let refreshed = IsolationState {
+                        pf_token,
+                        dns_servers: Some(dns_servers),
+                        ..state
+                    };
                     if let Err(e) = store_state(&state_path(), &refreshed).await {
                         warn!("Failed to record the host isolation: {}", e);
                     }
@@ -723,30 +982,68 @@ mod tests {
 
     #[test]
     fn pf_rules_pass_the_essentials_then_block_everything() {
-        let rules = pf_rules(&[ip("203.0.113.10"), ip("203.0.113.11")]);
+        let rules = pf_rules(
+            &[ip("203.0.113.10"), ip("203.0.113.11")],
+            &[ip("192.0.2.53")],
+        );
         let lines: Vec<&str> = rules.lines().filter(|l| !l.starts_with('#')).collect();
 
         assert_eq!(lines.first(), Some(&"pass quick on lo0 all"));
         assert_eq!(lines.last(), Some(&"block drop quick all"));
         assert!(lines.contains(&"pass out quick from any to 203.0.113.10 keep state"));
         assert!(lines.contains(&"pass out quick from any to 203.0.113.11 keep state"));
-        assert!(rules.contains("port 53"));
-        assert!(rules.contains("port 68 to any port 67"));
-        assert!(!rules.contains("icmp6"), "no IPv6 platform address");
+        assert!(!rules.contains("icmp6"), "no IPv6 address to reach");
         // Every rule stops evaluation: nothing after the block can re-open.
         assert!(lines.iter().all(|line| line.contains(" quick ")));
     }
 
     #[test]
+    fn pf_rules_open_dns_to_the_resolvers_only() {
+        let rules = pf_rules(
+            &[ip("203.0.113.10")],
+            &[ip("192.0.2.53"), ip("2001:db8::53")],
+        );
+        let dns: Vec<&str> = rules.lines().filter(|l| l.contains("port 53")).collect();
+        assert_eq!(
+            dns,
+            [
+                "pass out quick proto { tcp, udp } from any to 192.0.2.53 port 53 keep state",
+                "pass out quick proto { tcp, udp } from any to 2001:db8::53 port 53 keep state",
+            ]
+        );
+        assert!(
+            rules.contains("pass quick inet6 proto icmp6 all"),
+            "an IPv6 resolver needs neighbour discovery"
+        );
+        assert!(!pf_rules(&[ip("203.0.113.10")], &[]).contains("port 53"));
+    }
+
+    #[test]
+    fn pf_rules_limit_dhcp_to_the_broadcast_request_and_its_replies() {
+        let rules = pf_rules(&[], &[]);
+        let dhcp: Vec<&str> = rules
+            .lines()
+            .filter(|l| l.contains("port 67") || l.contains("port 68"))
+            .collect();
+        assert_eq!(
+            dhcp,
+            [
+                "pass out quick inet proto udp from any port 68 to 255.255.255.255 port 67 no state",
+                "pass in quick inet proto udp from any port 67 to any port 68 no state",
+            ]
+        );
+    }
+
+    #[test]
     fn pf_rules_keep_ipv6_neighbour_discovery_for_an_ipv6_platform() {
-        let rules = pf_rules(&[ip("2001:db8::10")]);
+        let rules = pf_rules(&[ip("2001:db8::10")], &[]);
         assert!(rules.contains("pass quick inet6 proto icmp6 all"));
         assert!(rules.contains("pass out quick from any to 2001:db8::10 keep state"));
     }
 
     #[test]
     fn standalone_pf_rules_allow_no_remote_address() {
-        let rules = pf_rules(&[]);
+        let rules = pf_rules(&[], &[]);
         assert!(!rules.contains("pass out quick from any to "));
         assert!(rules.ends_with("block drop quick all\n"));
     }
@@ -763,19 +1060,21 @@ mod tests {
 
     #[test]
     fn iptables_chains_are_hooked_only_once_complete() {
-        let commands = iptables_apply(&[ip("203.0.113.10"), ip("2001:db8::10")], false);
+        let commands = iptables_apply(
+            &[ip("203.0.113.10"), ip("2001:db8::10")],
+            &[ip("192.0.2.53"), ip("2001:db8::53")],
+            false,
+        );
         assert!(commands.iter().all(|c| c.program == "iptables"));
         let lines: Vec<String> = commands.iter().map(args).collect();
 
         assert_eq!(lines[0], "-N SENTINEL_ISO_IN");
         assert_eq!(lines[1], "-N SENTINEL_ISO_OUT");
         assert!(lines.contains(&"-A SENTINEL_ISO_OUT -d 203.0.113.10 -j ACCEPT".to_string()));
-        assert!(lines.contains(&"-A SENTINEL_ISO_IN -s 203.0.113.10 -j ACCEPT".to_string()));
         assert!(
             !lines.iter().any(|l| l.contains("2001:db8")),
             "IPv6 addresses belong to ip6tables"
         );
-        assert!(lines.contains(&"-A SENTINEL_ISO_OUT -p udp --dport 53 -j ACCEPT".to_string()));
 
         // The DROP rules close each chain, and the hooks come after them.
         let drop_in = lines
@@ -802,14 +1101,92 @@ mod tests {
         assert!(!accepts_after_drop);
     }
 
+    fn chain(lines: &[String], name: &str) -> Vec<String> {
+        let prefix = format!("-A {name} ");
+        lines
+            .iter()
+            .filter_map(|l| l.strip_prefix(&prefix))
+            .map(str::to_string)
+            .collect()
+    }
+
+    #[test]
+    fn iptables_let_in_only_loopback_dhcp_and_replies_from_the_peers() {
+        let lines: Vec<String> = iptables_apply(
+            &[ip("203.0.113.10")],
+            &[ip("192.0.2.53"), ip("203.0.113.10")],
+            false,
+        )
+        .iter()
+        .map(args)
+        .collect();
+        assert_eq!(
+            chain(&lines, "SENTINEL_ISO_IN"),
+            [
+                "-i lo -j ACCEPT",
+                "-p udp --sport 67 --dport 68 -j ACCEPT",
+                "-p icmp -m conntrack --ctstate RELATED -j ACCEPT",
+                "-s 192.0.2.53 -m conntrack --ctstate ESTABLISHED -j ACCEPT",
+                "-s 203.0.113.10 -m conntrack --ctstate ESTABLISHED -j ACCEPT",
+                "-j DROP",
+            ]
+        );
+        assert!(
+            !lines.iter().any(|l| l.contains("--sport 53")),
+            "a source port proves nothing"
+        );
+    }
+
+    #[test]
+    fn iptables_let_out_dns_to_the_resolvers_and_dhcp_by_broadcast() {
+        let lines: Vec<String> = iptables_apply(&[ip("203.0.113.10")], &[ip("192.0.2.53")], false)
+            .iter()
+            .map(args)
+            .collect();
+        assert_eq!(
+            chain(&lines, "SENTINEL_ISO_OUT"),
+            [
+                "-o lo -j ACCEPT",
+                "-p udp -d 255.255.255.255 --sport 68 --dport 67 -j ACCEPT",
+                "-p udp -d 192.0.2.53 --dport 53 -j ACCEPT",
+                "-p tcp -d 192.0.2.53 --dport 53 -j ACCEPT",
+                "-d 203.0.113.10 -j ACCEPT",
+                "-j DROP",
+            ]
+        );
+
+        let no_resolver: Vec<String> = iptables_apply(&[ip("203.0.113.10")], &[], false)
+            .iter()
+            .map(args)
+            .collect();
+        assert!(!no_resolver.iter().any(|l| l.contains("--dport 53")));
+    }
+
     #[test]
     fn ip6tables_gets_ipv6_addresses_and_neighbour_discovery() {
-        let commands = iptables_apply(&[ip("203.0.113.10"), ip("2001:db8::10")], true);
+        let commands = iptables_apply(
+            &[ip("203.0.113.10"), ip("2001:db8::10")],
+            &[ip("192.0.2.53"), ip("2001:db8::53")],
+            true,
+        );
         assert!(commands.iter().all(|c| c.program == "ip6tables"));
         let lines: Vec<String> = commands.iter().map(args).collect();
         assert!(lines.contains(&"-A SENTINEL_ISO_OUT -d 2001:db8::10 -j ACCEPT".to_string()));
+        assert!(lines.contains(
+            &"-A SENTINEL_ISO_OUT -p udp -d 2001:db8::53 --dport 53 -j ACCEPT".to_string()
+        ));
+        assert!(
+            lines.contains(
+                &"-A SENTINEL_ISO_IN -s 2001:db8::53 -m conntrack --ctstate ESTABLISHED -j ACCEPT"
+                    .to_string()
+            )
+        );
         assert!(lines.contains(&"-A SENTINEL_ISO_IN -p ipv6-icmp -j ACCEPT".to_string()));
-        assert!(!lines.iter().any(|l| l.contains("203.0.113.10")));
+        assert!(
+            !lines
+                .iter()
+                .any(|l| l.contains("203.0.113.10") || l.contains("192.0.2.53"))
+        );
         assert!(
             !lines.iter().any(|l| l.contains("--dport 67")),
             "DHCPv4 only"
@@ -878,9 +1255,22 @@ mod tests {
         assert_eq!(ranges.len(), 4, "ff00::/8 runs to the end of the space");
     }
 
+    /// The `netsh` rule of that name, as one line.
+    fn netsh_rule(commands: &[Command], name: &str) -> String {
+        let prefix = format!("advfirewall firewall add rule name=SentinelIsolation_{name} dir=");
+        commands
+            .iter()
+            .map(args)
+            .find(|l| l.starts_with(&prefix))
+            .unwrap_or_else(|| panic!("no {name} rule"))
+    }
+
     #[test]
-    fn windows_rules_leave_dns_and_dhcp_out_of_the_blocks() {
-        let commands = netsh_apply(&[ip("203.0.113.10")]);
+    fn windows_rules_open_the_resolvers_and_the_dhcp_broadcast_on_their_port_only() {
+        let commands = netsh_apply(
+            &[ip("203.0.113.10")],
+            &[ip("192.0.2.53"), ip("203.0.113.10")],
+        );
         assert_eq!(commands.len(), NETSH_RULES.len());
         for (command, rule) in commands.iter().zip(NETSH_RULES) {
             assert_eq!(command.program, "netsh");
@@ -889,22 +1279,69 @@ mod tests {
             )));
             assert!(command.args.contains(&"action=block".to_string()));
         }
-        let out_tcp = args(&commands[0]);
-        assert!(out_tcp.contains("remoteport=1-52,54-65535"));
-        let out_udp = args(&commands[1]);
-        assert!(out_udp.contains("remoteport=1-52,54-66,68-65535"));
-        let in_udp = args(&commands[4]);
-        assert!(in_udp.contains("localport=1-67,69-65535"));
-        // The platform address is in none of the blocked ranges.
-        assert!(!commands.iter().any(|c| args(c).contains("203.0.113.10,")));
+
+        // Every port is blocked to everything but the platform, the resolver
+        // (TCP, UDP) and the broadcast address (UDP).
+        let out_tcp = netsh_rule(&commands, "OutTCP");
+        assert!(!out_tcp.contains("remoteport="));
+        assert!(out_tcp.contains("192.0.2.52,192.0.2.54"));
         assert!(out_tcp.contains("203.0.113.9,203.0.113.11"));
+        assert!(out_tcp.contains("203.0.113.11-255.255.255.255,"));
+        let out_udp = netsh_rule(&commands, "OutUDP");
+        assert!(!out_udp.contains("remoteport="));
+        assert!(out_udp.contains("192.0.2.52,192.0.2.54"));
+        assert!(out_udp.contains("203.0.113.11-255.255.255.254,"));
+        // Those get every port but their own.
+        assert!(
+            netsh_rule(&commands, "OutDnsTCP")
+                .ends_with("protocol=TCP remoteport=1-52,54-65535 remoteip=192.0.2.53")
+        );
+        assert!(
+            netsh_rule(&commands, "OutDnsUDP")
+                .ends_with("protocol=UDP remoteport=1-52,54-65535 remoteip=192.0.2.53")
+        );
+        assert!(
+            netsh_rule(&commands, "OutDHCP")
+                .ends_with("protocol=UDP remoteport=1-66,68-65535 remoteip=255.255.255.255")
+        );
+        // ICMP and inbound traffic: only the platform is left out.
+        for name in ["OutICMPv4", "InTCP", "InUDP"] {
+            let rule = netsh_rule(&commands, name);
+            assert!(
+                rule.contains(
+                    "remoteip=0.0.0.0-126.255.255.255,128.0.0.0-203.0.113.9,203.0.113.11"
+                ),
+                "{name}: {rule}"
+            );
+        }
+        assert!(netsh_rule(&commands, "InUDP").contains("localport=1-67,69-65535"));
 
         let released: Vec<String> = netsh_release().iter().map(args).collect();
-        assert_eq!(released.len(), commands.len());
+        assert_eq!(released.len(), NETSH_RULES.len());
         assert_eq!(
             released[0],
             "advfirewall firewall delete rule name=SentinelIsolation_OutTCP"
         );
+    }
+
+    #[test]
+    fn windows_rules_without_a_resolver_block_dns_everywhere() {
+        let commands = netsh_apply(&[ip("203.0.113.10")], &[]);
+        let names: Vec<String> = commands
+            .iter()
+            .map(|c| {
+                c.args[4]
+                    .trim_start_matches("name=SentinelIsolation_")
+                    .to_string()
+            })
+            .collect();
+        assert_eq!(
+            names,
+            ["OutTCP", "OutUDP", "OutICMPv4", "OutDHCP", "InTCP", "InUDP"],
+            "an empty remoteip would mean every address"
+        );
+        assert!(!commands.iter().any(|c| args(c).contains("remoteip=,")));
+        assert!(!commands.iter().any(|c| args(c).ends_with("remoteip=")));
     }
 
     #[test]
@@ -952,12 +1389,68 @@ mod tests {
         assert!(error.to_string().contains("Isolation refused"));
     }
 
+    #[test]
+    fn resolvers_are_read_from_resolv_conf_and_scutil() {
+        let resolv_conf = "# Generated by NetworkManager\n\
+                           search example.com\n\
+                           nameserver 192.0.2.53\n\
+                           nameserver\tfe80::1%eth0\n\
+                           ; nameserver 198.51.100.1\n\
+                           nameserver not-an-address\n\
+                           options edns0\n";
+        assert_eq!(
+            resolv_conf_nameservers(resolv_conf),
+            [ip("192.0.2.53"), ip("fe80::1")]
+        );
+
+        let scutil = "DNS configuration\n\n\
+                      resolver #1\n\
+                      \x20 search domain[0] : home\n\
+                      \x20 nameserver[0] : 2001:db8::53\n\
+                      \x20 nameserver[1] : fe80::aecf:7bff:fe5b:2830%en0\n\
+                      \x20 nameserver[2] : 192.0.2.53\n\
+                      \x20 if_index : 14 (en0)\n\n\
+                      resolver #2\n\
+                      \x20 domain   : local\n\
+                      \x20 options  : mdns\n";
+        assert_eq!(
+            scutil_nameservers(scutil),
+            [
+                ip("2001:db8::53"),
+                ip("fe80::aecf:7bff:fe5b:2830"),
+                ip("192.0.2.53")
+            ]
+        );
+    }
+
+    #[test]
+    fn only_resolvers_needing_an_exception_are_kept() {
+        let found = [
+            ip("192.0.2.53"),
+            ip("127.0.0.53"),
+            ip("::1"),
+            ip("::ffff:127.0.0.1"),
+            ip("0.0.0.0"),
+            ip("255.255.255.255"),
+            ip("224.0.0.251"),
+            ip("fec0:0:0:ffff::1"),
+            ip("::ffff:198.51.100.53"),
+            ip("2001:db8::53"),
+            ip("192.0.2.53"),
+        ];
+        assert_eq!(
+            usable_resolvers(found),
+            [ip("192.0.2.53"), ip("198.51.100.53"), ip("2001:db8::53")]
+        );
+    }
+
     fn state(release_at: Option<i64>) -> IsolationState {
         IsolationState {
             isolated_at: 1_000,
             release_at,
             reason: "Playbook 'Ransomware'".to_string(),
             allowed: vec![ip("203.0.113.10")],
+            dns_servers: Some(vec![ip("192.0.2.53")]),
             pf_token: Some("42".to_string()),
         }
     }
@@ -998,5 +1491,20 @@ mod tests {
 
         tokio::fs::write(&path, b"not json").await.unwrap();
         assert_eq!(load_state(&path).await, None);
+    }
+
+    #[tokio::test]
+    async fn a_record_without_resolvers_is_still_read() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("host_isolation.json");
+        tokio::fs::write(
+            &path,
+            br#"{"isolated_at":1000,"reason":"r","allowed":["203.0.113.10"]}"#,
+        )
+        .await
+        .unwrap();
+        let loaded = load_state(&path).await.unwrap();
+        assert_eq!(loaded.dns_servers, None, "read again when re-applying");
+        assert_eq!(loaded.allowed, [ip("203.0.113.10")]);
     }
 }
