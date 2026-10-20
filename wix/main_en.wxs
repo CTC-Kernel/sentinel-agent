@@ -35,7 +35,9 @@
 
     <!-- Custom properties for configuration -->
     <Property Id="SERVERURL" Value="https://YOUR_REGION-YOUR_FIREBASE_PROJECT_ID.cloudfunctions.net/agentApi" />
-    <Property Id="ENROLLMENTTOKEN" Secure="yes" />
+    <!-- Hidden: masked in the installer log's property list and command
+         line (a verbose log still shows the data of the registry write). -->
+    <Property Id="ENROLLMENTTOKEN" Secure="yes" Hidden="yes" />
 
     <!-- UI Extension for custom dialogs -->
     <Property Id="WIXUI_INSTALLDIR" Value="INSTALLDIR" />
@@ -214,7 +216,23 @@
       <ComponentGroupRef Id="ShortcutComponents" />
       <ComponentGroupRef Id="ConfigComponents" />
       <ComponentRef Id="SentinelDataDirComponent" />
+      <ComponentGroupRef Id="EnrollmentComponents" />
     </Feature>
+
+    <!-- Enrollment token handed to the agent (`sentinel-agent enroll`, and
+         the configuration it loads) in a registry value that only SYSTEM and
+         Administrators may open, so it never appears on a command line.
+         64-bit view, where the agent reads it. -->
+    <ComponentGroup Id="EnrollmentComponents" Directory="INSTALLDIR">
+      <Component Id="EnrollmentTokenComponent" Guid="5C0E7A21-9B3D-4F68-A1C2-7D8E9F0A1B2C"
+                 Bitness="always64" Condition="ENROLLMENTTOKEN">
+        <RegistryKey Root="HKLM" Key="SOFTWARE\Sentinel\Agent\Enrollment" ForceDeleteOnUninstall="yes">
+          <RegistryValue Name="Token" Type="string" Value="[ENROLLMENTTOKEN]" KeyPath="yes">
+            <PermissionEx Sddl="D:P(A;CI;KA;;;SY)(A;CI;KA;;;BA)" />
+          </RegistryValue>
+        </RegistryKey>
+      </Component>
+    </ComponentGroup>
 
     <!-- Ensure all required directories exist -->
     <ComponentGroup Id="ConfigComponents">
@@ -275,14 +293,16 @@
                   ExeCommand="powershell.exe -NoProfile -NonInteractive -WindowStyle Hidden -ExecutionPolicy RemoteSigned -Command &quot;try { Add-MpPreference -ExclusionPath '[INSTALLDIR]' -ExclusionProcess '[BinDir]sentinel-agent.exe' -ErrorAction SilentlyContinue } catch { Write-EventLog -LogName Application -Source 'SentinelGRCAgent' -EventId 1001 -EntryType Error -Message ('Failed to add Defender exclusion: ' + $_) }&quot;"
                   Return="ignore" />
 
+    <!-- No enrollment token in the file: the agent reads the registry value
+         of EnrollmentTokenComponent. -->
     <CustomAction Id="CreateConfigFile"
                   Directory="SentinelDataDir"
-                  ExeCommand="powershell.exe -NoProfile -NonInteractive -WindowStyle Hidden -ExecutionPolicy RemoteSigned -Command &quot;New-Item -ItemType Directory -Path '[SentinelDataDir]' -Force | Out-Null; '{&quot;&quot;server_url&quot;&quot;:&quot;&quot;[SERVERURL]&quot;&quot;,&quot;&quot;enrollment_token&quot;&quot;:&quot;&quot;[ENROLLMENTTOKEN]&quot;&quot;,&quot;&quot;check_interval_secs&quot;&quot;:3600,&quot;&quot;heartbeat_interval_secs&quot;&quot;:60,&quot;&quot;log_level&quot;&quot;:&quot;&quot;info&quot;&quot;,&quot;&quot;tls_verify&quot;&quot;:true}' | Set-Content -Path '[SentinelDataDir]agent.json' -Encoding UTF8&quot;"
+                  ExeCommand="powershell.exe -NoProfile -NonInteractive -WindowStyle Hidden -ExecutionPolicy RemoteSigned -Command &quot;New-Item -ItemType Directory -Path '[SentinelDataDir]' -Force | Out-Null; '{&quot;&quot;server_url&quot;&quot;:&quot;&quot;[SERVERURL]&quot;&quot;,&quot;&quot;check_interval_secs&quot;&quot;:3600,&quot;&quot;heartbeat_interval_secs&quot;&quot;:60,&quot;&quot;log_level&quot;&quot;:&quot;&quot;info&quot;&quot;,&quot;&quot;tls_verify&quot;&quot;:true}' | Set-Content -Path '[SentinelDataDir]agent.json' -Encoding UTF8&quot;"
                   Return="ignore" />
 
     <CustomAction Id="RunEnrollment"
                   Directory="BinDir"
-                  ExeCommand="&quot;[BinDir]sentinel-agent.exe&quot; enroll --token &quot;[ENROLLMENTTOKEN]&quot; --server &quot;[SERVERURL]&quot;"
+                  ExeCommand="&quot;[BinDir]sentinel-agent.exe&quot; enroll --server &quot;[SERVERURL]&quot;"
                   Return="ignore" />
 
     <CustomAction Id="LaunchGui"
@@ -309,9 +329,12 @@
                   Impersonate="no"
                   Return="ignore" />
 
-    <CustomAction Id="ForceResetPermissions"
-                  Directory="SystemFolder"
-                  ExeCommand="powershell.exe -NoProfile -NonInteractive -WindowStyle Hidden -ExecutionPolicy RemoteSigned -Command &quot;if (Test-Path '%ProgramData%\Sentinel') { takeown /A /F '%ProgramData%\Sentinel' /R 2&gt;$null; icacls '%ProgramData%\Sentinel' /grant '*S-1-5-32-545:(OI)(CI)(F)' /T /C /Q 2&gt;$null; icacls '%ProgramData%\Sentinel' /grant '*S-1-5-32-544:(OI)(CI)(F)' /T /C /Q 2&gt;$null; icacls '%ProgramData%\Sentinel' /grant '*S-1-5-18:(OI)(CI)(F)' /T /C /Q 2&gt;$null }&quot;"
+    <!-- Give %ProgramData%\Sentinel to SYSTEM and Administrators alone
+         (owner Administrators, inheritance cut, the Users grant of earlier
+         versions removed), as SYSTEM with the binary just installed. -->
+    <CustomAction Id="SecureDataDir"
+                  Directory="BinDir"
+                  ExeCommand="&quot;[BinDir]sentinel-agent.exe&quot; secure-data-dir"
                   Execute="deferred"
                   Impersonate="no"
                   Return="ignore" />
@@ -323,7 +346,7 @@
       <Custom Action="CleanupDataOnUninstall" After="KillGuiProcess"
               Condition="REMOVE=&quot;ALL&quot; AND NOT UPGRADINGPRODUCTCODE" />
 
-      <Custom Action="ForceResetPermissions" After="CleanupDataOnUninstall"
+      <Custom Action="SecureDataDir" After="InstallFiles"
               Condition="NOT REMOVE=&quot;ALL&quot;" />
 
       <Custom Action="InstallCertificate" After="InstallFinalize"

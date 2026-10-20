@@ -76,6 +76,11 @@ ignore = [
     # Neither parses data an attacker controls.
     "RUSTSEC-2026-0194", # quick-xml quadratic duplicate-attribute check
     "RUSTSEC-2026-0195", # quick-xml unbounded namespace allocation
+    # webpki-roots 0.26.11 is a semver shim that re-exports TLS_SERVER_ROOTS
+    # from webpki-roots 1, locked at 1.0.10 (emSign ECC Root CA - G3 removed);
+    # it carries no certificates of its own. Pulled by ureq 2 <- hf-hub <-
+    # mistralrs (agent_llm). The advisory matches the shim's version number.
+    "RUSTSEC-2026-0381", # webpki-roots 0.26.11 shim, roots from 1.0.10
 ]
 
 # ============================================================================

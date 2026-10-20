@@ -36,6 +36,8 @@ pub mod process;
 pub mod sensitive_filter;
 pub mod types;
 pub mod webhook;
+#[cfg(windows)]
+pub mod windows_acl;
 
 // Re-export commonly used items at crate root
 pub use config::AgentConfig;

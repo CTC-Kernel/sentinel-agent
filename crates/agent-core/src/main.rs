@@ -40,6 +40,11 @@ struct Cli {
     #[arg(long, hide = true)]
     service: bool,
 
+    /// Started again with administrator rights after asking for them
+    /// (Windows desktop app, internal use)
+    #[arg(long, hide = true)]
+    elevated_relaunch: bool,
+
     /// Configuration file path
     #[arg(short, long)]
     config: Option<String>,
@@ -61,6 +66,8 @@ enum Commands {
         /// Passing the token on the command line exposes it to other local
         /// users via the process list; prefer the SENTINEL_ENROLLMENT_TOKEN
         /// environment variable or the interactive prompt (omit this flag).
+        /// On Windows, the token given to the installer is used when none is
+        /// passed.
         #[arg(short, long, env = "SENTINEL_ENROLLMENT_TOKEN", hide_env_values = true)]
         token: Option<String>,
         /// Server URL (overrides config file)
@@ -99,6 +106,10 @@ enum Commands {
     /// Run the privileged helper (root): executes the firewall and isolation
     /// actions requested by the desktop app, which runs as the user.
     PrivilegedHelper,
+    /// Restrict the data directory to SYSTEM and Administrators (Windows,
+    /// run by the installer)
+    #[command(hide = true)]
+    SecureDataDir,
     /// Run in foreground mode
     Run {
         /// Run without system tray icon (headless mode for servers)
@@ -144,7 +155,7 @@ fn main() -> ExitCode {
                 f,
                 "[{}] starting, args: {:?}",
                 chrono::Local::now().format("%Y-%m-%d %H:%M:%S"),
-                std::env::args().collect::<Vec<_>>()
+                redact_token(std::env::args())
             );
         }
     }
@@ -219,6 +230,14 @@ fn main() -> ExitCode {
     #[cfg(not(feature = "gui"))]
     let gui_mode = false;
 
+    // Windows: the agent's configuration, rules and database belong to the
+    // administrators alone, so the desktop app runs elevated. Started
+    // without, it asks Windows for it.
+    #[cfg(all(windows, feature = "gui"))]
+    if gui_mode && !service::is_admin() {
+        return relaunch_elevated(cli.elevated_relaunch);
+    }
+
     // Initialize logging immediately to capture setup errors.
     // In GUI mode, logging is deferred to run_with_gui() which installs
     // the tracing subscriber with the GUI terminal bridge and connects
@@ -232,7 +251,10 @@ fn main() -> ExitCode {
     // Handle subcommands
     match cli.command {
         Some(Commands::Enroll { token, server }) => {
-            let token = match token.or_else(prompt_enrollment_token) {
+            let token = match token
+                .or_else(AgentConfig::installer_enrollment_token)
+                .or_else(prompt_enrollment_token)
+            {
                 Some(t) => t,
                 None => {
                     error!(
@@ -252,6 +274,7 @@ fn main() -> ExitCode {
         Some(Commands::Status) => handle_status(),
         Some(Commands::Inventory) => handle_inventory(),
         Some(Commands::PrivilegedHelper) => handle_privileged_helper(&cli.log_level),
+        Some(Commands::SecureDataDir) => handle_secure_data_dir(),
         Some(Commands::Run { no_tray }) => handle_run(cli.config, no_tray, &cli.log_level),
         None => handle_run(cli.config, false, &cli.log_level),
     }
@@ -355,6 +378,182 @@ fn wait_for_pid_exit(pid: u32, timeout: std::time::Duration) -> bool {
             return false;
         }
         std::thread::sleep(std::time::Duration::from_millis(100));
+    }
+}
+
+/// Start this executable again through the Windows elevation prompt, with
+/// the same arguments, and let this instance end. When that was already
+/// tried, the prompt was declined, or the account is not an administrator,
+/// say why the app cannot open.
+#[cfg(all(windows, feature = "gui"))]
+fn relaunch_elevated(already_relaunched: bool) -> ExitCode {
+    use windows::Win32::UI::Shell::ShellExecuteW;
+    use windows::Win32::UI::WindowsAndMessaging::SW_SHOWNORMAL;
+    use windows::core::{HSTRING, PCWSTR, w};
+
+    if !already_relaunched && let Ok(exe) = std::env::current_exe() {
+        let parameters = std::iter::once("--elevated-relaunch".to_string())
+            .chain(std::env::args().skip(1).map(|arg| quote_argument(&arg)))
+            .collect::<Vec<_>>()
+            .join(" ");
+        // SAFETY: every string is a NUL-terminated HSTRING alive for the call.
+        let started = unsafe {
+            ShellExecuteW(
+                None,
+                w!("runas"),
+                &HSTRING::from(exe.as_os_str()),
+                &HSTRING::from(parameters),
+                PCWSTR::null(),
+                SW_SHOWNORMAL,
+            )
+        };
+        // Above 32: started; otherwise declined or failed.
+        if started.0 as usize > 32 {
+            return ExitCode::SUCCESS;
+        }
+    }
+    warn!("The desktop app needs administrator rights and did not get them");
+    show_fatal_error(
+        "Sentinel Agent s'ouvre avec les droits d'administrateur : sa configuration, \
+         ses règles et sa base de données sont réservées aux administrateurs de ce poste.\n\n\
+         Ouvrez-le avec un compte administrateur et acceptez la demande d'élévation.",
+    );
+    ExitCode::FAILURE
+}
+
+/// `arg` as one argument of a Windows command line (the rules of the
+/// Microsoft C runtime, which Rust programs follow too).
+#[cfg(all(windows, feature = "gui"))]
+fn quote_argument(arg: &str) -> String {
+    if !arg.is_empty() && !arg.contains([' ', '\t', '"']) {
+        return arg.to_string();
+    }
+    let mut quoted = String::from('"');
+    let mut backslashes = 0;
+    for c in arg.chars() {
+        match c {
+            '\\' => backslashes += 1,
+            '"' => {
+                quoted.extend(std::iter::repeat_n('\\', backslashes * 2 + 1));
+                quoted.push('"');
+                backslashes = 0;
+            }
+            _ => {
+                quoted.extend(std::iter::repeat_n('\\', backslashes));
+                quoted.push(c);
+                backslashes = 0;
+            }
+        }
+    }
+    quoted.extend(std::iter::repeat_n('\\', backslashes * 2));
+    quoted.push('"');
+    quoted
+}
+
+/// The command line as the startup log keeps it: an enrollment token given
+/// with `--token` / `-t` is masked.
+#[cfg(any(windows, test))]
+fn redact_token(args: impl Iterator<Item = String>) -> Vec<String> {
+    const MASK: &str = "[REDACTED]";
+    let mut mask_next = false;
+    args.map(|arg| {
+        if std::mem::take(&mut mask_next) {
+            MASK.to_string()
+        } else if arg == "--token" || arg == "-t" {
+            mask_next = true;
+            arg
+        } else if arg.starts_with("--token=") {
+            format!("--token={MASK}")
+        } else if arg.starts_with("-t") && arg.len() > 2 && !arg.starts_with("--") {
+            format!("-t{MASK}")
+        } else {
+            arg
+        }
+    })
+    .collect()
+}
+
+/// Restrict the data directory to SYSTEM and Administrators: run by the
+/// Windows installer, which cannot rely on the service to have started.
+fn handle_secure_data_dir() -> ExitCode {
+    #[cfg(windows)]
+    {
+        match service::secure_data_directory() {
+            Ok(()) => ExitCode::SUCCESS,
+            Err(e) => {
+                error!("{}", e);
+                ExitCode::FAILURE
+            }
+        }
+    }
+    #[cfg(not(windows))]
+    {
+        error!("secure-data-dir only applies to Windows");
+        ExitCode::FAILURE
+    }
+}
+
+#[cfg(test)]
+mod redact_tests {
+    use super::redact_token;
+
+    fn redacted(args: &[&str]) -> Vec<String> {
+        redact_token(args.iter().map(|arg| arg.to_string()))
+    }
+
+    #[test]
+    fn the_enrollment_token_never_reaches_the_startup_log() {
+        assert_eq!(
+            redacted(&[
+                "agent",
+                "enroll",
+                "--token",
+                "secret",
+                "--server",
+                "https://x"
+            ]),
+            [
+                "agent",
+                "enroll",
+                "--token",
+                "[REDACTED]",
+                "--server",
+                "https://x"
+            ]
+        );
+        assert_eq!(
+            redacted(&["agent", "enroll", "-t", "secret"]),
+            ["agent", "enroll", "-t", "[REDACTED]"]
+        );
+        assert_eq!(
+            redacted(&["agent", "enroll", "--token=secret"]),
+            ["agent", "enroll", "--token=[REDACTED]"]
+        );
+        assert_eq!(
+            redacted(&["agent", "enroll", "-tsecret"]),
+            ["agent", "enroll", "-t[REDACTED]"]
+        );
+        assert_eq!(
+            redacted(&["agent", "run", "--no-tray"]),
+            ["agent", "run", "--no-tray"]
+        );
+    }
+}
+
+#[cfg(all(test, windows, feature = "gui"))]
+mod quote_tests {
+    use super::quote_argument;
+
+    #[test]
+    fn arguments_survive_the_elevated_relaunch() {
+        assert_eq!(quote_argument("run"), "run");
+        assert_eq!(quote_argument(""), "\"\"");
+        assert_eq!(
+            quote_argument(r"C:\Program Files\x"),
+            r#""C:\Program Files\x""#
+        );
+        assert_eq!(quote_argument(r#"say "hi""#), r#""say \"hi\"""#);
+        assert_eq!(quote_argument(r"dir with space\"), r#""dir with space\\""#);
     }
 }
 

@@ -1681,6 +1681,9 @@ level: high
         write(&dir.path().join("dns.yml"), "  category: dns_query\n");
         std::fs::write(dir.path().join("broken.yml"), "title: [").unwrap();
         std::fs::write(dir.path().join("notes.txt"), "not a rule").unwrap();
+        // Only administrators may write the directory, as in the agent's.
+        #[cfg(windows)]
+        agent_common::windows_acl::secure_data_dir(dir.path()).unwrap();
 
         let (engine, report) = SigmaEngine::load_dir(dir.path());
         assert_eq!(engine.rule_count(), 2);

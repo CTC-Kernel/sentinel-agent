@@ -27,9 +27,9 @@
 //! privileges must not. A playbook can therefore only *name* a command: what
 //! runs is what the local configuration declares, nothing a playbook
 //! carries is ever executed or passed as an argument. The program is given
-//! by absolute path and run without a shell; on Unix it is refused unless
-//! it belongs to root or to the agent's account and nobody else may write
-//! to it.
+//! by absolute path and run without a shell; it is refused unless it belongs
+//! to root or to the agent's account (on Windows: SYSTEM, Administrators or
+//! TrustedInstaller) and nobody else may write to it.
 
 use agent_common::config::ResponseCommandConfig;
 use agent_common::error::CommonError;
@@ -79,7 +79,15 @@ pub(crate) fn untrusted(program: &std::path::Path) -> Option<String> {
     None
 }
 
-#[cfg(not(unix))]
+#[cfg(windows)]
+pub(crate) fn untrusted(program: &std::path::Path) -> Option<String> {
+    if !program.is_file() {
+        return Some("is not a file".to_string());
+    }
+    agent_common::windows_acl::untrusted(program)
+}
+
+#[cfg(not(any(unix, windows)))]
 pub(crate) fn untrusted(program: &std::path::Path) -> Option<String> {
     (!program.is_file()).then(|| "is not a file".to_string())
 }
@@ -92,8 +100,9 @@ pub fn declaration_error(command: &ResponseCommandConfig) -> Option<String> {
 /// Why a program the configuration declares under `name` may not be run by
 /// the agent, when it may not: the name is made of lower-case letters,
 /// digits, `-` and `_`, the program is given by absolute path, owned by root
-/// or the agent's account, and writable by nobody else. The same rules for
-/// the response commands and the watched commands.
+/// or the agent's account (on Windows: SYSTEM, Administrators or
+/// TrustedInstaller), and writable by nobody else. The same rules for the
+/// response commands and the watched commands.
 pub fn program_error(name: &str, program: &str) -> Option<String> {
     if !is_command_name(name) {
         return Some(format!(

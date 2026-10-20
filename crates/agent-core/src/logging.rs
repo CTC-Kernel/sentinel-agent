@@ -288,8 +288,8 @@ fn restrict_dir_permissions(dir: &std::path::Path) {
     }
     #[cfg(not(unix))]
     {
-        // On Windows, C:\ProgramData ACLs already restrict write access to
-        // administrators; inherited ACLs are acceptable for log files.
+        // On Windows the logs inherit the data directory's rules: SYSTEM
+        // and Administrators only (`service::secure_data_directory`).
         let _ = dir;
     }
 }
