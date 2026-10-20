@@ -35,7 +35,8 @@
 
     <!-- Custom properties for configuration -->
     <Property Id="SERVERURL" Value="https://YOUR_REGION-YOUR_FIREBASE_PROJECT_ID.cloudfunctions.net/agentApi" />
-    <!-- Hidden: the token's value is kept out of the installer log. -->
+    <!-- Hidden: masked in the installer log's property list and command
+         line (a verbose log still shows the data of the registry write). -->
     <Property Id="ENROLLMENTTOKEN" Secure="yes" Hidden="yes" />
 
     <!-- UI Extension for custom dialogs -->

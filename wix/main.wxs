@@ -54,7 +54,8 @@
     <?else?>
     <Property Id="SERVERURL" Value="https://agentapi-your-project-hash.a.run.app" />
     <?endif?>
-    <!-- Hidden: the token's value is kept out of the installer log. -->
+    <!-- Hidden: masked in the installer log's property list and command
+         line (a verbose log still shows the data of the registry write). -->
     <Property Id="ENROLLMENTTOKEN" Secure="yes" Hidden="yes" />
     <!-- PLATFORM: enrol and sync with a Sentinel GRC platform.
          STANDALONE: local protection only, nothing leaves the endpoint. -->

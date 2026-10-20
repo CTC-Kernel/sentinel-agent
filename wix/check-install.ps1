@@ -6,7 +6,8 @@
 #     of earlier versions is gone, and a rule file a standard user wrote stays
 #     theirs (so the agent refuses it);
 #   - the enrollment token: in a registry value only SYSTEM and Administrators
-#     may open, neither in agent.json nor in the installer's log.
+#     may open, not in agent.json, and in the installer's verbose log only
+#     where Windows Installer writes that registry value out.
 # Must run elevated. Changes the machine: never run it on a real one.
 
 param(
@@ -99,7 +100,14 @@ if (-not (Test-Path $key)) {
 }
 $leaks = @(Select-String -Path $log -SimpleMatch $token)
 foreach ($leak in $leaks) {
-    Fail "the token is in the installer log, line $($leak.LineNumber): $($leak.Line.Replace($token, '<token>'))"
+    $line = $leak.Line.Replace($token, '<token>')
+    # A verbose log (/l*v) shows the data of every registry write, hidden
+    # property or not: the one place the token is expected.
+    if ($line -match 'Executing op: RegAddValue\(Name=Token,Value=<token>,\)') {
+        Write-Host "Expected: the verbose log shows the registry write, line $($leak.LineNumber)"
+        continue
+    }
+    Fail "the token is in the installer log, line $($leak.LineNumber): $line"
 }
 $startup = Join-Path $data 'logs\startup.log'
 if ((Test-Path $startup) -and (Select-String -Path $startup -SimpleMatch $token -Quiet)) {
