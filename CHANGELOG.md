@@ -10,6 +10,34 @@ Tous les changements notables apportés au projet **Sentinel GRC Agent** sont co
 
 ## 🚀 [Non publié]
 
+### 🔒 Socket des actions privilégiées : un client non vérifié est refusé
+
+- **Refus par défaut** : le service d'assistance root n'exécute plus que les
+  demandes de root ou de l'application Sentinel identifiée avec certitude. Un
+  client dont le système ne donnait pas le programme (processus déjà terminé,
+  exécutable remplacé par une mise à jour, information indisponible) était
+  servi ; il est refusé, et le refus journalisé avec la demande.
+- **Une identité que la réutilisation d'un PID ne trompe pas** : sous macOS,
+  le client est désigné par le jeton d'audit du socket (`LOCAL_PEERTOKEN`),
+  qui change à chaque `exec`, et son code doit satisfaire l'exigence de
+  signature du service lui-même. Sous Linux, par un pidfd (`SO_PEERPIDFD`
+  depuis Linux 6.5, `pidfd_open` avant), qui confirme que ce qui est lu dans
+  `/proc` porte sur ce processus.
+- **Défi par connexion** : une fois le client identifié, le service lui envoie
+  un défi aléatoire que la demande doit reprendre, et le client doit être le
+  même processus, avec le même programme, une fois la demande lue. Le
+  protocole change : une application de bureau restée ouverte pendant la mise
+  à jour doit être relancée.
+- **Linux** : le service d'assistance reçoit `CAP_SYS_PTRACE`, sans lequel il
+  ne pouvait pas lire le programme d'un client d'un autre utilisateur, ni donc
+  le vérifier.
+- **Limites** : sous Linux, la vérification reste faillible face à un
+  programme du même utilisateur (bibliothèque chargée dans l'exécutable
+  Sentinel, processus qui partage la connexion) et, avant Linux 6.5, face à
+  un PID réutilisé entre la connexion et son examen ; le groupe du socket y
+  reste la barrière principale. Le profil AppArmor livré n'autorise toujours
+  ni capacités ni `ptrace` (voir plus bas).
+
 ### 🛰️ Inventaire du poste envoyé à la plateforme
 
 - **L'inventaire quitte le poste**, comme le syscollector de Wazuh remonte au
