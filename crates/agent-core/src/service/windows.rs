@@ -125,10 +125,9 @@ fn run_service(_arguments: Vec<OsString>) -> windows_service::Result<()> {
             AgentConfig::default()
         });
 
-        // Ensure the Sentinel directory structure exists with correct permissions
-        // for both Service (SYSTEM) and GUI (Users) access.
+        // Only SYSTEM and Administrators may write the data directory.
         // MUST BE DONE BEFORE KeyManager or Database initialization!
-        if let Err(e) = ensure_sentinel_directories_with_acls() {
+        if let Err(e) = secure_data_directory() {
             warn!(
                 "Failed to set directory ACLs, but will attempt to proceed: {}",
                 e
@@ -272,63 +271,38 @@ fn run_service(_arguments: Vec<OsString>) -> windows_service::Result<()> {
     Ok(())
 }
 
-/// Ensure the Sentinel directory structure exists in ProgramData with
-/// permissions that allow both the service and the GUI group access.
-fn ensure_sentinel_directories_with_acls() -> ServiceResult<()> {
-    let base_dir = r"C:\ProgramData\Sentinel";
-    let sub_dirs = ["data", "logs", "cache", "backups"];
-
-    // 1. Create the base directory if it doesn't exist
-    if !std::path::Path::new(base_dir).exists() {
-        std::fs::create_dir_all(base_dir).map_err(|e| {
-            ServiceError::System(format!(
-                "Failed to create base directory {}: {}",
-                base_dir, e
-            ))
+/// Create the data directory (`%ProgramData%\Sentinel`) and its
+/// subdirectories, and give them to SYSTEM and the Administrators group alone:
+/// it holds the configuration, the encryption key and database, and rules
+/// the service loads and runs as LocalSystem. Removes what earlier versions
+/// granted to every local user. Run by the service on every start and by the
+/// installer (`sentinel-agent secure-data-dir`).
+pub fn secure_data_directory() -> ServiceResult<()> {
+    let base_dir = agent_common::windows_acl::data_dir();
+    for sub in ["data", "logs", "cache", "backups"] {
+        let path = base_dir.join(sub);
+        std::fs::create_dir_all(&path).map_err(|e| {
+            ServiceError::System(format!("Failed to create {}: {}", path.display(), e))
         })?;
-        info!("Created base directory: {}", base_dir);
     }
 
-    // 2. Set ACLs on the base directory to allow Users group to modify contents.
-    // (OI)(CI) = Object Inherit, Container Inherit
-    // (M) = Modify permissions
-    // This ensures that when the service (SYSTEM) creates subfolders/files,
-    // the regular user GUI can still read/write them.
-    let output = agent_common::process::silent_command("icacls")
-        .arg(base_dir)
-        .arg("/grant")
-        .arg("*S-1-5-32-545:(OI)(CI)(M)") // Builtin\Users SID
-        .arg("/T") // Apply recursively to existing files
-        .arg("/C") // Continue on errors
-        .arg("/Q") // Quiet
-        .output()
-        .map_err(|e| ServiceError::System(format!("Failed to execute icacls: {}", e)))?;
-
-    if !output.status.success() {
-        let err = String::from_utf8_lossy(&output.stderr);
+    let report = agent_common::windows_acl::secure_data_dir(&base_dir).map_err(|e| {
+        ServiceError::System(format!("Failed to secure {}: {}", base_dir.display(), e))
+    })?;
+    info!(
+        "{} restricted to SYSTEM and Administrators ({} entries below)",
+        base_dir.display(),
+        report.secured
+    );
+    for link in &report.links {
         warn!(
-            "icacls failed with error: {}. GUI may have permission issues.",
-            err
+            "{} is a link or a junction: neither followed nor changed",
+            link.display()
         );
-    } else {
-        info!("Successfully updated ACLs for {}", base_dir);
     }
-
-    // 3. Create subdirectories
-    for sub in sub_dirs {
-        let path = std::path::Path::new(base_dir).join(sub);
-        if !path.exists() {
-            std::fs::create_dir_all(&path).map_err(|e| {
-                ServiceError::System(format!(
-                    "Failed to create subdirectory {}: {}",
-                    path.display(),
-                    e
-                ))
-            })?;
-            debug!("Created subdirectory: {}", path.display());
-        }
+    for error in &report.errors {
+        warn!("Could not restrict {}", error);
     }
-
     Ok(())
 }
 

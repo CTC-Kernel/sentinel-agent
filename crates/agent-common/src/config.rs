@@ -562,6 +562,58 @@ fn default_db_path() -> String {
     }
 }
 
+/// The `Token` value of `HKLM\SOFTWARE\Sentinel\Agent\Enrollment`, in the
+/// 64-bit view whatever the installer's own bitness.
+#[cfg(windows)]
+fn read_installer_token() -> Option<String> {
+    use windows::Win32::Foundation::ERROR_SUCCESS;
+    use windows::Win32::System::Registry::{
+        HKEY_LOCAL_MACHINE, RRF_RT_REG_SZ, RRF_SUBKEY_WOW6464KEY, RegGetValueW,
+    };
+    use windows::core::w;
+    use zeroize::Zeroize;
+
+    let key = w!(r"SOFTWARE\Sentinel\Agent\Enrollment");
+    let flags = RRF_RT_REG_SZ | RRF_SUBKEY_WOW6464KEY;
+    let mut size = 0u32;
+    // SAFETY: a size query, no buffer.
+    let status = unsafe {
+        RegGetValueW(
+            HKEY_LOCAL_MACHINE,
+            key,
+            w!("Token"),
+            flags,
+            None,
+            None,
+            Some(&mut size),
+        )
+    };
+    if status != ERROR_SUCCESS || size == 0 {
+        return None;
+    }
+    let mut buffer = vec![0u16; (size as usize).div_ceil(2)];
+    let mut size = (buffer.len() * 2) as u32;
+    // SAFETY: `size` is the buffer's length in bytes.
+    let status = unsafe {
+        RegGetValueW(
+            HKEY_LOCAL_MACHINE,
+            key,
+            w!("Token"),
+            flags,
+            None,
+            Some(buffer.as_mut_ptr().cast()),
+            Some(&mut size),
+        )
+    };
+    let token = (status == ERROR_SUCCESS).then(|| {
+        let text = &buffer[..(size as usize / 2).min(buffer.len())];
+        let end = text.iter().position(|&c| c == 0).unwrap_or(text.len());
+        String::from_utf16_lossy(&text[..end]).trim().to_string()
+    });
+    buffer.zeroize();
+    token.filter(|token| !token.is_empty())
+}
+
 fn default_tls_verify() -> bool {
     true
 }
@@ -679,12 +731,36 @@ impl AgentConfig {
         // Build and deserialize
         let settings = builder.build().map_err(config_error_to_common)?;
 
-        let config: AgentConfig = settings.try_deserialize().map_err(config_error_to_common)?;
+        let mut config: AgentConfig = settings.try_deserialize().map_err(config_error_to_common)?;
 
         // Validate the loaded configuration
         config.validate()?;
 
+        // The platform configuration: the token the installer was given
+        // counts as written in the file.
+        if custom_path.is_none() && config.enrollment_token.is_none() {
+            config.enrollment_token = Self::installer_enrollment_token();
+        }
+
         Ok(config)
+    }
+
+    /// The enrollment token given to the Windows installer, if any.
+    ///
+    /// The installer leaves it in a registry value only SYSTEM and the
+    /// Administrators group may open (value `Token` of
+    /// `HKLM\SOFTWARE\Sentinel\Agent\Enrollment`) rather than pass it on a
+    /// command line, where process auditing and installer logs would record
+    /// it. Elsewhere, and for an account that may not read it, there is none.
+    pub fn installer_enrollment_token() -> Option<String> {
+        #[cfg(windows)]
+        {
+            read_installer_token()
+        }
+        #[cfg(not(windows))]
+        {
+            None
+        }
     }
 
     /// Find the configuration file path based on platform.

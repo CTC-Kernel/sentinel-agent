@@ -637,6 +637,9 @@ mod tests {
         ] {
             coverage.services.insert(service.to_string());
         }
+        // Only administrators may write the directory, as in the agent's.
+        #[cfg(windows)]
+        agent_common::windows_acl::secure_data_dir(dir.path()).unwrap();
         let (loaded, engine) = sigma_logs::load_for(dir.path(), &coverage, product);
         assert!(
             loaded.report.errors.is_empty(),

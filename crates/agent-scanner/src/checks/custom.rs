@@ -589,7 +589,8 @@ pub fn parse_checks(document: &str) -> (Vec<CustomCheck>, Vec<String>) {
 }
 
 /// Whether a check file (or its directory) can be trusted: owned by root or
-/// by the agent's user, and writable by nobody else.
+/// by the agent's user, and writable by nobody else. On Windows: owned by
+/// SYSTEM, Administrators or TrustedInstaller, and writable by nobody else.
 #[cfg(unix)]
 pub(crate) fn is_trusted(path: &Path) -> Result<(), String> {
     use std::os::unix::fs::MetadataExt;
@@ -608,7 +609,19 @@ pub(crate) fn is_trusted(path: &Path) -> Result<(), String> {
     Ok(())
 }
 
-#[cfg(not(unix))]
+#[cfg(windows)]
+pub(crate) fn is_trusted(path: &Path) -> Result<(), String> {
+    let metadata = std::fs::symlink_metadata(path).map_err(|e| e.to_string())?;
+    if metadata.file_type().is_symlink() {
+        return Err("is a symbolic link".to_string());
+    }
+    match agent_common::windows_acl::untrusted(path) {
+        Some(reason) => Err(reason),
+        None => Ok(()),
+    }
+}
+
+#[cfg(not(any(unix, windows)))]
 pub(crate) fn is_trusted(path: &Path) -> Result<(), String> {
     let metadata = std::fs::symlink_metadata(path).map_err(|e| e.to_string())?;
     if metadata.file_type().is_symlink() {
@@ -1083,6 +1096,9 @@ mod tests {
         write_checks(dir.path(), "c.toml", "custom_first");
         write_checks(dir.path(), "notes.txt", "custom_ignored");
         std::fs::write(dir.path().join("d.toml"), "not toml").unwrap();
+        // Only administrators may write the directory, as in the agent's.
+        #[cfg(windows)]
+        agent_common::windows_acl::secure_data_dir(dir.path()).unwrap();
 
         let mut registry = CheckRegistry::new();
         let report = register_custom_checks(&mut registry, dir.path());
