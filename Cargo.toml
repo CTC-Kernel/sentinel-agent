@@ -64,7 +64,7 @@ rand = "0.9"
 eframe = { version = "0.34", features = ["wgpu"] }
 egui = "0.34"
 egui_extras = { version = "0.34", features = ["image"] }
-egui_plot = "0.35"
+egui_plot = "0.36"
 # Offscreen rendering of the GUI preview harness (agent-gui dev-dependency).
 egui_kittest = { version = "0.34", features = ["wgpu", "eframe"] }
 pollster = "0.4"
