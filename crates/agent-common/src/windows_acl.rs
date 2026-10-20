@@ -708,15 +708,20 @@ mod tests {
         })
     }
 
+    /// `link` and `target` with `\` only: `cmd` reads a `/` as a switch.
     fn mklink_junction(link: &Path, target: &Path) {
-        let status = std::process::Command::new("cmd")
+        let output = std::process::Command::new("cmd")
             .args(["/C", "mklink", "/J"])
             .arg(link)
             .arg(target)
             .output()
-            .unwrap()
-            .status;
-        assert!(status.success(), "mklink /J failed");
+            .unwrap();
+        assert!(
+            output.status.success(),
+            "mklink /J failed: {}{}",
+            String::from_utf8_lossy(&output.stdout),
+            String::from_utf8_lossy(&output.stderr)
+        );
     }
 
     #[test]
@@ -848,7 +853,7 @@ mod tests {
             sddl_of(&outside.join("inner")),
             sddl_of(&outside.join("inner/file")),
         ];
-        mklink_junction(&root.join("cache/link"), &outside);
+        mklink_junction(&root.join("cache").join("link"), &outside);
 
         let report = secure_data_dir(&root).unwrap();
 
