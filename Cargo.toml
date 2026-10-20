@@ -60,6 +60,10 @@ rustls = { version = "0.23", features = ["ring"] }
 tokio-rustls = "0.26"
 ring = "0.17"
 rustls-platform-verifier = "0.6"
+# macOS code signing: the privileged helper checks the signature of its
+# clients. Already in the tree through rustls-platform-verifier.
+security-framework = "3"
+core-foundation = "0.10"
 rand = "0.10"
 eframe = { version = "0.34", features = ["wgpu"] }
 egui = "0.34"

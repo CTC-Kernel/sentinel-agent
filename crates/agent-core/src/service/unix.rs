@@ -112,7 +112,10 @@ ProtectSystem=strict
 ProtectHome=true
 PrivateTmp=true
 NoNewPrivileges=true
-CapabilityBoundingSet=CAP_NET_ADMIN CAP_NET_RAW CAP_CHOWN CAP_FOWNER CAP_DAC_OVERRIDE
+# CAP_SYS_PTRACE: to read which program a client of the socket runs
+# (/proc/<pid>/exe) when it belongs to another user. Without it no client
+# can be verified, and the helper refuses them all.
+CapabilityBoundingSet=CAP_NET_ADMIN CAP_NET_RAW CAP_CHOWN CAP_FOWNER CAP_DAC_OVERRIDE CAP_SYS_PTRACE
 RestrictSUIDSGID=true
 LockPersonality=true
 

@@ -105,6 +105,10 @@ winres = "0.1"
 [target.'cfg(unix)'.dependencies]
 libc = { workspace = true }
 
+[target.'cfg(target_os = "macos")'.dependencies]
+security-framework.workspace = true
+core-foundation.workspace = true
+
 [package.metadata.generate-rpm]
 name = "sentinel-agent"
 assets = [
