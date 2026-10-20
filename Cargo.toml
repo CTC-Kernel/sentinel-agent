@@ -64,7 +64,7 @@ rustls-platform-verifier = "0.6"
 # clients. Already in the tree through rustls-platform-verifier.
 security-framework = "3"
 core-foundation = "0.10"
-rand = "0.9"
+rand = "0.10"
 eframe = { version = "0.34", features = ["wgpu"] }
 egui = "0.34"
 egui_extras = { version = "0.34", features = ["image"] }
