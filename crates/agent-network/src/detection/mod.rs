@@ -29,8 +29,12 @@ pub use miner_detector::MinerDetector;
 pub use port_scanner::PortScanner;
 pub use rules::{DetectionRules, IocType};
 
+use crate::collector::ObservedName;
 use crate::error::NetworkResult;
-use crate::types::{NetworkConnection, NetworkSecurityAlert, ThreatIntelligence};
+use crate::types::{
+    AlertSeverity, ConnectionState, NetworkAlertType, NetworkConnection, NetworkSecurityAlert,
+    ThreatIntelligence,
+};
 use tracing::{debug, info};
 
 /// Main security detector that orchestrates all detection modules.
@@ -128,6 +132,58 @@ impl SecurityDetector {
         Ok(alerts)
     }
 
+    /// Analyze the host names the machine resolved.
+    ///
+    /// The connections only carry addresses, so nothing that goes by name
+    /// could ever match on them: generated domains (DGA), mining pools and
+    /// the malicious domains of the threat intelligence are looked for
+    /// here. An established connection to one of the addresses of a name,
+    /// when there is one, is attached to the alert: it names the process.
+    pub fn analyze_names(
+        &self,
+        names: &[ObservedName],
+        connections: &[NetworkConnection],
+    ) -> Vec<NetworkSecurityAlert> {
+        let my_pid = std::process::id();
+        let mut alerts = Vec::new();
+        for observed in names {
+            let conn = connections.iter().find(|conn| {
+                conn.state == ConnectionState::Established
+                    && conn.pid != Some(my_pid)
+                    && conn
+                        .remote_address
+                        .as_ref()
+                        .is_some_and(|remote| observed.addresses.contains(remote))
+            });
+            let name = observed.name.as_str();
+            if self.rules.is_mining_pool(name) {
+                alerts.push(name_alert(
+                    NetworkAlertType::CryptoMining,
+                    "Pool de minage",
+                    "un pool de minage de cryptomonnaie connu",
+                    "known_mining_pool",
+                    format!("pool:{name}"),
+                    observed,
+                    conn,
+                ));
+            } else if self.rules.is_malicious_domain(name) {
+                alerts.push(name_alert(
+                    NetworkAlertType::MaliciousDestination,
+                    "Domaine malveillant",
+                    "un domaine malveillant connu du renseignement sur les menaces",
+                    "known_malicious_domain",
+                    format!("domain:{name}"),
+                    observed,
+                    conn,
+                ));
+            } else if let Some(alert) = self.dga_detector.analyze_name(name, conn) {
+                alerts.push(alert);
+            }
+        }
+        alerts.sort_by_key(|a| std::cmp::Reverse(a.severity));
+        alerts
+    }
+
     /// Get the current detection rules.
     pub fn rules(&self) -> &DetectionRules {
         &self.rules
@@ -141,6 +197,56 @@ impl SecurityDetector {
     /// Get mutable access to the beaconing detector for recording connections.
     pub fn beaconing_detector_mut(&mut self) -> &mut BeaconingDetector {
         &mut self.beaconing_detector
+    }
+}
+
+/// Alert for a name known to the rules. Without a connection the name was
+/// resolved, not necessarily reached: the alert says so and is one notch
+/// less certain.
+fn name_alert(
+    alert_type: NetworkAlertType,
+    what: &str,
+    known_as: &str,
+    reason: &str,
+    ioc: String,
+    observed: &ObservedName,
+    conn: Option<&NetworkConnection>,
+) -> NetworkSecurityAlert {
+    let name = &observed.name;
+    let description = match conn {
+        Some(conn) => format!(
+            "Connexion active vers « {name} » ({}), {known_as}. Processus : {}.",
+            conn.remote_address.as_deref().unwrap_or("adresse inconnue"),
+            conn.process_name.as_deref().unwrap_or("inconnu")
+        ),
+        None => format!(
+            "Ce poste a r\u{e9}solu « {name} », {known_as}. Aucune connexion active vers ses adresses n'a \u{e9}t\u{e9} vue au moment de l'analyse."
+        ),
+    };
+    NetworkSecurityAlert {
+        alert_type,
+        severity: if conn.is_some() {
+            AlertSeverity::High
+        } else {
+            AlertSeverity::Medium
+        },
+        // The name is in the title: it is what tells two such alerts apart
+        // when no connection does.
+        title: format!("{what} : {name}"),
+        description,
+        connection: conn.cloned(),
+        evidence: serde_json::json!({
+            "domain": name,
+            "resolved_addresses": observed.addresses,
+            "source": "dns_cache",
+            "process_name": conn.and_then(|c| c.process_name.clone()),
+            "process_path": conn.and_then(|c| c.process_path.clone()),
+            "pid": conn.and_then(|c| c.pid),
+            "detection_reason": reason,
+        }),
+        confidence: if conn.is_some() { 95 } else { 80 },
+        detected_at: chrono::Utc::now(),
+        iocs_matched: vec![ioc],
     }
 }
 
