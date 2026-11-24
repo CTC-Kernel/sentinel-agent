@@ -6,6 +6,7 @@
 pub(crate) mod about;
 mod assets;
 mod audit_trail;
+mod block_confirm;
 pub mod cartography;
 mod compliance;
 mod dashboard;

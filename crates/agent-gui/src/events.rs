@@ -123,6 +123,13 @@ pub enum AgentEvent {
         /// Exploitation feeds used to prioritise them (`None`: not consulted).
         exploit_intel: Option<crate::dto::GuiExploitIntelStatus>,
     },
+    /// CVE coverage of each source of installed software, from the last
+    /// vulnerability scan.
+    VulnerabilityCoverage {
+        /// One entry per source; those not covered have no finding because
+        /// they were not looked at.
+        coverage: Vec<crate::dto::GuiCveCoverage>,
+    },
     /// A tracing log event captured for the terminal view.
     TerminalLog {
         /// The captured log entry.
@@ -151,6 +158,12 @@ pub enum AgentEvent {
     UsbEvent {
         /// The USB event.
         event: crate::dto::GuiUsbEvent,
+    },
+    /// What the agent does about USB mass storage on this host: blocking,
+    /// ejecting, or detecting only.
+    UsbProtection {
+        /// The mode in force and what it means here.
+        protection: crate::dto::UsbProtection,
     },
     /// Suspicious process detected.
     SuspiciousProcess {
@@ -398,6 +411,20 @@ pub enum AgentEvent {
         /// The quarantined file entry.
         entry: crate::dto::QuarantinedFile,
     },
+    /// What the quarantine store holds, read from disk: replaces the list
+    /// shown, so files quarantined by a playbook or before this run appear
+    /// and files restored leave.
+    QuarantineLoaded {
+        /// Every file currently in quarantine, most recent first.
+        entries: Vec<crate::dto::QuarantinedFile>,
+    },
+    /// The last entries of the persistent audit trail (what the agent
+    /// recorded in its database, this run and the previous ones), most
+    /// recent first: replaces the ones shown.
+    AuditTrailLoaded {
+        /// The entries, as rows of the audit page.
+        entries: Vec<crate::dto::GuiLogEntry>,
+    },
     /// Toggle visibility of the standalone Jarvis widget.
     ToggleJarvisWidget {
         /// Whether the widget should be visible.
@@ -516,6 +543,12 @@ pub enum GuiCommand {
     },
     /// Export audit trail to CSV.
     ExportCsvAuditTrail,
+    /// Read the last entries of the persistent audit trail and send them
+    /// as [`AgentEvent::AuditTrailLoaded`].
+    LoadAuditTrail {
+        /// How many entries, at most.
+        limit: u32,
+    },
     /// Kill a suspicious process.
     KillProcess {
         /// Process name.
@@ -533,6 +566,9 @@ pub enum GuiCommand {
         /// Quarantine entry ID.
         quarantine_id: String,
     },
+    /// Read the quarantine store again and send it as
+    /// [`AgentEvent::QuarantineLoaded`].
+    RefreshQuarantine,
     /// Block an IP address via firewall rules.
     BlockIp {
         /// IP address to block.
