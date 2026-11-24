@@ -907,6 +907,64 @@ pub struct GuiExploitIntelStatus {
     pub stale: bool,
 }
 
+/// CVE coverage of one source of installed software.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub struct GuiCveCoverage {
+    /// Name of the scanner that listed the packages.
+    pub source: String,
+    /// Packages it listed.
+    pub packages: u32,
+    /// Packages looked up in a CVE database.
+    pub cve_checked: u32,
+    /// `covered`, `partial` or `not_covered`.
+    pub status: String,
+    /// Why some or all are not covered.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub reason: Option<String>,
+}
+
+impl GuiCveCoverage {
+    /// Whether an absence of finding for this source says nothing.
+    pub fn is_gap(&self) -> bool {
+        self.status != "covered"
+    }
+
+    /// The source, as the operator knows it.
+    pub fn label(&self) -> &str {
+        match self.source.as_str() {
+            "macOS Applications" => "Applications macOS",
+            "windows" => "Programmes Windows",
+            "language-packages" => "Paquets pip, npm et cargo",
+            other => other,
+        }
+    }
+}
+
+/// The sources the CVE lookup does not (fully) cover, in one sentence;
+/// `None` when every source is covered. An absence of finding must not be
+/// read as "no vulnerability" for them.
+pub fn cve_coverage_note(coverage: &[GuiCveCoverage]) -> Option<String> {
+    let gaps: Vec<String> = coverage
+        .iter()
+        .filter(|c| c.is_gap())
+        .map(|c| {
+            let uncovered = c.packages.saturating_sub(c.cve_checked);
+            if c.status == "partial" {
+                format!("{} ({} paquets sur {})", c.label(), uncovered, c.packages)
+            } else {
+                format!("{} ({} paquets)", c.label(), c.packages)
+            }
+        })
+        .collect();
+    (!gaps.is_empty()).then(|| {
+        format!(
+            "Non couvert par la recherche de CVE\u{a0}: {}. L'absence de faille pour ces sources ne signifie pas qu'elles sont saines\u{a0}: elles ne sont pas analys\u{e9}es.",
+            gaps.join(", ")
+        )
+    })
+}
+
 /// Discovered network device for display in the Discovery and Cartography pages.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]

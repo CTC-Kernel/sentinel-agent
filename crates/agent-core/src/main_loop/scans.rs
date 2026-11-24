@@ -210,6 +210,28 @@ impl AgentRuntime {
             findings: self.build_vulnerability_findings(result),
             exploit_intel: self.build_exploit_intel_status(result),
         });
+        // Which sources the CVE lookup covers: "no finding" for the others
+        // is "not looked at".
+        self.emit_gui_event(AgentEvent::VulnerabilityCoverage {
+            coverage: result
+                .cve_coverage
+                .iter()
+                .map(|c| agent_gui::dto::GuiCveCoverage {
+                    source: c.source.clone(),
+                    packages: c.packages,
+                    cve_checked: c.cve_checked,
+                    status: match c.status {
+                        agent_scanner::vulnerability::CveCoverageStatus::Covered => "covered",
+                        agent_scanner::vulnerability::CveCoverageStatus::Partial => "partial",
+                        agent_scanner::vulnerability::CveCoverageStatus::NotCovered => {
+                            "not_covered"
+                        }
+                    }
+                    .to_string(),
+                    reason: c.reason.clone(),
+                })
+                .collect(),
+        });
         // Browser extensions are part of the software
         // inventory and refreshed with it.
         let extensions = agent_scanner::browser_extensions::installed_extensions().await;
@@ -482,6 +504,7 @@ mod tests {
             errors: Vec::new(),
             packages: Vec::new(),
             exploit_intel: None,
+            cve_coverage: Vec::new(),
         }
     }
 

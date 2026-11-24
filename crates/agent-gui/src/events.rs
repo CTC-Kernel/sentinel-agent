@@ -123,6 +123,13 @@ pub enum AgentEvent {
         /// Exploitation feeds used to prioritise them (`None`: not consulted).
         exploit_intel: Option<crate::dto::GuiExploitIntelStatus>,
     },
+    /// CVE coverage of each source of installed software, from the last
+    /// vulnerability scan.
+    VulnerabilityCoverage {
+        /// One entry per source; those not covered have no finding because
+        /// they were not looked at.
+        coverage: Vec<crate::dto::GuiCveCoverage>,
+    },
     /// A tracing log event captured for the terminal view.
     TerminalLog {
         /// The captured log entry.

@@ -1261,6 +1261,8 @@ pub struct AppState {
     pub vulnerability_findings: Vec<crate::dto::GuiVulnerabilityFinding>,
     /// Exploitation feeds (CISA KEV, EPSS) the last scan could use.
     pub vulnerability_intel: Option<crate::dto::GuiExploitIntelStatus>,
+    /// CVE coverage of each source of installed software (last scan).
+    pub vulnerability_coverage: Vec<crate::dto::GuiCveCoverage>,
     pub logs: VecDeque<crate::dto::GuiLogEntry>,
     pub toasts: Vec<crate::widgets::toast::Toast>,
     pub unread_notification_count: u32,
@@ -1329,6 +1331,7 @@ impl Default for AppState {
             vulnerability_summary: None,
             vulnerability_findings: Vec::new(),
             vulnerability_intel: None,
+            vulnerability_coverage: Vec::new(),
             logs: VecDeque::with_capacity(1000),
             toasts: Vec::new(),
             unread_notification_count: 0,
@@ -1747,6 +1750,9 @@ impl AppState {
                 self.vulnerability_intel = exploit_intel;
                 self.vulnerability.selected_vuln = None;
                 self.vulnerability.detail_open = false;
+            }
+            AgentEvent::VulnerabilityCoverage { coverage } => {
+                self.vulnerability_coverage = coverage;
             }
             AgentEvent::TerminalLog { entry } => {
                 self.add_terminal_log(entry);
@@ -2838,6 +2844,46 @@ mod block_outcome_tests {
         assert!(state.take_audit_history_refresh(1.0).is_some());
         assert!(state.take_audit_history_refresh(5.0).is_none());
         assert!(state.take_audit_history_refresh(17.0).is_some());
+    }
+
+    /// "0 vulnerability" read the same whether the software was checked
+    /// or belongs to no CVE database.
+    #[test]
+    fn sources_without_cve_lookup_are_named_as_not_covered() {
+        let covered = dto::GuiCveCoverage {
+            source: "apt".into(),
+            packages: 900,
+            cve_checked: 900,
+            status: "covered".into(),
+            reason: None,
+        };
+        assert_eq!(dto::cve_coverage_note(std::slice::from_ref(&covered)), None);
+
+        let mut state = AppState::default();
+        state.apply_event(AgentEvent::VulnerabilityCoverage {
+            coverage: vec![
+                covered,
+                dto::GuiCveCoverage {
+                    source: "Homebrew".into(),
+                    packages: 212,
+                    cve_checked: 0,
+                    status: "not_covered".into(),
+                    reason: None,
+                },
+                dto::GuiCveCoverage {
+                    source: "macOS Applications".into(),
+                    packages: 87,
+                    cve_checked: 0,
+                    status: "not_covered".into(),
+                    reason: None,
+                },
+            ],
+        });
+        let note = dto::cve_coverage_note(&state.vulnerability_coverage).expect("gaps");
+        assert!(note.starts_with("Non couvert par la recherche de CVE"));
+        assert!(note.contains("Homebrew (212 paquets)"));
+        assert!(note.contains("Applications macOS (87 paquets)"));
+        assert!(!note.contains("apt"));
     }
 
     #[test]

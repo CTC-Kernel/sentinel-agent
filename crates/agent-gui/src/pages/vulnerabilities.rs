@@ -203,6 +203,16 @@ impl VulnerabilitiesPage {
                         }),
                 );
             }
+            // Said whether or not there are findings: for these sources
+            // an empty list is not a clean bill of health.
+            if let Some(note) = crate::dto::cve_coverage_note(&state.vulnerability_coverage) {
+                ui.add_space(theme::SPACE_XS);
+                ui.label(
+                    egui::RichText::new(note)
+                        .font(theme::font_small())
+                        .color(theme::readable_color(theme::WARNING)),
+                );
+            }
             ui.add_space(theme::SPACE_MD);
 
             Self::show_findings(ui, state, &search_lower, &mut command);
