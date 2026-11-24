@@ -320,6 +320,7 @@ impl AgentRuntime {
                     ransomware_canaries: self.state.ransomware_canaries.load(Ordering::Acquire),
                     host_isolated: crate::host_isolation::is_isolated(),
                     detection: self.gui_detection_options(),
+                    connection: Some(self.gui_connection_settings()),
                 },
             });
 

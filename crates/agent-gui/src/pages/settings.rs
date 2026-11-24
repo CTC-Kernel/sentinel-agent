@@ -796,9 +796,13 @@ impl SettingsPage {
             Self::setting_row(
                 ui,
                 "Adresse du serveur",
-                &state.settings.server_url,
+                if state.settings.server_url.is_empty() {
+                    "\u{2014}"
+                } else {
+                    &state.settings.server_url
+                },
                 icons::LINK,
-                true,
+                !state.settings.server_url.is_empty(),
             );
             if let Some(ref id) = state.summary.agent_id {
                 Self::setting_row(ui, "Identifiant de l'agent", id, icons::FINGERPRINT, true);

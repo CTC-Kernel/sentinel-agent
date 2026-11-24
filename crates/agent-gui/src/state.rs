@@ -1118,7 +1118,10 @@ impl Default for SettingsState {
             active_section: 0,
             is_paused: false,
             pause_until: None,
-            server_url: agent_common::constants::DEFAULT_SERVER_URL.to_string(),
+            // Unknown until the agent reports its configuration: showing the
+            // SaaS address here told on-premise users their agent talked to
+            // the wrong platform.
+            server_url: String::new(),
             architecture_url: format!("{}/voxel", crate::pages::about::branding::CONSOLE),
             check_interval_secs: agent_common::constants::DEFAULT_CHECK_INTERVAL_SECS,
             heartbeat_interval_secs: agent_common::constants::DEFAULT_HEARTBEAT_INTERVAL_SECS,
@@ -1626,6 +1629,12 @@ impl AppState {
             AgentEvent::StatusChanged { summary } => {
                 // Preserve previous score for dashboard trend indicators
                 self.previous_compliance_score = self.summary.compliance_score;
+                // Settings › Connexion shows what the agent runs with, not
+                // the built-in defaults.
+                if let Some(connection) = &summary.connection {
+                    self.settings.server_url.clone_from(&connection.server_url);
+                    self.settings.heartbeat_interval_secs = connection.heartbeat_interval_secs;
+                }
                 self.summary = summary;
             }
             AgentEvent::CheckCompleted { result } => {
@@ -2538,6 +2547,38 @@ impl AppState {
 
         self.policy = summary;
         self.summary.policy_summary = Some(summary);
+    }
+}
+
+#[cfg(test)]
+mod connection_settings_tests {
+    use crate::{app::AppState, dto, events::AgentEvent};
+
+    /// Settings › Connexion showed the built-in SaaS address and heartbeat
+    /// interval whatever the agent was configured with.
+    #[test]
+    fn connection_settings_come_from_the_agent_not_from_defaults() {
+        let mut state = AppState::default();
+        assert!(state.settings.server_url.is_empty());
+
+        state.apply_event(AgentEvent::StatusChanged {
+            summary: dto::AgentSummary {
+                connection: Some(dto::GuiConnectionSettings {
+                    server_url: "https://grc.example.internal".into(),
+                    heartbeat_interval_secs: 240,
+                }),
+                ..Default::default()
+            },
+        });
+        assert_eq!(state.settings.server_url, "https://grc.example.internal");
+        assert_eq!(state.settings.heartbeat_interval_secs, 240);
+
+        // A summary that does not carry them leaves the known values alone.
+        state.apply_event(AgentEvent::StatusChanged {
+            summary: dto::AgentSummary::default(),
+        });
+        assert_eq!(state.settings.server_url, "https://grc.example.internal");
+        assert_eq!(state.settings.heartbeat_interval_secs, 240);
     }
 }
 

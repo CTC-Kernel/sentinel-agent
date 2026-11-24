@@ -74,6 +74,7 @@ pub fn seed(state: &mut AppState) {
         errors: 1,
         pending: 0,
     };
+    state.settings.server_url = agent_common::constants::DEFAULT_SERVER_URL.to_string();
     state.summary = AgentSummary {
         status: GuiAgentStatus::Connected,
         version: "4.0.1".into(),
@@ -95,6 +96,10 @@ pub fn seed(state: &mut AppState) {
         standalone: false,
         ransomware_canaries: false,
         host_isolated: false,
+        connection: Some(agent_gui::dto::GuiConnectionSettings {
+            server_url: agent_common::constants::DEFAULT_SERVER_URL.to_string(),
+            heartbeat_interval_secs: agent_common::constants::DEFAULT_HEARTBEAT_INTERVAL_SECS,
+        }),
         detection: agent_gui::dto::GuiDetectionOptions {
             log_analysis: true,
             rootkit_detection: true,

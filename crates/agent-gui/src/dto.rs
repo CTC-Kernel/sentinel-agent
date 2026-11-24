@@ -312,6 +312,20 @@ pub struct AgentSummary {
     /// The detection engines the agent runs.
     #[serde(default)]
     pub detection: GuiDetectionOptions,
+    /// How the agent reaches its platform, as it is configured and running.
+    /// `None` from a producer that does not know it.
+    #[serde(default)]
+    pub connection: Option<GuiConnectionSettings>,
+}
+
+/// The platform connection of the running agent, for Settings › Connexion.
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+pub struct GuiConnectionSettings {
+    /// Platform address from the loaded configuration (the SaaS address or
+    /// the one of an on-premise installation).
+    pub server_url: String,
+    /// Heartbeat interval in effect, in seconds.
+    pub heartbeat_interval_secs: u64,
 }
 
 /// A detection engine that the configuration turns on or off.
@@ -2645,6 +2659,7 @@ mod tests {
             ransomware_canaries: false,
             host_isolated: false,
             detection: GuiDetectionOptions::default(),
+            connection: None,
         };
 
         let json = serde_json::to_string(&summary).unwrap();
