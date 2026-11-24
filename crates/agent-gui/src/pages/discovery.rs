@@ -487,41 +487,13 @@ impl DiscoveryPage {
             cmd = Some(drawer_cmd);
         }
 
-        if let Some(block_cmd) = Self::confirm_block(ui, state) {
+        if let Some(block_cmd) =
+            super::block_confirm::resolve(ui, state, BLOCK_CONFIRM, "Bloquer l'\u{00e9}quipement ?")
+        {
             cmd = Some(block_cmd);
         }
 
         cmd
-    }
-
-    /// Draw the pending "block this device" confirmation and send the block
-    /// once confirmed. The toast says the request left, not that the device
-    /// is blocked: the outcome arrives with the agent's answer
-    /// (`AgentEvent::ResponseActionResult`), which is what announces it.
-    fn confirm_block(ui: &mut Ui, state: &mut AppState) -> Option<crate::events::GuiCommand> {
-        let ip = widgets::modal::pending_confirmation::<String>(ui.ctx(), BLOCK_CONFIRM)?;
-        let confirmed = widgets::modal::resolve_confirmation::<String>(
-            ui.ctx(),
-            BLOCK_CONFIRM,
-            "Bloquer l'\u{00e9}quipement ?",
-            &format!(
-                "Tout le trafic avec {ip} sera bloqu\u{00e9} sur ce poste, sans limite de dur\u{00e9}e, \
-                 jusqu'\u{00e0} un d\u{00e9}blocage manuel (Menaces \u{203a} R\u{00e9}ponse)."
-            ),
-            "Bloquer",
-        );
-        if !confirmed {
-            return None;
-        }
-        let time = ui.input(|i| i.time);
-        state.toasts.push(
-            crate::widgets::toast::Toast::info(format!("Demande de blocage envoy\u{00e9}e : {ip}"))
-                .with_time(time),
-        );
-        Some(crate::events::GuiCommand::BlockIp {
-            ip,
-            duration_secs: 0,
-        })
     }
 
     fn detail_drawer(ui: &mut Ui, state: &mut AppState) -> Option<crate::events::GuiCommand> {
@@ -660,7 +632,7 @@ impl DiscoveryPage {
             } else if action_idx == 2 {
                 // A permanent block: ask first. Nothing is sent, and nothing
                 // is announced, until the operator confirms.
-                widgets::modal::ask_confirmation(ui.ctx(), BLOCK_CONFIRM, ip.clone());
+                super::block_confirm::ask(ui.ctx(), BLOCK_CONFIRM, ip.clone());
                 state.discovery.detail_open = false;
             }
         }
