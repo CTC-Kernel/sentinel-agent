@@ -26,6 +26,9 @@ pub(crate) struct StorageMaintenance {
     pub purged: usize,
     /// Sync queue items still exhausted after this round.
     pub dead: i64,
+    /// Proofs, check results and queue entries past the retention period,
+    /// deleted.
+    pub expired: usize,
 }
 
 impl AgentRuntime {
@@ -79,6 +82,7 @@ impl AgentRuntime {
     /// Sync queue: the items an outage exhausted get their attempts back,
     /// those abandoned for longer than the retention are deleted, and what
     /// stays exhausted is counted and logged, so that it never goes unseen.
+    /// Then the retention policy, which nothing applied before.
     pub(crate) async fn run_storage_maintenance(&self) -> StorageMaintenance {
         let mut done = StorageMaintenance::default();
         let Some(db) = self.db.as_ref() else {
@@ -110,6 +114,13 @@ impl AgentRuntime {
                 }
             }
             Err(e) => warn!("Exhausted sync queue items could not be counted: {}", e),
+        }
+
+        // Retention (12 months): proofs past it, the check results they
+        // leave without any proof, and their queue entries.
+        match agent_storage::RetentionPolicy::new(db).execute().await {
+            Ok(result) => done.expired = result.total_deleted(),
+            Err(e) => warn!("Retention policy could not be applied: {}", e),
         }
 
         done
@@ -209,6 +220,42 @@ mod tests {
         assert_eq!(done.rearmed, 1);
         assert_eq!(done.purged, 0);
         assert_eq!(done.dead, 1);
+    }
+
+    #[tokio::test]
+    async fn maintenance_applies_the_retention_policy() {
+        use agent_storage::{
+            CheckResult, CheckResultsRepository, CheckStatus, Proof, ProofsRepository,
+        };
+        let test = standalone_runtime();
+        test.db
+            .with_connection(|conn| {
+                conn.execute(
+                    "INSERT INTO check_rules (id, name, category, severity, check_type, version) \
+                     VALUES ('test_rule', 'Test Rule', 'security', 'high', 'test', '1.0')",
+                    [],
+                )
+                .map_err(|e| agent_storage::StorageError::Query(e.to_string()))
+            })
+            .await
+            .unwrap();
+        let results = CheckResultsRepository::new(&test.db);
+        let proofs = ProofsRepository::new(&test.db);
+        for days_ago in [400, 1] {
+            let at = chrono::Utc::now() - chrono::Duration::days(days_ago);
+            let result = CheckResult::new("test_rule", CheckStatus::Pass).with_executed_at(at);
+            let id = results.insert(&result).await.unwrap();
+            proofs
+                .insert(&Proof::with_timestamp(id, "{}", at))
+                .await
+                .unwrap();
+        }
+
+        let done = test.runtime.run_storage_maintenance().await;
+
+        // The proof older than 12 months and the check result it belonged to.
+        assert_eq!(done.expired, 2);
+        assert_eq!(proofs.count().await.unwrap(), 1);
     }
 
     #[tokio::test]

@@ -901,16 +901,19 @@ impl<'a> SoftwareInventoryRepository<'a> {
         self.db
             .with_connection(|conn| {
                 let mut stmt = conn
-                    .prepare("SELECT * FROM software_inventory")
+                    .prepare(
+                        "SELECT id, hostname, software_name, version, vendor, install_date, \
+                         synced FROM software_inventory",
+                    )
                     .map_err(|e| StorageError::Query(format!("Failed to prepare query: {}", e)))?;
                 let rows = stmt
                     .query_map([], |row| {
                         Ok(StoredSoftwareInventory {
                             id: row.get(0)?,
-                            hostname: row.get(1)?,
+                            hostname: row.get::<_, Option<String>>(1)?.unwrap_or_default(),
                             software_name: row.get(2)?,
                             version: row.get(3)?,
-                            vendor: row.get(4)?,
+                            vendor: row.get::<_, Option<String>>(4)?.unwrap_or_default(),
                             install_date: row.get(5)?,
                             synced: row.get::<_, i32>(6)? != 0,
                         })

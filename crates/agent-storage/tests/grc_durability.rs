@@ -310,6 +310,8 @@ async fn upgrading_v9_preserves_webhook_credentials_and_format() {
     let dir = tempfile::tempdir().unwrap();
     let db = open(&dir.path().join("db"));
     db.with_connection_mut(|conn| {
+        // Back to version 9, one migration at a time.
+        agent_storage::migrations::rollback_migration(conn, 11)?;
         agent_storage::migrations::rollback_migration(conn, 10)?;
         conn.execute("INSERT INTO webhooks(id,name,url,token,events,enabled,verify_ssl,created_at,synced) VALUES ('legacy','hook','https://example.test','test-only-token','teams',1,1,'2026-09-27T00:00:00Z',1)", []).unwrap();
         agent_storage::run_migrations(conn)?;
