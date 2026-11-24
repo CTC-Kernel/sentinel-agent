@@ -70,3 +70,39 @@ pub use time_sync::TimeSyncCheck;
 pub use update_status::UpdateStatusCheck;
 pub use usb_storage::UsbStorageCheck;
 pub use windows_hardening::{SecureBootCheck, WindowsHardeningCheck};
+
+/// Parse the JSON document a probe script was asked to print.
+///
+/// A script that printed nothing readable (PowerShell blocked by policy,
+/// access denied, a crash before `ConvertTo-Json`) measured nothing. Callers
+/// used to carry on with the empty default values, which described a
+/// compliant machine: this is an error instead.
+#[cfg(any(target_os = "windows", test))]
+pub(crate) fn probe_json(probe: &str, raw: &str) -> crate::error::ScannerResult<serde_json::Value> {
+    serde_json::from_str(raw.trim()).map_err(|e| {
+        crate::error::ScannerError::CheckExecution(format!(
+            "{probe} returned no readable answer: {e}"
+        ))
+    })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::probe_json;
+    use crate::error::ScannerError;
+
+    #[test]
+    fn a_probe_without_a_readable_answer_is_an_error() {
+        for raw in ["", "Access is denied.\r\n", "{ \"Administrators\": ["] {
+            match probe_json("Test probe", raw) {
+                Err(ScannerError::CheckExecution(message)) => {
+                    assert!(message.starts_with("Test probe returned no readable answer"))
+                }
+                other => panic!("expected an execution error, got {other:?}"),
+            }
+        }
+
+        let json = probe_json("Test probe", "\r\n{ \"GuestEnabled\": false }\r\n").unwrap();
+        assert_eq!(json["GuestEnabled"], false);
+    }
+}

@@ -658,14 +658,14 @@ impl Check for PrivilegedGroupsCheck {
             // On non-Windows, check local admin groups
             let status = PrivilegedGroupsStatus {
                 directory_type: "LocalPolicy".to_string(),
-                compliant: true,
+                compliant: false,
                 total_privileged_users: 0,
                 groups: vec![],
                 issues: vec![],
             };
 
             let raw_data = serde_json::to_value(&status).unwrap_or_default();
-            Ok(CheckOutput::pass(
+            Ok(CheckOutput::not_applicable(
                 "Privileged groups check not applicable on this platform",
                 raw_data,
             ))
@@ -742,6 +742,36 @@ impl Default for LdapSecurityCheck {
     }
 }
 
+/// Whether something accepts TCP connections at the host and port of an
+/// `ldap://` or `ldaps://` URI. Any other scheme is left to the audit.
+async fn ldap_endpoint_reachable(uri: &str) -> bool {
+    let (default_port, rest) = if let Some(rest) = uri.strip_prefix("ldaps://") {
+        (636, rest)
+    } else if let Some(rest) = uri.strip_prefix("ldap://") {
+        (389, rest)
+    } else {
+        return true;
+    };
+    let authority = rest.split('/').next().unwrap_or(rest);
+    let has_port = authority
+        .rsplit_once(':')
+        .is_some_and(|(_, port)| port.parse::<u16>().is_ok());
+    let address = if has_port {
+        authority.to_string()
+    } else {
+        format!("{authority}:{default_port}")
+    };
+
+    matches!(
+        tokio::time::timeout(
+            std::time::Duration::from_secs(3),
+            tokio::net::TcpStream::connect(address),
+        )
+        .await,
+        Ok(Ok(_))
+    )
+}
+
 #[async_trait]
 impl Check for LdapSecurityCheck {
     fn definition(&self) -> &CheckDefinition {
@@ -759,7 +789,18 @@ impl Check for LdapSecurityCheck {
 
         let auditor = DirectoryAuditor::new();
 
-        match auditor.audit_ldap_server(&uri).await {
+        // The audit does not fail when nothing listens at the address: it
+        // then describes a server without TLS that does not exist. Ask
+        // first whether there is a server at all.
+        let audit = if ldap_endpoint_reachable(&uri).await {
+            auditor.audit_ldap_server(&uri).await
+        } else {
+            Err(crate::error::ScannerError::CheckExecution(format!(
+                "nothing accepts connections at {uri}"
+            )))
+        };
+
+        match audit {
             Ok(result) => {
                 let ldap_findings: Vec<&DirectoryFinding> = result
                     .findings
@@ -838,8 +879,8 @@ impl Check for LdapSecurityCheck {
             }
             Err(e) => {
                 let status = LdapSecurityStatus {
-                    compliant: true,
-                    compliance_score: 100.0,
+                    compliant: false,
+                    compliance_score: 0.0,
                     uses_tls: None,
                     tls_version: None,
                     allows_anonymous_bind: None,
@@ -850,8 +891,9 @@ impl Check for LdapSecurityCheck {
                 };
 
                 let raw_data = serde_json::to_value(&status).unwrap_or_default();
-                // If no LDAP server, consider it N/A rather than failing
-                Ok(CheckOutput::pass(
+                // No LDAP server to audit: not applicable. It used to be a
+                // pass at 100 %, for a server nobody had looked at.
+                Ok(CheckOutput::not_applicable(
                     "LDAP server not detected or not accessible",
                     raw_data,
                 ))
@@ -891,6 +933,27 @@ mod tests {
         let check = PrivilegedGroupsCheck::new();
         assert_eq!(check.definition().id, PRIVILEGED_GROUPS_CHECK_ID);
         assert_eq!(check.definition().category, CheckCategory::PrivilegedAccess);
+    }
+
+    /// A directory that is not there was reported as compliant at 100 %.
+    #[tokio::test]
+    async fn an_unreachable_ldap_server_is_not_applicable() {
+        // Port 1 on the loopback: nothing listens there.
+        let check = LdapSecurityCheck::new().with_uri("ldap://127.0.0.1:1");
+        let output = check.execute().await.unwrap();
+
+        assert!(output.is_not_applicable(), "{}", output.message);
+        assert!(!output.passed);
+        assert_eq!(output.raw_data["compliant"], false);
+    }
+
+    #[cfg(not(target_os = "windows"))]
+    #[tokio::test]
+    async fn privileged_groups_are_not_applicable_outside_windows() {
+        let output = PrivilegedGroupsCheck::new().execute().await.unwrap();
+
+        assert!(output.is_not_applicable());
+        assert!(!output.passed);
     }
 
     #[test]

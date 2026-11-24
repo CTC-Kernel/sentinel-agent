@@ -93,12 +93,28 @@ impl AutoLoginCheck {
         let raw_output = String::from_utf8_lossy(&output.stdout).to_string();
         let stderr = String::from_utf8_lossy(&output.stderr).to_string();
 
-        // If the key doesn't exist, auto-login is disabled (compliant)
+        // If the value doesn't exist, auto-login is disabled (compliant).
+        // `reg query /v` fails the same way when the key cannot be read at
+        // all, which says nothing about auto-login: tell the two apart by
+        // reading the key itself.
         if !output.status.success() {
+            let key_readable = silent_command("reg")
+                .args([
+                    "query",
+                    r"HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon",
+                ])
+                .output()
+                .is_ok_and(|o| o.status.success());
+            if !key_readable {
+                return Err(ScannerError::CheckExecution(format!(
+                    "Winlogon registry key could not be read: {}",
+                    stderr.trim()
+                )));
+            }
             return Ok(AutoLoginStatus {
                 auto_login_disabled: true,
                 auto_login_user: None,
-                detection_method: "Registry (key not found)".to_string(),
+                detection_method: "Registry (value not found)".to_string(),
                 raw_output: format!("stdout: {}\nstderr: {}", raw_output, stderr),
             });
         }
