@@ -9,7 +9,7 @@
 //! - macOS: softwareupdate
 
 use crate::check::{Check, CheckDefinitionBuilder, CheckOutput};
-#[cfg(target_os = "windows")]
+#[cfg(any(target_os = "windows", target_os = "macos"))]
 use crate::error::ScannerError;
 use crate::error::ScannerResult;
 #[cfg(target_os = "macos")]
@@ -32,6 +32,118 @@ const MAX_PENDING_DAYS: i64 = 7;
 /// Timeout for external update check commands (macOS softwareupdate, etc.).
 #[cfg(target_os = "macos")]
 const UPDATE_CMD_TIMEOUT_SECS: u64 = 30;
+
+/// What `softwareupdate --list` reported.
+#[cfg(any(target_os = "macos", test))]
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub(crate) struct SoftwareUpdateList {
+    /// Updates offered.
+    pub pending: u32,
+    /// Lines of the listing that mention security.
+    pub security: u32,
+    /// What the command printed, standard output then standard error.
+    pub raw: String,
+}
+
+/// Read the listing of `softwareupdate --list`.
+///
+/// The command writes the updates on one stream and its progress and its
+/// "No new software available." on the other, and which is which changed
+/// between macOS versions: both are read. `None` when the listing says
+/// neither that updates exist nor that there are none (no network, catalog
+/// unreachable, empty output): nothing was measured.
+#[cfg(any(target_os = "macos", test))]
+pub(crate) fn parse_softwareupdate_list(stdout: &str, stderr: &str) -> Option<SoftwareUpdateList> {
+    let raw = format!("{}\n{}", stdout, stderr);
+    let count = |keep: &dyn Fn(&str) -> bool| -> u32 {
+        raw.lines()
+            .filter(|l| keep(l))
+            .count()
+            .min(u32::MAX as usize) as u32
+    };
+
+    if raw.contains("No new software available") {
+        return Some(SoftwareUpdateList {
+            pending: 0,
+            security: 0,
+            raw,
+        });
+    }
+
+    // One entry per update: "* Label: ..." (or "* name" before macOS 10.15).
+    let pending = count(&|l| l.trim().starts_with('*') || l.contains("Label:"));
+    if pending == 0 {
+        return None;
+    }
+    let security = count(&|l| l.to_lowercase().contains("security"));
+    Some(SoftwareUpdateList {
+        pending,
+        security,
+        raw,
+    })
+}
+
+/// Ask macOS for the pending updates. An error when the command cannot be
+/// run, does not answer in time or answers nothing usable: the caller must
+/// not report a system it could not question as up to date.
+#[cfg(target_os = "macos")]
+pub(crate) async fn softwareupdate_list() -> ScannerResult<SoftwareUpdateList> {
+    let timeout_duration = std::time::Duration::from_secs(UPDATE_CMD_TIMEOUT_SECS);
+    let output = tokio::time::timeout(
+        timeout_duration,
+        silent_async_command("softwareupdate")
+            .args(["--list"])
+            .output(),
+    )
+    .await
+    .map_err(|_| {
+        warn!(
+            "softwareupdate --list timed out after {}s",
+            UPDATE_CMD_TIMEOUT_SECS
+        );
+        ScannerError::CheckExecution(format!(
+            "softwareupdate --list timed out after {}s: pending updates unknown",
+            UPDATE_CMD_TIMEOUT_SECS
+        ))
+    })?
+    .map_err(|e| {
+        warn!("softwareupdate command failed: {}", e);
+        ScannerError::CheckExecution(format!("Failed to run softwareupdate: {}", e))
+    })?;
+
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    parse_softwareupdate_list(&stdout, &stderr).ok_or_else(|| {
+        warn!(
+            "softwareupdate --list gave no usable answer ({})",
+            output.status
+        );
+        ScannerError::CheckExecution(format!(
+            "softwareupdate --list gave no usable answer ({}): pending updates unknown",
+            output.status
+        ))
+    })
+}
+
+/// Why the Windows Update search produced no count, or `None` when it did.
+/// The script catches a failed search (service stopped, no access to the
+/// update server) and reports it under `Error` without any count.
+#[cfg(any(target_os = "windows", test))]
+fn windows_search_failure(json: &serde_json::Value) -> Option<String> {
+    if json
+        .get("PendingUpdatesCount")
+        .and_then(|v| v.as_u64())
+        .is_some()
+    {
+        return None;
+    }
+    Some(
+        json.get("Error")
+            .and_then(|v| v.as_str())
+            .unwrap_or("the update search returned no count")
+            .to_string(),
+    )
+}
 
 /// System updates status.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -179,6 +291,21 @@ impl SystemUpdatesCheck {
             .map_err(|e| ScannerError::CheckExecution(format!("Failed to run PowerShell: {}", e)))?;
 
         let raw_output = String::from_utf8_lossy(&output.stdout).to_string();
+
+        // No readable answer, or a search that failed: the pending updates
+        // are unknown, which is not "none pending".
+        let answer = serde_json::from_str::<serde_json::Value>(&raw_output).map_err(|e| {
+            ScannerError::CheckExecution(format!(
+                "Windows Update status could not be read ({}): {}",
+                output.status, e
+            ))
+        })?;
+        if let Some(reason) = windows_search_failure(&answer) {
+            return Err(ScannerError::CheckExecution(format!(
+                "Windows Update search failed: {}",
+                reason
+            )));
+        }
 
         let mut status = SystemUpdatesStatus {
             up_to_date: true,
@@ -481,66 +608,16 @@ impl SystemUpdatesCheck {
             raw_output: String::new(),
         };
 
-        // List available updates (with timeout — softwareupdate can be very slow)
-        let timeout_duration = std::time::Duration::from_secs(UPDATE_CMD_TIMEOUT_SECS);
-        let su_result = tokio::time::timeout(
-            timeout_duration,
-            silent_async_command("softwareupdate")
-                .args(["--list"])
-                .output(),
-        )
-        .await;
-
-        match su_result {
-            Ok(Ok(output)) => {
-                let stdout = String::from_utf8_lossy(&output.stdout).to_string();
-                let stderr = String::from_utf8_lossy(&output.stderr).to_string();
-                status.raw_output.push_str(&format!(
-                    "=== softwareupdate --list ===\n{}\n{}\n",
-                    stdout, stderr
-                ));
-
-                // Count updates (lines starting with * or containing "Label:")
-                let combined = format!("{}{}", stdout, stderr);
-                let updates: u32 = combined
-                    .lines()
-                    .filter(|l| l.trim().starts_with('*') || l.contains("Label:"))
-                    .count()
-                    .min(u32::MAX as usize) as u32;
-                status.pending_updates_count = updates;
-                status.upgradable_packages = updates;
-
-                // Check for security updates
-                let security: u32 = combined
-                    .lines()
-                    .filter(|l| l.to_lowercase().contains("security"))
-                    .count()
-                    .min(u32::MAX as usize) as u32;
-                status.pending_security_updates = security;
-
-                // Check if "No new software available" message
-                if combined.contains("No new software available") {
-                    status.pending_updates_count = 0;
-                    status.pending_security_updates = 0;
-                }
-            }
-            Ok(Err(e)) => {
-                warn!("softwareupdate command failed: {}", e);
-                status
-                    .raw_output
-                    .push_str(&format!("softwareupdate error: {}\n", e));
-            }
-            Err(_) => {
-                warn!(
-                    "softwareupdate --list timed out after {}s",
-                    UPDATE_CMD_TIMEOUT_SECS
-                );
-                status.raw_output.push_str(&format!(
-                    "softwareupdate --list timed out after {}s\n",
-                    UPDATE_CMD_TIMEOUT_SECS
-                ));
-            }
-        }
+        // List available updates (with timeout — softwareupdate can be very
+        // slow). A listing that could not be obtained is an error, never a
+        // system reported as up to date.
+        let listing = softwareupdate_list().await?;
+        status
+            .raw_output
+            .push_str(&format!("=== softwareupdate --list ===\n{}\n", listing.raw));
+        status.pending_updates_count = listing.pending;
+        status.upgradable_packages = listing.pending;
+        status.pending_security_updates = listing.security;
 
         // Check auto-update settings (fast command, no timeout needed)
         if let Ok(output) = silent_command("defaults")
@@ -654,6 +731,16 @@ impl Check for SystemUpdatesCheck {
         let status = self.check_unsupported().await?;
 
         let raw_data = serde_json::to_value(&status).unwrap_or_default();
+
+        // Linux without apt, dnf or yum (pacman, zypper, apk, an immutable
+        // image): nothing was asked, so nothing can be said.
+        #[cfg(target_os = "linux")]
+        if status.package_manager.is_none() {
+            return Ok(CheckOutput::not_applicable(
+                "No supported package manager (apt, dnf, yum): pending updates were not measured",
+                raw_data,
+            ));
+        }
 
         if status.compliant {
             let mut details = Vec::new();
@@ -818,12 +905,62 @@ mod tests {
     #[tokio::test]
     async fn test_check_execution() {
         let check = SystemUpdatesCheck::new();
-        let result = check.execute().await;
 
-        // Should complete without error
-        assert!(result.is_ok());
+        // Without network or in time, the update tool may give no answer.
+        // That must be an explicit error, not a passing result.
+        match check.execute().await {
+            Ok(output) => assert!(!output.message.is_empty()),
+            Err(crate::error::ScannerError::CheckExecution(message)) => {
+                assert!(!message.is_empty())
+            }
+            Err(error) => panic!("Unexpected check error: {error}"),
+        }
+    }
 
-        let output = result.unwrap();
-        assert!(!output.message.is_empty());
+    #[test]
+    fn softwareupdate_without_an_answer_is_not_measured() {
+        // Offline: only the progress line, on either stream.
+        assert_eq!(parse_softwareupdate_list("", ""), None);
+        assert_eq!(
+            parse_softwareupdate_list(
+                "Software Update Tool\n\nFinding available software\n",
+                "Can't connect to the Apple Software Update server.\n"
+            ),
+            None
+        );
+    }
+
+    #[test]
+    fn softwareupdate_listing_is_read_on_both_streams() {
+        let none = "No new software available.\n";
+        let progress = "Software Update Tool\n\nFinding available software\n";
+        for (stdout, stderr) in [(progress, none), (none, progress)] {
+            let listing = parse_softwareupdate_list(stdout, stderr).unwrap();
+            assert_eq!((listing.pending, listing.security), (0, 0));
+        }
+
+        let found = "Software Update found the following new or updated software:\n\
+            * Label: Safari18.1-18.1\n\
+            \tTitle: Safari, Version: 18.1, Size: 150000KiB, Recommended: YES,\n\
+            * Label: Security Response 15.1 (a)\n\
+            \tTitle: Security Response, Version: 15.1, Size: 9000KiB, Recommended: YES,\n";
+        for (stdout, stderr) in [(found, progress), (progress, found)] {
+            let listing = parse_softwareupdate_list(stdout, stderr).unwrap();
+            assert_eq!(listing.pending, 2);
+            assert!(listing.security >= 1);
+        }
+    }
+
+    #[test]
+    fn a_failed_windows_search_is_not_zero_pending_updates() {
+        let failed = serde_json::json!({ "ServiceStatus": "Stopped", "Error": "0x8024402C" });
+        assert_eq!(
+            windows_search_failure(&failed),
+            Some("0x8024402C".to_string())
+        );
+        assert!(windows_search_failure(&serde_json::json!({})).is_some());
+
+        let measured = serde_json::json!({ "PendingUpdatesCount": 0 });
+        assert_eq!(windows_search_failure(&measured), None);
     }
 }

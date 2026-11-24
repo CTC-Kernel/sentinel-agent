@@ -13,6 +13,7 @@
 
 use crate::check::{Check, CheckDefinitionBuilder, CheckOutput};
 use crate::error::ScannerResult;
+#[cfg(any(target_os = "windows", target_os = "linux"))]
 use agent_common::process::silent_command;
 use agent_common::types::{CheckCategory, CheckDefinition, CheckSeverity};
 use async_trait::async_trait;
@@ -58,11 +59,13 @@ pub struct UpdateHistoryEntry {
 /// Windows Update service status.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct UpdateServiceStatus {
-    pub service_running: bool,
+    /// `None` when the platform check does not measure it.
+    pub service_running: Option<bool>,
     pub start_type: String,
     pub last_check_time: Option<DateTime<Utc>>,
     pub wsus_server: Option<String>,
-    pub auto_update_enabled: bool,
+    /// `None` when the platform check does not measure it.
+    pub auto_update_enabled: Option<bool>,
     pub auto_update_day: Option<String>,
     pub auto_update_time: Option<String>,
 }
@@ -188,11 +191,11 @@ impl UpdateStatusCheck {
         }
 
         // Check service status
-        if !service_status.service_running {
+        if service_status.service_running != Some(true) {
             issues.push("Windows Update service is not running".to_string());
         }
 
-        if !service_status.auto_update_enabled {
+        if service_status.auto_update_enabled != Some(true) {
             issues.push("Automatic updates are disabled".to_string());
         }
 
@@ -212,7 +215,7 @@ impl UpdateStatusCheck {
         if reboot_required {
             score -= 10.0;
         }
-        if !service_status.service_running {
+        if service_status.service_running != Some(true) {
             score -= 20.0;
         }
         score = score.max(0.0);
@@ -240,11 +243,11 @@ impl UpdateStatusCheck {
     #[cfg(target_os = "windows")]
     async fn get_service_status(&self) -> UpdateServiceStatus {
         let mut status = UpdateServiceStatus {
-            service_running: false,
+            service_running: Some(false),
             start_type: "Unknown".to_string(),
             last_check_time: None,
             wsus_server: None,
-            auto_update_enabled: false,
+            auto_update_enabled: Some(false),
             auto_update_day: None,
             auto_update_time: None,
         };
@@ -277,19 +280,21 @@ impl UpdateStatusCheck {
         {
             let stdout = String::from_utf8_lossy(&out.stdout);
             if let Ok(json) = serde_json::from_str::<serde_json::Value>(&stdout) {
-                status.service_running = json
-                    .get("Running")
-                    .and_then(|v| v.as_bool())
-                    .unwrap_or(false);
+                status.service_running = Some(
+                    json.get("Running")
+                        .and_then(|v| v.as_bool())
+                        .unwrap_or(false),
+                );
                 status.start_type = json
                     .get("StartType")
                     .and_then(|v| v.as_str())
                     .unwrap_or("Unknown")
                     .to_string();
-                status.auto_update_enabled = json
-                    .get("AutoUpdate")
-                    .and_then(|v| v.as_bool())
-                    .unwrap_or(false);
+                status.auto_update_enabled = Some(
+                    json.get("AutoUpdate")
+                        .and_then(|v| v.as_bool())
+                        .unwrap_or(false),
+                );
                 status.wsus_server = json
                     .get("WsusServer")
                     .and_then(|v| v.as_str())
@@ -539,11 +544,11 @@ impl UpdateStatusCheck {
                 reboot_required: false,
                 reboot_pending_since: None,
                 service_status: UpdateServiceStatus {
-                    service_running: true,
+                    service_running: None,
                     start_type: "N/A".to_string(),
                     last_check_time: None,
                     wsus_server: None,
-                    auto_update_enabled: true,
+                    auto_update_enabled: None,
                     auto_update_day: None,
                     auto_update_time: None,
                 },
@@ -696,11 +701,12 @@ impl UpdateStatusCheck {
             reboot_required: std::path::Path::new("/var/run/reboot-required").exists(),
             reboot_pending_since: None,
             service_status: UpdateServiceStatus {
-                service_running: true,
-                start_type: "automatic".to_string(),
+                // Not measured on this platform: no invented value.
+                service_running: None,
+                start_type: "unknown".to_string(),
                 last_check_time: None,
                 wsus_server: None,
-                auto_update_enabled: true,
+                auto_update_enabled: None,
                 auto_update_day: None,
                 auto_update_time: None,
             },
@@ -713,19 +719,11 @@ impl UpdateStatusCheck {
     async fn check_macos_updates(&self) -> ScannerResult<UpdateStatus> {
         let mut issues = Vec::new();
 
-        // Check for pending updates using softwareupdate
-        // Note: softwareupdate --list writes update entries to stderr, not stdout
-        let output = silent_command("softwareupdate").args(["--list"]).output();
-
-        let pending_count = if let Ok(out) = output {
-            let stderr = String::from_utf8_lossy(&out.stderr);
-            stderr
-                .lines()
-                .filter(|l| l.trim_start().starts_with('*'))
-                .count()
-        } else {
-            0
-        };
+        // Pending updates, read on both output streams and within a time
+        // limit. A listing that could not be obtained is an error: it used
+        // to count as zero pending updates, hence a passing check.
+        let listing = super::system_updates::softwareupdate_list().await?;
+        let pending_count = listing.pending as usize;
 
         if pending_count > 0 {
             issues.push(format!("{} updates pending", pending_count));
@@ -746,11 +744,12 @@ impl UpdateStatusCheck {
             reboot_required: false,
             reboot_pending_since: None,
             service_status: UpdateServiceStatus {
-                service_running: true,
-                start_type: "automatic".to_string(),
+                // Not measured on this platform: no invented value.
+                service_running: None,
+                start_type: "unknown".to_string(),
                 last_check_time: None,
                 wsus_server: None,
-                auto_update_enabled: true,
+                auto_update_enabled: None,
                 auto_update_day: None,
                 auto_update_time: None,
             },
