@@ -126,13 +126,27 @@ pub mod software {
     /// Scan /Applications for .app bundles and extract metadata from Info.plist.
     /// Returns a sorted list of macOS applications with their metadata.
     pub fn scan_installed_apps() -> MacOsResult<Vec<GuiNativeApp>> {
+        scan_apps_in(Path::new("/Applications"))
+    }
+
+    /// Scan one directory for .app bundles.
+    fn scan_apps_in(apps_dir: &Path) -> MacOsResult<Vec<GuiNativeApp>> {
         let mut apps = Vec::new();
-        let apps_dir = Path::new("/Applications");
 
         let entries = std::fs::read_dir(apps_dir).map_err(MacOsError::ApplicationsDirError)?;
 
         for entry in entries {
-            let entry = entry.map_err(MacOsError::ApplicationsDirError)?;
+            let entry = match entry {
+                Ok(entry) => entry,
+                Err(e) => {
+                    tracing::warn!(
+                        "Skipping an unreadable entry of {}: {}",
+                        apps_dir.display(),
+                        e
+                    );
+                    continue;
+                }
+            };
             let path = entry.path();
 
             if !is_app_bundle(&path) {
@@ -144,8 +158,16 @@ pub mod software {
                 continue;
             }
 
-            let app_metadata = extract_app_metadata(&path, &plist_path)?;
-            apps.push(app_metadata);
+            // One bundle with a damaged or unreadable Info.plist must not
+            // empty the whole inventory: skip it and keep going.
+            match extract_app_metadata(&path, &plist_path) {
+                Ok(app_metadata) => apps.push(app_metadata),
+                Err(e) => tracing::warn!(
+                    "Skipping application {} in the inventory: {}",
+                    path.display(),
+                    e
+                ),
+            }
         }
 
         apps.sort_by_key(|a| a.name.to_lowercase());
@@ -183,6 +205,43 @@ pub mod software {
             "--".to_string()
         } else {
             field
+        }
+    }
+
+    #[cfg(test)]
+    mod tests {
+        use super::*;
+
+        fn bundle(dir: &Path, name: &str, info_plist: &str) {
+            let contents = dir.join(name).join("Contents");
+            std::fs::create_dir_all(&contents).unwrap();
+            std::fs::write(contents.join("Info.plist"), info_plist).unwrap();
+        }
+
+        /// One unreadable Info.plist used to fail the whole scan, leaving
+        /// the inventory empty.
+        #[test]
+        fn an_unreadable_bundle_is_skipped_not_fatal() {
+            let dir = std::env::temp_dir().join(format!("sentinel-apps-{}", uuid::Uuid::new_v4()));
+            bundle(
+                &dir,
+                "Good.app",
+                r#"<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0"><dict>
+<key>CFBundleIdentifier</key><string>com.example.good</string>
+<key>CFBundleShortVersionString</key><string>1.2.3</string>
+</dict></plist>"#,
+            );
+            bundle(&dir, "Broken.app", "this is not a property list");
+
+            let apps = scan_apps_in(&dir);
+            let _ = std::fs::remove_dir_all(&dir);
+            let apps = apps.unwrap();
+
+            assert_eq!(apps.len(), 1, "{apps:?}");
+            assert_eq!(apps[0].name, "Good");
+            assert_eq!(apps[0].bundle_id, "com.example.good");
         }
     }
 }
