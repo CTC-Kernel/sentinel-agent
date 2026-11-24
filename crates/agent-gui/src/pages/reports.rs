@@ -47,9 +47,9 @@ impl ReportsPage {
         ui.add_space(theme::SPACE_MD);
 
         match state.reports.active_tab {
-            0 => Self::show_report_tab(ui, state, ReportType::Executive, &mut command),
-            1 => Self::show_report_tab(ui, state, ReportType::ComplianceAudit, &mut command),
-            2 => Self::show_report_tab(ui, state, ReportType::Incident, &mut command),
+            0 => Self::show_report_tab(ui, state, ReportType::Executive),
+            1 => Self::show_report_tab(ui, state, ReportType::ComplianceAudit),
+            2 => Self::show_report_tab(ui, state, ReportType::Incident),
             3 => Self::show_history_tab(ui, state, &mut command),
             _ => {}
         }
@@ -122,12 +122,7 @@ impl ReportsPage {
         command
     }
 
-    fn show_report_tab(
-        ui: &mut Ui,
-        state: &mut AppState,
-        report_type: ReportType,
-        command: &mut Option<GuiCommand>,
-    ) {
+    fn show_report_tab(ui: &mut Ui, state: &mut AppState, report_type: ReportType) {
         // Latest report of this type first; the ones before it make the
         // score trend and the history list.
         let of_type: Vec<GeneratedReport> = state
@@ -142,7 +137,7 @@ impl ReportsPage {
             if let Some(action) = Self::report_preview(ui, state, report, &of_type[1..]) {
                 match action {
                     PreviewAction::Regenerate => {
-                        Self::generate_now(ui, state, report_type, command);
+                        Self::generate_now(ui.ctx(), state, report_type);
                     }
                     PreviewAction::Export(index) => {
                         if let Some(report) = of_type.get(index) {
@@ -172,7 +167,7 @@ impl ReportsPage {
                         || {},
                     )),
                 ) {
-                    Self::generate_now(ui, state, report_type, command);
+                    Self::generate_now(ui.ctx(), state, report_type);
                 }
             });
         }
@@ -372,13 +367,13 @@ impl ReportsPage {
         action
     }
 
-    /// Generate a report of `report_type` now, store it, and tell the runtime.
-    fn generate_now(
-        ui: &Ui,
-        state: &mut AppState,
-        report_type: ReportType,
-        command: &mut Option<GuiCommand>,
-    ) {
+    /// Generate a report of `report_type` now and store it.
+    ///
+    /// The report is built here, from the state the interface holds. Nothing
+    /// is sent to the runtime: it used to answer `GuiCommand::GenerateReport`
+    /// with a second report of the same type holding only a title, which
+    /// landed in front of this one and replaced it on screen.
+    fn generate_now(ctx: &egui::Context, state: &mut AppState, report_type: ReportType) {
         let framework = state
             .summary
             .active_frameworks
@@ -397,13 +392,8 @@ impl ReportsPage {
             crate::widgets::toast::Toast::success(
                 "Rapport g\u{00e9}n\u{00e9}r\u{00e9} avec succ\u{00e8}s",
             ),
-            ui.ctx(),
+            ctx,
         );
-        // Also emit command for runtime awareness
-        *command = Some(GuiCommand::GenerateReport {
-            report_type,
-            framework,
-        });
     }
 
     fn show_history_tab(ui: &mut Ui, state: &mut AppState, _command: &mut Option<GuiCommand>) {
@@ -1029,4 +1019,26 @@ fn html_escape(s: &str) -> String {
         .replace('<', "&lt;")
         .replace('>', "&gt;")
         .replace('"', "&quot;")
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// Regression: generating a report used to send `GenerateReport` to the
+    /// runtime as well, which answered with a second, empty report placed in
+    /// front of the real one.
+    #[test]
+    fn generate_now_stores_one_complete_report() {
+        let ctx = egui::Context::default();
+        let mut state = AppState::default();
+
+        ReportsPage::generate_now(&ctx, &mut state, ReportType::Executive);
+
+        assert_eq!(state.reports.reports.len(), 1);
+        let report = &state.reports.reports[0];
+        assert_eq!(report.report_type, ReportType::Executive);
+        assert!(report.html_content.len() > 200, "the report has a body");
+        assert_eq!(state.toasts.len(), 1);
+    }
 }
