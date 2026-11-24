@@ -487,6 +487,8 @@ pub fn default_events_sort() -> crate::widgets::data_table::TableSort {
 pub struct ThreatsState {
     pub suspicious_processes: VecDeque<crate::dto::GuiSuspiciousProcess>,
     pub usb_events: VecDeque<crate::dto::GuiUsbEvent>,
+    /// What the agent does about USB mass storage here, once it said so.
+    pub usb_protection: Option<crate::dto::UsbProtection>,
     pub system_incidents: VecDeque<crate::dto::GuiSystemIncident>,
     pub search: String,
     pub filter: Option<String>,
@@ -651,6 +653,7 @@ impl Default for ThreatsState {
         Self {
             suspicious_processes: VecDeque::with_capacity(200),
             usb_events: VecDeque::with_capacity(200),
+            usb_protection: None,
             system_incidents: VecDeque::with_capacity(200),
             search: String::new(),
             filter: None,
@@ -1791,6 +1794,9 @@ impl AppState {
                 // Invalidate threat selection — push_front shifted source indices
                 self.threats.selected_threat = None;
             }
+            AgentEvent::UsbProtection { protection } => {
+                self.threats.usb_protection = Some(protection);
+            }
             AgentEvent::SuspiciousProcess { process } => {
                 upsert_recurring(
                     &mut self.threats.suspicious_processes,
@@ -2401,7 +2407,7 @@ impl AppState {
     /// the notifications of this session, most recent first.
     pub fn audit_entries(&self) -> Vec<&crate::dto::GuiLogEntry> {
         let mut entries: Vec<_> = self.logs.iter().chain(&self.audit_history).collect();
-        entries.sort_by(|a, b| b.timestamp.cmp(&a.timestamp));
+        entries.sort_by_key(|entry| std::cmp::Reverse(entry.timestamp));
         entries
     }
 

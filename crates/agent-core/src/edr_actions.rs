@@ -543,7 +543,7 @@ pub async fn list_quarantine() -> Vec<QuarantineRecord> {
             records.push(record);
         }
     }
-    records.sort_by(|a, b| b.quarantined_at.cmp(&a.quarantined_at));
+    records.sort_by_key(|record| std::cmp::Reverse(record.quarantined_at));
     records
 }
 

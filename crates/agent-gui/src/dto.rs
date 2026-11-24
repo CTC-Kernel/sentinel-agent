@@ -1113,6 +1113,36 @@ pub struct GuiUsbEvent {
     pub allowlisted: bool,
 }
 
+/// What the agent does about USB mass storage on this host.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub struct UsbProtection {
+    /// `disabled`, `monitoring_only`, `blocking`, `eject_only` or
+    /// `detection_only`.
+    pub mode: String,
+    /// What it means on this system, in French.
+    pub detail: String,
+}
+
+impl UsbProtection {
+    /// The mode in a few words.
+    pub fn label(&self) -> &'static str {
+        match self.mode.as_str() {
+            "disabled" => "Surveillance USB d\u{e9}sactiv\u{e9}e",
+            "blocking" => "Stockage USB bloqu\u{e9}",
+            "eject_only" => "Stockage USB\u{a0}: \u{e9}jection seule",
+            "detection_only" => "Stockage USB\u{a0}: d\u{e9}tection seule",
+            _ => "Stockage USB\u{a0}: surveillance",
+        }
+    }
+
+    /// Whether the policy asks for more than the system does: the operator
+    /// must not read it as a block.
+    pub fn is_degraded(&self) -> bool {
+        matches!(self.mode.as_str(), "eject_only" | "detection_only")
+    }
+}
+
 /// A network security alert for GUI display.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "snake_case")]

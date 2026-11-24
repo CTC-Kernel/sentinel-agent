@@ -664,7 +664,8 @@ impl AgentRuntime {
         for error in &sigma.errors {
             warn!("Sigma rule not loaded: {}", error);
         }
-        let usb_monitor = UsbMonitor::new();
+        let usb_monitor =
+            UsbMonitor::from_config(config.usb_monitoring, config.usb_block_mass_storage);
         let network_manager = NetworkManager::new();
 
         let (state, rx) = state::RuntimeState::new();

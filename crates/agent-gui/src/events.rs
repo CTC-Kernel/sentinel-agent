@@ -152,6 +152,12 @@ pub enum AgentEvent {
         /// The USB event.
         event: crate::dto::GuiUsbEvent,
     },
+    /// What the agent does about USB mass storage on this host: blocking,
+    /// ejecting, or detecting only.
+    UsbProtection {
+        /// The mode in force and what it means here.
+        protection: crate::dto::UsbProtection,
+    },
     /// Suspicious process detected.
     SuspiciousProcess {
         /// The suspicious process event.
