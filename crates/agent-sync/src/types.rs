@@ -469,9 +469,10 @@ pub struct HeartbeatResponse {
     #[serde(alias = "server_time")]
     pub timestamp: DateTime<Utc>,
 
-    /// Commands for the agent to execute.
+    /// Commands for the agent to execute, as sent: the agent reads them
+    /// with `agent_core::api_client::AgentCommand`.
     #[serde(default)]
-    pub commands: Vec<AgentCommand>,
+    pub commands: Vec<serde_json::Value>,
 
     /// Whether configuration has changed.
     #[serde(default)]
@@ -484,32 +485,6 @@ pub struct HeartbeatResponse {
     /// Organization name (for sync).
     #[serde(default)]
     pub organization_name: Option<String>,
-}
-
-/// Command sent to the agent via heartbeat response.
-#[derive(Debug, Clone, Deserialize)]
-#[serde(rename_all = "snake_case")]
-#[serde(tag = "type")]
-pub enum AgentCommand {
-    /// Force immediate sync.
-    #[serde(rename = "force_sync")]
-    ForceSync,
-
-    /// Run specific checks immediately.
-    #[serde(rename = "run_checks")]
-    RunChecks { check_ids: Vec<String> },
-
-    /// Update agent to specific version.
-    #[serde(rename = "update")]
-    Update { version: String, url: String },
-
-    /// Run diagnostics and report.
-    #[serde(rename = "diagnostics")]
-    Diagnostics,
-
-    /// Revoke agent (stop operations).
-    #[serde(rename = "revoke")]
-    Revoke { reason: String },
 }
 
 // ============================================================================
@@ -1592,21 +1567,6 @@ mod tests {
 
         let error: ApiErrorResponse = serde_json::from_str(json).unwrap();
         assert_eq!(error.code, "INVALID_TOKEN");
-    }
-
-    #[test]
-    fn test_agent_command_deserialization() {
-        let json = r#"{"type": "force_sync"}"#;
-        let cmd: AgentCommand = serde_json::from_str(json).unwrap();
-        assert!(matches!(cmd, AgentCommand::ForceSync));
-
-        let json = r#"{"type": "run_checks", "check_ids": ["disk_encryption", "antivirus"]}"#;
-        let cmd: AgentCommand = serde_json::from_str(json).unwrap();
-        if let AgentCommand::RunChecks { check_ids } = cmd {
-            assert_eq!(check_ids.len(), 2);
-        } else {
-            panic!("Expected RunChecks");
-        }
     }
 
     #[test]
