@@ -369,6 +369,53 @@ pub async fn kill_process(process_name: &str, pid: u32) -> Result<(), CommonErro
     Ok(())
 }
 
+/// Move a file, across volumes if need be.
+///
+/// `rename` cannot leave its volume: a file on an external disk, another
+/// partition or a network share could not be quarantined (the store is on
+/// the system volume), nor restored. In that case only, the file is copied,
+/// the copy is flushed to disk, and the original is removed.
+async fn move_file(source: &Path, dest: &Path) -> std::io::Result<()> {
+    match tokio::fs::rename(source, dest).await {
+        Err(e) if e.kind() == std::io::ErrorKind::CrossesDevices => {
+            copy_then_remove(source, dest).await
+        }
+        other => other,
+    }
+}
+
+/// Copy `source` to `dest` (which must not exist), flush it to disk, then
+/// remove `source`. On any failure the partial copy is removed and the
+/// original left in place: the file is never in neither place.
+async fn copy_then_remove(source: &Path, dest: &Path) -> std::io::Result<()> {
+    async fn copy_synced(source: &Path, dest: &Path) -> std::io::Result<()> {
+        let mut reader = tokio::fs::File::open(source).await?;
+        let permissions = reader.metadata().await?.permissions();
+        let mut writer = tokio::fs::OpenOptions::new()
+            .write(true)
+            .create_new(true)
+            .open(dest)
+            .await?;
+        tokio::io::copy(&mut reader, &mut writer).await?;
+        writer.sync_all().await?;
+        drop(writer);
+        tokio::fs::set_permissions(dest, permissions).await
+    }
+
+    if let Err(e) = copy_synced(source, dest).await {
+        // `AlreadyExists` means `dest` is somebody else's file: leave it.
+        if e.kind() != std::io::ErrorKind::AlreadyExists {
+            let _ = tokio::fs::remove_file(dest).await;
+        }
+        return Err(e);
+    }
+    if let Err(e) = tokio::fs::remove_file(source).await {
+        let _ = tokio::fs::remove_file(dest).await;
+        return Err(e);
+    }
+    Ok(())
+}
+
 /// Quarantine a file by moving it to a secure quarantine directory.
 ///
 /// Returns the quarantine ID that can be used to restore the file later.
@@ -444,10 +491,15 @@ pub async fn quarantine_file(path: &str) -> Result<String, CommonError> {
     .await
     .map_err(|e| CommonError::internal(format!("Failed to write quarantine metadata: {}", e)))?;
 
-    // Move the file to quarantine
-    tokio::fs::rename(source, &dest)
-        .await
-        .map_err(|e| CommonError::internal(format!("Failed to quarantine file: {}", e)))?;
+    // Move the file to quarantine. On failure the metadata written above
+    // describes a file that is not in the store: remove it.
+    if let Err(e) = move_file(&source, &dest).await {
+        let _ = tokio::fs::remove_file(&metadata_path).await;
+        return Err(CommonError::internal(format!(
+            "Failed to quarantine file: {}",
+            e
+        )));
+    }
 
     info!("Quarantined file '{}' as '{}'", path, quarantine_id);
     Ok(quarantine_id)
@@ -522,7 +574,7 @@ pub async fn restore_quarantined_file(quarantine_id: &str) -> Result<(), CommonE
     // Restore file to its original location. No file-type check here, unlike
     // `quarantine_file`: a directory quarantined before that check existed has
     // no other way back.
-    tokio::fs::rename(&quarantined_file, original_path)
+    move_file(&quarantined_file, Path::new(original_path))
         .await
         .map_err(|e| CommonError::internal(format!("Failed to restore file: {}", e)))?;
 
@@ -926,6 +978,85 @@ pub async fn unblock_ip(ip: &str) -> Result<(), CommonError> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    // ── quarantine: move across volumes ─────────────────────────────────
+
+    /// The path taken when `rename` answers "crosses devices".
+    #[tokio::test]
+    async fn test_copy_then_remove_moves_the_file() {
+        let dir = tempfile::tempdir().unwrap();
+        let source = dir.path().join("sample.bin");
+        let dest = dir.path().join("moved.bin");
+        let content = vec![0xA5u8; 300_000];
+        std::fs::write(&source, &content).unwrap();
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+            std::fs::set_permissions(&source, std::fs::Permissions::from_mode(0o640)).unwrap();
+        }
+
+        copy_then_remove(&source, &dest).await.unwrap();
+
+        assert!(!source.exists(), "the original is removed");
+        assert_eq!(std::fs::read(&dest).unwrap(), content);
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+            let mode = std::fs::metadata(&dest).unwrap().permissions().mode();
+            assert_eq!(mode & 0o777, 0o640);
+        }
+    }
+
+    /// A failed copy leaves the original where it was and no partial copy.
+    #[tokio::test]
+    async fn test_copy_then_remove_keeps_the_original_on_failure() {
+        let dir = tempfile::tempdir().unwrap();
+        let source = dir.path().join("sample.bin");
+        std::fs::write(&source, b"evidence").unwrap();
+
+        // Destination directory missing: the copy cannot be created.
+        let dest = dir.path().join("missing").join("moved.bin");
+        assert!(copy_then_remove(&source, &dest).await.is_err());
+        assert_eq!(std::fs::read(&source).unwrap(), b"evidence");
+
+        // Destination already there: refused, and not deleted.
+        let taken = dir.path().join("taken.bin");
+        std::fs::write(&taken, b"other").unwrap();
+        assert!(copy_then_remove(&source, &taken).await.is_err());
+        assert_eq!(std::fs::read(&source).unwrap(), b"evidence");
+        assert_eq!(std::fs::read(&taken).unwrap(), b"other");
+    }
+
+    /// A quarantine that fails must not leave a `.meta` describing a file
+    /// that is not in the store.
+    #[cfg(unix)]
+    #[tokio::test]
+    async fn test_failed_quarantine_leaves_no_orphan_metadata() {
+        use std::os::unix::fs::PermissionsExt;
+
+        let dir = tempfile::tempdir().unwrap();
+        let locked = dir.path().join("locked");
+        std::fs::create_dir(&locked).unwrap();
+        let victim = locked.join("sample.bin");
+        std::fs::write(&victim, b"evidence").unwrap();
+        // A read-only directory: its entries cannot be renamed away.
+        std::fs::set_permissions(&locked, std::fs::Permissions::from_mode(0o555)).unwrap();
+
+        let result = quarantine_file(victim.to_str().unwrap()).await;
+        std::fs::set_permissions(&locked, std::fs::Permissions::from_mode(0o755)).unwrap();
+
+        if result.is_ok() {
+            // Running as root: permissions do not stop the move.
+            return;
+        }
+        assert!(victim.exists());
+        let leftovers: Vec<_> = std::fs::read_dir(super::quarantine_dir())
+            .unwrap()
+            .filter_map(|entry| entry.ok())
+            .map(|entry| entry.file_name())
+            .collect();
+        assert!(leftovers.is_empty(), "left in the store: {leftovers:?}");
+    }
 
     // ── kill: reserved PIDs ─────────────────────────────────────────────
 
