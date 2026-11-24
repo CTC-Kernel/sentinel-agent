@@ -1306,6 +1306,8 @@ async fn emit_alerting_loaded_from_db(
     let webhook_repo = agent_storage::repositories::grc::WebhookRepository::new(db);
     let stored_rules = alert_repo.get_all().await.unwrap_or_default();
     let stored_webhooks = webhook_repo.get_all().await.unwrap_or_default();
+    // Outcome of the last alert sent to each webhook.
+    let deliveries = webhook_repo.delivery_status().await.unwrap_or_default();
 
     let gui_rules: Vec<agent_gui::dto::AlertRule> = stored_rules
         .iter()
@@ -1346,14 +1348,18 @@ async fn emit_alerting_loaded_from_db(
         .iter()
         .map(|s| {
             let id = s.id.clone();
+            let delivery = deliveries.get(&s.id);
             agent_gui::dto::WebhookConfig {
                 id,
                 name: s.name.clone(),
                 url: s.url.clone(),
                 format: s.events.clone(),
                 enabled: s.enabled,
-                last_sent: None,
-                error: None,
+                last_sent: delivery
+                    .and_then(|d| d.last_sent.as_deref())
+                    .and_then(|at| chrono::DateTime::parse_from_rfc3339(at).ok())
+                    .map(|at| at.with_timezone(&chrono::Utc)),
+                error: delivery.and_then(|d| d.last_error.clone()),
             }
         })
         .collect();

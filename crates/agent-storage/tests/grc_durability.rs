@@ -311,6 +311,7 @@ async fn upgrading_v9_preserves_webhook_credentials_and_format() {
     let db = open(&dir.path().join("db"));
     db.with_connection_mut(|conn| {
         // Back to version 9, one migration at a time.
+        agent_storage::migrations::rollback_migration(conn, 12)?;
         agent_storage::migrations::rollback_migration(conn, 11)?;
         agent_storage::migrations::rollback_migration(conn, 10)?;
         conn.execute("INSERT INTO webhooks(id,name,url,token,events,enabled,verify_ssl,created_at,synced) VALUES ('legacy','hook','https://example.test','test-only-token','teams',1,1,'2026-09-27T00:00:00Z',1)", []).unwrap();
@@ -338,4 +339,50 @@ async fn rejected_result_rotates_without_being_discarded() {
     repo.mark_attempt("a-rejected").await.unwrap();
     assert_eq!(repo.pending(1).await.unwrap()[0].0, "b-new");
     assert_eq!(repo.count().await.unwrap(), 2);
+}
+
+#[tokio::test]
+async fn a_webhook_delivery_keeps_the_last_success_through_a_failure() {
+    use agent_storage::repositories::grc::{StoredWebhook, WebhookRepository};
+    let dir = tempfile::tempdir().unwrap();
+    let db = open(&dir.path().join("db"));
+    let repo = WebhookRepository::new(&db);
+    let hook = StoredWebhook {
+        id: "hook".into(),
+        name: "hook".into(),
+        url: "https://example.test/hook".into(),
+        events: "generic".into(),
+        secret: None,
+        enabled: true,
+        created_at: "2026-09-27T00:00:00Z".into(),
+        updated_at: "2026-09-27T00:00:00Z".into(),
+        synced: false,
+    };
+    repo.upsert(&hook).await.unwrap();
+    assert!(repo.delivery_status().await.unwrap().is_empty());
+
+    let first = chrono::Utc::now() - chrono::Duration::minutes(5);
+    repo.record_delivery("hook", first, None).await.unwrap();
+    let second = chrono::Utc::now();
+    repo.record_delivery("hook", second, Some("HTTP 503".into()))
+        .await
+        .unwrap();
+
+    let status = repo.delivery_status().await.unwrap();
+    assert_eq!(status["hook"].last_sent, Some(first.to_rfc3339()));
+    assert_eq!(status["hook"].last_error.as_deref(), Some("HTTP 503"));
+    assert_eq!(status["hook"].last_attempt, second.to_rfc3339());
+
+    // Saving the webhook again replaces its row, not its delivery status.
+    repo.upsert(&hook).await.unwrap();
+    assert_eq!(repo.delivery_status().await.unwrap().len(), 1);
+
+    repo.record_delivery("hook", second, None).await.unwrap();
+    let status = repo.delivery_status().await.unwrap();
+    assert_eq!(status["hook"].last_error, None);
+    assert_eq!(status["hook"].last_sent, Some(second.to_rfc3339()));
+
+    // A deleted webhook no longer reports a status.
+    repo.delete("hook").await.unwrap();
+    assert!(repo.delivery_status().await.unwrap().is_empty());
 }

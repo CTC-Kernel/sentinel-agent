@@ -14,7 +14,7 @@ use rusqlite::Connection;
 use tracing::{debug, error, info, warn};
 
 /// Current schema version (incremented with each migration).
-pub const CURRENT_SCHEMA_VERSION: i32 = 11;
+pub const CURRENT_SCHEMA_VERSION: i32 = 12;
 
 /// A database migration.
 struct Migration {
@@ -519,6 +519,21 @@ const MIGRATIONS: &[Migration] = &[
             ALTER TABLE software_inventory_v10 RENAME TO software_inventory;
         "#,
     },
+    Migration {
+        version: 12,
+        name: "webhook_deliveries",
+        up: r#"
+            -- Outcome of the last alert sent to each webhook. Kept apart from
+            -- `webhooks`, whose rows are replaced whole on every save.
+            CREATE TABLE IF NOT EXISTS webhook_deliveries (
+                webhook_id TEXT PRIMARY KEY NOT NULL,
+                last_sent TEXT,
+                last_error TEXT,
+                last_attempt TEXT NOT NULL
+            );
+        "#,
+        down: "DROP TABLE IF EXISTS webhook_deliveries;",
+    },
 ];
 
 /// Initialize the schema_version table if it doesn't exist.
@@ -772,7 +787,9 @@ mod tests {
     fn migration_11_removes_duplicates_and_restores_the_primary_key() {
         let (_temp_dir, mut conn) = create_test_db();
         run_migrations(&mut conn).unwrap();
-        rollback_migration(&mut conn, 11).unwrap();
+        for version in (11..=CURRENT_SCHEMA_VERSION).rev() {
+            rollback_migration(&mut conn, version).unwrap();
+        }
 
         // As left by migration 8: no key, so each synchronisation added a row.
         for version in ["1.0", "1.1", "1.2"] {
@@ -931,7 +948,9 @@ mod tests {
         run_migrations(&mut conn).unwrap();
         assert_eq!(get_schema_version(&conn).unwrap(), CURRENT_SCHEMA_VERSION);
 
-        // Rollback from v11 down to v0
+        // Rollback from v12 down to v0
+        rollback_migration(&mut conn, 12).unwrap();
+        assert_eq!(get_schema_version(&conn).unwrap(), 11);
         rollback_migration(&mut conn, 11).unwrap();
         assert_eq!(get_schema_version(&conn).unwrap(), 10);
         rollback_migration(&mut conn, 10).unwrap();
