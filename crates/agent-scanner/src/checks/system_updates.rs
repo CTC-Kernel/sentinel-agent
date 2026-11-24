@@ -9,7 +9,6 @@
 //! - macOS: softwareupdate
 
 use crate::check::{Check, CheckDefinitionBuilder, CheckOutput};
-#[cfg(any(target_os = "windows", target_os = "macos"))]
 use crate::error::ScannerError;
 use crate::error::ScannerResult;
 #[cfg(target_os = "macos")]
@@ -32,6 +31,20 @@ const MAX_PENDING_DAYS: i64 = 7;
 /// Timeout for external update check commands (macOS softwareupdate, etc.).
 #[cfg(target_os = "macos")]
 const UPDATE_CMD_TIMEOUT_SECS: u64 = 30;
+
+#[cfg(target_os = "linux")]
+use super::update_status::LinuxPackageManager;
+
+/// Upgradable packages of an `apt list --upgradable` listing that come from
+/// a security pocket (`jammy-security`, `bookworm-security`).
+#[cfg(any(target_os = "linux", test))]
+fn apt_security_updates(listing: &str) -> u32 {
+    listing
+        .lines()
+        .filter(|l| l.contains("[upgradable") && l.to_lowercase().contains("security"))
+        .count()
+        .min(u32::MAX as usize) as u32
+}
 
 /// What `softwareupdate --list` reported.
 #[cfg(any(target_os = "macos", test))]
@@ -383,15 +396,15 @@ impl SystemUpdatesCheck {
         };
 
         // Try apt (Debian/Ubuntu)
-        if self.check_apt(&mut status) {
+        if self.check_apt(&mut status)? {
             // apt found and processed
         }
         // Try dnf (Fedora/RHEL 8+)
-        else if self.check_dnf(&mut status) {
+        else if self.check_dnf(&mut status)? {
             // dnf found and processed
         }
         // Try yum (RHEL/CentOS 7)
-        else if self.check_yum(&mut status) {
+        else if self.check_yum(&mut status)? {
             // yum found and processed
         }
 
@@ -405,14 +418,81 @@ impl SystemUpdatesCheck {
         Ok(status)
     }
 
+    /// Run the listing of `manager` and count its pending updates. An error
+    /// when the manager, although installed, gave no usable listing: its
+    /// silence is not a system without pending updates.
     #[cfg(target_os = "linux")]
-    fn check_apt(&self, status: &mut SystemUpdatesStatus) -> bool {
+    fn pending_listing(
+        manager: LinuxPackageManager,
+        status: &mut SystemUpdatesStatus,
+    ) -> ScannerResult<(u32, String)> {
+        let (program, args) = manager.listing_command();
+        let output = silent_command(program)
+            .args(args)
+            .env("LC_ALL", "C")
+            .output()
+            .map_err(|e| {
+                ScannerError::CheckExecution(format!(
+                    "Failed to run {program}: {e}: pending updates unknown"
+                ))
+            })?;
+        let listing = String::from_utf8_lossy(&output.stdout).to_string();
+        status.raw_output.push_str(&format!(
+            "=== {} {} ===\n{}\n",
+            program,
+            args.join(" "),
+            listing
+        ));
+        let pending = manager
+            .pending(output.status.code(), &listing)
+            .map_err(|reason| {
+                ScannerError::CheckExecution(format!("{reason}: pending updates unknown"))
+            })?;
+        Ok((pending.min(u32::MAX as usize) as u32, listing))
+    }
+
+    /// Count the security advisories `program updateinfo list security`
+    /// reports (dnf and yum).
+    #[cfg(target_os = "linux")]
+    fn pending_security_advisories(
+        program: &str,
+        status: &mut SystemUpdatesStatus,
+    ) -> ScannerResult<u32> {
+        let output = silent_command(program)
+            .args(["updateinfo", "list", "security", "-q"])
+            .env("LC_ALL", "C")
+            .output()
+            .map_err(|e| {
+                ScannerError::CheckExecution(format!(
+                    "Failed to run {program} updateinfo: {e}: pending security updates unknown"
+                ))
+            })?;
+        if !output.status.success() {
+            return Err(ScannerError::CheckExecution(format!(
+                "{program} updateinfo list security failed ({}): \
+                 pending security updates unknown",
+                output.status
+            )));
+        }
+        let result = String::from_utf8_lossy(&output.stdout).to_string();
+        status
+            .raw_output
+            .push_str(&format!("=== {program} security updates ===\n{result}\n"));
+        Ok(result
+            .lines()
+            .filter(|l| !l.trim().is_empty())
+            .count()
+            .min(u32::MAX as usize) as u32)
+    }
+
+    #[cfg(target_os = "linux")]
+    fn check_apt(&self, status: &mut SystemUpdatesStatus) -> ScannerResult<bool> {
         // Check if apt is available
         let Ok(apt_output) = silent_command("which").args(["apt"]).output() else {
-            return false;
+            return Ok(false);
         };
         if !apt_output.status.success() {
-            return false;
+            return Ok(false);
         }
 
         status.package_manager = Some("apt".to_string());
@@ -439,33 +519,13 @@ impl SystemUpdatesCheck {
             }
         }
 
-        // Check upgradable packages (doesn't require sudo)
-        if let Ok(output) = silent_command("apt")
-            .args(["list", "--upgradable"])
-            .output()
-        {
-            let result = String::from_utf8_lossy(&output.stdout).to_string();
-            status
-                .raw_output
-                .push_str(&format!("=== apt list --upgradable ===\n{}\n", result));
-
-            // Count upgradable packages (exclude header line)
-            let upgradable: u32 = result
-                .lines()
-                .filter(|l| l.contains("upgradable"))
-                .count()
-                .min(u32::MAX as usize) as u32;
-            status.upgradable_packages = upgradable;
-            status.pending_updates_count = upgradable;
-
-            // Count security updates
-            let security: u32 = result
-                .lines()
-                .filter(|l| l.to_lowercase().contains("security"))
-                .count()
-                .min(u32::MAX as usize) as u32;
-            status.pending_security_updates = security;
-        }
+        // Check upgradable packages (doesn't require sudo). `which apt`
+        // succeeding says nothing about this listing: a failure here used
+        // to leave zero pending updates and a passing check.
+        let (upgradable, listing) = Self::pending_listing(LinuxPackageManager::Apt, status)?;
+        status.upgradable_packages = upgradable;
+        status.pending_updates_count = upgradable;
+        status.pending_security_updates = apt_security_updates(&listing);
 
         // Check unattended-upgrades status
         if let Ok(content) = std::fs::read_to_string("/etc/apt/apt.conf.d/20auto-upgrades") {
@@ -479,54 +539,25 @@ impl SystemUpdatesCheck {
             );
         }
 
-        true
+        Ok(true)
     }
 
     #[cfg(target_os = "linux")]
-    fn check_dnf(&self, status: &mut SystemUpdatesStatus) -> bool {
+    fn check_dnf(&self, status: &mut SystemUpdatesStatus) -> ScannerResult<bool> {
         let Ok(dnf_output) = silent_command("which").args(["dnf"]).output() else {
-            return false;
+            return Ok(false);
         };
         if !dnf_output.status.success() {
-            return false;
+            return Ok(false);
         }
 
         status.package_manager = Some("dnf".to_string());
 
-        // Check for available updates
-        if let Ok(output) = silent_command("dnf").args(["check-update", "-q"]).output() {
-            let result = String::from_utf8_lossy(&output.stdout).to_string();
-            status
-                .raw_output
-                .push_str(&format!("=== dnf check-update ===\n{}\n", result));
-
-            // Count lines (each non-empty line is an update)
-            let updates: u32 = result
-                .lines()
-                .filter(|l| !l.trim().is_empty())
-                .count()
-                .min(u32::MAX as usize) as u32;
-            status.pending_updates_count = updates;
-            status.upgradable_packages = updates;
-        }
-
-        // Check for security updates
-        if let Ok(output) = silent_command("dnf")
-            .args(["updateinfo", "list", "security", "-q"])
-            .output()
-        {
-            let result = String::from_utf8_lossy(&output.stdout).to_string();
-            status
-                .raw_output
-                .push_str(&format!("=== dnf security updates ===\n{}\n", result));
-
-            let security: u32 = result
-                .lines()
-                .filter(|l| !l.trim().is_empty())
-                .count()
-                .min(u32::MAX as usize) as u32;
-            status.pending_security_updates = security;
-        }
+        // Available updates, then the security advisories among them.
+        let (updates, _) = Self::pending_listing(LinuxPackageManager::Dnf, status)?;
+        status.pending_updates_count = updates;
+        status.upgradable_packages = updates;
+        status.pending_security_updates = Self::pending_security_advisories("dnf", status)?;
 
         // Check dnf-automatic status
         if let Ok(output) = silent_command("systemctl")
@@ -537,55 +568,26 @@ impl SystemUpdatesCheck {
             status.auto_updates_enabled = Some(result.trim() == "enabled");
         }
 
-        true
+        Ok(true)
     }
 
     #[cfg(target_os = "linux")]
-    fn check_yum(&self, status: &mut SystemUpdatesStatus) -> bool {
+    fn check_yum(&self, status: &mut SystemUpdatesStatus) -> ScannerResult<bool> {
         let Ok(yum_output) = silent_command("which").args(["yum"]).output() else {
-            return false;
+            return Ok(false);
         };
         if !yum_output.status.success() {
-            return false;
+            return Ok(false);
         }
 
         status.package_manager = Some("yum".to_string());
 
-        // Check for available updates
-        if let Ok(output) = silent_command("yum").args(["check-update", "-q"]).output() {
-            let result = String::from_utf8_lossy(&output.stdout).to_string();
-            status
-                .raw_output
-                .push_str(&format!("=== yum check-update ===\n{}\n", result));
+        let (updates, _) = Self::pending_listing(LinuxPackageManager::Yum, status)?;
+        status.pending_updates_count = updates;
+        status.upgradable_packages = updates;
+        status.pending_security_updates = Self::pending_security_advisories("yum", status)?;
 
-            let updates: u32 = result
-                .lines()
-                .filter(|l| !l.trim().is_empty() && !l.starts_with("Obsoleting"))
-                .count()
-                .min(u32::MAX as usize) as u32;
-            status.pending_updates_count = updates;
-            status.upgradable_packages = updates;
-        }
-
-        // Check for security updates
-        if let Ok(output) = silent_command("yum")
-            .args(["updateinfo", "list", "security", "-q"])
-            .output()
-        {
-            let result = String::from_utf8_lossy(&output.stdout).to_string();
-            status
-                .raw_output
-                .push_str(&format!("=== yum security updates ===\n{}\n", result));
-
-            let security: u32 = result
-                .lines()
-                .filter(|l| !l.trim().is_empty())
-                .count()
-                .min(u32::MAX as usize) as u32;
-            status.pending_security_updates = security;
-        }
-
-        true
+        Ok(true)
     }
 
     /// Check system updates on macOS.
@@ -915,6 +917,15 @@ mod tests {
             }
             Err(error) => panic!("Unexpected check error: {error}"),
         }
+    }
+
+    #[test]
+    fn apt_security_updates_are_counted_among_the_upgradable_lines() {
+        let listing = "Listing...\n\
+            curl/jammy-security 7.81.0-1ubuntu1.20 amd64 [upgradable from: 7.81.0-1ubuntu1.19]\n\
+            vim/jammy-updates 2:8.2.3995-1ubuntu2.24 amd64 [upgradable from: 2:8.2.3995-1ubuntu2.23]\n";
+        assert_eq!(apt_security_updates(listing), 1);
+        assert_eq!(apt_security_updates("Listing...\n"), 0);
     }
 
     #[test]
