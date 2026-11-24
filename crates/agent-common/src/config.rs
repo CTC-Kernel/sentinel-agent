@@ -142,8 +142,12 @@ pub struct AgentConfig {
     #[serde(default = "default_true")]
     pub usb_monitoring: bool,
 
-    /// Whether to block USB mass storage by default.
-    #[serde(default = "default_true")]
+    /// Whether to block USB mass storage when the platform sends no USB policy.
+    ///
+    /// Off unless set: this flag was read by nothing until blocking was
+    /// implemented, so keeping the former `true` default would have started
+    /// blocking or ejecting USB storage on every updated agent.
+    #[serde(default)]
     pub usb_block_mass_storage: bool,
 
     /// Organization ID for API authentication (loaded from DB, not serialized).
@@ -608,7 +612,7 @@ impl Default for AgentConfig {
             fim_watched_paths: None,
             fim_ignore_patterns: None,
             usb_monitoring: true,
-            usb_block_mass_storage: true,
+            usb_block_mass_storage: false,
             organization_id: None,
             client_certificate: None,
             client_key: None,
