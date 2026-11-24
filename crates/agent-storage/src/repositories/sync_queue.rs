@@ -23,6 +23,10 @@ use tracing::{debug, info, warn};
 /// this keeps the queue under ~50 MB of database storage.
 pub const MAX_SYNC_QUEUE_SIZE: usize = 10_000;
 
+/// Delay before an item is offered again after a transient failure (see
+/// [`SyncQueueRepository::record_transient_failure`]).
+const TRANSIENT_RETRY_DELAY_SECS: i64 = 60;
+
 /// Default maximum retry attempts per item.
 const DEFAULT_MAX_ATTEMPTS: u32 = 10;
 
@@ -377,10 +381,63 @@ impl<'a> SyncQueueRepository<'a> {
             .await
     }
 
+    /// Record a failed upload that says nothing about the item itself: the
+    /// platform could not be reached, answered 5xx or refused the agent.
+    ///
+    /// The error and the next retry time are recorded, the attempt counter
+    /// is left alone. Counting these would abandon an item for good
+    /// (`attempts < max_attempts` in [`Self::get_pending`]) after ten
+    /// attempts made while the network was down.
+    pub async fn record_transient_failure(
+        &self,
+        id: i64,
+        error_message: &str,
+    ) -> StorageResult<()> {
+        let error_message = error_message.to_string();
+        let now = Utc::now();
+        let last_attempt = now.format("%Y-%m-%dT%H:%M:%SZ").to_string();
+        let next_retry = (now + chrono::Duration::seconds(TRANSIENT_RETRY_DELAY_SECS))
+            .format("%Y-%m-%dT%H:%M:%SZ")
+            .to_string();
+
+        self.db
+            .with_connection(move |conn| {
+                let updated = conn
+                    .execute(
+                        r#"
+                        UPDATE sync_queue
+                        SET last_attempt_at = ?,
+                            last_error = ?,
+                            next_retry_at = ?
+                        WHERE id = ?
+                        "#,
+                        rusqlite::params![last_attempt, error_message, next_retry, id],
+                    )
+                    .map_err(|e| {
+                        StorageError::Query(format!("Failed to update sync queue item: {}", e))
+                    })?;
+                if updated == 0 {
+                    return Err(StorageError::NotFound(format!(
+                        "Sync queue item {} not found",
+                        id
+                    )));
+                }
+
+                debug!(
+                    "Recorded transient failure for sync queue item {} (next retry in {}s)",
+                    id, TRANSIENT_RETRY_DELAY_SECS
+                );
+                Ok(())
+            })
+            .await
+    }
+
     /// Record a failed attempt for a sync queue item.
     ///
     /// Increments the attempt counter, records the error message, and
-    /// calculates the next retry time using exponential backoff.
+    /// calculates the next retry time using exponential backoff. For a
+    /// failure the item is not responsible for, use
+    /// [`Self::record_transient_failure`].
     pub async fn record_failure(&self, id: i64, error_message: &str) -> StorageResult<()> {
         let error_message = error_message.to_string();
         let now = Utc::now().format("%Y-%m-%dT%H:%M:%SZ").to_string();
@@ -837,6 +894,54 @@ mod tests {
         let stats = repo.queue_stats().await.unwrap();
         assert_eq!(stats.total_count, 1);
         assert_eq!(stats.pending_count, 1); // Still pending, just not ready yet
+    }
+
+    /// Regression: an outage longer than ten attempts abandoned the item.
+    #[tokio::test]
+    async fn test_transient_failures_do_not_consume_attempts() {
+        let (_temp_dir, db) = create_test_db().await;
+        let repo = SyncQueueRepository::new(&db);
+
+        let id = repo
+            .enqueue(&SyncQueueEntry::new(SyncEntityType::CheckResult, "1", "{}"))
+            .await
+            .unwrap();
+
+        for _ in 0..(DEFAULT_MAX_ATTEMPTS * 2) {
+            repo.record_transient_failure(id, "Connection failed: network unreachable")
+                .await
+                .unwrap();
+        }
+
+        // Still eligible, only postponed.
+        let stats = repo.queue_stats().await.unwrap();
+        assert_eq!(stats.pending_count, 1);
+        assert_eq!(stats.failed_count, 0);
+        assert!(repo.get_pending(10).await.unwrap().is_empty());
+
+        // Once the retry time has passed, it is offered again, untouched.
+        db.with_connection(move |conn| {
+            conn.execute(
+                "UPDATE sync_queue SET next_retry_at = '2000-01-01T00:00:00Z' WHERE id = ?",
+                [id],
+            )
+            .map_err(|e| StorageError::Query(e.to_string()))?;
+            Ok(())
+        })
+        .await
+        .unwrap();
+        let pending = repo.get_pending(10).await.unwrap();
+        assert_eq!(pending.len(), 1);
+        assert_eq!(pending[0].attempts, 0);
+        assert_eq!(
+            pending[0].last_error.as_deref(),
+            Some("Connection failed: network unreachable")
+        );
+
+        assert!(matches!(
+            repo.record_transient_failure(99999, "error").await,
+            Err(StorageError::NotFound(_))
+        ));
     }
 
     #[tokio::test]
