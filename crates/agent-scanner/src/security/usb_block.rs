@@ -234,7 +234,9 @@ pub(crate) fn enforce(
         ),
         Ok(true) => tracing::info!("USB policy: mass-storage rule removed from {UDEV_RULE_PATH}"),
         Ok(false) => {}
-        Err(e) => tracing::warn!("USB policy: {UDEV_RULE_PATH} not updated: {e}"),
+        // Every scan while it lasts: the mode reported, logged when it
+        // changes, carries the cause.
+        Err(e) => tracing::debug!("USB policy: {UDEV_RULE_PATH} not updated: {e}"),
     }
 
     let mut refused = None;
@@ -528,7 +530,8 @@ pub(crate) fn enforce(
     let by_driver = blocking && policy.allowlist.is_empty();
     let synced = sync_storage_drivers(by_driver);
     if let Err(e) = &synced {
-        tracing::warn!("USB policy: storage drivers not updated: {e}");
+        // Every scan while it lasts: the mode reported carries the cause.
+        tracing::debug!("USB policy: storage drivers not updated: {e}");
     }
     if !blocking {
         state.blocked.clear();
