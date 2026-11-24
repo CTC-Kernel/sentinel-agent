@@ -33,6 +33,7 @@ pub mod rootcheck;
 pub mod sigma;
 pub mod sigma_logs;
 pub mod system_monitor;
+pub mod usb_block;
 pub mod usb_monitor;
 pub mod yara;
 

@@ -115,9 +115,23 @@ impl AgentRuntime {
             ransomware_canaries: self.state.ransomware_canaries.load(Ordering::Acquire),
             host_isolated: crate::host_isolation::is_isolated(),
             detection: self.gui_detection_options(),
+            connection: Some(self.gui_connection_settings()),
         };
 
         self.emit_gui_event(AgentEvent::StatusChanged { summary });
+    }
+
+    /// The platform address this agent was configured with and the
+    /// heartbeat interval in effect (the platform may have changed it).
+    pub(crate) fn gui_connection_settings(&self) -> agent_gui::dto::GuiConnectionSettings {
+        agent_gui::dto::GuiConnectionSettings {
+            server_url: self.config.server_url.clone(),
+            heartbeat_interval_secs: self
+                .heartbeat_interval_secs
+                .try_read()
+                .map(|interval| *interval)
+                .unwrap_or(self.config.heartbeat_interval_secs),
+        }
     }
 
     /// The detection engines this agent was started with.

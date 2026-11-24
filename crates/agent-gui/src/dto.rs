@@ -312,6 +312,20 @@ pub struct AgentSummary {
     /// The detection engines the agent runs.
     #[serde(default)]
     pub detection: GuiDetectionOptions,
+    /// How the agent reaches its platform, as it is configured and running.
+    /// `None` from a producer that does not know it.
+    #[serde(default)]
+    pub connection: Option<GuiConnectionSettings>,
+}
+
+/// The platform connection of the running agent, for Settings › Connexion.
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+pub struct GuiConnectionSettings {
+    /// Platform address from the loaded configuration (the SaaS address or
+    /// the one of an on-premise installation).
+    pub server_url: String,
+    /// Heartbeat interval in effect, in seconds.
+    pub heartbeat_interval_secs: u64,
 }
 
 /// A detection engine that the configuration turns on or off.
@@ -893,6 +907,64 @@ pub struct GuiExploitIntelStatus {
     pub stale: bool,
 }
 
+/// CVE coverage of one source of installed software.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub struct GuiCveCoverage {
+    /// Name of the scanner that listed the packages.
+    pub source: String,
+    /// Packages it listed.
+    pub packages: u32,
+    /// Packages looked up in a CVE database.
+    pub cve_checked: u32,
+    /// `covered`, `partial` or `not_covered`.
+    pub status: String,
+    /// Why some or all are not covered.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub reason: Option<String>,
+}
+
+impl GuiCveCoverage {
+    /// Whether an absence of finding for this source says nothing.
+    pub fn is_gap(&self) -> bool {
+        self.status != "covered"
+    }
+
+    /// The source, as the operator knows it.
+    pub fn label(&self) -> &str {
+        match self.source.as_str() {
+            "macOS Applications" => "Applications macOS",
+            "windows" => "Programmes Windows",
+            "language-packages" => "Paquets pip, npm et cargo",
+            other => other,
+        }
+    }
+}
+
+/// The sources the CVE lookup does not (fully) cover, in one sentence;
+/// `None` when every source is covered. An absence of finding must not be
+/// read as "no vulnerability" for them.
+pub fn cve_coverage_note(coverage: &[GuiCveCoverage]) -> Option<String> {
+    let gaps: Vec<String> = coverage
+        .iter()
+        .filter(|c| c.is_gap())
+        .map(|c| {
+            let uncovered = c.packages.saturating_sub(c.cve_checked);
+            if c.status == "partial" {
+                format!("{} ({} paquets sur {})", c.label(), uncovered, c.packages)
+            } else {
+                format!("{} ({} paquets)", c.label(), c.packages)
+            }
+        })
+        .collect();
+    (!gaps.is_empty()).then(|| {
+        format!(
+            "Non couvert par la recherche de CVE\u{a0}: {}. L'absence de faille pour ces sources ne signifie pas qu'elles sont saines\u{a0}: elles ne sont pas analys\u{e9}es.",
+            gaps.join(", ")
+        )
+    })
+}
+
 /// Discovered network device for display in the Discovery and Cartography pages.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
@@ -1097,6 +1169,36 @@ pub struct GuiUsbEvent {
     /// Whether this USB device is on the authorized allowlist.
     #[serde(default)]
     pub allowlisted: bool,
+}
+
+/// What the agent does about USB mass storage on this host.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub struct UsbProtection {
+    /// `disabled`, `monitoring_only`, `blocking`, `eject_only` or
+    /// `detection_only`.
+    pub mode: String,
+    /// What it means on this system, in French.
+    pub detail: String,
+}
+
+impl UsbProtection {
+    /// The mode in a few words.
+    pub fn label(&self) -> &'static str {
+        match self.mode.as_str() {
+            "disabled" => "Surveillance USB d\u{e9}sactiv\u{e9}e",
+            "blocking" => "Stockage USB bloqu\u{e9}",
+            "eject_only" => "Stockage USB\u{a0}: \u{e9}jection seule",
+            "detection_only" => "Stockage USB\u{a0}: d\u{e9}tection seule",
+            _ => "Stockage USB\u{a0}: surveillance",
+        }
+    }
+
+    /// Whether the policy asks for more than the system does: the operator
+    /// must not read it as a block.
+    pub fn is_degraded(&self) -> bool {
+        matches!(self.mode.as_str(), "eject_only" | "detection_only")
+    }
 }
 
 /// A network security alert for GUI display.
@@ -2482,9 +2584,9 @@ impl SiemLogSeverity {
     /// Full label.
     pub fn full_label(&self) -> &'static str {
         match self {
-            Self::Info => "Info",
-            Self::Notice => "Notice",
-            Self::Warning => "Warning",
+            Self::Info => "Information",
+            Self::Notice => "Avis",
+            Self::Warning => "Avertissement",
             Self::Error => "Erreur",
             Self::Critical => "Critique",
         }
@@ -2645,6 +2747,7 @@ mod tests {
             ransomware_canaries: false,
             host_isolated: false,
             detection: GuiDetectionOptions::default(),
+            connection: None,
         };
 
         let json = serde_json::to_string(&summary).unwrap();

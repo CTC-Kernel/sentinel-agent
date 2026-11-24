@@ -21,6 +21,20 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use tracing::debug;
 
+/// What `spctl --status` answered: `Some(true)` for "assessments enabled",
+/// `Some(false)` for "assessments disabled", `None` for anything else.
+#[cfg(any(target_os = "macos", test))]
+fn parse_spctl_status(answer: &str) -> Option<bool> {
+    let answer = answer.to_lowercase();
+    if answer.contains("assessments enabled") {
+        Some(true)
+    } else if answer.contains("assessments disabled") {
+        Some(false)
+    } else {
+        None
+    }
+}
+
 /// Check ID for antivirus status.
 pub const CHECK_ID: &str = "antivirus_active";
 
@@ -492,9 +506,37 @@ impl AntivirusCheck {
                 ScannerError::CheckExecution(format!("Failed to run system_profiler: {}", e))
             })?;
 
-        let raw_output = String::from_utf8_lossy(&output.stdout).to_string();
+        let mut raw_output = String::from_utf8_lossy(&output.stdout).to_string();
 
-        // XProtect is always enabled on macOS
+        // XProtect ships with macOS, but that is measured rather than
+        // assumed: the signature bundle must be there, and the system must
+        // be assessing what it opens (Gatekeeper, which is what hands a file
+        // to XProtect before its first launch).
+        let xprotect_path =
+            std::path::Path::new("/Library/Apple/System/Library/CoreServices/XProtect.bundle");
+        let xprotect_present = xprotect_path.exists();
+
+        let spctl = silent_command("spctl")
+            .args(["--status"])
+            .output()
+            .map_err(|e| ScannerError::CheckExecution(format!("Failed to run spctl: {}", e)))?;
+        let spctl_answer = format!(
+            "{}{}",
+            String::from_utf8_lossy(&spctl.stdout),
+            String::from_utf8_lossy(&spctl.stderr)
+        );
+        let assessments_enabled = parse_spctl_status(&spctl_answer).ok_or_else(|| {
+            ScannerError::CheckExecution(format!(
+                "Gatekeeper assessment state could not be read: {}",
+                spctl_answer.trim()
+            ))
+        })?;
+        raw_output.push_str(&format!(
+            "\n=== spctl --status ===\n{}\nXProtect.bundle present: {}\n",
+            spctl_answer.trim(),
+            xprotect_present
+        ));
+
         // Check for third-party AV as well
         let mut additional = Vec::new();
 
@@ -507,17 +549,14 @@ impl AntivirusCheck {
         }
 
         Ok(AntivirusStatus {
-            enabled: true,
+            enabled: xprotect_present,
             av_name: "XProtect".to_string(),
-            real_time_protection: true,
+            real_time_protection: xprotect_present && assessments_enabled,
             definition_date: None,
             definition_version: None,
             definitions_current: {
                 // Check XProtect last update by file modification time
-                let xprotect_path = std::path::Path::new(
-                    "/Library/Apple/System/Library/CoreServices/XProtect.bundle",
-                );
-                if xprotect_path.exists() {
+                if xprotect_present {
                     xprotect_path
                         .metadata()
                         .and_then(|m| m.modified())
@@ -531,7 +570,7 @@ impl AntivirusCheck {
                 }
             },
             last_scan_date: None,
-            service_running: true,
+            service_running: xprotect_present,
             additional_products: additional,
             raw_output,
         })
@@ -669,6 +708,14 @@ mod tests {
 
         let output = result.unwrap();
         assert!(!output.message.is_empty());
+    }
+
+    #[test]
+    fn gatekeeper_state_is_read_not_assumed() {
+        assert_eq!(parse_spctl_status("assessments enabled\n"), Some(true));
+        assert_eq!(parse_spctl_status("assessments disabled\n"), Some(false));
+        assert_eq!(parse_spctl_status(""), None);
+        assert_eq!(parse_spctl_status("spctl: operation not permitted"), None);
     }
 
     #[test]

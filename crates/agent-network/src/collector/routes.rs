@@ -308,7 +308,7 @@ impl RouteCollector {
                 tracing::warn!(
                     "Failed to parse route table JSON from PowerShell: {}. Raw output: {}",
                     e,
-                    &stdout[..stdout.len().min(200)]
+                    truncate_for_log(&stdout, 200)
                 );
                 Vec::new()
             });
@@ -378,5 +378,35 @@ impl RouteCollector {
 impl Default for RouteCollector {
     fn default() -> Self {
         Self::new()
+    }
+}
+
+/// The first `max_bytes` bytes of `text` for a log line, cut back to a
+/// character boundary. Slicing at a fixed byte offset panics when it falls
+/// inside a multi-byte character, which localized PowerShell output has.
+#[cfg(any(target_os = "windows", test))]
+fn truncate_for_log(text: &str, max_bytes: usize) -> &str {
+    let mut end = max_bytes.min(text.len());
+    while !text.is_char_boundary(end) {
+        end -= 1;
+    }
+    &text[..end]
+}
+
+#[cfg(test)]
+mod tests {
+    use super::truncate_for_log;
+
+    #[test]
+    fn truncation_never_splits_a_character() {
+        // 'é' is two bytes: byte 200 falls in the middle of the 100th one.
+        let accented = "é".repeat(150);
+        let cut = truncate_for_log(&accented, 199);
+        assert_eq!(cut.len(), 198);
+        assert_eq!(truncate_for_log(&accented, 200).len(), 200);
+
+        assert_eq!(truncate_for_log("court", 200), "court");
+        assert_eq!(truncate_for_log("", 200), "");
+        assert_eq!(truncate_for_log("L’accès est refusé", 2), "L");
     }
 }

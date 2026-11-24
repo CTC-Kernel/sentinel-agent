@@ -446,8 +446,8 @@ impl SiemForwarder {
         // Format the event
         let formatted = self.formatter.format(event)?;
 
-        // Send via transport
-        match self.transport.send(&formatted).await {
+        // Send via transport, with the severity of the event
+        match self.transport.send_event(&formatted, event.severity).await {
             Ok(bytes_sent) => {
                 let mut stats = self.stats.write().await;
                 stats.events_sent = stats.events_sent.saturating_add(1);
@@ -526,11 +526,11 @@ impl SiemForwarder {
 
         debug!("Flushing {} events to SIEM", events.len());
 
-        // Format all events
-        let formatted: Vec<String> = events
+        // Format all events, each kept with its severity
+        let formatted: Vec<(u8, String)> = events
             .iter()
             .filter_map(|e| match self.formatter.format(e) {
-                Ok(formatted) => Some(formatted),
+                Ok(formatted) => Some((e.severity, formatted)),
                 Err(err) => {
                     tracing::warn!("Failed to format SIEM event: {}", err);
                     None
@@ -539,8 +539,7 @@ impl SiemForwarder {
             .collect();
 
         // Send batch
-        let batch = formatted.join("\n");
-        match self.transport.send(&batch).await {
+        match self.transport.send_batch(&formatted).await {
             Ok(bytes_sent) => {
                 let mut stats = self.stats.write().await;
                 let event_count = u64::try_from(events.len()).unwrap_or(u64::MAX);

@@ -30,6 +30,8 @@
 //! - `SENTINEL_FIM_REPORT_CHANGES` → `fim_report_changes` (`false`: report that a file changed, not which lines)
 //! - `SENTINEL_FIM_WHODATA` → `fim_whodata` (`true`: ask the Linux audit who changed a watched file)
 //! - `SENTINEL_REGISTRY_KEYS` → `registry_keys` (comma-separated Windows registry keys to watch)
+//! - `SENTINEL_MDM_ENABLED` → `mdm_enabled` (`false`: refuse the platform's software deployment commands)
+//! - `SENTINEL_MDM_ALLOWED_HOSTS` → `mdm_allowed_hosts` (comma-separated hosts packages may also come from)
 //!
 //! Nested fields are mapped explicitly (see [`NESTED_ENV_KEYS`]):
 //!
@@ -71,6 +73,7 @@ const LIST_ENV_FIELDS: &[&str] = &[
     "fim_ignore_patterns",
     "active_frameworks",
     "registry_keys",
+    "mdm_allowed_hosts",
 ];
 
 /// Snapshot of environment variables (used to inject a fake environment in tests).
@@ -139,8 +142,12 @@ pub struct AgentConfig {
     #[serde(default = "default_true")]
     pub usb_monitoring: bool,
 
-    /// Whether to block USB mass storage by default.
-    #[serde(default = "default_true")]
+    /// Whether to block USB mass storage when the platform sends no USB policy.
+    ///
+    /// Off unless set: this flag was read by nothing until blocking was
+    /// implemented, so keeping the former `true` default would have started
+    /// blocking or ejecting USB storage on every updated agent.
+    #[serde(default)]
     pub usb_block_mass_storage: bool,
 
     /// Organization ID for API authentication (loaded from DB, not serialized).
@@ -268,6 +275,24 @@ pub struct AgentConfig {
     /// running and the agent running as root.
     #[serde(default)]
     pub fim_whodata: bool,
+
+    /// Let the platform deploy software on this machine: its `install`,
+    /// `update` and `uninstall` commands download a package and run its
+    /// installer with the agent's rights (root or SYSTEM). On by default,
+    /// as before this option existed; `false` refuses these commands, each
+    /// refusal being reported to the platform and written to the audit
+    /// trail.
+    #[serde(default = "default_true")]
+    pub mdm_enabled: bool,
+
+    /// Hosts an install package may be downloaded from besides the
+    /// platform's own (the host of `server_url` and its subdomains): a
+    /// vendor's download server, an internal repository. A name also allows
+    /// its subdomains; `"*"` allows any host. Always over HTTPS. None by
+    /// default: the platform that sends the command is then the only source
+    /// of what gets installed.
+    #[serde(default)]
+    pub mdm_allowed_hosts: Vec<String>,
 
     /// Windows registry keys of the organisation's own (an application's
     /// settings, a policy key) watched with the built-in start-up locations:
@@ -639,7 +664,7 @@ impl Default for AgentConfig {
             fim_watched_paths: None,
             fim_ignore_patterns: None,
             usb_monitoring: true,
-            usb_block_mass_storage: true,
+            usb_block_mass_storage: false,
             organization_id: None,
             client_certificate: None,
             client_key: None,
@@ -659,6 +684,8 @@ impl Default for AgentConfig {
             system_inventory: true,
             fim_report_changes: true,
             fim_whodata: false,
+            mdm_enabled: true,
+            mdm_allowed_hosts: Vec::new(),
             registry_keys: Vec::new(),
             response_commands: Vec::new(),
             command_monitors: Vec::new(),
@@ -1231,6 +1258,8 @@ mod tests {
             system_inventory: true,
             fim_report_changes: true,
             fim_whodata: false,
+            mdm_enabled: false,
+            mdm_allowed_hosts: vec!["downloads.example.com".to_string()],
             registry_keys: Vec::new(),
             response_commands: Vec::new(),
             command_monitors: Vec::new(),

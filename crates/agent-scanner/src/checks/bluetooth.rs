@@ -81,8 +81,18 @@ impl BluetoothCheck {
         let raw_output = String::from_utf8_lossy(&output.stdout).to_string();
         let stderr = String::from_utf8_lossy(&output.stderr).to_string();
 
-        // If the service doesn't exist, Bluetooth is considered disabled
+        // If the service doesn't exist, Bluetooth is considered disabled.
+        // `sc` exits with the Win32 error: only 1060
+        // (ERROR_SERVICE_DOES_NOT_EXIST) means that; anything else (access
+        // denied, service manager unreachable) measured nothing.
         if !output.status.success() {
+            if output.status.code() != Some(1060) {
+                return Err(ScannerError::CheckExecution(format!(
+                    "Bluetooth service state could not be read ({}): {}",
+                    output.status,
+                    stderr.trim()
+                )));
+            }
             return Ok(BluetoothStatus {
                 bluetooth_disabled: true,
                 service_state: "not_found".to_string(),

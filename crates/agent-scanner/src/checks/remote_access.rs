@@ -202,6 +202,9 @@ impl RemoteAccessCheck {
             raw_output: raw_output.clone(),
         };
 
+        // An unreadable answer is not "no remote access enabled".
+        super::probe_json("Remote access probe", &raw_output)?;
+
         // Parse JSON output
         if let Ok(json) = serde_json::from_str::<serde_json::Value>(&raw_output) {
             // RDP configuration (GPO overrides)

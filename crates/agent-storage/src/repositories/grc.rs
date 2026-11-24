@@ -609,6 +609,17 @@ pub struct StoredWebhook {
     pub synced: bool,
 }
 
+/// Outcome of the last alert sent to a webhook.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct WebhookDelivery {
+    /// When a message was last accepted by the receiver (RFC 3339).
+    pub last_sent: Option<String>,
+    /// Why the last attempt failed; `None` when it succeeded.
+    pub last_error: Option<String>,
+    /// When the last attempt was made (RFC 3339).
+    pub last_attempt: String,
+}
+
 pub struct WebhookRepository<'a> {
     db: &'a Database,
 }
@@ -669,6 +680,73 @@ impl<'a> WebhookRepository<'a> {
                 )
                 .map_err(|e| StorageError::Query(format!("Failed to upsert webhook: {}", e)))?;
                 Ok(())
+            })
+            .await
+    }
+
+    /// Record the outcome of an alert sent to a webhook at `at`: a success
+    /// (`error` is `None`) moves `last_sent` and clears the error, a failure
+    /// keeps the previous `last_sent` and stores its reason.
+    pub async fn record_delivery(
+        &self,
+        webhook_id: &str,
+        at: chrono::DateTime<chrono::Utc>,
+        error: Option<String>,
+    ) -> StorageResult<()> {
+        let webhook_id = webhook_id.to_string();
+        let at = at.to_rfc3339();
+        let sent = error.is_none().then(|| at.clone());
+        self.db
+            .with_connection(move |conn| {
+                conn.execute(
+                    r#"
+                    INSERT INTO webhook_deliveries (webhook_id, last_sent, last_error, last_attempt)
+                    VALUES (?1, ?2, ?3, ?4)
+                    ON CONFLICT(webhook_id) DO UPDATE SET
+                        last_sent = COALESCE(excluded.last_sent, webhook_deliveries.last_sent),
+                        last_error = excluded.last_error,
+                        last_attempt = excluded.last_attempt
+                    "#,
+                    rusqlite::params![webhook_id, sent, error, at],
+                )
+                .map_err(|e| {
+                    StorageError::Query(format!("Failed to record webhook delivery: {}", e))
+                })?;
+                Ok(())
+            })
+            .await
+    }
+
+    /// Outcome of the last alert sent to each webhook that still exists, by
+    /// webhook id. A webhook that never received an alert has no entry.
+    pub async fn delivery_status(
+        &self,
+    ) -> StorageResult<std::collections::HashMap<String, WebhookDelivery>> {
+        self.db
+            .with_connection(|conn| {
+                let mut stmt = conn
+                    .prepare(
+                        "SELECT d.webhook_id, d.last_sent, d.last_error, d.last_attempt \
+                         FROM webhook_deliveries d JOIN webhooks w ON w.id = d.webhook_id",
+                    )
+                    .map_err(|e| StorageError::Query(format!("Failed to prepare query: {}", e)))?;
+                let rows = stmt
+                    .query_map([], |row| {
+                        Ok((
+                            row.get::<_, String>(0)?,
+                            WebhookDelivery {
+                                last_sent: row.get(1)?,
+                                last_error: row.get(2)?,
+                                last_attempt: row.get(3)?,
+                            },
+                        ))
+                    })
+                    .map_err(|e| StorageError::Query(format!("Failed to execute query: {}", e)))?
+                    .collect::<Result<_, _>>()
+                    .map_err(|e| {
+                        StorageError::Query(format!("Failed to collect results: {}", e))
+                    })?;
+                Ok(rows)
             })
             .await
     }
@@ -901,16 +979,19 @@ impl<'a> SoftwareInventoryRepository<'a> {
         self.db
             .with_connection(|conn| {
                 let mut stmt = conn
-                    .prepare("SELECT * FROM software_inventory")
+                    .prepare(
+                        "SELECT id, hostname, software_name, version, vendor, install_date, \
+                         synced FROM software_inventory",
+                    )
                     .map_err(|e| StorageError::Query(format!("Failed to prepare query: {}", e)))?;
                 let rows = stmt
                     .query_map([], |row| {
                         Ok(StoredSoftwareInventory {
                             id: row.get(0)?,
-                            hostname: row.get(1)?,
+                            hostname: row.get::<_, Option<String>>(1)?.unwrap_or_default(),
                             software_name: row.get(2)?,
                             version: row.get(3)?,
-                            vendor: row.get(4)?,
+                            vendor: row.get::<_, Option<String>>(4)?.unwrap_or_default(),
                             install_date: row.get(5)?,
                             synced: row.get::<_, i32>(6)? != 0,
                         })

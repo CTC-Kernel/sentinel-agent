@@ -161,9 +161,14 @@ impl AuthenticatedClient {
         let client = self.get_client().await?;
 
         // Request certificate renewal
+        let reason = if credentials.is_certificate_expired() {
+            "expired"
+        } else {
+            "approaching_expiry"
+        };
         let request = CertificateRenewalRequest {
             agent_id,
-            reason: "approaching_expiry".to_string(),
+            reason: reason.to_string(),
         };
 
         let response: CertificateRenewalResponse = client
@@ -790,7 +795,7 @@ impl AuthenticatedClient {
             if let Some(ref client) = state.client {
                 // Check if credentials are still valid
                 if let Some(ref creds) = state.credentials
-                    && !creds.is_certificate_expired()
+                    && !creds.expiry_blocks_requests()
                 {
                     return Ok(client.clone());
                 }
@@ -808,16 +813,23 @@ impl AuthenticatedClient {
     async fn refresh_client(&self) -> SyncResult<HttpClient> {
         let credentials = self.load_credentials().await?;
 
-        // Check if certificate is expired
-        if credentials.is_certificate_expired() {
+        // An expired certificate stops a certificate-only agent. One that
+        // signs its requests with an HMAC secret keeps going: the signature is
+        // what the platform checks, and it is the only way left to renew.
+        if credentials.expiry_blocks_requests() {
             return Err(SyncError::Certificate(format!(
                 "Client certificate expired at {}",
                 credentials.certificate_expires_at
             )));
         }
 
-        // Warn if certificate is expiring soon
-        if credentials.certificate_expires_within(RENEWAL_THRESHOLD_DAYS) {
+        if credentials.is_certificate_expired() {
+            warn!(
+                "Client certificate expired at {}. Requests stay signed with the HMAC secret \
+                 until the renewal succeeds.",
+                credentials.certificate_expires_at
+            );
+        } else if credentials.certificate_expires_within(RENEWAL_THRESHOLD_DAYS) {
             warn!(
                 "Client certificate expires soon ({}). Renewal recommended.",
                 credentials.certificate_expires_at
@@ -1007,6 +1019,134 @@ mod tests {
 
         let client = AuthenticatedClient::new(config, db);
         assert!(client.needs_renewal().await.unwrap());
+    }
+
+    #[tokio::test]
+    async fn an_expired_certificate_blocks_a_certificate_only_agent() {
+        let (_temp_dir, db) = create_test_db().await;
+        let mut credentials = create_test_credentials();
+        credentials.certificate_expires_at = Utc::now() - chrono::Duration::days(1);
+        CredentialsRepository::new(&db)
+            .store(&credentials)
+            .await
+            .unwrap();
+
+        let client = AuthenticatedClient::new(test_config(), db);
+        let result = client.get_client().await;
+
+        assert!(matches!(result, Err(SyncError::Certificate(_))));
+    }
+
+    #[tokio::test]
+    async fn an_expired_certificate_does_not_block_an_hmac_agent() {
+        let (_temp_dir, db) = create_test_db().await;
+        let mut credentials = create_test_credentials();
+        credentials.hmac_secret =
+            Some("c2lnbmluZy1rZXktZm9yLXRlc3RzLW9ubHktbm90LWxpdmU=".to_string());
+        credentials.certificate_expires_at = Utc::now() - chrono::Duration::days(10);
+        CredentialsRepository::new(&db)
+            .store(&credentials)
+            .await
+            .unwrap();
+
+        let client = AuthenticatedClient::new(test_config(), db);
+
+        // Built once, then served from the cache: neither path refuses.
+        assert!(client.get_client().await.is_ok());
+        assert!(client.get_client().await.is_ok());
+        assert!(client.needs_renewal().await.unwrap());
+    }
+
+    /// Answer one HTTP request with `body` and hand back what was received.
+    async fn serve_once(body: String) -> (String, tokio::task::JoinHandle<String>) {
+        use tokio::io::{AsyncReadExt, AsyncWriteExt};
+
+        let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let address = format!("http://{}", listener.local_addr().unwrap());
+        let handle = tokio::spawn(async move {
+            let (mut socket, _) = listener.accept().await.unwrap();
+            let mut received = Vec::new();
+            let mut buffer = [0u8; 4096];
+            loop {
+                let read = socket.read(&mut buffer).await.unwrap();
+                received.extend_from_slice(&buffer[..read]);
+                let text = String::from_utf8_lossy(&received).to_string();
+                if let Some((head, sent)) = text.split_once("\r\n\r\n") {
+                    let expected = head
+                        .lines()
+                        .find_map(|line| {
+                            let (name, value) = line.split_once(':')?;
+                            name.eq_ignore_ascii_case("content-length")
+                                .then(|| value.trim().parse::<usize>().ok())?
+                        })
+                        .unwrap_or(0);
+                    if sent.len() >= expected {
+                        break;
+                    }
+                }
+                if read == 0 {
+                    break;
+                }
+            }
+            let response = format!(
+                "HTTP/1.1 200 OK\r\ncontent-type: application/json\r\n\
+                 content-length: {}\r\nconnection: close\r\n\r\n{}",
+                body.len(),
+                body
+            );
+            socket.write_all(response.as_bytes()).await.unwrap();
+            socket.shutdown().await.ok();
+            String::from_utf8_lossy(&received).to_string()
+        });
+        (address, handle)
+    }
+
+    #[tokio::test]
+    async fn an_hmac_agent_renews_a_certificate_that_already_expired() {
+        let (_temp_dir, db) = create_test_db().await;
+        let mut credentials = create_test_credentials();
+        credentials.hmac_secret =
+            Some("c2lnbmluZy1rZXktZm9yLXRlc3RzLW9ubHktbm90LWxpdmU=".to_string());
+        credentials.certificate_expires_at = Utc::now() - chrono::Duration::days(10);
+        // As enrolled in production: an opaque token, sent in a header.
+        credentials.client_certificate = "b3BhcXVlLXRva2Vu".to_string();
+        let agent_id = credentials.agent_id;
+        CredentialsRepository::new(&db)
+            .store(&credentials)
+            .await
+            .unwrap();
+
+        let renewed_until = Utc::now() + chrono::Duration::days(365);
+        let body = serde_json::json!({
+            "client_certificate": "renewed-token",
+            "client_private_key": "renewed-key",
+            "certificate_expires_at": renewed_until.to_rfc3339(),
+            "server_fingerprints": [],
+        })
+        .to_string();
+        let (address, server) = serve_once(body).await;
+        let config = AgentConfig {
+            server_url: address,
+            tls_verify: false,
+            ..Default::default()
+        };
+
+        let client = AuthenticatedClient::new(config, db.clone());
+        client.check_and_renew_if_needed().await.unwrap();
+
+        let request = server.await.unwrap();
+        assert!(request.starts_with(&format!("POST /v1/agents/{agent_id}/certificate/renew")));
+        assert!(request.contains("\"reason\":\"expired\""));
+
+        let stored = CredentialsRepository::new(&db)
+            .load()
+            .await
+            .unwrap()
+            .unwrap();
+        assert_eq!(stored.client_certificate, "renewed-token");
+        assert!(!stored.is_certificate_expired());
+        assert!(stored.uses_hmac_signing());
+        assert!(!client.needs_renewal().await.unwrap());
     }
 
     #[tokio::test]

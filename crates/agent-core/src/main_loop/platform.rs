@@ -12,7 +12,7 @@ use std::sync::atomic::Ordering;
 use tracing::{debug, error, info, warn};
 
 use super::job::Job;
-use super::{CERT_CHECK_INTERVAL_SECS, LoopState};
+use super::{CERT_CHECK_INTERVAL_SECS, CERT_CHECK_RETRY_SECS, LoopState};
 use crate::AgentRuntime;
 
 /// Name of the background task that sends the heartbeat.
@@ -133,6 +133,10 @@ fn siem_sync_request(
         },
     }
 }
+
+// A failed certificate check is scheduled again by subtracting the retry
+// delay from the daily interval.
+const _: () = assert!(CERT_CHECK_RETRY_SECS < CERT_CHECK_INTERVAL_SECS);
 
 impl AgentRuntime {
     /// Heartbeat, when its interval has passed, in a background task: a
@@ -366,13 +370,19 @@ impl AgentRuntime {
             && st.heartbeat_task.is_none()
             && st.last_cert_check.elapsed().as_secs() >= CERT_CHECK_INTERVAL_SECS
         {
+            let mut next_check_in = CERT_CHECK_INTERVAL_SECS;
             if let Some(ref auth_client) = self.authenticated_client {
                 match auth_client.check_and_renew_if_needed().await {
                     Ok(()) => {
                         debug!("Certificate renewal check complete");
                     }
+                    // Nothing to renew yet: `ensure_enrolled` handles it.
+                    Err(agent_sync::SyncError::NotEnrolled) => {}
                     Err(e) => {
                         warn!("Certificate renewal check failed: {}", e);
+                        // A renewal that did not go through is not left for
+                        // tomorrow: the certificate may already have expired.
+                        next_check_in = CERT_CHECK_RETRY_SECS;
                         // If renewal failed due to auth/cert error, try re-enrollment
                         if e.is_auth_error() {
                             warn!("Certificate expired or rejected, triggering re-enrollment");
@@ -394,7 +404,12 @@ impl AgentRuntime {
                     }
                 }
             }
-            st.last_cert_check = std::time::Instant::now();
+            let now = std::time::Instant::now();
+            st.last_cert_check = now
+                .checked_sub(std::time::Duration::from_secs(
+                    CERT_CHECK_INTERVAL_SECS - next_check_in,
+                ))
+                .unwrap_or(now);
         }
     }
 
@@ -679,12 +694,12 @@ mod tests {
     #[tokio::test]
     async fn a_standalone_agent_has_no_certificate_to_renew() {
         let test = standalone_runtime();
-        let started = Instant::now() - Duration::from_secs(2 * CERT_CHECK_INTERVAL_SECS);
-        let mut st = LoopState::starting_at(started, 3600, 3600);
+        let mut st = LoopState::starting_at(Instant::now(), 3600, 3600);
+        let due_since = st.last_cert_check;
 
         test.runtime.certificate_renewal_stage(&mut st).await;
 
-        assert_eq!(st.last_cert_check, started);
+        assert_eq!(st.last_cert_check, due_since);
     }
 
     #[tokio::test]
@@ -805,8 +820,8 @@ mod tests {
     #[tokio::test]
     async fn the_certificate_check_waits_for_the_heartbeat_in_flight() {
         let test = unenrolled_runtime();
-        let started = Instant::now() - Duration::from_secs(2 * CERT_CHECK_INTERVAL_SECS);
-        let mut st = LoopState::starting_at(started, 3600, 3600);
+        let mut st = LoopState::starting_at(Instant::now(), 3600, 3600);
+        let due_since = st.last_cert_check;
         st.heartbeat_task = Some(Job::start(
             &mut st.tasks,
             HEARTBEAT_TASK,
@@ -815,7 +830,21 @@ mod tests {
 
         test.runtime.certificate_renewal_stage(&mut st).await;
 
-        assert_eq!(st.last_cert_check, started);
+        assert_eq!(st.last_cert_check, due_since);
         st.tasks.shutdown().await;
+    }
+
+    #[tokio::test]
+    async fn the_certificate_is_checked_at_the_first_pass_then_daily() {
+        let test = unenrolled_runtime();
+        let mut st = LoopState::starting_at(Instant::now(), 3600, 3600);
+        let due_since = st.last_cert_check;
+
+        // Due from the start: the stage runs, and the next check is a full
+        // interval away.
+        test.runtime.certificate_renewal_stage(&mut st).await;
+
+        assert!(st.last_cert_check > due_since);
+        assert!(st.last_cert_check.elapsed().as_secs() < CERT_CHECK_INTERVAL_SECS);
     }
 }

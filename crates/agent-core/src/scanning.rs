@@ -410,6 +410,8 @@ impl AgentRuntime {
         &self,
         incident: &agent_scanner::SecurityIncident,
     ) -> Result<(), CommonError> {
+        // Alert rules and webhooks are local: a standalone agent has them too.
+        self.dispatch_alert(incident);
         if self.config.standalone {
             return Ok(());
         }
@@ -451,6 +453,19 @@ impl AgentRuntime {
                 Err(failure)
             }
         }
+    }
+
+    /// Evaluate the alert rules on an incident and notify the webhooks, in
+    /// a task of its own: a slow receiver must not hold back the uploads.
+    fn dispatch_alert(&self, incident: &agent_scanner::SecurityIncident) {
+        let Some(db) = self.db.clone() else {
+            return;
+        };
+        let dispatcher = Arc::clone(&self.alert_dispatcher);
+        let event = crate::alerting::AlertEvent::from(incident);
+        tokio::spawn(async move {
+            dispatcher.dispatch(&db, &event).await;
+        });
     }
 
     /// Send one incident, waiting no longer than [`INCIDENT_UPLOAD_TIMEOUT`].

@@ -381,6 +381,42 @@ pub struct LogCollector {
     file_offsets: std::sync::Mutex<std::collections::HashMap<&'static str, u64>>,
 }
 
+/// Arguments of `log show` for the entries after `since`.
+///
+/// Only `--start` bounds the window. `--last` used to be passed as well and
+/// it wins over `--start`: every pass read the whole look-back period again
+/// and sent the same entries to the SIEM once more. The start time carries
+/// its UTC offset, without which `log` reads it as local time.
+#[cfg(any(target_os = "macos", test))]
+fn macos_log_show_args(since: &DateTime<Utc>, predicate: &str) -> Vec<String> {
+    vec![
+        "show".to_string(),
+        "--style".to_string(),
+        "compact".to_string(),
+        "--start".to_string(),
+        since.format("%Y-%m-%d %H:%M:%S%z").to_string(),
+        "--predicate".to_string(),
+        predicate.to_string(),
+    ]
+}
+
+/// `since` as `journalctl --since` reads it. The zone is spelled out: a
+/// bare date and time is local time for journalctl, which moved the window
+/// by the UTC offset of the machine (entries read again east of Greenwich,
+/// entries missed west of it).
+#[cfg(any(target_os = "linux", test))]
+fn journalctl_since(since: &DateTime<Utc>) -> String {
+    since.format("%Y-%m-%d %H:%M:%S UTC").to_string()
+}
+
+/// `since` as the `StartTime` of `Get-WinEvent`: ISO 8601 with the `Z`
+/// suffix, which PowerShell converts to local time. Without it the UTC
+/// clock reading was taken for a local one.
+#[cfg(any(target_os = "windows", test))]
+fn winevent_start_time(since: &DateTime<Utc>) -> String {
+    since.format("%Y-%m-%dT%H:%M:%SZ").to_string()
+}
+
 impl LogCollector {
     /// Create a new log collector.
     pub fn new(config: LogCollectorConfig) -> Self {
@@ -600,8 +636,6 @@ impl LogCollector {
         source: LogSource,
         since: &DateTime<Utc>,
     ) -> Result<Vec<RawLogEntry>, String> {
-        let since_str = since.format("%Y-%m-%d %H:%M:%S%z").to_string();
-
         let predicate = match source {
             LogSource::System => "subsystem == \"com.apple.system\"",
             LogSource::Auth => "category == \"auth\" OR subsystem == \"com.apple.Authorization\"",
@@ -610,17 +644,7 @@ impl LogCollector {
         };
 
         let output = agent_common::process::silent_async_command("log")
-            .args([
-                "show",
-                "--style",
-                "compact",
-                "--start",
-                &since_str,
-                "--predicate",
-                predicate,
-                "--last",
-                &format!("{}s", self.config.lookback_secs),
-            ])
+            .args(macos_log_show_args(since, predicate))
             .output()
             .await
             .map_err(|e| format!("Failed to run `log show`: {}", e))?;
@@ -643,7 +667,7 @@ impl LogCollector {
         source: LogSource,
         since: &DateTime<Utc>,
     ) -> Result<Vec<RawLogEntry>, String> {
-        let since_str = since.format("%Y-%m-%d %H:%M:%S").to_string();
+        let since_str = journalctl_since(since);
 
         // Build journalctl arguments based on log source
         let journalctl_args: Vec<&str> = match source {
@@ -728,13 +752,13 @@ impl LogCollector {
             LogSource::Application => "Application",
         };
 
-        let since_str = since.format("%Y-%m-%dT%H:%M:%S").to_string();
+        let since_str = winevent_start_time(since);
 
         // Use Get-WinEvent with FilterHashtable for efficient structured queries.
         // Select only the fields we need to keep output size manageable.
         let script = format!(
             r#"try {{
-    $events = Get-WinEvent -FilterHashtable @{{LogName='{channel}'; StartTime='{since_str}'}} -MaxEvents 500 -ErrorAction Stop |
+    $events = Get-WinEvent -FilterHashtable @{{LogName='{channel}'; StartTime=[datetime]'{since_str}'}} -MaxEvents 500 -ErrorAction Stop |
         Select-Object Id, TimeCreated, ProviderName, LevelDisplayName, Level, MachineName,
             @{{N='User';E={{$_.UserId.Translate([System.Security.Principal.NTAccount]).Value}}}},
             Message |
@@ -1343,6 +1367,22 @@ fn appended_lines(content: &str, previous: Option<u64>) -> (String, u64) {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// `--last` wins over `--start` and made every pass read the whole
+    /// look-back period again; a start time without offset is local time.
+    #[test]
+    fn the_collection_window_starts_at_the_last_pass_in_utc() {
+        use chrono::TimeZone;
+        let since = Utc.with_ymd_and_hms(2026, 11, 24, 10, 46, 30).unwrap();
+
+        let args = macos_log_show_args(&since, "subsystem == \"com.apple.alf\"");
+        assert!(!args.iter().any(|a| a == "--last"), "{args:?}");
+        let start = args.iter().position(|a| a == "--start").unwrap();
+        assert_eq!(args[start + 1], "2026-11-24 10:46:30+0000");
+
+        assert_eq!(journalctl_since(&since), "2026-11-24 10:46:30 UTC");
+        assert_eq!(winevent_start_time(&since), "2026-11-24T10:46:30Z");
+    }
 
     #[test]
     fn a_log_file_is_read_once_and_from_where_it_was_left() {

@@ -172,6 +172,9 @@ impl AdminAccountsCheck {
         // Standard Windows admin accounts
         let standard_admins = ["Administrator", "SYSTEM", "NT AUTHORITY\\SYSTEM"];
 
+        // An unreadable answer is not an empty Administrators group.
+        super::probe_json("Administrator accounts probe", &raw_output)?;
+
         // Parse JSON output
         if let Ok(json) = serde_json::from_str::<serde_json::Value>(&raw_output) {
             // Built-in admin status
@@ -224,6 +227,15 @@ impl AdminAccountsCheck {
                     }
                 }
             }
+        }
+
+        // The Administrators group always has at least the built-in account:
+        // an empty list means the enumeration failed, not that nobody is
+        // an administrator.
+        if status.admin_count == 0 {
+            return Err(ScannerError::CheckExecution(
+                "No member of the Administrators group could be enumerated".to_string(),
+            ));
         }
 
         // Validate compliance

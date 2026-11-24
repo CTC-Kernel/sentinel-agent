@@ -1235,6 +1235,11 @@ impl eframe::App for SentinelApp {
         // Process incoming events.
         self.process_events();
 
+        let now = ctx.input(|i| i.time);
+        if let Some(cmd) = self.state.threats.take_quarantine_refresh(now) {
+            self.send_command(cmd);
+        }
+
         // Jarvis Widget Viewport (standalone window). Shown from here rather
         // than from `ui`: it is its own always-on-top window, which the tray
         // can open while the main window is hidden, and a viewport not shown

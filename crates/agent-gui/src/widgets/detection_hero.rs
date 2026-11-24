@@ -187,12 +187,7 @@ fn response_panel(ui: &mut Ui, state: &AppState) -> Option<EdrTab> {
         .filter(|a| a.status == ResponseStatus::Failed)
         .count();
     let playbooks = state.threats.playbooks.iter().filter(|p| p.enabled).count();
-    let quarantined = state
-        .threats
-        .quarantine_queue
-        .iter()
-        .filter(|f| !f.restored)
-        .count();
+    let quarantined = state.threats.quarantined_count();
     egui::Frame::new()
         .fill(theme::color_blend_pub(
             theme::bg_secondary(),

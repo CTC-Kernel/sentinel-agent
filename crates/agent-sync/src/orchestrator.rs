@@ -105,6 +105,11 @@ pub struct SyncStatusSummary {
     pub last_error: Option<String>,
     /// Total items pending sync.
     pub pending_items: u32,
+    /// Queued items that used up their attempts and are no longer sent:
+    /// re-armed when an outage exhausted them, purged after the retention
+    /// period otherwise.
+    #[serde(default)]
+    pub dead_items: u32,
     /// Whether the agent is currently offline.
     pub is_offline: bool,
     /// Circuit breaker state description.
@@ -180,14 +185,37 @@ macro_rules! impl_sync_queue {
                     Ok(ids.len() as u32)
                 }
                 Err(e) => {
-                    for id in ids {
-                        let _ = repo.record_failure(id, &e.to_string()).await;
-                    }
+                    record_upload_failure(&repo, &ids, &e).await;
                     Err(e)
                 }
             }
         }
     };
+}
+
+/// Record a failed batch upload on its items.
+///
+/// An item only uses up one of its attempts when the platform refused the
+/// batch itself. A platform that cannot be reached, answers 5xx or 429, or
+/// rejects the agent's credentials says nothing about the items: they are
+/// postponed and stay in the queue, however long the outage lasts.
+async fn record_upload_failure(
+    repo: &agent_storage::SyncQueueRepository<'_>,
+    ids: &[i64],
+    error: &crate::error::SyncError,
+) {
+    let message = error.to_string();
+    let transient = error.is_retryable() || error.is_auth_error();
+    for &id in ids {
+        let recorded = if transient {
+            repo.record_transient_failure(id, &message).await
+        } else {
+            repo.record_failure(id, &message).await
+        };
+        if let Err(e) = recorded {
+            warn!("Failed to record the upload failure of queue item {id}: {e}");
+        }
+    }
 }
 
 /// Orchestrates sync operations between agent and SaaS.
@@ -476,12 +504,22 @@ impl SyncOrchestrator {
             history.first().map(|e| e.started_at)
         };
 
+        let dead_items = agent_storage::SyncQueueRepository::new(&self._db)
+            .exhausted_count()
+            .await
+            .map(|count| count.clamp(0, i64::from(u32::MAX)) as u32)
+            .unwrap_or_else(|e| {
+                warn!("Exhausted sync queue items could not be counted: {e}");
+                0
+            });
+
         SyncStatusSummary {
             status,
             last_success_at,
             last_attempt_at,
             last_error,
             pending_items: offline_status.queued_item_count,
+            dead_items,
             is_offline: offline_status.is_offline,
             circuit_breaker: format!("{:?}", cb_state),
         }
@@ -851,6 +889,39 @@ mod tests {
         let db = Database::open(config, &key_manager).unwrap();
 
         (temp_dir, Arc::new(db))
+    }
+
+    /// Regression: every failed upload used up an attempt, so ten syncs
+    /// without network abandoned the queued items for good.
+    #[tokio::test]
+    async fn test_outage_does_not_use_up_queue_attempts() {
+        use crate::error::SyncError;
+        use agent_storage::{SyncEntityType, SyncQueueEntry, SyncQueueRepository};
+
+        let (_temp_dir, db) = create_test_db().await;
+        let repo = SyncQueueRepository::new(&db);
+        let entry =
+            SyncQueueEntry::new(SyncEntityType::CheckResult, "1", "{}").with_max_attempts(2);
+        let kept = repo.enqueue(&entry).await.unwrap();
+
+        for error in [
+            SyncError::connection("network unreachable"),
+            SyncError::Timeout,
+            SyncError::server(503, "Service Unavailable"),
+            SyncError::server(429, "Too Many Requests"),
+            SyncError::server(401, "Unauthorized"),
+        ] {
+            record_upload_failure(&repo, &[kept], &error).await;
+        }
+        let stats = repo.queue_stats().await.unwrap();
+        assert_eq!((stats.pending_count, stats.failed_count), (1, 0));
+
+        // A batch the platform refuses does count.
+        for _ in 0..2 {
+            record_upload_failure(&repo, &[kept], &SyncError::server(400, "Bad Request")).await;
+        }
+        let stats = repo.queue_stats().await.unwrap();
+        assert_eq!((stats.pending_count, stats.failed_count), (0, 1));
     }
 
     #[tokio::test]

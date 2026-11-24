@@ -9,7 +9,7 @@
 //! - Deployment group staggering
 
 use crate::types::NetworkSchedulerConfig;
-use rand::Rng;
+use rand::RngExt;
 use std::time::Duration;
 use tracing::debug;
 

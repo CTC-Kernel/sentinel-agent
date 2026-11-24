@@ -11,11 +11,13 @@
 
 mod connections;
 mod dns;
+mod dns_names;
 mod interfaces;
 mod routes;
 
 pub use connections::ConnectionCollector;
 pub use dns::DnsCollector;
+pub use dns_names::{DnsNameCoverage, DnsNameObservation, ObservedName, observe_dns_names};
 pub use interfaces::InterfaceCollector;
 pub use routes::RouteCollector;
 

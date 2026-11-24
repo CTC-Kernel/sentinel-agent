@@ -13,6 +13,9 @@ use crate::theme;
 use crate::theme::LinearFade as _;
 use crate::widgets;
 
+/// The pending "block this address" confirmation.
+const BLOCK_CONFIRM: &str = "network_block_confirm";
+
 pub struct NetworkPage;
 
 impl NetworkPage {
@@ -247,15 +250,11 @@ impl NetworkPage {
                         } else if action_idx == 1
                             && let Some(ref remote_ip) = conn.remote_address
                         {
-                            command = Some(GuiCommand::BlockIp {
-                                ip: remote_ip.clone(),
-                                duration_secs: 0,
-                            });
+                            // A permanent block: ask first. Nothing is
+                            // sent, and nothing is announced, until the
+                            // operator confirms.
+                            super::block_confirm::ask(&ctx, BLOCK_CONFIRM, remote_ip.clone());
                             state.network.detail_open = false;
-                            state.toasts.push(
-                                crate::widgets::toast::Toast::info("Demande de blocage envoyée")
-                                    .with_time(time),
-                            );
                         }
                     }
                 } else {
@@ -443,6 +442,12 @@ impl NetworkPage {
                 // No valid selection — clean up phantom open state
                 state.network.detail_open = false;
             }
+        }
+
+        if let Some(block) =
+            super::block_confirm::resolve(ui, state, BLOCK_CONFIRM, "Bloquer l'adresse ?")
+        {
+            command = Some(block);
         }
 
         command

@@ -104,8 +104,12 @@ impl GuestAccountCheck {
 
         let raw_output = String::from_utf8_lossy(&output.stdout).to_string();
 
-        // Parse JSON result
-        if let Ok(json) = serde_json::from_str::<serde_json::Value>(raw_output.trim()) {
+        // Parse JSON result. When the lookup itself failed (the script reports
+        // it under `error`), the account was not found "absent": fall through
+        // to the second method.
+        if let Ok(json) = serde_json::from_str::<serde_json::Value>(raw_output.trim())
+            && json.get("error").is_none()
+        {
             let exists = json
                 .get("exists")
                 .and_then(|v| v.as_bool())
@@ -146,13 +150,12 @@ impl GuestAccountCheck {
                     raw_output: fb_raw,
                 })
             }
-            _ => Ok(GuestAccountStatus {
-                guest_disabled: true,
-                account_exists: false,
-                account_locked: None,
-                detection_method: "Guest account not found".to_string(),
-                raw_output,
-            }),
+            // Neither method answered (on a localized Windows the account is
+            // not even named "Guest"): unknown, not "disabled".
+            _ => Err(ScannerError::CheckExecution(format!(
+                "Guest account state could not be determined: {}",
+                raw_output.trim()
+            ))),
         }
     }
 

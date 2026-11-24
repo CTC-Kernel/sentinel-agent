@@ -16,7 +16,9 @@ pub struct AuditTrailPage;
 
 impl AuditTrailPage {
     pub fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
-        let command = None;
+        // What the agent recorded in its database is asked for when the
+        // page opens and refreshed while it is shown.
+        let command = state.take_audit_history_refresh(ui.input(|i| i.time));
 
         ui.add_space(theme::SPACE_XS);
         let _ = widgets::page_header_nav(
@@ -34,26 +36,7 @@ impl AuditTrailPage {
 
         // Filters (AAA Grade)
         // Count filtered results (matching the same logic as render_table)
-        let n_items = state
-            .logs
-            .iter()
-            .filter(|log| {
-                if let Some(ref filter) = state.audit_trail_filter
-                    && log.level.to_lowercase() != filter.to_lowercase()
-                {
-                    return false;
-                }
-                if !state.audit_trail_search.is_empty() {
-                    let search = state.audit_trail_search.to_lowercase();
-                    return log.message.to_lowercase().contains(&search)
-                        || log
-                            .source
-                            .as_ref()
-                            .is_some_and(|s| s.to_lowercase().contains(&search));
-                }
-                true
-            })
-            .count();
+        let n_items = Self::filtered(state).len();
         let (toggled, export_clicked) = widgets::SearchFilterBar::new(
             &mut state.audit_trail_search,
             "Rechercher un événement…",
@@ -119,27 +102,32 @@ impl AuditTrailPage {
         command
     }
 
-    fn detail_drawer(ui: &mut Ui, state: &mut AppState) {
-        let filtered_logs: Vec<_> = state
-            .logs
-            .iter()
+    /// The rows shown: the persistent trail and the session, most recent
+    /// first, narrowed by the level chip and the search field.
+    fn filtered(state: &AppState) -> Vec<&crate::dto::GuiLogEntry> {
+        let level = state.audit_trail_filter.as_deref().map(str::to_lowercase);
+        let search = state.audit_trail_search.to_lowercase();
+        state
+            .audit_entries()
+            .into_iter()
             .filter(|log| {
-                if let Some(ref filter) = state.audit_trail_filter
-                    && log.level.to_lowercase() != filter.to_lowercase()
+                if let Some(level) = &level
+                    && log.level.to_lowercase() != *level
                 {
                     return false;
                 }
-                if !state.audit_trail_search.is_empty() {
-                    let search = state.audit_trail_search.to_lowercase();
-                    return log.message.to_lowercase().contains(&search)
-                        || log
-                            .source
-                            .as_ref()
-                            .is_some_and(|s| s.to_lowercase().contains(&search));
-                }
-                true
+                search.is_empty()
+                    || log.message.to_lowercase().contains(&search)
+                    || log
+                        .source
+                        .as_ref()
+                        .is_some_and(|s| s.to_lowercase().contains(&search))
             })
-            .collect();
+            .collect()
+    }
+
+    fn detail_drawer(ui: &mut Ui, state: &mut AppState) {
+        let filtered_logs = Self::filtered(state);
 
         let selected = match state.selected_audit_entry {
             Some(idx) if idx < filtered_logs.len() => idx,
@@ -196,11 +184,18 @@ impl AuditTrailPage {
     }
 
     fn export_audit_trail_csv(state: &AppState) -> bool {
-        let headers = &["date", "niveau", "message"];
+        let headers = &["date", "niveau", "message", "source"];
         let rows: Vec<Vec<String>> = state
-            .logs
-            .iter()
-            .map(|l| vec![l.timestamp.to_rfc3339(), l.level.clone(), l.message.clone()])
+            .audit_entries()
+            .into_iter()
+            .map(|l| {
+                vec![
+                    l.timestamp.to_rfc3339(),
+                    l.level.clone(),
+                    l.message.clone(),
+                    l.source.clone().unwrap_or_default(),
+                ]
+            })
             .collect();
         let path = crate::export::default_export_path("audit_trail.csv");
         match crate::export::export_csv(headers, &rows, &path) {
@@ -213,27 +208,9 @@ impl AuditTrailPage {
     }
 
     fn render_table(ui: &mut Ui, state: &mut AppState) {
-        let filtered_logs: Vec<_> = state
-            .logs
-            .iter()
-            .filter(|log| {
-                if let Some(ref filter) = state.audit_trail_filter
-                    && log.level.to_lowercase() != filter.to_lowercase()
-                {
-                    return false;
-                }
-                if !state.audit_trail_search.is_empty() {
-                    let search = state.audit_trail_search.to_lowercase();
-                    return log.message.to_lowercase().contains(&search)
-                        || log
-                            .source
-                            .as_ref()
-                            .map(|s| s.to_lowercase().contains(&search))
-                            .unwrap_or(false);
-                }
-                true
-            })
-            .collect();
+        // Owned: the table below needs `state` again for its selection.
+        let filtered_logs: Vec<crate::dto::GuiLogEntry> =
+            Self::filtered(state).into_iter().cloned().collect();
 
         if filtered_logs.is_empty() {
             widgets::empty_state(ui, icons::CLIPBOARD, "Aucun événement trouvé", None);
@@ -290,7 +267,6 @@ impl AuditTrailPage {
                 let Some(log) = filtered_logs.get(idx) else {
                     return;
                 };
-                let log = *log;
                 let is_selected = selected == Some(idx);
                 row.set_selected(is_selected);
 

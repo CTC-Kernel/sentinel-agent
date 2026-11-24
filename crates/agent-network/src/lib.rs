@@ -68,7 +68,7 @@ pub mod error;
 pub mod sync;
 pub mod types;
 
-pub use collector::NetworkCollector;
+pub use collector::{DnsNameCoverage, NetworkCollector};
 pub use detection::SecurityDetector;
 pub use discovery::{DiscoveryConfig, NetworkDiscovery};
 pub use error::{NetworkError, NetworkResult};
@@ -83,7 +83,16 @@ pub struct NetworkManager {
     detector: SecurityDetector,
     sync_manager: SyncManager,
     scheduler: NetworkScheduler,
+    /// Whether the last detection pass could read host names.
+    dns_name_coverage: std::sync::Mutex<DnsNameCoverage>,
+    /// When the resolver cache was last read.
+    dns_names_read_at: std::sync::Mutex<Option<std::time::Instant>>,
 }
+
+/// The resolver cache is read at most this often: reading it starts a
+/// process (PowerShell on Windows), and the security pass runs every
+/// minute.
+const DNS_NAMES_EVERY: std::time::Duration = std::time::Duration::from_secs(120);
 
 impl NetworkManager {
     /// Create a new network manager with default configuration.
@@ -93,6 +102,8 @@ impl NetworkManager {
             collector: NetworkCollector::new(),
             detector: SecurityDetector::new(),
             sync_manager: SyncManager::new(),
+            dns_name_coverage: std::sync::Mutex::new(DnsNameCoverage::Unknown),
+            dns_names_read_at: std::sync::Mutex::new(None),
             scheduler: NetworkScheduler::new(),
         }
     }
@@ -104,6 +115,8 @@ impl NetworkManager {
             collector: NetworkCollector::new(),
             detector: SecurityDetector::new(),
             sync_manager: SyncManager::new(),
+            dns_name_coverage: std::sync::Mutex::new(DnsNameCoverage::Unknown),
+            dns_names_read_at: std::sync::Mutex::new(None),
             scheduler: NetworkScheduler::with_config(config),
         }
     }
@@ -146,7 +159,50 @@ impl NetworkManager {
         &self,
         connections: &[NetworkConnection],
     ) -> NetworkResult<Vec<NetworkSecurityAlert>> {
-        self.detector.analyze(connections).await
+        let mut alerts = self.detector.analyze(connections).await?;
+
+        // The connections carry addresses only: what is detected by name
+        // (generated domains, mining pools, malicious domains) is fed with
+        // the names the system resolver remembers, where it can be read.
+        let due = self.dns_names_read_at.lock().is_ok_and(|mut read_at| {
+            let due = read_at.is_none_or(|at| at.elapsed() >= DNS_NAMES_EVERY);
+            if due {
+                *read_at = Some(std::time::Instant::now());
+            }
+            due
+        });
+        if !due {
+            return Ok(alerts);
+        }
+        let observation = collector::observe_dns_names().await;
+        alerts.extend(self.detector.analyze_names(&observation.names, connections));
+        alerts.sort_by_key(|a| std::cmp::Reverse(a.severity));
+        if let Ok(mut coverage) = self.dns_name_coverage.lock() {
+            if coverage.code() != observation.coverage.code() {
+                match &observation.coverage {
+                    DnsNameCoverage::NotCovered { reason } => tracing::warn!(
+                        "Detection by host name (DGA, mining pools, malicious domains) is NOT covered on this host: {}",
+                        reason
+                    ),
+                    DnsNameCoverage::Covered { source, .. } => {
+                        info!("Detection by host name is fed from: {}", source)
+                    }
+                    DnsNameCoverage::Unknown => {}
+                }
+            }
+            *coverage = observation.coverage;
+        }
+        Ok(alerts)
+    }
+
+    /// Whether detections by host name (generated domains, mining pools,
+    /// malicious domains) are fed on this host, as of the last detection
+    /// pass. `NotCovered` is not "nothing found": nothing was looked at.
+    pub fn dns_name_coverage(&self) -> DnsNameCoverage {
+        self.dns_name_coverage
+            .lock()
+            .map(|coverage| coverage.clone())
+            .unwrap_or(DnsNameCoverage::Unknown)
     }
 
     /// Process a snapshot and return delta if there are changes.

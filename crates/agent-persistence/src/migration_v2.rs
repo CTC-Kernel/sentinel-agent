@@ -233,7 +233,7 @@ mod tests {
                 |row| row.get(0),
             )
             .unwrap();
-        assert_eq!(version, 10);
+        assert_eq!(version, agent_storage::CURRENT_SCHEMA_VERSION);
 
         // Verify tables exist
         let tables: Vec<String> = conn
@@ -263,7 +263,7 @@ mod tests {
                 |row| row.get(0),
             )
             .unwrap();
-        assert_eq!(version, 10);
+        assert_eq!(version, agent_storage::CURRENT_SCHEMA_VERSION);
     }
 
     #[test]
@@ -274,7 +274,7 @@ mod tests {
         rollback_v2_migration(&mut conn).unwrap();
 
         // After rollback the v2 entry (version=2) is removed, but storage
-        // migrations v1..v10 remain, so MAX stays at 10.
+        // migrations remain, so MAX stays at their last version.
         let max_version: i32 = conn
             .query_row(
                 "SELECT COALESCE(MAX(version), 0) FROM schema_version",
@@ -282,7 +282,7 @@ mod tests {
                 |row| row.get(0),
             )
             .unwrap();
-        assert_eq!(max_version, 10);
+        assert_eq!(max_version, agent_storage::CURRENT_SCHEMA_VERSION);
 
         // Verify v2 tables are gone
         let tables: Vec<String> = conn

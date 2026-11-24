@@ -94,6 +94,15 @@ impl DetectionRules {
             .any(|pool| host == *pool || host.ends_with(&format!(".{pool}")))
     }
 
+    /// Check if a host name is a known malicious domain, or below one.
+    pub fn is_malicious_domain(&self, name: &str) -> bool {
+        let host = name.trim_end_matches('.').to_lowercase();
+        self.malicious_domains.iter().any(|domain| {
+            let domain = domain.trim_end_matches('.').to_lowercase();
+            !domain.is_empty() && (host == domain || host.ends_with(&format!(".{domain}")))
+        })
+    }
+
     /// Get IOC match description.
     pub fn get_ioc_match(&self, ip: &str, port: u16) -> Option<(IocType, String)> {
         if self.is_malicious_ip(ip) {
