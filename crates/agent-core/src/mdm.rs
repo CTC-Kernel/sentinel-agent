@@ -16,6 +16,12 @@
 //! - **Method allowlist.** Only vetted installer formats are accepted; unknown
 //!   or free-form (`custom`) methods are rejected.
 //! - **Privilege gate.** System-mutating actions require administrator/root.
+//! - **Local switch.** `mdm_enabled = false` in the agent's configuration
+//!   refuses every deployment command, whatever the platform sends.
+//! - **Known sources.** The URL and its checksum come in the same message,
+//!   so the checksum alone proves nothing about the origin: a package is
+//!   only fetched from the platform's own host, its subdomains, or a host
+//!   the local configuration lists in `mdm_allowed_hosts`.
 //!
 //! The result of each command is serialized to a compact JSON blob and returned
 //! as the command `output`, which the server merges with the stored command
@@ -40,6 +46,84 @@ const UNSAFE_ARG_CHARS: [char; 20] = [
     ';', '|', '&', '$', '`', '\n', '\r', '(', ')', '{', '}', '<', '>', '*', '?', '[', ']', '!',
     '\\', '"',
 ];
+
+/// What the local configuration allows the platform to deploy, and from
+/// where.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct MdmPolicy {
+    /// `false` refuses every deployment command.
+    enabled: bool,
+    /// Lower-case host names packages may come from; a name allows its
+    /// subdomains, `*` any host.
+    allowed_hosts: Vec<String>,
+}
+
+impl MdmPolicy {
+    /// The policy of a configuration: the platform's own host, then the
+    /// hosts listed in `mdm_allowed_hosts`.
+    pub fn from_config(config: &agent_common::config::AgentConfig) -> Self {
+        let server_host = url::Url::parse(&config.server_url)
+            .ok()
+            .and_then(|url| url.host_str().map(str::to_string));
+        let allowed_hosts = server_host
+            .into_iter()
+            .chain(config.mdm_allowed_hosts.iter().cloned())
+            .map(|host| host.trim().trim_end_matches('.').to_ascii_lowercase())
+            .filter(|host| !host.is_empty())
+            .collect();
+        Self {
+            enabled: config.mdm_enabled,
+            allowed_hosts,
+        }
+    }
+
+    /// Refuse a command when software deployment is turned off locally.
+    fn check_enabled(&self) -> Result<()> {
+        if self.enabled {
+            Ok(())
+        } else {
+            Err(CommonError::validation(
+                "software deployment is disabled on this agent (mdm_enabled = false)",
+            ))
+        }
+    }
+
+    /// Check that a package may be downloaded from `raw`: HTTPS, no
+    /// credentials, and a host the configuration allows.
+    fn check_source(&self, raw: &str) -> Result<()> {
+        let url = url::Url::parse(raw)
+            .map_err(|_| CommonError::validation("install source is not a valid URL"))?;
+        if url.scheme() != "https" {
+            return Err(CommonError::validation(
+                "install source must be an https:// URL",
+            ));
+        }
+        if !url.username().is_empty() || url.password().is_some() {
+            return Err(CommonError::validation(
+                "install source must not carry credentials",
+            ));
+        }
+        let host = url
+            .host_str()
+            .map(|host| host.trim_end_matches('.').to_ascii_lowercase())
+            .ok_or_else(|| CommonError::validation("install source has no host"))?;
+        let allowed = self.allowed_hosts.iter().any(|allowed| {
+            allowed == "*"
+                || host == *allowed
+                || host
+                    .strip_suffix(allowed.as_str())
+                    .is_some_and(|prefix| prefix.ends_with('.'))
+        });
+        if allowed {
+            Ok(())
+        } else {
+            Err(CommonError::validation(format!(
+                "install source host '{host}' is neither the platform's nor listed in \
+                 mdm_allowed_hosts"
+            )))
+        }
+    }
+}
 
 /// Installer formats the agent knows how to run safely.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -421,16 +505,35 @@ async fn run_install(api: &ApiClient, req: InstallRequest, command_type: &str) -
     }
 }
 
+/// Parse an install request and check it against the local policy.
+fn admitted_install_request(policy: &MdmPolicy, payload: &Value) -> Result<InstallRequest> {
+    policy.check_enabled()?;
+    let request = parse_install_request(payload)?;
+    policy.check_source(&request.url)?;
+    Ok(request)
+}
+
 /// Execute an `install` command.
-pub async fn execute_install(api: &ApiClient, payload: &Value) -> MdmCommandResult {
-    match parse_install_request(payload) {
+pub async fn execute_install(
+    api: &ApiClient,
+    policy: &MdmPolicy,
+    payload: &Value,
+) -> MdmCommandResult {
+    match admitted_install_request(policy, payload) {
         Ok(req) => run_install(api, req, "install").await,
         Err(e) => MdmCommandResult::failure("install", software_id_of(payload), e.to_string()),
     }
 }
 
 /// Execute an `update` command (download + install of a target version).
-pub async fn execute_update(api: &ApiClient, payload: &Value) -> MdmCommandResult {
+pub async fn execute_update(
+    api: &ApiClient,
+    policy: &MdmPolicy,
+    payload: &Value,
+) -> MdmCommandResult {
+    if let Err(e) = policy.check_enabled() {
+        return MdmCommandResult::failure("update", software_id_of(payload), e.to_string());
+    }
     // The console may express updates either with a full deploymentConfig
     // (same shape as install) or just a targetVersion. Only the former can be
     // executed by the agent; a bare version bump has no package to fetch.
@@ -441,7 +544,7 @@ pub async fn execute_update(api: &ApiClient, payload: &Value) -> MdmCommandResul
             "update requires a deploymentConfig with a package source",
         );
     }
-    match parse_install_request(payload) {
+    match admitted_install_request(policy, payload) {
         Ok(mut req) => {
             if let Some(tv) = payload.get("targetVersion").and_then(|v| v.as_str()) {
                 req.version = tv.to_string();
@@ -453,8 +556,11 @@ pub async fn execute_update(api: &ApiClient, payload: &Value) -> MdmCommandResul
 }
 
 /// Execute an `uninstall` command using the platform package manager.
-pub async fn execute_uninstall(payload: &Value) -> MdmCommandResult {
+pub async fn execute_uninstall(policy: &MdmPolicy, payload: &Value) -> MdmCommandResult {
     let software_id = software_id_of(payload);
+    if let Err(e) = policy.check_enabled() {
+        return MdmCommandResult::failure("uninstall", software_id, e.to_string());
+    }
     let name = match payload.get("softwareName").and_then(|v| v.as_str()) {
         Some(n) => n,
         None => {
@@ -556,6 +662,31 @@ fn build_uninstall_command(name: &str) -> Option<(String, Vec<String>)> {
     }
 }
 
+/// What the audit trail keeps of a deployment command: what was asked, from
+/// where, with which checksum, and how it ended. Never the install
+/// arguments, which may carry a licence key.
+pub fn audit_details(action: &str, payload: &Value, result: &MdmCommandResult) -> String {
+    let text = |pointer: &str| {
+        payload
+            .pointer(pointer)
+            .and_then(|v| v.as_str())
+            .map(str::to_string)
+    };
+    serde_json::json!({
+        "action": action,
+        "softwareId": text("/softwareId"),
+        "softwareName": text("/softwareName"),
+        "version": text("/targetVersion").or_else(|| text("/version")),
+        "deploymentId": text("/deploymentId"),
+        "method": text("/deploymentConfig/deploymentMethod"),
+        "source": text("/deploymentConfig/source/location"),
+        "sha256": text("/deploymentConfig/source/checksum"),
+        "success": result.success,
+        "message": result.message,
+    })
+    .to_string()
+}
+
 fn software_id_of(payload: &Value) -> Option<String> {
     payload
         .get("softwareId")
@@ -638,6 +769,101 @@ mod tests {
         let mut p = valid_install_payload();
         p["deploymentConfig"]["source"]["type"] = json!("local");
         assert!(parse_install_request(&p).is_err());
+    }
+
+    fn policy(server_url: &str, allowed: &[&str], enabled: bool) -> MdmPolicy {
+        MdmPolicy::from_config(&agent_common::config::AgentConfig {
+            server_url: server_url.to_string(),
+            mdm_enabled: enabled,
+            mdm_allowed_hosts: allowed.iter().map(|h| h.to_string()).collect(),
+            ..Default::default()
+        })
+    }
+
+    #[test]
+    fn packages_come_from_the_platform_or_a_listed_host_only() {
+        let policy = policy(
+            "https://grc.example.com/fn/agentApi",
+            &["Downloads.Vendor.test"],
+            true,
+        );
+        for allowed in [
+            "https://grc.example.com/packages/app.msi",
+            "https://cdn.grc.example.com/app.msi",
+            "https://downloads.vendor.test/app.msi",
+            "https://eu.downloads.vendor.test:8443/app.msi",
+        ] {
+            assert!(policy.check_source(allowed).is_ok(), "{allowed}");
+        }
+        for refused in [
+            "https://cdn.example.com/app.msi",
+            "https://evilgrc.example.com/app.msi",
+            "https://grc.example.com.evil.test/app.msi",
+            "https://vendor.test/app.msi",
+            "http://grc.example.com/app.msi",
+            "https://user:secret@grc.example.com/app.msi",
+            "not a url",
+        ] {
+            assert!(policy.check_source(refused).is_err(), "{refused}");
+        }
+    }
+
+    #[test]
+    fn a_wildcard_restores_any_https_host() {
+        let policy = policy("https://grc.example.com", &["*"], true);
+        assert!(policy.check_source("https://anywhere.test/app.msi").is_ok());
+        assert!(policy.check_source("http://anywhere.test/app.msi").is_err());
+    }
+
+    #[test]
+    fn an_install_from_an_unlisted_host_is_refused_before_any_download() {
+        // The payload is valid; only its source is not the platform's.
+        let policy = policy("https://grc.example.com", &[], true);
+        let refused = admitted_install_request(&policy, &valid_install_payload())
+            .err()
+            .expect("a source the policy does not list");
+        assert!(refused.to_string().contains("cdn.example.com"));
+
+        let policy = MdmPolicy {
+            allowed_hosts: vec!["cdn.example.com".to_string()],
+            ..policy
+        };
+        assert!(admitted_install_request(&policy, &valid_install_payload()).is_ok());
+    }
+
+    #[tokio::test]
+    async fn a_disabled_agent_refuses_every_deployment_command() {
+        let off = policy("https://cdn.example.com", &[], false);
+        let api = ApiClient::new(&agent_common::config::AgentConfig::default()).unwrap();
+        let payload = valid_install_payload();
+
+        let install = execute_install(&api, &off, &payload).await;
+        let update = execute_update(&api, &off, &payload).await;
+        let uninstall = execute_uninstall(&off, &json!({ "softwareName": "app" })).await;
+
+        for result in [&install, &update, &uninstall] {
+            assert!(!result.success);
+            assert!(result.message.contains("mdm_enabled"), "{}", result.message);
+        }
+        // The shape the server reads is unchanged.
+        assert!(install.to_output().contains("\"commandType\":\"install\""));
+        assert!(install.to_output().contains("\"softwareId\":\"sw-123\""));
+    }
+
+    #[test]
+    fn the_audit_entry_names_the_package_and_leaves_out_its_arguments() {
+        let payload = valid_install_payload();
+        let result = MdmCommandResult::failure("install", Some("sw-123".into()), "refused");
+
+        let details: Value =
+            serde_json::from_str(&audit_details("install", &payload, &result)).unwrap();
+
+        assert_eq!(details["action"], "install");
+        assert_eq!(details["softwareId"], "sw-123");
+        assert_eq!(details["source"], "https://cdn.example.com/app.msi");
+        assert_eq!(details["sha256"], "a".repeat(64));
+        assert_eq!(details["success"], false);
+        assert!(!details.to_string().contains("install.log"));
     }
 
     #[test]

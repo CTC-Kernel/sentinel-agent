@@ -387,6 +387,37 @@ seulement besoin d'une protection locale.
   ignore. Les identifiants d'une plateforme deja enregistres sont conserves
   mais inutilises tant que `standalone` vaut `true`.
 
+## Deploiement de logiciels par la plateforme (MDM)
+
+La console peut demander a l'agent d'installer, de mettre a jour ou de
+desinstaller un logiciel (commandes `install`, `update`, `uninstall`). Le
+paquet est telecharge puis son installeur est lance avec les droits de
+l'agent (root ou SYSTEM). Deux reglages locaux, que la plateforme ne peut pas
+modifier, encadrent ces commandes :
+
+```json
+{
+  "mdm_enabled": true,
+  "mdm_allowed_hosts": ["downloads.editeur.example"]
+}
+```
+
+- `mdm_enabled` (ou `SENTINEL_MDM_ENABLED`) : `true` par defaut. `false`
+  refuse toute commande de deploiement ; le refus est renvoye a la console
+  comme un echec de la commande.
+- `mdm_allowed_hosts` (ou `SENTINEL_MDM_ALLOWED_HOSTS`, separateur `,`) :
+  hotes depuis lesquels un paquet peut etre telecharge **en plus** de celui
+  de la plateforme (l'hote de `server_url` et ses sous-domaines). Un nom
+  autorise aussi ses sous-domaines ; `"*"` autorise n'importe quel hote.
+  Vide par defaut : seul un paquet heberge par la plateforme est accepte.
+  L'URL et l'empreinte SHA-256 du paquet arrivant dans le meme message, c'est
+  cette liste qui garantit l'origine de ce qui est installe.
+- Toujours en HTTPS, sans identifiants dans l'URL, avec une empreinte SHA-256
+  obligatoire.
+- Chaque commande, executee ou refusee, est inscrite dans le journal d'audit
+  local (`software_deployment:install`, `:update`, `:uninstall`) avec le
+  logiciel, la source, l'empreinte et le resultat.
+
 ## Mode developpement
 
 Pour le developpement, placez `agent.json` dans le repertoire de travail courant. L'agent utilisera ce fichier si aucune configuration au niveau systeme n'existe.

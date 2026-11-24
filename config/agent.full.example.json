@@ -55,6 +55,9 @@
   "fim_whodata": false,
   "registry_keys": [],
 
+  "mdm_enabled": true,
+  "mdm_allowed_hosts": [],
+
   "command_monitors": [
     {
       "name": "listening-ports",
