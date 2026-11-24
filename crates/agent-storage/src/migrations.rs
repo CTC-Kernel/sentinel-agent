@@ -14,7 +14,7 @@ use rusqlite::Connection;
 use tracing::{debug, error, info, warn};
 
 /// Current schema version (incremented with each migration).
-pub const CURRENT_SCHEMA_VERSION: i32 = 10;
+pub const CURRENT_SCHEMA_VERSION: i32 = 12;
 
 /// A database migration.
 struct Migration {
@@ -484,6 +484,56 @@ const MIGRATIONS: &[Migration] = &[
         up: "CREATE TABLE command_result_outbox (agent_id TEXT NOT NULL, command_id TEXT NOT NULL, payload TEXT NOT NULL, last_attempt_at INTEGER NOT NULL DEFAULT 0, created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now')), PRIMARY KEY(agent_id, command_id)); ALTER TABLE webhooks RENAME COLUMN token TO secret; ALTER TABLE webhooks ADD COLUMN updated_at TEXT NOT NULL DEFAULT ''; UPDATE webhooks SET updated_at=created_at; UPDATE sync_queue SET max_attempts=2147483647 WHERE entity_type LIKE '%_delete';",
         down: "DROP TABLE IF EXISTS command_result_outbox; ALTER TABLE webhooks RENAME COLUMN secret TO token; ALTER TABLE webhooks DROP COLUMN updated_at;",
     },
+    Migration {
+        version: 11,
+        name: "software_inventory_restore_primary_key",
+        up: r#"
+            -- Migration 8 rebuilt the table with CREATE TABLE AS, which keeps
+            -- neither the primary key nor the NOT NULL constraints: every
+            -- "INSERT OR REPLACE" of a synchronisation then added a row.
+            -- Keep the last row written for each id and restore the key.
+            CREATE TABLE software_inventory_v11 (
+                id TEXT PRIMARY KEY NOT NULL,
+                hostname TEXT,
+                software_name TEXT NOT NULL,
+                version TEXT NOT NULL,
+                vendor TEXT,
+                install_date TEXT,
+                synced INTEGER NOT NULL DEFAULT 0
+            );
+            INSERT OR REPLACE INTO software_inventory_v11
+                (id, hostname, software_name, version, vendor, install_date, synced)
+                SELECT id, hostname, COALESCE(software_name, ''), COALESCE(version, ''),
+                       vendor, install_date, COALESCE(synced, 0)
+                FROM software_inventory
+                WHERE id IS NOT NULL
+                ORDER BY rowid;
+            DROP TABLE software_inventory;
+            ALTER TABLE software_inventory_v11 RENAME TO software_inventory;
+        "#,
+        down: r#"
+            CREATE TABLE software_inventory_v10 AS
+                SELECT id, software_name, version, vendor, install_date, synced, hostname
+                FROM software_inventory;
+            DROP TABLE software_inventory;
+            ALTER TABLE software_inventory_v10 RENAME TO software_inventory;
+        "#,
+    },
+    Migration {
+        version: 12,
+        name: "webhook_deliveries",
+        up: r#"
+            -- Outcome of the last alert sent to each webhook. Kept apart from
+            -- `webhooks`, whose rows are replaced whole on every save.
+            CREATE TABLE IF NOT EXISTS webhook_deliveries (
+                webhook_id TEXT PRIMARY KEY NOT NULL,
+                last_sent TEXT,
+                last_error TEXT,
+                last_attempt TEXT NOT NULL
+            );
+        "#,
+        down: "DROP TABLE IF EXISTS webhook_deliveries;",
+    },
 ];
 
 /// Initialize the schema_version table if it doesn't exist.
@@ -734,6 +784,76 @@ mod tests {
     }
 
     #[test]
+    fn migration_11_removes_duplicates_and_restores_the_primary_key() {
+        let (_temp_dir, mut conn) = create_test_db();
+        run_migrations(&mut conn).unwrap();
+        for version in (11..=CURRENT_SCHEMA_VERSION).rev() {
+            rollback_migration(&mut conn, version).unwrap();
+        }
+
+        // As left by migration 8: no key, so each synchronisation added a row.
+        for version in ["1.0", "1.1", "1.2"] {
+            conn.execute(
+                "INSERT OR REPLACE INTO software_inventory \
+                 (id, hostname, software_name, version, vendor, install_date, synced) \
+                 VALUES ('host-curl', 'host', 'curl', ?1, 'haxx', NULL, 1)",
+                [version],
+            )
+            .unwrap();
+        }
+        conn.execute(
+            "INSERT INTO software_inventory (id, software_name, version, synced) \
+             VALUES ('host-vim', 'vim', '9.1', 0)",
+            [],
+        )
+        .unwrap();
+        let before: i64 = conn
+            .query_row("SELECT COUNT(*) FROM software_inventory", [], |r| r.get(0))
+            .unwrap();
+        assert_eq!(before, 4, "the table of migration 8 accepts duplicates");
+
+        run_migrations(&mut conn).unwrap();
+
+        let rows: Vec<(String, String)> = conn
+            .prepare("SELECT id, version FROM software_inventory ORDER BY id")
+            .unwrap()
+            .query_map([], |r| Ok((r.get(0)?, r.get(1)?)))
+            .unwrap()
+            .collect::<Result<_, _>>()
+            .unwrap();
+        assert_eq!(
+            rows,
+            vec![
+                ("host-curl".to_string(), "1.2".to_string()),
+                ("host-vim".to_string(), "9.1".to_string()),
+            ],
+            "one row per id, the last one written"
+        );
+
+        // The key is back: writing the same id again replaces the row.
+        conn.execute(
+            "INSERT OR REPLACE INTO software_inventory \
+             (id, hostname, software_name, version, vendor, install_date, synced) \
+             VALUES ('host-curl', 'host', 'curl', '2.0', 'haxx', NULL, 1)",
+            [],
+        )
+        .unwrap();
+        let after: i64 = conn
+            .query_row("SELECT COUNT(*) FROM software_inventory", [], |r| r.get(0))
+            .unwrap();
+        assert_eq!(after, 2);
+        assert!(
+            conn.execute(
+                "INSERT INTO software_inventory (id, software_name, version) \
+                 VALUES ('host-vim', 'vim', '9.2')",
+                [],
+            )
+            .is_err(),
+            "a second row with the same id is refused"
+        );
+    }
+
+    #[test]
     fn test_migrations_are_idempotent() {
         let (_temp_dir, mut conn) = create_test_db();
 
@@ -828,7 +948,11 @@ mod tests {
         run_migrations(&mut conn).unwrap();
         assert_eq!(get_schema_version(&conn).unwrap(), CURRENT_SCHEMA_VERSION);
 
-        // Rollback from v10 down to v0
+        // Rollback from v12 down to v0
+        rollback_migration(&mut conn, 12).unwrap();
+        assert_eq!(get_schema_version(&conn).unwrap(), 11);
+        rollback_migration(&mut conn, 11).unwrap();
+        assert_eq!(get_schema_version(&conn).unwrap(), 10);
         rollback_migration(&mut conn, 10).unwrap();
         assert_eq!(get_schema_version(&conn).unwrap(), 9);
         rollback_migration(&mut conn, 9).unwrap();

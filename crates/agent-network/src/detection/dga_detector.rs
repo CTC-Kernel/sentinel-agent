@@ -99,6 +99,16 @@ impl DgaDetector {
         domain: &str,
         conn: &NetworkConnection,
     ) -> Option<NetworkSecurityAlert> {
+        self.analyze_name(domain, Some(conn))
+    }
+
+    /// Analyze a name the machine resolved. `conn` is a connection to one
+    /// of its addresses, when there is one: it tells which process.
+    pub fn analyze_name(
+        &self,
+        domain: &str,
+        conn: Option<&NetworkConnection>,
+    ) -> Option<NetworkSecurityAlert> {
         let domain_lower = domain.to_lowercase();
 
         // Skip whitelisted domains
@@ -335,7 +345,7 @@ impl DgaDetector {
 
     fn create_alert(
         &self,
-        conn: &NetworkConnection,
+        conn: Option<&NetworkConnection>,
         domain: &str,
         confidence: u8,
         entropy: f64,
@@ -343,10 +353,15 @@ impl DgaDetector {
         ngram_score: f64,
     ) -> NetworkSecurityAlert {
         let process_info = conn
-            .process_name
-            .as_ref()
+            .and_then(|conn| conn.process_name.as_ref())
             .map(|p| format!(" par le processus « {} »", p))
             .unwrap_or_default();
+        // Without a connection the name was only resolved: say so.
+        let seen = if conn.is_some() {
+            "Connexion vers"
+        } else {
+            "R\u{e9}solution DNS de"
+        };
 
         let severity = if confidence >= 90 {
             AlertSeverity::Critical
@@ -361,11 +376,11 @@ impl DgaDetector {
             severity,
             title: format!("Domaine généré par algorithme possible : {}", domain),
             description: format!(
-                "Connexion vers « {} », qui semble généré par un algorithme (DGA){}, confiance {} %. \
+                "{} « {} », qui semble généré par un algorithme (DGA){}, confiance {} %. \
                  Les logiciels malveillants génèrent ainsi les domaines de leur serveur de commande.",
-                domain, process_info, confidence
+                seen, domain, process_info, confidence
             ),
-            connection: Some(conn.clone()),
+            connection: conn.cloned(),
             evidence: json!({
                 "domain": domain,
                 "confidence": confidence,
@@ -374,9 +389,10 @@ impl DgaDetector {
                     "consonant_ratio": format!("{:.3}", consonant_ratio),
                     "ngram_score": format!("{:.3}", ngram_score),
                 },
-                "process_name": conn.process_name,
-                "process_path": conn.process_path,
-                "pid": conn.pid,
+                "process_name": conn.and_then(|c| c.process_name.clone()),
+                "process_path": conn.and_then(|c| c.process_path.clone()),
+                "pid": conn.and_then(|c| c.pid),
+                "source": if conn.is_some() { "connection" } else { "dns_cache" },
                 "detection_reason": "dga_characteristics"
             }),
             confidence,

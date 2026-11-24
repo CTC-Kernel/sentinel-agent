@@ -17,6 +17,7 @@
 //! - `tray` (default) -- enable system tray icon (tray-icon + muda + tao)
 //! - `gui` -- enable v2 desktop GUI support (agent-gui + agent-persistence)
 
+pub mod alerting;
 pub mod api_client;
 pub mod audit_trail;
 pub mod cleanup;
@@ -336,6 +337,8 @@ pub struct AgentRuntime {
     organization_name: RwLock<Option<String>>,
     /// Local audit trail for persistent logging.
     audit_trail: Option<Arc<audit_trail::LocalAuditTrail>>,
+    /// Evaluates the alert rules on incidents and notifies the webhooks.
+    alert_dispatcher: Arc<alerting::AlertDispatcher>,
     /// Event and notification manager.
     events: Arc<events::EventManager>,
     /// Metadata and rules sync flags.
@@ -664,7 +667,8 @@ impl AgentRuntime {
         for error in &sigma.errors {
             warn!("Sigma rule not loaded: {}", error);
         }
-        let usb_monitor = UsbMonitor::new();
+        let usb_monitor =
+            UsbMonitor::from_config(config.usb_monitoring, config.usb_block_mass_storage);
         let network_manager = NetworkManager::new();
 
         let (state, rx) = state::RuntimeState::new();
@@ -753,6 +757,7 @@ impl AgentRuntime {
             last_update_check: RwLock::new(None),
             last_sync_at: RwLock::new(None),
             audit_trail: None,
+            alert_dispatcher: Arc::new(alerting::AlertDispatcher::new()),
             events,
             state,
             #[cfg(feature = "gui")]

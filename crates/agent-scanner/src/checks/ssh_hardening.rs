@@ -661,8 +661,9 @@ impl Check for SshHardeningCheck {
 
         let raw_data = serde_json::to_value(&status).unwrap_or_default();
 
+        // No server to harden: not applicable, rather than a pass.
         if !status.ssh_server_active {
-            return Ok(CheckOutput::pass(
+            return Ok(CheckOutput::not_applicable(
                 "SSH server is not active (no hardening required)".to_string(),
                 raw_data,
             ));

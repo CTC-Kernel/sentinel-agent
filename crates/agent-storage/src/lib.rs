@@ -45,7 +45,10 @@ pub use repositories::{
     check_rules::{CheckRule, RuleCacheMetadata, Severity},
     config::{ConfigEntry, ConfigSource, MergeResult},
     proofs::{IntegrityStatus, Proof, ProofStats},
-    sync_queue::{SyncEntityType, SyncQueueEntry, SyncQueueItem},
+    sync_queue::{
+        EXHAUSTED_RETENTION_DAYS, SyncEntityType, SyncQueueEntry, SyncQueueItem,
+        is_transient_failure_message,
+    },
 };
 pub use retention::{RetentionConfig, RetentionPolicy, RetentionResult, StorageStats};
 

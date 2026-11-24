@@ -320,6 +320,7 @@ impl AgentRuntime {
                     ransomware_canaries: self.state.ransomware_canaries.load(Ordering::Acquire),
                     host_isolated: crate::host_isolation::is_isolated(),
                     detection: self.gui_detection_options(),
+                    connection: Some(self.gui_connection_settings()),
                 },
             });
 
@@ -749,14 +750,16 @@ impl AgentRuntime {
         payload: &serde_json::Value,
         service: &agent_sync::CommandResultsService,
     ) -> agent_sync::SyncResult<()> {
+        // What this machine's own configuration lets the platform deploy.
+        let policy = crate::mdm::MdmPolicy::from_config(&self.config);
         let result = match action {
             "install" | "update" => {
                 let api_guard = self.api_client.read().await;
                 match api_guard.as_ref() {
                     Some(client) if action == "install" => {
-                        crate::mdm::execute_install(client, payload).await
+                        crate::mdm::execute_install(client, &policy, payload).await
                     }
-                    Some(client) => crate::mdm::execute_update(client, payload).await,
+                    Some(client) => crate::mdm::execute_update(client, &policy, payload).await,
                     None => crate::mdm::MdmCommandResult::failure(
                         action,
                         payload
@@ -767,13 +770,28 @@ impl AgentRuntime {
                     ),
                 }
             }
-            "uninstall" => crate::mdm::execute_uninstall(payload).await,
+            "uninstall" => crate::mdm::execute_uninstall(&policy, payload).await,
             other => crate::mdm::MdmCommandResult::failure(
                 other,
                 None,
                 format!("unsupported MDM action: {other}"),
             ),
         };
+
+        // Every deployment command leaves a trace on the machine it ran
+        // on, refused or not: software installed as root is not something
+        // the platform's own log should be the only witness of.
+        if let Some(audit) = &self.audit_trail {
+            audit
+                .log(
+                    crate::audit_trail::AuditAction::ConfigChanged {
+                        component: format!("software_deployment:{action}"),
+                    },
+                    "server",
+                    Some(crate::mdm::audit_details(action, payload, &result)),
+                )
+                .await;
+        }
 
         // Surface the deployment outcome in the GUI so operators see MDM
         // activity live in the notifications feed.

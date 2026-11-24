@@ -1,18 +1,35 @@
 // Copyright (c) 2024-2026 Cyber Threat Consulting
 // SPDX-License-Identifier: MIT
 
-//! Housekeeping stages of the main loop: self-update, asset proposals and
-//! the agent's own resource usage.
+//! Housekeeping stages of the main loop: self-update, asset proposals, the
+//! agent's own resource usage and the upkeep of the local database.
 
 use std::sync::Arc;
 use std::sync::atomic::Ordering;
 use tracing::{debug, warn};
 
-use super::{LoopPass, LoopState};
+use super::{LoopPass, LoopState, STORAGE_MAINTENANCE_INTERVAL_SECS};
 use crate::{AgentRuntime, ProposeAssetData, UPDATE_CHECK_INTERVAL_SECS};
 
 /// Name of the background task that checks for an update and installs it.
 const UPDATE_TASK: &str = "self-update";
+
+/// Name of the background task that maintains the local database.
+const STORAGE_MAINTENANCE_TASK: &str = "storage maintenance";
+
+/// What a round of storage maintenance did.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+pub(crate) struct StorageMaintenance {
+    /// Sync queue items an outage had exhausted, offered again.
+    pub rearmed: usize,
+    /// Exhausted sync queue items deleted after their retention.
+    pub purged: usize,
+    /// Sync queue items still exhausted after this round.
+    pub dead: i64,
+    /// Proofs, check results and queue entries past the retention period,
+    /// deleted.
+    pub expired: usize,
+}
 
 impl AgentRuntime {
     /// Self-update, in a background task: at once when the operator asked
@@ -43,6 +60,70 @@ impl AgentRuntime {
                 }
             });
         }
+    }
+
+    /// Upkeep of the local database, in a background task: at start-up,
+    /// then every [`STORAGE_MAINTENANCE_INTERVAL_SECS`]. One round at a time.
+    pub(crate) fn storage_maintenance_stage(self: &Arc<Self>, st: &mut LoopState) {
+        if st.last_storage_maintenance.elapsed().as_secs() < STORAGE_MAINTENANCE_INTERVAL_SECS
+            || st.tasks.is_running(STORAGE_MAINTENANCE_TASK)
+        {
+            return;
+        }
+        st.last_storage_maintenance = std::time::Instant::now();
+        let runtime = Arc::clone(self);
+        st.tasks.spawn(STORAGE_MAINTENANCE_TASK, async move {
+            runtime.run_storage_maintenance().await;
+        });
+    }
+
+    /// One round of storage maintenance.
+    ///
+    /// Sync queue: the items an outage exhausted get their attempts back,
+    /// those abandoned for longer than the retention are deleted, and what
+    /// stays exhausted is counted and logged, so that it never goes unseen.
+    /// Then the retention policy, which nothing applied before.
+    pub(crate) async fn run_storage_maintenance(&self) -> StorageMaintenance {
+        let mut done = StorageMaintenance::default();
+        let Some(db) = self.db.as_ref() else {
+            return done;
+        };
+
+        let queue = agent_storage::SyncQueueRepository::new(db);
+        match queue.rearm_transiently_exhausted().await {
+            Ok(rearmed) => done.rearmed = rearmed,
+            Err(e) => warn!("Exhausted sync queue items could not be re-armed: {}", e),
+        }
+        match queue
+            .purge_exhausted_older_than(agent_storage::EXHAUSTED_RETENTION_DAYS)
+            .await
+        {
+            Ok(purged) => done.purged = purged,
+            Err(e) => warn!("Abandoned sync queue items could not be purged: {}", e),
+        }
+        match queue.exhausted_count().await {
+            Ok(dead) => {
+                done.dead = dead;
+                if dead > 0 {
+                    warn!(
+                        "{} sync queue item(s) were refused by the platform and are no longer \
+                         sent; they are deleted {} days after their last attempt",
+                        dead,
+                        agent_storage::EXHAUSTED_RETENTION_DAYS
+                    );
+                }
+            }
+            Err(e) => warn!("Exhausted sync queue items could not be counted: {}", e),
+        }
+
+        // Retention (12 months): proofs past it, the check results they
+        // leave without any proof, and their queue entries.
+        match agent_storage::RetentionPolicy::new(db).execute().await {
+            Ok(result) => done.expired = result.total_deleted(),
+            Err(e) => warn!("Retention policy could not be applied: {}", e),
+        }
+
+        done
     }
 
     /// Send to the platform the discovered devices the operator proposed
@@ -112,6 +193,84 @@ mod tests {
                 .unwrap()
                 .is_empty()
         );
+    }
+
+    /// Queue an item and exhaust its single attempt with `error`.
+    async fn exhausted_item(runtime: &AgentRuntime, entity_id: &str, error: &str) {
+        let db = runtime.db.as_ref().unwrap();
+        let queue = agent_storage::SyncQueueRepository::new(db);
+        let entry = agent_storage::SyncQueueEntry::new(
+            agent_storage::SyncEntityType::CheckResult,
+            entity_id,
+            "{}",
+        )
+        .with_max_attempts(1);
+        let id = queue.enqueue(&entry).await.unwrap();
+        queue.record_failure(id, error).await.unwrap();
+    }
+
+    #[tokio::test]
+    async fn maintenance_rearms_what_an_outage_exhausted_and_counts_the_rest() {
+        let test = standalone_runtime();
+        exhausted_item(&test.runtime, "1", "Request timed out").await;
+        exhausted_item(&test.runtime, "2", "Server error (status 400): refused").await;
+
+        let done = test.runtime.run_storage_maintenance().await;
+
+        assert_eq!(done.rearmed, 1);
+        assert_eq!(done.purged, 0);
+        assert_eq!(done.dead, 1);
+    }
+
+    #[tokio::test]
+    async fn maintenance_applies_the_retention_policy() {
+        use agent_storage::{
+            CheckResult, CheckResultsRepository, CheckStatus, Proof, ProofsRepository,
+        };
+        let test = standalone_runtime();
+        test.db
+            .with_connection(|conn| {
+                conn.execute(
+                    "INSERT INTO check_rules (id, name, category, severity, check_type, version) \
+                     VALUES ('test_rule', 'Test Rule', 'security', 'high', 'test', '1.0')",
+                    [],
+                )
+                .map_err(|e| agent_storage::StorageError::Query(e.to_string()))
+            })
+            .await
+            .unwrap();
+        let results = CheckResultsRepository::new(&test.db);
+        let proofs = ProofsRepository::new(&test.db);
+        for days_ago in [400, 1] {
+            let at = chrono::Utc::now() - chrono::Duration::days(days_ago);
+            let result = CheckResult::new("test_rule", CheckStatus::Pass).with_executed_at(at);
+            let id = results.insert(&result).await.unwrap();
+            proofs
+                .insert(&Proof::with_timestamp(id, "{}", at))
+                .await
+                .unwrap();
+        }
+
+        let done = test.runtime.run_storage_maintenance().await;
+
+        // The proof older than 12 months and the check result it belonged to.
+        assert_eq!(done.expired, 2);
+        assert_eq!(proofs.count().await.unwrap(), 1);
+    }
+
+    #[tokio::test]
+    async fn storage_maintenance_runs_at_the_first_pass_then_waits() {
+        let test = standalone_runtime();
+        let runtime = Arc::new(test.runtime);
+        let mut st = LoopState::starting_at(Instant::now(), 6 * 3600, 3600);
+
+        runtime.storage_maintenance_stage(&mut st);
+        assert!(st.last_storage_maintenance.elapsed().as_secs() < 60);
+        let started = st.last_storage_maintenance;
+
+        runtime.storage_maintenance_stage(&mut st);
+        assert_eq!(st.last_storage_maintenance, started);
+        st.tasks.shutdown().await;
     }
 
     #[tokio::test]

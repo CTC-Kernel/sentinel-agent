@@ -487,6 +487,8 @@ pub fn default_events_sort() -> crate::widgets::data_table::TableSort {
 pub struct ThreatsState {
     pub suspicious_processes: VecDeque<crate::dto::GuiSuspiciousProcess>,
     pub usb_events: VecDeque<crate::dto::GuiUsbEvent>,
+    /// What the agent does about USB mass storage here, once it said so.
+    pub usb_protection: Option<crate::dto::UsbProtection>,
     pub system_incidents: VecDeque<crate::dto::GuiSystemIncident>,
     pub search: String,
     pub filter: Option<String>,
@@ -515,6 +517,8 @@ pub struct ThreatsState {
     // Response tab
     pub pending_actions: VecDeque<crate::dto::ResponseAction>,
     pub quarantine_queue: VecDeque<crate::dto::QuarantinedFile>,
+    /// When the quarantine store was last asked for (seconds of UI time).
+    pub quarantine_requested_at: Option<f64>,
     pub response_log: VecDeque<crate::dto::ResponseLogEntry>,
     pub response_page: usize,
     pub confirm_action: Option<crate::dto::PendingConfirmation>,
@@ -555,6 +559,26 @@ impl ThreatsState {
                 rules: self.allowlist_rules.clone(),
             }
         })
+    }
+
+    /// Files currently held in quarantine (those restored are not).
+    pub fn quarantined_count(&self) -> usize {
+        self.quarantine_queue.iter().filter(|f| !f.restored).count()
+    }
+
+    /// Command asking the agent for the content of the quarantine store: at
+    /// start, then every 30 s, so files quarantined by a playbook or
+    /// before this run are listed too. `now` is the UI clock, in seconds.
+    pub fn take_quarantine_refresh(&mut self, now: f64) -> Option<crate::events::GuiCommand> {
+        const EVERY_SECS: f64 = 30.0;
+        if self
+            .quarantine_requested_at
+            .is_some_and(|at| now - at < EVERY_SECS)
+        {
+            return None;
+        }
+        self.quarantine_requested_at = Some(now);
+        Some(crate::events::GuiCommand::RefreshQuarantine)
     }
 
     /// Acknowledge a threat by its kind and index in the respective source collection.
@@ -629,6 +653,7 @@ impl Default for ThreatsState {
         Self {
             suspicious_processes: VecDeque::with_capacity(200),
             usb_events: VecDeque::with_capacity(200),
+            usb_protection: None,
             system_incidents: VecDeque::with_capacity(200),
             search: String::new(),
             filter: None,
@@ -647,6 +672,7 @@ impl Default for ThreatsState {
             ioc_results_count: 0,
             pending_actions: VecDeque::with_capacity(20),
             quarantine_queue: VecDeque::with_capacity(100),
+            quarantine_requested_at: None,
             response_log: VecDeque::with_capacity(500),
             response_page: 0,
             confirm_action: None,
@@ -1118,7 +1144,10 @@ impl Default for SettingsState {
             active_section: 0,
             is_paused: false,
             pause_until: None,
-            server_url: agent_common::constants::DEFAULT_SERVER_URL.to_string(),
+            // Unknown until the agent reports its configuration: showing the
+            // SaaS address here told on-premise users their agent talked to
+            // the wrong platform.
+            server_url: String::new(),
             architecture_url: format!("{}/voxel", crate::pages::about::branding::CONSOLE),
             check_interval_secs: agent_common::constants::DEFAULT_CHECK_INTERVAL_SECS,
             heartbeat_interval_secs: agent_common::constants::DEFAULT_HEARTBEAT_INTERVAL_SECS,
@@ -1232,6 +1261,8 @@ pub struct AppState {
     pub vulnerability_findings: Vec<crate::dto::GuiVulnerabilityFinding>,
     /// Exploitation feeds (CISA KEV, EPSS) the last scan could use.
     pub vulnerability_intel: Option<crate::dto::GuiExploitIntelStatus>,
+    /// CVE coverage of each source of installed software (last scan).
+    pub vulnerability_coverage: Vec<crate::dto::GuiCveCoverage>,
     pub logs: VecDeque<crate::dto::GuiLogEntry>,
     pub toasts: Vec<crate::widgets::toast::Toast>,
     pub unread_notification_count: u32,
@@ -1268,6 +1299,11 @@ pub struct AppState {
     /// Current page (0-indexed) of the paginated notification feed.
     pub notifications_page: usize,
     pub previous_compliance_score: Option<f32>,
+    /// What the agent recorded in its persistent audit trail, most recent
+    /// first. `logs` only holds the notifications of this session.
+    pub audit_history: Vec<crate::dto::GuiLogEntry>,
+    /// When the persistent trail was last asked for (seconds of UI time).
+    pub audit_history_requested_at: Option<f64>,
     pub audit_trail_search: String,
     pub audit_trail_filter: Option<String>,
     pub selected_audit_entry: Option<usize>,
@@ -1295,6 +1331,7 @@ impl Default for AppState {
             vulnerability_summary: None,
             vulnerability_findings: Vec::new(),
             vulnerability_intel: None,
+            vulnerability_coverage: Vec::new(),
             logs: VecDeque::with_capacity(1000),
             toasts: Vec::new(),
             unread_notification_count: 0,
@@ -1331,6 +1368,8 @@ impl Default for AppState {
             notification_detail_open: false,
             notifications_page: 0,
             previous_compliance_score: None,
+            audit_history: Vec::new(),
+            audit_history_requested_at: None,
             audit_trail_search: String::new(),
             audit_trail_filter: None,
             selected_audit_entry: None,
@@ -1626,6 +1665,12 @@ impl AppState {
             AgentEvent::StatusChanged { summary } => {
                 // Preserve previous score for dashboard trend indicators
                 self.previous_compliance_score = self.summary.compliance_score;
+                // Settings › Connexion shows what the agent runs with, not
+                // the built-in defaults.
+                if let Some(connection) = &summary.connection {
+                    self.settings.server_url.clone_from(&connection.server_url);
+                    self.settings.heartbeat_interval_secs = connection.heartbeat_interval_secs;
+                }
                 self.summary = summary;
             }
             AgentEvent::CheckCompleted { result } => {
@@ -1706,6 +1751,9 @@ impl AppState {
                 self.vulnerability.selected_vuln = None;
                 self.vulnerability.detail_open = false;
             }
+            AgentEvent::VulnerabilityCoverage { coverage } => {
+                self.vulnerability_coverage = coverage;
+            }
             AgentEvent::TerminalLog { entry } => {
                 self.add_terminal_log(entry);
             }
@@ -1751,6 +1799,9 @@ impl AppState {
                 self.threats.usb_events.truncate(200);
                 // Invalidate threat selection — push_front shifted source indices
                 self.threats.selected_threat = None;
+            }
+            AgentEvent::UsbProtection { protection } => {
+                self.threats.usb_protection = Some(protection);
             }
             AgentEvent::SuspiciousProcess { process } => {
                 upsert_recurring(
@@ -1811,6 +1862,9 @@ impl AppState {
                 success,
                 error,
             } => {
+                // The agent reports failures in English: say them in French.
+                let error = error.map(|e| crate::response_errors::french(&e));
+                let mut block_outcome = None;
                 // Find the matching pending action and update its status
                 if let Some(action) = self
                     .threats
@@ -1826,6 +1880,46 @@ impl AppState {
                     action.completed_at = Some(chrono::Utc::now());
                     action.error = error.clone();
 
+                    // A file restored is no longer in quarantine: without
+                    // this its "Restaurer" button stayed, and a second
+                    // click failed on a file that is not there any more.
+                    if success
+                        && matches!(
+                            action.action_type,
+                            crate::dto::ResponseActionType::RestoreFile
+                        )
+                    {
+                        for file in self.threats.quarantine_queue.iter_mut() {
+                            if file.id.to_string() == action.target {
+                                file.restored = true;
+                            }
+                        }
+                    }
+
+                    // The outcome of a block is announced here, when it is
+                    // known, and not by the page that asked for it.
+                    block_outcome = matches!(
+                        action.action_type,
+                        crate::dto::ResponseActionType::BlockIp
+                    )
+                    .then(|| {
+                        if success {
+                            crate::dto::GuiNotification::info(
+                                "Adresse bloqu\u{00e9}e",
+                                format!("{} est bloqu\u{00e9}e sur ce poste.", action.target),
+                            )
+                        } else {
+                            crate::dto::GuiNotification::error(
+                                "Blocage impossible",
+                                format!(
+                                    "{} n'a pas \u{00e9}t\u{00e9} bloqu\u{00e9}e : {}",
+                                    action.target,
+                                    error.as_deref().unwrap_or("raison inconnue")
+                                ),
+                            )
+                        }
+                    });
+
                     // Log the result
                     let log_entry = crate::dto::ResponseLogEntry {
                         id: uuid::Uuid::new_v4(),
@@ -1840,6 +1934,9 @@ impl AppState {
                     if self.threats.response_log.len() > 500 {
                         self.threats.response_log.pop_back();
                     }
+                }
+                if let Some(notification) = block_outcome {
+                    self.add_notification(notification);
                 }
             }
             AgentEvent::ReportGenerated { report } => {
@@ -2284,8 +2381,21 @@ impl AppState {
                 self.threats.pending_actions.truncate(200);
             }
             AgentEvent::FileQuarantined { entry } => {
+                self.threats.quarantine_queue.retain(|f| f.id != entry.id);
                 self.threats.quarantine_queue.push_front(entry);
                 self.threats.quarantine_queue.truncate(200);
+            }
+            AgentEvent::AuditTrailLoaded { entries } => {
+                // Rows are selected by position: a list that changed
+                // invalidates the selection, one that did not keeps it.
+                if self.audit_history != entries {
+                    self.audit_history = entries;
+                    self.selected_audit_entry = None;
+                    self.audit_detail_open = false;
+                }
+            }
+            AgentEvent::QuarantineLoaded { entries } => {
+                self.threats.quarantine_queue = entries.into_iter().take(200).collect();
             }
             AgentEvent::ToggleJarvisWidget { visible } => {
                 self.jarvis_visible = visible;
@@ -2297,6 +2407,31 @@ impl AppState {
         }
         // Single recompute at end of every event
         self.recompute_summary_stats();
+    }
+
+    /// The rows of the audit page: the persistent trail of the agent and
+    /// the notifications of this session, most recent first.
+    pub fn audit_entries(&self) -> Vec<&crate::dto::GuiLogEntry> {
+        let mut entries: Vec<_> = self.logs.iter().chain(&self.audit_history).collect();
+        entries.sort_by_key(|entry| std::cmp::Reverse(entry.timestamp));
+        entries
+    }
+
+    /// Command asking the agent for its persistent audit trail: when the
+    /// audit page opens, then every 15 s while it is shown. `now` is the UI
+    /// clock, in seconds.
+    pub fn take_audit_history_refresh(&mut self, now: f64) -> Option<crate::events::GuiCommand> {
+        const EVERY_SECS: f64 = 15.0;
+        /// Entries asked for: the page shows 50 per page.
+        const LIMIT: u32 = 1000;
+        if self
+            .audit_history_requested_at
+            .is_some_and(|at| now - at < EVERY_SECS)
+        {
+            return None;
+        }
+        self.audit_history_requested_at = Some(now);
+        Some(crate::events::GuiCommand::LoadAuditTrail { limit: LIMIT })
     }
 
     /// Update check results and maintain history
@@ -2538,6 +2673,260 @@ impl AppState {
 
         self.policy = summary;
         self.summary.policy_summary = Some(summary);
+    }
+}
+
+#[cfg(test)]
+mod block_outcome_tests {
+    use crate::{app::AppState, dto, events::AgentEvent};
+
+    fn submitted(id: uuid::Uuid) -> AgentEvent {
+        AgentEvent::ResponseActionSubmitted {
+            action: dto::ResponseAction {
+                id,
+                action_type: dto::ResponseActionType::BlockIp,
+                target: "192.0.2.7".into(),
+                target_detail: "0s".into(),
+                status: dto::ResponseStatus::Pending,
+                created_at: chrono::Utc::now(),
+                completed_at: None,
+                error: None,
+            },
+        }
+    }
+
+    /// The Discovery page announced "Équipement bloqué" before the agent
+    /// had tried: the outcome is announced when the result arrives.
+    #[test]
+    fn a_block_is_announced_by_its_result() {
+        let mut state = AppState::default();
+        let id = uuid::Uuid::new_v4();
+        state.apply_event(submitted(id));
+        assert!(state.notifications.is_empty(), "nothing announced yet");
+
+        state.apply_event(AgentEvent::ResponseActionResult {
+            action_id: id,
+            success: false,
+            error: Some("pfctl: permission denied".into()),
+        });
+        assert_eq!(state.notifications.len(), 1);
+        assert_eq!(state.notifications[0].title, "Blocage impossible");
+        assert!(state.notifications[0].body.contains("permission denied"));
+
+        let id = uuid::Uuid::new_v4();
+        state.apply_event(submitted(id));
+        state.apply_event(AgentEvent::ResponseActionResult {
+            action_id: id,
+            success: true,
+            error: None,
+        });
+        assert_eq!(state.notifications.len(), 2);
+        assert_eq!(state.notifications[1].title, "Adresse bloqu\u{00e9}e");
+    }
+
+    fn quarantined(id: uuid::Uuid) -> crate::dto::QuarantinedFile {
+        crate::dto::QuarantinedFile {
+            id,
+            original_path: "/tmp/sample.bin".into(),
+            sha256: "ab".repeat(32),
+            size_bytes: 3,
+            quarantined_at: chrono::Utc::now(),
+            reason: "Essai".into(),
+            restored: false,
+        }
+    }
+
+    /// `restored` was read by the page but never written: a file restored
+    /// kept its "Restaurer" button.
+    #[test]
+    fn a_restored_file_leaves_the_quarantine_queue() {
+        let mut state = AppState::default();
+        let file = uuid::Uuid::new_v4();
+        let other = uuid::Uuid::new_v4();
+        state.apply_event(AgentEvent::FileQuarantined {
+            entry: quarantined(file),
+        });
+        state.apply_event(AgentEvent::FileQuarantined {
+            entry: quarantined(other),
+        });
+
+        let action = uuid::Uuid::new_v4();
+        let mut restore = match submitted(action) {
+            AgentEvent::ResponseActionSubmitted { action } => action,
+            _ => unreachable!(),
+        };
+        restore.action_type = crate::dto::ResponseActionType::RestoreFile;
+        restore.target = file.to_string();
+        state.apply_event(AgentEvent::ResponseActionSubmitted {
+            action: restore.clone(),
+        });
+        assert_eq!(state.threats.quarantined_count(), 2, "not restored yet");
+
+        // A restoration that failed keeps the file in the queue.
+        state.apply_event(AgentEvent::ResponseActionResult {
+            action_id: action,
+            success: false,
+            error: Some("destination refus\u{e9}e".into()),
+        });
+        assert_eq!(state.threats.quarantined_count(), 2);
+
+        let action = uuid::Uuid::new_v4();
+        restore.id = action;
+        state.apply_event(AgentEvent::ResponseActionSubmitted { action: restore });
+        state.apply_event(AgentEvent::ResponseActionResult {
+            action_id: action,
+            success: true,
+            error: None,
+        });
+        assert_eq!(state.threats.quarantined_count(), 1);
+        assert!(
+            state
+                .threats
+                .quarantine_queue
+                .iter()
+                .any(|f| f.id == file && f.restored)
+        );
+    }
+
+    /// The queue is what the store holds: files quarantined by a playbook
+    /// or before this run appear, files gone leave, and the same file is
+    /// not listed twice.
+    #[test]
+    fn the_quarantine_queue_is_rebuilt_from_the_store() {
+        let mut state = AppState::default();
+        let kept = uuid::Uuid::new_v4();
+        state.apply_event(AgentEvent::FileQuarantined {
+            entry: quarantined(uuid::Uuid::new_v4()),
+        });
+        state.apply_event(AgentEvent::QuarantineLoaded {
+            entries: vec![quarantined(kept), quarantined(uuid::Uuid::new_v4())],
+        });
+        assert_eq!(state.threats.quarantined_count(), 2);
+        state.apply_event(AgentEvent::FileQuarantined {
+            entry: quarantined(kept),
+        });
+        assert_eq!(state.threats.quarantine_queue.len(), 2);
+    }
+
+    /// The audit page only listed the notifications of the session: it
+    /// also lists what the agent recorded, in one chronology.
+    #[test]
+    fn the_audit_page_lists_the_persistent_trail_with_the_session() {
+        let mut state = AppState::default();
+        let now = chrono::Utc::now();
+        let entry = |minutes: i64, message: &str| dto::GuiLogEntry {
+            id: uuid::Uuid::new_v4(),
+            timestamp: now - chrono::Duration::minutes(minutes),
+            level: "info".into(),
+            message: message.into(),
+            source: Some("Journal de l'agent".into()),
+        };
+        state.logs.push_front(entry(5, "notification"));
+        let history = vec![entry(1, "recent"), entry(60, "old")];
+        state.selected_audit_entry = Some(0);
+        state.apply_event(AgentEvent::AuditTrailLoaded {
+            entries: history.clone(),
+        });
+        let messages: Vec<_> = state
+            .audit_entries()
+            .iter()
+            .map(|e| e.message.clone())
+            .collect();
+        assert_eq!(messages, ["recent", "notification", "old"]);
+        assert_eq!(state.selected_audit_entry, None, "positions changed");
+
+        // The same list again keeps the selection: the page reloads it
+        // every few seconds while the operator reads an entry.
+        state.selected_audit_entry = Some(1);
+        state.apply_event(AgentEvent::AuditTrailLoaded { entries: history });
+        assert_eq!(state.selected_audit_entry, Some(1));
+
+        assert!(state.take_audit_history_refresh(1.0).is_some());
+        assert!(state.take_audit_history_refresh(5.0).is_none());
+        assert!(state.take_audit_history_refresh(17.0).is_some());
+    }
+
+    /// "0 vulnerability" read the same whether the software was checked
+    /// or belongs to no CVE database.
+    #[test]
+    fn sources_without_cve_lookup_are_named_as_not_covered() {
+        let covered = dto::GuiCveCoverage {
+            source: "apt".into(),
+            packages: 900,
+            cve_checked: 900,
+            status: "covered".into(),
+            reason: None,
+        };
+        assert_eq!(dto::cve_coverage_note(std::slice::from_ref(&covered)), None);
+
+        let mut state = AppState::default();
+        state.apply_event(AgentEvent::VulnerabilityCoverage {
+            coverage: vec![
+                covered,
+                dto::GuiCveCoverage {
+                    source: "Homebrew".into(),
+                    packages: 212,
+                    cve_checked: 0,
+                    status: "not_covered".into(),
+                    reason: None,
+                },
+                dto::GuiCveCoverage {
+                    source: "macOS Applications".into(),
+                    packages: 87,
+                    cve_checked: 0,
+                    status: "not_covered".into(),
+                    reason: None,
+                },
+            ],
+        });
+        let note = dto::cve_coverage_note(&state.vulnerability_coverage).expect("gaps");
+        assert!(note.starts_with("Non couvert par la recherche de CVE"));
+        assert!(note.contains("Homebrew (212 paquets)"));
+        assert!(note.contains("Applications macOS (87 paquets)"));
+        assert!(!note.contains("apt"));
+    }
+
+    #[test]
+    fn the_quarantine_store_is_asked_for_at_start_then_periodically() {
+        let mut state = AppState::default();
+        assert!(matches!(
+            state.threats.take_quarantine_refresh(0.5),
+            Some(crate::events::GuiCommand::RefreshQuarantine)
+        ));
+        assert!(state.threats.take_quarantine_refresh(10.0).is_none());
+        assert!(state.threats.take_quarantine_refresh(31.0).is_some());
+    }
+}
+
+#[cfg(test)]
+mod connection_settings_tests {
+    use crate::{app::AppState, dto, events::AgentEvent};
+
+    /// Settings › Connexion showed the built-in SaaS address and heartbeat
+    /// interval whatever the agent was configured with.
+    #[test]
+    fn connection_settings_come_from_the_agent_not_from_defaults() {
+        let mut state = AppState::default();
+        assert!(state.settings.server_url.is_empty());
+
+        state.apply_event(AgentEvent::StatusChanged {
+            summary: dto::AgentSummary {
+                connection: Some(dto::GuiConnectionSettings {
+                    server_url: "https://grc.example.internal".into(),
+                    heartbeat_interval_secs: 240,
+                }),
+                ..Default::default()
+            },
+        });
+        assert_eq!(state.settings.server_url, "https://grc.example.internal");
+        assert_eq!(state.settings.heartbeat_interval_secs, 240);
+
+        // A summary that does not carry them leaves the known values alone.
+        state.apply_event(AgentEvent::StatusChanged {
+            summary: dto::AgentSummary::default(),
+        });
+        assert_eq!(state.settings.server_url, "https://grc.example.internal");
+        assert_eq!(state.settings.heartbeat_interval_secs, 240);
     }
 }
 

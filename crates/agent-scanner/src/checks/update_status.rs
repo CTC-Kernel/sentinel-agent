@@ -12,7 +12,8 @@
 //! - Update policy compliance
 
 use crate::check::{Check, CheckDefinitionBuilder, CheckOutput};
-use crate::error::ScannerResult;
+use crate::error::{ScannerError, ScannerResult};
+#[cfg(any(target_os = "windows", target_os = "linux"))]
 use agent_common::process::silent_command;
 use agent_common::types::{CheckCategory, CheckDefinition, CheckSeverity};
 use async_trait::async_trait;
@@ -34,6 +35,100 @@ const MAX_TOTAL_PENDING: usize = 10;
 /// Maximum critical pending updates before flagging non-compliance.
 #[cfg(target_os = "windows")]
 const MAX_CRITICAL_PENDING: usize = 0;
+
+/// Package managers asked for the pending updates on Linux, in order.
+#[cfg(any(target_os = "linux", test))]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) enum LinuxPackageManager {
+    Apt,
+    Dnf,
+    Yum,
+    Pacman,
+}
+
+#[cfg(any(target_os = "linux", test))]
+impl LinuxPackageManager {
+    #[cfg(target_os = "linux")]
+    const ALL: [Self; 4] = [Self::Apt, Self::Dnf, Self::Yum, Self::Pacman];
+
+    /// The command listing the pending updates. None needs root.
+    pub(crate) fn listing_command(self) -> (&'static str, &'static [&'static str]) {
+        match self {
+            Self::Apt => ("apt", &["list", "--upgradable"]),
+            Self::Dnf => ("dnf", &["check-update", "-q"]),
+            Self::Yum => ("yum", &["check-update", "-q"]),
+            Self::Pacman => ("checkupdates", &[]),
+        }
+    }
+
+    /// Pending updates in the listing, or why it gives no count.
+    ///
+    /// The exit code decides whether the listing is an answer at all: a
+    /// manager that could not reach its lists prints nothing, which used to
+    /// be read as zero pending updates.
+    pub(crate) fn pending(self, exit_code: Option<i32>, stdout: &str) -> Result<usize, String> {
+        let (program, _) = self.listing_command();
+        match (self, exit_code) {
+            // Run with LC_ALL=C: the marker is translated otherwise.
+            (Self::Apt, Some(0)) => Ok(stdout
+                .lines()
+                .filter(|line| line.contains("[upgradable"))
+                .count()),
+            // 0: nothing to update; 100: updates available; 1: error.
+            (Self::Dnf | Self::Yum, Some(0)) => Ok(0),
+            (Self::Dnf | Self::Yum, Some(100)) => Ok(stdout
+                .lines()
+                .take_while(|line| !line.starts_with("Obsoleting"))
+                .filter(|line| {
+                    line.chars().next().is_some_and(char::is_alphanumeric)
+                        && line.split_whitespace().count() >= 3
+                })
+                .count()),
+            // checkupdates: 0 with a list, 2 when there is nothing to update.
+            (Self::Pacman, Some(0)) => Ok(stdout
+                .lines()
+                .filter(|line| !line.trim().is_empty())
+                .count()),
+            (Self::Pacman, Some(2)) => Ok(0),
+            (_, Some(code)) => Err(format!("{program} exited with status {code}")),
+            (_, None) => Err(format!("{program} was interrupted")),
+        }
+    }
+}
+
+/// Ask the first package manager present for its pending updates.
+///
+/// `Ok(None)` when none is installed; an error when one is installed and
+/// did not answer: neither is a system without pending updates.
+#[cfg(target_os = "linux")]
+fn linux_pending_updates() -> ScannerResult<Option<usize>> {
+    for manager in LinuxPackageManager::ALL {
+        let (program, args) = manager.listing_command();
+        let output = match silent_command(program)
+            .args(args)
+            .env("LC_ALL", "C")
+            .output()
+        {
+            Ok(output) => output,
+            Err(e) if e.kind() == std::io::ErrorKind::NotFound => continue,
+            Err(e) => {
+                return Err(ScannerError::CheckExecution(format!(
+                    "Failed to run {program}: {e}: pending updates unknown"
+                )));
+            }
+        };
+        return manager
+            .pending(
+                output.status.code(),
+                &String::from_utf8_lossy(&output.stdout),
+            )
+            .map(Some)
+            .map_err(|reason| {
+                ScannerError::CheckExecution(format!("{reason}: pending updates unknown"))
+            });
+    }
+    Ok(None)
+}
 
 /// Pending update information.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -58,11 +153,13 @@ pub struct UpdateHistoryEntry {
 /// Windows Update service status.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct UpdateServiceStatus {
-    pub service_running: bool,
+    /// `None` when the platform check does not measure it.
+    pub service_running: Option<bool>,
     pub start_type: String,
     pub last_check_time: Option<DateTime<Utc>>,
     pub wsus_server: Option<String>,
-    pub auto_update_enabled: bool,
+    /// `None` when the platform check does not measure it.
+    pub auto_update_enabled: Option<bool>,
     pub auto_update_day: Option<String>,
     pub auto_update_time: Option<String>,
 }
@@ -188,11 +285,11 @@ impl UpdateStatusCheck {
         }
 
         // Check service status
-        if !service_status.service_running {
+        if service_status.service_running != Some(true) {
             issues.push("Windows Update service is not running".to_string());
         }
 
-        if !service_status.auto_update_enabled {
+        if service_status.auto_update_enabled != Some(true) {
             issues.push("Automatic updates are disabled".to_string());
         }
 
@@ -212,7 +309,7 @@ impl UpdateStatusCheck {
         if reboot_required {
             score -= 10.0;
         }
-        if !service_status.service_running {
+        if service_status.service_running != Some(true) {
             score -= 20.0;
         }
         score = score.max(0.0);
@@ -240,11 +337,11 @@ impl UpdateStatusCheck {
     #[cfg(target_os = "windows")]
     async fn get_service_status(&self) -> UpdateServiceStatus {
         let mut status = UpdateServiceStatus {
-            service_running: false,
+            service_running: Some(false),
             start_type: "Unknown".to_string(),
             last_check_time: None,
             wsus_server: None,
-            auto_update_enabled: false,
+            auto_update_enabled: Some(false),
             auto_update_day: None,
             auto_update_time: None,
         };
@@ -277,19 +374,21 @@ impl UpdateStatusCheck {
         {
             let stdout = String::from_utf8_lossy(&out.stdout);
             if let Ok(json) = serde_json::from_str::<serde_json::Value>(&stdout) {
-                status.service_running = json
-                    .get("Running")
-                    .and_then(|v| v.as_bool())
-                    .unwrap_or(false);
+                status.service_running = Some(
+                    json.get("Running")
+                        .and_then(|v| v.as_bool())
+                        .unwrap_or(false),
+                );
                 status.start_type = json
                     .get("StartType")
                     .and_then(|v| v.as_str())
                     .unwrap_or("Unknown")
                     .to_string();
-                status.auto_update_enabled = json
-                    .get("AutoUpdate")
-                    .and_then(|v| v.as_bool())
-                    .unwrap_or(false);
+                status.auto_update_enabled = Some(
+                    json.get("AutoUpdate")
+                        .and_then(|v| v.as_bool())
+                        .unwrap_or(false),
+                );
                 status.wsus_server = json
                     .get("WsusServer")
                     .and_then(|v| v.as_str())
@@ -539,11 +638,11 @@ impl UpdateStatusCheck {
                 reboot_required: false,
                 reboot_pending_since: None,
                 service_status: UpdateServiceStatus {
-                    service_running: true,
+                    service_running: None,
                     start_type: "N/A".to_string(),
                     last_check_time: None,
                     wsus_server: None,
-                    auto_update_enabled: true,
+                    auto_update_enabled: None,
                     auto_update_day: None,
                     auto_update_time: None,
                 },
@@ -624,50 +723,15 @@ impl UpdateStatusCheck {
             }
         }
 
-        // Check for pending updates — try apt first, then dnf/yum, then pacman
-        let pending_count = if let Some(count) = silent_command("sh")
-            .args([
-                "-c",
-                "apt list --upgradable 2>/dev/null | grep -c upgradable || echo 0",
-            ])
-            .output()
-            .ok()
-            .and_then(|o| {
-                let c = String::from_utf8_lossy(&o.stdout)
-                    .trim()
-                    .parse::<usize>()
-                    .ok();
-                c.filter(|&v| v > 0)
-            }) {
-            count
-        } else if let Some(count) = silent_command("sh")
-            .args([
-                "-c",
-                "dnf check-update 2>/dev/null | grep -cE '^[a-zA-Z]' || echo 0",
-            ])
-            .output()
-            .ok()
-            .and_then(|o| {
-                // dnf check-update exits with code 100 when updates are available
-                String::from_utf8_lossy(&o.stdout)
-                    .trim()
-                    .parse::<usize>()
-                    .ok()
-            })
-        {
-            count
-        } else {
-            silent_command("sh")
-                .args(["-c", "checkupdates 2>/dev/null | wc -l || echo 0"])
-                .output()
-                .ok()
-                .and_then(|o| {
-                    String::from_utf8_lossy(&o.stdout)
-                        .trim()
-                        .parse::<usize>()
-                        .ok()
-                })
-                .unwrap_or_default()
+        // Pending updates, from the first package manager present. Without
+        // one, or without an answer from it, nothing was measured: that used
+        // to count as zero pending updates, hence a passing check.
+        let Some(pending_count) = linux_pending_updates()? else {
+            return Err(ScannerError::Unsupported(
+                "No supported package manager (apt, dnf, yum, pacman): \
+                 pending updates were not measured"
+                    .to_string(),
+            ));
         };
 
         if pending_count > MAX_TOTAL_PENDING {
@@ -696,11 +760,12 @@ impl UpdateStatusCheck {
             reboot_required: std::path::Path::new("/var/run/reboot-required").exists(),
             reboot_pending_since: None,
             service_status: UpdateServiceStatus {
-                service_running: true,
-                start_type: "automatic".to_string(),
+                // Not measured on this platform: no invented value.
+                service_running: None,
+                start_type: "unknown".to_string(),
                 last_check_time: None,
                 wsus_server: None,
-                auto_update_enabled: true,
+                auto_update_enabled: None,
                 auto_update_day: None,
                 auto_update_time: None,
             },
@@ -713,19 +778,11 @@ impl UpdateStatusCheck {
     async fn check_macos_updates(&self) -> ScannerResult<UpdateStatus> {
         let mut issues = Vec::new();
 
-        // Check for pending updates using softwareupdate
-        // Note: softwareupdate --list writes update entries to stderr, not stdout
-        let output = silent_command("softwareupdate").args(["--list"]).output();
-
-        let pending_count = if let Ok(out) = output {
-            let stderr = String::from_utf8_lossy(&out.stderr);
-            stderr
-                .lines()
-                .filter(|l| l.trim_start().starts_with('*'))
-                .count()
-        } else {
-            0
-        };
+        // Pending updates, read on both output streams and within a time
+        // limit. A listing that could not be obtained is an error: it used
+        // to count as zero pending updates, hence a passing check.
+        let listing = super::system_updates::softwareupdate_list().await?;
+        let pending_count = listing.pending as usize;
 
         if pending_count > 0 {
             issues.push(format!("{} updates pending", pending_count));
@@ -746,11 +803,12 @@ impl UpdateStatusCheck {
             reboot_required: false,
             reboot_pending_since: None,
             service_status: UpdateServiceStatus {
-                service_running: true,
-                start_type: "automatic".to_string(),
+                // Not measured on this platform: no invented value.
+                service_running: None,
+                start_type: "unknown".to_string(),
                 last_check_time: None,
                 wsus_server: None,
-                auto_update_enabled: true,
+                auto_update_enabled: None,
                 auto_update_day: None,
                 auto_update_time: None,
             },
@@ -775,7 +833,13 @@ impl Check for UpdateStatusCheck {
     async fn execute(&self) -> ScannerResult<CheckOutput> {
         debug!("Executing update status check");
 
-        let status = self.check_update_status().await?;
+        let status = match self.check_update_status().await {
+            // Nothing on this system can be asked: skipped, not passed.
+            Err(ScannerError::Unsupported(reason)) => {
+                return Ok(CheckOutput::not_applicable(reason, serde_json::Value::Null));
+            }
+            other => other?,
+        };
         let raw_data = serde_json::to_value(&status).unwrap_or_default();
 
         if status.compliant {
@@ -815,6 +879,50 @@ mod tests {
                 .definition()
                 .frameworks
                 .contains(&"PCI_DSS".to_string())
+        );
+    }
+
+    #[test]
+    fn apt_counts_the_upgradable_lines_only() {
+        let listing = "Listing...\n\
+            curl/jammy-security 7.81.0-1ubuntu1.20 amd64 [upgradable from: 7.81.0-1ubuntu1.19]\n\
+            vim/jammy-updates 2:8.2.3995-1ubuntu2.24 amd64 [upgradable from: 2:8.2.3995-1ubuntu2.23]\n";
+        assert_eq!(LinuxPackageManager::Apt.pending(Some(0), listing), Ok(2));
+        assert_eq!(
+            LinuxPackageManager::Apt.pending(Some(0), "Listing...\n"),
+            Ok(0)
+        );
+    }
+
+    #[test]
+    fn a_listing_that_failed_is_not_zero_pending_updates() {
+        // What `|| echo 0` used to turn into "0 pending".
+        assert!(LinuxPackageManager::Apt.pending(Some(100), "").is_err());
+        assert!(LinuxPackageManager::Dnf.pending(Some(1), "").is_err());
+        assert!(LinuxPackageManager::Yum.pending(Some(1), "").is_err());
+        assert!(LinuxPackageManager::Pacman.pending(Some(1), "").is_err());
+        assert!(LinuxPackageManager::Apt.pending(None, "").is_err());
+    }
+
+    #[test]
+    fn dnf_reads_its_exit_code_and_skips_the_obsoleting_section() {
+        let listing = "\n\
+            bash.x86_64            5.2.26-3.fc40      updates\n\
+            kernel-core.x86_64     6.8.9-300.fc40     updates\n\
+            Obsoleting Packages\n\
+            grub2-tools.x86_64     1:2.06-120.fc40    updates\n\
+            \x20   grub2-tools.x86_64 1:2.06-118.fc40    @updates\n";
+        assert_eq!(LinuxPackageManager::Dnf.pending(Some(100), listing), Ok(2));
+        assert_eq!(LinuxPackageManager::Yum.pending(Some(100), listing), Ok(2));
+        assert_eq!(LinuxPackageManager::Dnf.pending(Some(0), ""), Ok(0));
+    }
+
+    #[test]
+    fn checkupdates_without_updates_exits_with_two() {
+        assert_eq!(LinuxPackageManager::Pacman.pending(Some(2), ""), Ok(0));
+        assert_eq!(
+            LinuxPackageManager::Pacman.pending(Some(0), "linux 6.9.1 -> 6.9.2\n"),
+            Ok(1)
         );
     }
 

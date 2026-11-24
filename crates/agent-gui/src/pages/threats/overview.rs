@@ -167,6 +167,23 @@ fn summary_cards(ui: &mut Ui, state: &AppState, all_threats: &[ThreatEvent]) {
             }
         },
     );
+
+    // What the USB policy really does here: said when it is less than a
+    // block (ejection, detection only) or when monitoring is off.
+    if let Some(protection) = &state.threats.usb_protection
+        && (protection.is_degraded() || protection.mode == "disabled")
+    {
+        ui.add_space(theme::SPACE_SM);
+        widgets::alert::alert_compact(
+            ui,
+            if protection.is_degraded() {
+                widgets::alert::AlertLevel::Warning
+            } else {
+                widgets::alert::AlertLevel::Info
+            },
+            &format!("{}. {}", protection.label(), protection.detail),
+        );
+    }
 }
 
 /// Severity distribution bar and detection-source coverage, in one card.

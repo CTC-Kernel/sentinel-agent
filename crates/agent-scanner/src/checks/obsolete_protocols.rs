@@ -9,7 +9,7 @@
 //! - macOS: System crypto settings
 
 use crate::check::{Check, CheckDefinitionBuilder, CheckOutput};
-#[cfg(target_os = "windows")]
+#[cfg(any(target_os = "windows", target_os = "macos"))]
 use crate::error::ScannerError;
 use crate::error::ScannerResult;
 #[cfg(any(target_os = "windows", target_os = "macos"))]
@@ -490,15 +490,17 @@ impl ObsoleteProtocolsCheck {
                         .push("Older macOS version - TLS status unknown".to_string());
                 }
             } else {
-                // Very old macOS or parsing failed
-                status
-                    .issues
-                    .push("Unable to determine macOS version for TLS status".to_string());
+                // Very old macOS or parsing failed: the TLS defaults are
+                // unknown, which is not a compliant configuration.
+                return Err(ScannerError::CheckExecution(format!(
+                    "Unable to determine macOS version for TLS status: {:?}",
+                    version
+                )));
             }
         } else {
-            status
-                .issues
-                .push("Failed to check macOS version".to_string());
+            return Err(ScannerError::CheckExecution(
+                "Failed to check macOS version".to_string(),
+            ));
         }
 
         // Check nscurl for TLS support
@@ -517,8 +519,12 @@ impl ObsoleteProtocolsCheck {
             }
         }
 
-        // Validate compliance
+        // Validate compliance. `check_compliance` only lists the protocols
+        // found enabled: keep what was recorded above as undetermined, which
+        // this assignment used to erase, leaving a passing check.
+        let undetermined = std::mem::take(&mut status.issues);
         status.issues = self.check_compliance(&status);
+        status.issues.extend(undetermined);
         status.compliant = status.issues.is_empty();
 
         Ok(status)

@@ -243,7 +243,7 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
         ui.label(
             egui::RichText::new(format!(
                 "FILE DE QUARANTAINE ({})",
-                state.threats.quarantine_queue.len()
+                state.threats.quarantined_count()
             ))
             .font(theme::font_label())
             .color(theme::text_tertiary())
@@ -252,7 +252,7 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
         );
         ui.add_space(theme::SPACE_SM);
 
-        if state.threats.quarantine_queue.is_empty() {
+        if state.threats.quarantined_count() == 0 {
             widgets::empty_state(
                 ui,
                 icons::SHIELD_CHECK,
@@ -280,8 +280,13 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                         );
                         ui.label(
                             egui::RichText::new(format!(
-                                "SHA-256: {} \u{2014} {} \u{2014} {}",
-                                file.sha256.chars().take(16).collect::<String>(),
+                                "SHA-256\u{a0}: {} \u{2014} {} \u{2014} {} \u{2014} {}",
+                                if file.sha256.is_empty() {
+                                    "non calcul\u{e9}e".to_string()
+                                } else {
+                                    file.sha256.chars().take(16).collect::<String>()
+                                },
+                                crate::format::bytes(file.size_bytes),
                                 file.reason,
                                 crate::format::local_datetime(file.quarantined_at),
                             ))
@@ -299,11 +304,7 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                                 state.threats.confirm_action = Some(PendingConfirmation {
                                     action_type: ResponseActionType::RestoreFile,
                                     target: file.id.to_string(),
-                                    detail: format!(
-                                        "Restaurer {} vers {}",
-                                        file.sha256.chars().take(8).collect::<String>(),
-                                        file.original_path
-                                    ),
+                                    detail: format!("Restaurer vers {}", file.original_path),
                                 });
                             }
                         },

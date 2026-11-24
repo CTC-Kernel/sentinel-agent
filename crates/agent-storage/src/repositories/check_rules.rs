@@ -213,7 +213,10 @@ impl<'a> CheckRulesRepository<'a> {
 
     /// Upsert a check rule (insert or update).
     ///
-    /// This uses INSERT OR REPLACE semantics for sync operations.
+    /// The row is updated in place (`ON CONFLICT ... DO UPDATE`). `INSERT OR
+    /// REPLACE` must not be used here: it deletes the existing row first, and
+    /// `check_results.check_rule_id` is `ON DELETE CASCADE`, so every rule
+    /// sync would erase the results of the rule, unsynced ones included.
     pub async fn upsert(&self, rule: &CheckRule) -> StorageResult<()> {
         let id = rule.id.clone();
         let name = rule.name.clone();
@@ -244,11 +247,28 @@ impl<'a> CheckRulesRepository<'a> {
             .with_connection(move |conn| {
                 conn.execute(
                     r#"
-                    INSERT OR REPLACE INTO check_rules
+                    INSERT INTO check_rules
                     (id, name, description, category, severity, enabled, check_type,
                      parameters, frameworks, version, created_at, updated_at,
                      check_command, expected_result, remediation, platforms, control_id)
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    ON CONFLICT(id) DO UPDATE SET
+                        name = excluded.name,
+                        description = excluded.description,
+                        category = excluded.category,
+                        severity = excluded.severity,
+                        enabled = excluded.enabled,
+                        check_type = excluded.check_type,
+                        parameters = excluded.parameters,
+                        frameworks = excluded.frameworks,
+                        version = excluded.version,
+                        created_at = excluded.created_at,
+                        updated_at = excluded.updated_at,
+                        check_command = excluded.check_command,
+                        expected_result = excluded.expected_result,
+                        remediation = excluded.remediation,
+                        platforms = excluded.platforms,
+                        control_id = excluded.control_id
                     "#,
                     rusqlite::params![
                         id,
@@ -305,11 +325,28 @@ impl<'a> CheckRulesRepository<'a> {
 
                     tx.execute(
                         r#"
-                        INSERT OR REPLACE INTO check_rules
+                        INSERT INTO check_rules
                         (id, name, description, category, severity, enabled, check_type,
                          parameters, frameworks, version, created_at, updated_at,
                          check_command, expected_result, remediation, platforms, control_id)
                         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                        ON CONFLICT(id) DO UPDATE SET
+                            name = excluded.name,
+                            description = excluded.description,
+                            category = excluded.category,
+                            severity = excluded.severity,
+                            enabled = excluded.enabled,
+                            check_type = excluded.check_type,
+                            parameters = excluded.parameters,
+                            frameworks = excluded.frameworks,
+                            version = excluded.version,
+                            created_at = excluded.created_at,
+                            updated_at = excluded.updated_at,
+                            check_command = excluded.check_command,
+                            expected_result = excluded.expected_result,
+                            remediation = excluded.remediation,
+                            platforms = excluded.platforms,
+                            control_id = excluded.control_id
                         "#,
                         rusqlite::params![
                             rule.id,
@@ -783,6 +820,52 @@ mod tests {
         assert_eq!(retrieved.severity, Severity::Critical);
         assert!(retrieved.enabled);
         assert_eq!(retrieved.frameworks.len(), 2);
+    }
+
+    /// Regression: `INSERT OR REPLACE` deleted the rule row, and the
+    /// `ON DELETE CASCADE` of `check_results` erased its results with it.
+    #[tokio::test]
+    async fn test_upsert_keeps_existing_check_results() {
+        use crate::repositories::check_results::{
+            CheckResult, CheckResultsRepository, CheckStatus,
+        };
+
+        let (_temp_dir, db) = create_test_db().await;
+        let repo = CheckRulesRepository::new(&db);
+        let results = CheckResultsRepository::new(&db);
+
+        let rule = CheckRule::new("fw", "Firewall", "security", Severity::High, "fw", "1.0");
+        let other = CheckRule::new("av", "Antivirus", "security", Severity::High, "av", "1.0");
+        repo.upsert(&rule).await.unwrap();
+        repo.upsert(&other).await.unwrap();
+
+        results
+            .insert(&CheckResult::new("fw", CheckStatus::Fail))
+            .await
+            .unwrap();
+        results
+            .insert(&CheckResult::new("av", CheckStatus::Pass))
+            .await
+            .unwrap();
+        assert_eq!(results.count().await.unwrap(), 2);
+
+        // Single upsert of a rule that already has a result.
+        let updated = CheckRule::new("fw", "Firewall v2", "security", Severity::Low, "fw", "2.0");
+        repo.upsert(&updated).await.unwrap();
+        assert_eq!(results.count().await.unwrap(), 2);
+        assert_eq!(results.get_unsynced(10).await.unwrap().len(), 2);
+
+        // Batch upsert (the path taken at startup and on every rule sync).
+        repo.upsert_batch(&[updated.clone(), other.clone()])
+            .await
+            .unwrap();
+        assert_eq!(results.count().await.unwrap(), 2);
+        assert_eq!(results.get_unsynced(10).await.unwrap().len(), 2);
+
+        let stored = repo.get("fw").await.unwrap().unwrap();
+        assert_eq!(stored.name, "Firewall v2");
+        assert_eq!(stored.version, "2.0");
+        assert_eq!(repo.count().await.unwrap(), 2);
     }
 
     #[tokio::test]

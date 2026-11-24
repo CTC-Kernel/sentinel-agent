@@ -16,7 +16,7 @@
 //! - macOS: Keychain and system trust store
 
 use crate::check::{Check, CheckDefinitionBuilder, CheckOutput};
-#[cfg(any(target_os = "windows", target_os = "macos"))]
+#[cfg(any(target_os = "windows", target_os = "macos", target_os = "linux"))]
 use crate::error::ScannerError;
 use crate::error::ScannerResult;
 use agent_common::process::silent_command;
@@ -313,10 +313,10 @@ impl CertificateValidationCheck {
             .output()
             .is_ok_and(|o| o.status.success());
         if !openssl_available {
-            status
-                .issues
-                .push("OpenSSL not available for certificate verification".to_string());
-            return Ok(status);
+            // No certificate was examined: an error, not a healthy store.
+            return Err(ScannerError::CheckExecution(
+                "OpenSSL not available: certificates were not verified".to_string(),
+            ));
         }
 
         // List certificates in /etc/ssl/certs

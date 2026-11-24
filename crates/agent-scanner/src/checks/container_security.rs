@@ -556,8 +556,10 @@ impl Check for ContainerSecurityCheck {
 
         let raw_data = serde_json::to_value(&status).unwrap_or_default();
 
+        // Nothing to assess: not applicable, rather than a pass that raises
+        // the score of a machine without containers.
         if !status.daemon_running {
-            return Ok(CheckOutput::pass(
+            return Ok(CheckOutput::not_applicable(
                 "No container runtime detected (Docker/Podman not installed or not running)"
                     .to_string(),
                 raw_data,
