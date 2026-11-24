@@ -22,6 +22,7 @@ pub(crate) async fn handle(ctx: &mut CommandContext, command: GuiCommand) {
         GuiCommand::RestoreQuarantinedFile { quarantine_id } => {
             restore_quarantined_file(ctx, quarantine_id).await
         }
+        GuiCommand::RefreshQuarantine => refresh_quarantine(ctx).await,
         GuiCommand::BlockIp { ip, duration_secs } => block_ip(ctx, ip, duration_secs).await,
         GuiCommand::UnblockIp { ip } => unblock_ip(ctx, ip).await,
         GuiCommand::IsolateHost { duration_secs } => isolate_host(ctx, duration_secs).await,
@@ -109,6 +110,44 @@ async fn kill_process(ctx: &mut CommandContext, process_name: String, pid: u32) 
         });
 }
 
+/// A file of the quarantine store as the interface lists it.
+fn quarantined_entry(
+    record: agent_core::edr_actions::QuarantineRecord,
+) -> agent_gui::dto::QuarantinedFile {
+    agent_gui::dto::QuarantinedFile {
+        // The store names its files with UUIDs; one that is not would not
+        // be restorable by its handle, so it is given the nil UUID.
+        id: uuid::Uuid::parse_str(&record.id).unwrap_or_default(),
+        original_path: record.original_path,
+        sha256: record.sha256,
+        size_bytes: record.size_bytes,
+        quarantined_at: record.quarantined_at,
+        reason: record.reason,
+        restored: false,
+    }
+}
+
+/// Read the quarantine store and send it to the interface: what a playbook
+/// quarantined, or a previous run, is listed like the rest.
+async fn send_quarantine(tx: &std::sync::mpsc::Sender<AgentEvent>) {
+    let entries = agent_core::edr_actions::list_quarantine()
+        .await
+        .into_iter()
+        .map(quarantined_entry)
+        .filter(|entry| !entry.id.is_nil())
+        .collect();
+    let _ = tx.send(AgentEvent::QuarantineLoaded { entries });
+}
+
+/// Send the content of the quarantine store to the interface.
+async fn refresh_quarantine(ctx: &mut CommandContext) {
+    let tx = ctx.events.clone();
+    ctx.tasks
+        .spawn_expected("list quarantine", expected::SHORT, async move {
+            send_quarantine(&tx).await;
+        });
+}
+
 /// Quarantine a file (move to secure location).
 async fn quarantine_file(ctx: &mut CommandContext, path: String) {
     info!("[AUDIT] GUI requested file quarantine: {}", path);
@@ -130,22 +169,23 @@ async fn quarantine_file(ctx: &mut CommandContext, path: String) {
                     error: None,
                 },
             });
-            match agent_core::edr_actions::quarantine_file(&file_path).await {
+            match agent_core::edr_actions::quarantine_file_with_reason(
+                &file_path,
+                "Mise en quarantaine manuelle",
+            )
+            .await
+            {
                 Ok(quarantine_id) => {
                     info!("File quarantined successfully: {}", quarantine_id);
-                    // Emit quarantine entry
-                    let _ = tx.send(AgentEvent::FileQuarantined {
-                        entry: agent_gui::dto::QuarantinedFile {
-                            id: uuid::Uuid::parse_str(&quarantine_id)
-                                .unwrap_or_else(|_| uuid::Uuid::new_v4()),
-                            original_path: file_path.clone(),
-                            sha256: String::new(),
-                            size_bytes: 0,
-                            quarantined_at: chrono::Utc::now(),
-                            reason: "User-initiated quarantine".to_string(),
-                            restored: false,
-                        },
-                    });
+                    // The entry shown is the record written with the file:
+                    // its real fingerprint, size and reason.
+                    if let Some(record) =
+                        agent_core::edr_actions::quarantine_record(&quarantine_id).await
+                    {
+                        let _ = tx.send(AgentEvent::FileQuarantined {
+                            entry: quarantined_entry(record),
+                        });
+                    }
                     let _ = tx.send(AgentEvent::ResponseActionResult {
                         action_id,
                         success: true,
@@ -172,6 +212,12 @@ async fn restore_quarantined_file(ctx: &mut CommandContext, quarantine_id: Strin
     );
     let tx = ctx.events.clone();
     let qid = quarantine_id.clone();
+    // Where the file goes back to, for the journal: the handle alone says
+    // nothing to the operator.
+    let destination = agent_core::edr_actions::quarantine_record(&quarantine_id)
+        .await
+        .map(|record| record.original_path)
+        .unwrap_or_default();
     // Emit pending action before spawning async work
     let action_id = uuid::Uuid::new_v4();
     let _ = tx.send(AgentEvent::ResponseActionSubmitted {
@@ -179,7 +225,7 @@ async fn restore_quarantined_file(ctx: &mut CommandContext, quarantine_id: Strin
             id: action_id,
             action_type: agent_gui::dto::ResponseActionType::RestoreFile,
             target: quarantine_id.clone(),
-            target_detail: String::new(),
+            target_detail: destination,
             status: agent_gui::dto::ResponseStatus::Pending,
             created_at: chrono::Utc::now(),
             completed_at: None,
@@ -195,6 +241,7 @@ async fn restore_quarantined_file(ctx: &mut CommandContext, quarantine_id: Strin
                         success: true,
                         error: None,
                     });
+                    send_quarantine(&tx).await;
                 }
                 Err(e) => {
                     warn!("Restore quarantined file failed: {}", e);

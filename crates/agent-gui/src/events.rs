@@ -398,6 +398,13 @@ pub enum AgentEvent {
         /// The quarantined file entry.
         entry: crate::dto::QuarantinedFile,
     },
+    /// What the quarantine store holds, read from disk: replaces the list
+    /// shown, so files quarantined by a playbook or before this run appear
+    /// and files restored leave.
+    QuarantineLoaded {
+        /// Every file currently in quarantine, most recent first.
+        entries: Vec<crate::dto::QuarantinedFile>,
+    },
     /// Toggle visibility of the standalone Jarvis widget.
     ToggleJarvisWidget {
         /// Whether the widget should be visible.
@@ -533,6 +540,9 @@ pub enum GuiCommand {
         /// Quarantine entry ID.
         quarantine_id: String,
     },
+    /// Read the quarantine store again and send it as
+    /// [`AgentEvent::QuarantineLoaded`].
+    RefreshQuarantine,
     /// Block an IP address via firewall rules.
     BlockIp {
         /// IP address to block.

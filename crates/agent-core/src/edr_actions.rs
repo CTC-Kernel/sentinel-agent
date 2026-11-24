@@ -416,10 +416,146 @@ async fn copy_then_remove(source: &Path, dest: &Path) -> std::io::Result<()> {
     Ok(())
 }
 
+/// Why a file is in quarantine when nobody said: a playbook or a rule did it.
+pub const AUTOMATIC_QUARANTINE_REASON: &str = "R\u{e9}ponse automatique";
+
+/// One file held in the quarantine store, as its `.meta` describes it.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct QuarantineRecord {
+    /// Name of the file in the store, and the handle to restore it.
+    pub id: String,
+    pub original_path: String,
+    /// Lowercase hexadecimal SHA-256 of the file; empty if it could not be read.
+    pub sha256: String,
+    pub size_bytes: u64,
+    pub quarantined_at: chrono::DateTime<chrono::Utc>,
+    pub reason: String,
+}
+
+/// SHA-256 and size of a file, read in chunks off the async runtime.
+async fn fingerprint(path: &Path) -> std::io::Result<(String, u64)> {
+    let path = path.to_path_buf();
+    tokio::task::spawn_blocking(move || {
+        use sha2::Digest;
+        use std::io::Read;
+        let mut file = std::fs::File::open(&path)?;
+        let mut hasher = sha2::Sha256::new();
+        let mut buffer = vec![0u8; 64 * 1024];
+        let mut size = 0u64;
+        loop {
+            let read = file.read(&mut buffer)?;
+            if read == 0 {
+                break;
+            }
+            hasher.update(&buffer[..read]);
+            size += read as u64;
+        }
+        Ok((hex::encode(hasher.finalize()), size))
+    })
+    .await
+    .map_err(std::io::Error::other)?
+}
+
+/// Read the record of one quarantined file. `None` when the file or its
+/// metadata is missing or unreadable: such an entry cannot be restored.
+///
+/// A `.meta` written before the fingerprint was recorded is completed from
+/// the stored file, once.
+async fn read_quarantine_record(store: &Path, id: &str) -> Option<QuarantineRecord> {
+    let stored = store.join(id);
+    let metadata_path = store.join(format!("{id}.meta"));
+    let stored_metadata = tokio::fs::symlink_metadata(&stored).await.ok()?;
+    let raw = tokio::fs::read_to_string(&metadata_path).await.ok()?;
+    let mut meta: serde_json::Value = serde_json::from_str(&raw).ok()?;
+    let original_path = meta.get("original_path")?.as_str()?.to_string();
+    let quarantined_at = meta
+        .get("quarantined_at")
+        .and_then(|v| v.as_str())
+        .and_then(|v| chrono::DateTime::parse_from_rfc3339(v).ok())
+        .map(|v| v.with_timezone(&chrono::Utc))
+        .or_else(|| stored_metadata.modified().ok().map(Into::into))
+        .unwrap_or_else(chrono::Utc::now);
+    let reason = meta
+        .get("reason")
+        .and_then(|v| v.as_str())
+        .unwrap_or(AUTOMATIC_QUARANTINE_REASON)
+        .to_string();
+    let recorded = meta
+        .get("sha256")
+        .and_then(|v| v.as_str())
+        .filter(|v| !v.is_empty())
+        .map(str::to_string)
+        .zip(meta.get("size_bytes").and_then(|v| v.as_u64()));
+    let (sha256, size_bytes) = match recorded {
+        Some(recorded) => recorded,
+        None if stored_metadata.is_file() => match fingerprint(&stored).await {
+            Ok((sha256, size)) => {
+                meta["sha256"] = serde_json::Value::from(sha256.clone());
+                meta["size_bytes"] = serde_json::Value::from(size);
+                let _ = tokio::fs::write(
+                    &metadata_path,
+                    serde_json::to_string_pretty(&meta).unwrap_or(raw),
+                )
+                .await;
+                (sha256, size)
+            }
+            Err(_) => (String::new(), stored_metadata.len()),
+        },
+        None => (String::new(), 0),
+    };
+    Some(QuarantineRecord {
+        id: id.to_string(),
+        original_path,
+        sha256,
+        size_bytes,
+        quarantined_at,
+        reason,
+    })
+}
+
+/// The record of one quarantined file, by its quarantine ID.
+pub async fn quarantine_record(quarantine_id: &str) -> Option<QuarantineRecord> {
+    if quarantine_id.is_empty()
+        || !quarantine_id
+            .chars()
+            .all(|c| c.is_ascii_alphanumeric() || c == '-')
+    {
+        return None;
+    }
+    read_quarantine_record(&quarantine_dir(), quarantine_id).await
+}
+
+/// Every file currently held in quarantine, most recent first, whoever put
+/// it there (the interface, a playbook, a command of the platform) and
+/// whenever (this run or a previous one).
+pub async fn list_quarantine() -> Vec<QuarantineRecord> {
+    let store = quarantine_dir();
+    let mut records = Vec::new();
+    let Ok(mut entries) = tokio::fs::read_dir(&store).await else {
+        return records;
+    };
+    while let Ok(Some(entry)) = entries.next_entry().await {
+        let name = entry.file_name().to_string_lossy().to_string();
+        let Some(id) = name.strip_suffix(".meta") else {
+            continue;
+        };
+        if let Some(record) = quarantine_record(id).await {
+            records.push(record);
+        }
+    }
+    records.sort_by(|a, b| b.quarantined_at.cmp(&a.quarantined_at));
+    records
+}
+
 /// Quarantine a file by moving it to a secure quarantine directory.
 ///
 /// Returns the quarantine ID that can be used to restore the file later.
 pub async fn quarantine_file(path: &str) -> Result<String, CommonError> {
+    quarantine_file_with_reason(path, AUTOMATIC_QUARANTINE_REASON).await
+}
+
+/// [`quarantine_file`], recording why the file was set aside.
+pub async fn quarantine_file_with_reason(path: &str, reason: &str) -> Result<String, CommonError> {
     let source = std::path::Path::new(path);
     if !source.exists() {
         return Err(CommonError::internal(format!("File not found: {}", path)));
@@ -479,10 +615,17 @@ pub async fn quarantine_file(path: &str) -> Result<String, CommonError> {
 
     // Store original path metadata so we can restore later
     let metadata_path = quarantine_dir.join(format!("{}.meta", quarantine_id));
+    // Taken before the move, so the record describes the file as it was
+    // found. A file that cannot be read can still be moved: it is then
+    // recorded without a fingerprint.
+    let (sha256, size_bytes) = fingerprint(&source).await.unwrap_or_default();
     let metadata = serde_json::json!({
         "original_path": path,
         "quarantined_at": chrono::Utc::now().to_rfc3339(),
         "file_name": source.file_name().map(|n| n.to_string_lossy().to_string()),
+        "sha256": sha256,
+        "size_bytes": size_bytes,
+        "reason": reason,
     });
     tokio::fs::write(
         &metadata_path,
@@ -1025,6 +1168,75 @@ mod tests {
         assert!(copy_then_remove(&source, &taken).await.is_err());
         assert_eq!(std::fs::read(&source).unwrap(), b"evidence");
         assert_eq!(std::fs::read(&taken).unwrap(), b"other");
+    }
+
+    // ── quarantine: record and listing ──────────────────────────────────
+
+    /// The record carries the real fingerprint, size and reason, and the
+    /// listing finds it without having been told about it.
+    #[tokio::test]
+    async fn test_quarantine_records_fingerprint_size_and_reason() {
+        let dir = tempfile::tempdir().unwrap();
+        let victim = dir.path().join("sample.bin");
+        std::fs::write(&victim, b"abc").unwrap();
+
+        let id = quarantine_file_with_reason(victim.to_str().unwrap(), "Essai")
+            .await
+            .unwrap();
+
+        let record = quarantine_record(&id).await.expect("record");
+        assert_eq!(
+            record.sha256,
+            "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
+        );
+        assert_eq!(record.size_bytes, 3);
+        assert_eq!(record.reason, "Essai");
+        assert_eq!(record.original_path, victim.to_str().unwrap());
+        assert_eq!(list_quarantine().await, vec![record]);
+    }
+
+    /// A file restored leaves the listing; an entry written before the
+    /// fingerprint was recorded is completed from the stored file.
+    #[tokio::test]
+    async fn test_quarantine_listing_follows_the_store() {
+        let dir = tempfile::tempdir().unwrap();
+        let victim = dir.path().join("sample.bin");
+        std::fs::write(&victim, b"abc").unwrap();
+        let id = quarantine_file(victim.to_str().unwrap()).await.unwrap();
+        assert_eq!(list_quarantine().await.len(), 1);
+        assert_eq!(
+            list_quarantine().await[0].reason,
+            AUTOMATIC_QUARANTINE_REASON
+        );
+
+        // What an older agent wrote: no fingerprint, no size, no reason.
+        let meta = quarantine_dir().join(format!("{id}.meta"));
+        let legacy = serde_json::json!({
+            "original_path": victim.to_str().unwrap(),
+            "quarantined_at": "2025-01-02T03:04:05+00:00",
+        });
+        std::fs::write(&meta, legacy.to_string()).unwrap();
+        let record = quarantine_record(&id).await.expect("legacy record");
+        assert!(record.sha256.starts_with("ba7816bf"));
+        assert_eq!(record.size_bytes, 3);
+        assert_eq!(
+            record.quarantined_at.to_rfc3339(),
+            "2025-01-02T03:04:05+00:00"
+        );
+        assert!(
+            std::fs::read_to_string(&meta).unwrap().contains("ba7816bf"),
+            "the fingerprint is written back, not recomputed at each listing"
+        );
+
+        // Metadata without its file is not an entry one can restore.
+        std::fs::write(quarantine_dir().join("orphan.meta"), legacy.to_string()).unwrap();
+        assert_eq!(list_quarantine().await.len(), 1);
+        assert!(quarantine_record("../escape").await.is_none());
+
+        restore_quarantined_file(&id).await.unwrap();
+        std::fs::remove_file(quarantine_dir().join("orphan.meta")).unwrap();
+        assert!(list_quarantine().await.is_empty());
+        assert_eq!(std::fs::read(&victim).unwrap(), b"abc");
     }
 
     /// A quarantine that fails must not leave a `.meta` describing a file

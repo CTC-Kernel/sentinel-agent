@@ -515,6 +515,8 @@ pub struct ThreatsState {
     // Response tab
     pub pending_actions: VecDeque<crate::dto::ResponseAction>,
     pub quarantine_queue: VecDeque<crate::dto::QuarantinedFile>,
+    /// When the quarantine store was last asked for (seconds of UI time).
+    pub quarantine_requested_at: Option<f64>,
     pub response_log: VecDeque<crate::dto::ResponseLogEntry>,
     pub response_page: usize,
     pub confirm_action: Option<crate::dto::PendingConfirmation>,
@@ -555,6 +557,26 @@ impl ThreatsState {
                 rules: self.allowlist_rules.clone(),
             }
         })
+    }
+
+    /// Files currently held in quarantine (those restored are not).
+    pub fn quarantined_count(&self) -> usize {
+        self.quarantine_queue.iter().filter(|f| !f.restored).count()
+    }
+
+    /// Command asking the agent for the content of the quarantine store: at
+    /// start, then every 30 s, so files quarantined by a playbook or
+    /// before this run are listed too. `now` is the UI clock, in seconds.
+    pub fn take_quarantine_refresh(&mut self, now: f64) -> Option<crate::events::GuiCommand> {
+        const EVERY_SECS: f64 = 30.0;
+        if self
+            .quarantine_requested_at
+            .is_some_and(|at| now - at < EVERY_SECS)
+        {
+            return None;
+        }
+        self.quarantine_requested_at = Some(now);
+        Some(crate::events::GuiCommand::RefreshQuarantine)
     }
 
     /// Acknowledge a threat by its kind and index in the respective source collection.
@@ -647,6 +669,7 @@ impl Default for ThreatsState {
             ioc_results_count: 0,
             pending_actions: VecDeque::with_capacity(20),
             quarantine_queue: VecDeque::with_capacity(100),
+            quarantine_requested_at: None,
             response_log: VecDeque::with_capacity(500),
             response_page: 0,
             confirm_action: None,
@@ -1836,6 +1859,22 @@ impl AppState {
                     action.completed_at = Some(chrono::Utc::now());
                     action.error = error.clone();
 
+                    // A file restored is no longer in quarantine: without
+                    // this its "Restaurer" button stayed, and a second
+                    // click failed on a file that is not there any more.
+                    if success
+                        && matches!(
+                            action.action_type,
+                            crate::dto::ResponseActionType::RestoreFile
+                        )
+                    {
+                        for file in self.threats.quarantine_queue.iter_mut() {
+                            if file.id.to_string() == action.target {
+                                file.restored = true;
+                            }
+                        }
+                    }
+
                     // The outcome of a block is announced here, when it is
                     // known, and not by the page that asked for it.
                     block_outcome = matches!(
@@ -2321,8 +2360,12 @@ impl AppState {
                 self.threats.pending_actions.truncate(200);
             }
             AgentEvent::FileQuarantined { entry } => {
+                self.threats.quarantine_queue.retain(|f| f.id != entry.id);
                 self.threats.quarantine_queue.push_front(entry);
                 self.threats.quarantine_queue.truncate(200);
+            }
+            AgentEvent::QuarantineLoaded { entries } => {
+                self.threats.quarantine_queue = entries.into_iter().take(200).collect();
             }
             AgentEvent::ToggleJarvisWidget { visible } => {
                 self.jarvis_visible = visible;
@@ -2624,6 +2667,101 @@ mod block_outcome_tests {
         });
         assert_eq!(state.notifications.len(), 2);
         assert_eq!(state.notifications[1].title, "Adresse bloqu\u{00e9}e");
+    }
+
+    fn quarantined(id: uuid::Uuid) -> crate::dto::QuarantinedFile {
+        crate::dto::QuarantinedFile {
+            id,
+            original_path: "/tmp/sample.bin".into(),
+            sha256: "ab".repeat(32),
+            size_bytes: 3,
+            quarantined_at: chrono::Utc::now(),
+            reason: "Essai".into(),
+            restored: false,
+        }
+    }
+
+    /// `restored` was read by the page but never written: a file restored
+    /// kept its "Restaurer" button.
+    #[test]
+    fn a_restored_file_leaves_the_quarantine_queue() {
+        let mut state = AppState::default();
+        let file = uuid::Uuid::new_v4();
+        let other = uuid::Uuid::new_v4();
+        state.apply_event(AgentEvent::FileQuarantined {
+            entry: quarantined(file),
+        });
+        state.apply_event(AgentEvent::FileQuarantined {
+            entry: quarantined(other),
+        });
+
+        let action = uuid::Uuid::new_v4();
+        let mut restore = match submitted(action) {
+            AgentEvent::ResponseActionSubmitted { action } => action,
+            _ => unreachable!(),
+        };
+        restore.action_type = crate::dto::ResponseActionType::RestoreFile;
+        restore.target = file.to_string();
+        state.apply_event(AgentEvent::ResponseActionSubmitted {
+            action: restore.clone(),
+        });
+        assert_eq!(state.threats.quarantined_count(), 2, "not restored yet");
+
+        // A restoration that failed keeps the file in the queue.
+        state.apply_event(AgentEvent::ResponseActionResult {
+            action_id: action,
+            success: false,
+            error: Some("destination refus\u{e9}e".into()),
+        });
+        assert_eq!(state.threats.quarantined_count(), 2);
+
+        let action = uuid::Uuid::new_v4();
+        restore.id = action;
+        state.apply_event(AgentEvent::ResponseActionSubmitted { action: restore });
+        state.apply_event(AgentEvent::ResponseActionResult {
+            action_id: action,
+            success: true,
+            error: None,
+        });
+        assert_eq!(state.threats.quarantined_count(), 1);
+        assert!(
+            state
+                .threats
+                .quarantine_queue
+                .iter()
+                .any(|f| f.id == file && f.restored)
+        );
+    }
+
+    /// The queue is what the store holds: files quarantined by a playbook
+    /// or before this run appear, files gone leave, and the same file is
+    /// not listed twice.
+    #[test]
+    fn the_quarantine_queue_is_rebuilt_from_the_store() {
+        let mut state = AppState::default();
+        let kept = uuid::Uuid::new_v4();
+        state.apply_event(AgentEvent::FileQuarantined {
+            entry: quarantined(uuid::Uuid::new_v4()),
+        });
+        state.apply_event(AgentEvent::QuarantineLoaded {
+            entries: vec![quarantined(kept), quarantined(uuid::Uuid::new_v4())],
+        });
+        assert_eq!(state.threats.quarantined_count(), 2);
+        state.apply_event(AgentEvent::FileQuarantined {
+            entry: quarantined(kept),
+        });
+        assert_eq!(state.threats.quarantine_queue.len(), 2);
+    }
+
+    #[test]
+    fn the_quarantine_store_is_asked_for_at_start_then_periodically() {
+        let mut state = AppState::default();
+        assert!(matches!(
+            state.threats.take_quarantine_refresh(0.5),
+            Some(crate::events::GuiCommand::RefreshQuarantine)
+        ));
+        assert!(state.threats.take_quarantine_refresh(10.0).is_none());
+        assert!(state.threats.take_quarantine_refresh(31.0).is_some());
     }
 }
 
