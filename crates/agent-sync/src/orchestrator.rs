@@ -105,6 +105,11 @@ pub struct SyncStatusSummary {
     pub last_error: Option<String>,
     /// Total items pending sync.
     pub pending_items: u32,
+    /// Queued items that used up their attempts and are no longer sent:
+    /// re-armed when an outage exhausted them, purged after the retention
+    /// period otherwise.
+    #[serde(default)]
+    pub dead_items: u32,
     /// Whether the agent is currently offline.
     pub is_offline: bool,
     /// Circuit breaker state description.
@@ -499,12 +504,22 @@ impl SyncOrchestrator {
             history.first().map(|e| e.started_at)
         };
 
+        let dead_items = agent_storage::SyncQueueRepository::new(&self._db)
+            .exhausted_count()
+            .await
+            .map(|count| count.clamp(0, i64::from(u32::MAX)) as u32)
+            .unwrap_or_else(|e| {
+                warn!("Exhausted sync queue items could not be counted: {e}");
+                0
+            });
+
         SyncStatusSummary {
             status,
             last_success_at,
             last_attempt_at,
             last_error,
             pending_items: offline_status.queued_item_count,
+            dead_items,
             is_offline: offline_status.is_offline,
             circuit_breaker: format!("{:?}", cb_state),
         }

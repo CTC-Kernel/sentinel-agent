@@ -14,6 +14,8 @@ use crate::{FIRST_UPDATE_CHECK_DELAY_SECS, UPDATE_CHECK_INTERVAL_SECS};
 
 /// Interval between certificate renewal checks (daily).
 pub(crate) const CERT_CHECK_INTERVAL_SECS: u64 = 24 * 3600;
+/// Interval between two rounds of local storage maintenance.
+pub(crate) const STORAGE_MAINTENANCE_INTERVAL_SECS: u64 = 6 * 3600;
 /// Delay before a certificate check that failed is attempted again.
 pub(crate) const CERT_CHECK_RETRY_SECS: u64 = 3600;
 
@@ -43,6 +45,8 @@ pub(crate) struct LoopState {
     pub compliance_task: Option<ComplianceTask>,
     pub last_cert_check: Instant,
     pub last_update_check: Instant,
+    /// Last round of local storage maintenance (sync queue, retention).
+    pub last_storage_maintenance: Instant,
     pub last_security_scan: Instant,
     pub last_network_static: Instant,
     pub last_network_connections: Instant,
@@ -109,6 +113,9 @@ impl LoopState {
                 now,
                 UPDATE_CHECK_INTERVAL_SECS - FIRST_UPDATE_CHECK_DELAY_SECS,
             ),
+            // Due at the first pass: what an earlier outage left behind is
+            // dealt with at start-up.
+            last_storage_maintenance: already_due(now, STORAGE_MAINTENANCE_INTERVAL_SECS),
             last_security_scan: now,
             last_network_static: now,
             last_network_connections: now,

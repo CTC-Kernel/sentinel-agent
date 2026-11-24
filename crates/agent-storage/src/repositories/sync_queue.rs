@@ -27,6 +27,47 @@ pub const MAX_SYNC_QUEUE_SIZE: usize = 10_000;
 /// [`SyncQueueRepository::record_transient_failure`]).
 const TRANSIENT_RETRY_DELAY_SECS: i64 = 60;
 
+/// How long an exhausted item is kept: re-armed while its last failure was
+/// a transient one, deleted once it is older than this.
+pub const EXHAUSTED_RETENTION_DAYS: i64 = 30;
+
+/// Most items re-armed by one call to
+/// [`SyncQueueRepository::rearm_transiently_exhausted`].
+pub const REARM_BATCH_LIMIT: usize = 500;
+
+/// Whether a recorded upload error says nothing about the item itself: the
+/// platform could not be reached, answered 5xx or 429, or refused the agent
+/// (401, 403, certificate).
+///
+/// Only the text is left of an error recorded before transient failures
+/// stopped using up attempts, hence a reading of the message. An HTTP status
+/// in the message decides; without one, the usual wording of connection
+/// failures does.
+pub fn is_transient_failure_message(message: &str) -> bool {
+    let message = message.to_ascii_lowercase();
+    let status = message.split("status ").skip(1).find_map(|rest| {
+        let digits: String = rest.chars().take_while(char::is_ascii_digit).collect();
+        (digits.len() == 3).then(|| digits.parse::<u16>().ok())?
+    });
+    if let Some(status) = status {
+        return status >= 500 || matches!(status, 401 | 403 | 408 | 429);
+    }
+    [
+        "timed out",
+        "timeout",
+        "connection",
+        "connect",
+        "dns",
+        "network",
+        "unreachable",
+        "error sending request",
+        "certificate",
+        "offline",
+    ]
+    .iter()
+    .any(|needle| message.contains(needle))
+}
+
 /// Default maximum retry attempts per item.
 const DEFAULT_MAX_ATTEMPTS: u32 = 10;
 
@@ -718,6 +759,129 @@ impl<'a> SyncQueueRepository<'a> {
             .await
     }
 
+    /// Number of items that used up their attempts and are no longer sent.
+    pub async fn exhausted_count(&self) -> StorageResult<i64> {
+        self.db
+            .with_connection(|conn| {
+                conn.query_row(
+                    "SELECT COUNT(*) FROM sync_queue WHERE attempts >= max_attempts",
+                    [],
+                    |row| row.get(0),
+                )
+                .map_err(|e| StorageError::Query(format!("Failed to count exhausted items: {}", e)))
+            })
+            .await
+    }
+
+    /// Give their attempts back to the items an outage exhausted.
+    ///
+    /// An item is re-armed when its last recorded error is a transient one
+    /// (see [`is_transient_failure_message`]) and it is younger than
+    /// [`EXHAUSTED_RETENTION_DAYS`]; at most [`REARM_BATCH_LIMIT`] per call,
+    /// highest priority first. An item the platform refused keeps its error
+    /// and is left to [`Self::purge_exhausted_older_than`].
+    ///
+    /// Returns the number of items re-armed.
+    pub async fn rearm_transiently_exhausted(&self) -> StorageResult<usize> {
+        let now = Utc::now();
+        let ready = now.format("%Y-%m-%dT%H:%M:%SZ").to_string();
+        let cutoff = (now - chrono::Duration::days(EXHAUSTED_RETENTION_DAYS))
+            .format("%Y-%m-%dT%H:%M:%SZ")
+            .to_string();
+
+        self.db
+            .with_connection_mut(move |conn| {
+                let tx = conn.transaction().map_err(|e| {
+                    StorageError::Query(format!("Failed to start re-arm transaction: {}", e))
+                })?;
+                let candidates: Vec<(i64, Option<String>)> = {
+                    let mut stmt = tx
+                        .prepare(
+                            r#"
+                            SELECT id, last_error FROM sync_queue
+                            WHERE attempts >= max_attempts AND created_at >= ?
+                            ORDER BY priority DESC, created_at ASC
+                            "#,
+                        )
+                        .map_err(|e| {
+                            StorageError::Query(format!("Failed to prepare query: {}", e))
+                        })?;
+                    stmt.query_map([&cutoff], |row| Ok((row.get(0)?, row.get(1)?)))
+                        .map_err(|e| {
+                            StorageError::Query(format!("Failed to list exhausted items: {}", e))
+                        })?
+                        .collect::<Result<Vec<_>, _>>()
+                        .map_err(|e| {
+                            StorageError::Query(format!("Failed to read exhausted items: {}", e))
+                        })?
+                };
+
+                let mut rearmed = 0;
+                for (id, _) in candidates
+                    .iter()
+                    .filter(|(_, error)| error.as_deref().is_some_and(is_transient_failure_message))
+                    .take(REARM_BATCH_LIMIT)
+                {
+                    rearmed += tx
+                        .execute(
+                            "UPDATE sync_queue SET attempts = 0, next_retry_at = ? WHERE id = ?",
+                            rusqlite::params![ready, id],
+                        )
+                        .map_err(|e| {
+                            StorageError::Query(format!("Failed to re-arm sync queue item: {}", e))
+                        })?;
+                }
+                tx.commit().map_err(|e| {
+                    StorageError::Query(format!("Failed to commit re-arm transaction: {}", e))
+                })?;
+
+                if rearmed > 0 {
+                    info!(
+                        "Re-armed {} sync queue item(s) exhausted by a transient failure",
+                        rearmed
+                    );
+                }
+                Ok(rearmed)
+            })
+            .await
+    }
+
+    /// Delete the exhausted items whose last attempt (or creation, when
+    /// none was recorded) is older than `retention_days`. Queued deletions
+    /// are never purged: the platform would keep what was deleted here.
+    ///
+    /// Returns the number of items removed.
+    pub async fn purge_exhausted_older_than(&self, retention_days: i64) -> StorageResult<usize> {
+        let cutoff = (Utc::now() - chrono::Duration::days(retention_days))
+            .format("%Y-%m-%dT%H:%M:%SZ")
+            .to_string();
+        self.db
+            .with_connection(move |conn| {
+                let count = conn
+                    .execute(
+                        r#"
+                        DELETE FROM sync_queue
+                        WHERE attempts >= max_attempts
+                          AND entity_type NOT LIKE '%_delete'
+                          AND COALESCE(last_attempt_at, created_at) < ?
+                        "#,
+                        [&cutoff],
+                    )
+                    .map_err(|e| {
+                        StorageError::Query(format!("Failed to purge exhausted items: {}", e))
+                    })?;
+
+                if count > 0 {
+                    info!(
+                        "Purged {} sync queue item(s) abandoned more than {} days ago",
+                        count, retention_days
+                    );
+                }
+                Ok(count)
+            })
+            .await
+    }
+
     /// Delete all failed items (attempts >= max_attempts).
     ///
     /// Returns the number of items removed.
@@ -1067,6 +1231,115 @@ mod tests {
         let purged = repo.purge_failed().await.unwrap();
         assert_eq!(purged, 1);
         assert_eq!(repo.count().await.unwrap(), 1);
+    }
+
+    /// Enqueue an item and exhaust its single attempt with `error`.
+    async fn exhausted(repo: &SyncQueueRepository<'_>, entity_id: &str, error: &str) -> i64 {
+        let id = repo
+            .enqueue(
+                &SyncQueueEntry::new(SyncEntityType::CheckResult, entity_id, "{}")
+                    .with_max_attempts(1),
+            )
+            .await
+            .unwrap();
+        repo.record_failure(id, error).await.unwrap();
+        id
+    }
+
+    /// Age an item: creation and last attempt moved `days` into the past.
+    async fn age(db: &Database, id: i64, days: i64) {
+        let then = (Utc::now() - chrono::Duration::days(days))
+            .format("%Y-%m-%dT%H:%M:%SZ")
+            .to_string();
+        db.with_connection(move |conn| {
+            conn.execute(
+                "UPDATE sync_queue SET created_at = ?1, last_attempt_at = ?1 WHERE id = ?2",
+                rusqlite::params![then, id],
+            )
+            .map_err(|e| StorageError::Query(e.to_string()))
+        })
+        .await
+        .unwrap();
+    }
+
+    #[test]
+    fn transient_failures_are_told_from_rejections() {
+        for message in [
+            "Request timed out",
+            "Connection failed: connection refused",
+            "HTTP request failed: error sending request for url (https://x/v1)",
+            "Server error (status 503): upstream unavailable",
+            "Server error (status 429): slow down",
+            "Server error (status 401): invalid signature",
+            "Certificate error: Client certificate expired at 2026-01-01",
+        ] {
+            assert!(is_transient_failure_message(message), "{message}");
+        }
+        for message in [
+            "Server error (status 400): connection field missing",
+            "Server error (status 422): invalid payload",
+            "Deserialization failed: missing field `id`",
+            "Configuration error: Platform acknowledged an incomplete batch",
+        ] {
+            assert!(!is_transient_failure_message(message), "{message}");
+        }
+    }
+
+    #[tokio::test]
+    async fn items_exhausted_by_an_outage_are_rearmed() {
+        let (_temp_dir, db) = create_test_db().await;
+        let repo = SyncQueueRepository::new(&db);
+        let outage = exhausted(&repo, "1", "Connection failed: connection refused").await;
+        let refused = exhausted(&repo, "2", "Server error (status 400): bad payload").await;
+        assert_eq!(repo.exhausted_count().await.unwrap(), 2);
+        assert!(repo.get_pending(10).await.unwrap().is_empty());
+
+        assert_eq!(repo.rearm_transiently_exhausted().await.unwrap(), 1);
+
+        let pending = repo.get_pending(10).await.unwrap();
+        assert_eq!(pending.len(), 1);
+        assert_eq!(pending[0].id, outage);
+        assert_eq!(pending[0].attempts, 0);
+        assert_eq!(repo.exhausted_count().await.unwrap(), 1);
+        // Nothing left to re-arm: the refused item stays where it is.
+        assert_eq!(repo.rearm_transiently_exhausted().await.unwrap(), 0);
+        let _ = refused;
+    }
+
+    #[tokio::test]
+    async fn an_item_older_than_the_retention_is_not_rearmed() {
+        let (_temp_dir, db) = create_test_db().await;
+        let repo = SyncQueueRepository::new(&db);
+        let old = exhausted(&repo, "1", "Request timed out").await;
+        age(&db, old, EXHAUSTED_RETENTION_DAYS + 1).await;
+
+        assert_eq!(repo.rearm_transiently_exhausted().await.unwrap(), 0);
+        assert_eq!(repo.exhausted_count().await.unwrap(), 1);
+    }
+
+    #[tokio::test]
+    async fn only_old_exhausted_items_are_purged() {
+        let (_temp_dir, db) = create_test_db().await;
+        let repo = SyncQueueRepository::new(&db);
+        let old = exhausted(&repo, "1", "Server error (status 400): bad payload").await;
+        age(&db, old, EXHAUSTED_RETENTION_DAYS + 1).await;
+        let recent = exhausted(&repo, "2", "Server error (status 400): bad payload").await;
+        // Old, but still eligible: not exhausted, never purged.
+        let waiting = repo
+            .enqueue(&SyncQueueEntry::new(SyncEntityType::Proof, "3", "{}"))
+            .await
+            .unwrap();
+        age(&db, waiting, EXHAUSTED_RETENTION_DAYS + 1).await;
+
+        let purged = repo
+            .purge_exhausted_older_than(EXHAUSTED_RETENTION_DAYS)
+            .await
+            .unwrap();
+
+        assert_eq!(purged, 1);
+        assert_eq!(repo.count().await.unwrap(), 2);
+        assert_eq!(repo.exhausted_count().await.unwrap(), 1);
+        let _ = recent;
     }
 
     #[tokio::test]

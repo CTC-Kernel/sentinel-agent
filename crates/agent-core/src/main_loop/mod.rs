@@ -49,6 +49,7 @@
 //! | 29 | `forced_discovery_stage` (gui)   | operator request                     | (starts the discovery task)                   |
 //! | 30 | `upload_asset_proposals`         | every pass                           | (drains the proposal queue)                   |
 //! | 31 | `resource_stage`                 | every pass                           | resource monitor                              |
+//! | 32 | `storage_maintenance_stage`      | at start-up, then every 6 hours      | state: timer (starts the maintenance task)    |
 //!
 //! # Background tasks
 //!
@@ -61,6 +62,7 @@
 //! | `heartbeat`                 | stage 14     | stage 14     | logged, next one at its interval |
 //! | `self-update`               | stage 28     | (none)       | logged                           |
 //! | `network discovery`         | stage 29     | (interface)  | logged                           |
+//! | `storage maintenance`       | stage 32     | (none)       | logged, next round at its usual time |
 //!
 //! # Order that matters
 //!
@@ -123,7 +125,9 @@ pub(crate) mod testing;
 
 pub(crate) use outbox::{Outbound, Outbox};
 pub(crate) use pass::LoopPass;
-pub(crate) use state::{CERT_CHECK_INTERVAL_SECS, CERT_CHECK_RETRY_SECS, LoopState};
+pub(crate) use state::{
+    CERT_CHECK_INTERVAL_SECS, CERT_CHECK_RETRY_SECS, LoopState, STORAGE_MAINTENANCE_INTERVAL_SECS,
+};
 
 use std::sync::Arc;
 
@@ -247,5 +251,8 @@ impl AgentRuntime {
 
         // Periodically collect resource usage and push to GUI/Check limits
         self.resource_stage(st, &pass);
+
+        // Local storage housekeeping, in the background
+        self.storage_maintenance_stage(st);
     }
 }
