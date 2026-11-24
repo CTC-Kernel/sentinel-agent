@@ -4,7 +4,16 @@
 
 #include <tunables/global>
 
-/usr/bin/sentinel-agent {
+# Complain mode (violations are logged, nothing is blocked), on purpose.
+# This profile is loaded by the package's postinst, and enforced it would
+# stop the agent from doing its work: it grants no `capability` (the agent
+# runs as root and needs net_admin for iptables isolation, dac_read_search,
+# kill, sys_ptrace...), has no rule to execute the tools the checks call
+# (iptables, systemctl, journalctl, apt, dpkg, openssl, sh...), and denies
+# /home, which FIM and quarantine read. Switch back to enforce only with a
+# profile built from the denials logged on real installations
+# (`aa-logprof`), and tested on each supported distribution.
+/usr/bin/sentinel-agent flags=(complain) {
     #include <abstractions/base>
     #include <abstractions/nameservice>
     #include <abstractions/ssl_certs>
