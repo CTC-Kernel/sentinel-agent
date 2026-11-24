@@ -230,6 +230,22 @@ impl StoredCredentials {
         let threshold = Utc::now() + chrono::Duration::days(days);
         threshold >= self.certificate_expires_at
     }
+
+    /// Whether requests are signed with a dedicated HMAC secret.
+    pub fn uses_hmac_signing(&self) -> bool {
+        self.hmac_secret.as_deref().is_some_and(|s| !s.is_empty())
+    }
+
+    /// Whether the expired certificate leaves the agent unable to
+    /// authenticate.
+    ///
+    /// With an HMAC secret the certificate is an opaque token and the
+    /// signature authenticates each request: the platform still accepts a
+    /// signed renewal after the expiry, so nothing has to stop. Without a
+    /// secret the certificate is the only credential and its expiry is final.
+    pub fn expiry_blocks_requests(&self) -> bool {
+        self.is_certificate_expired() && !self.uses_hmac_signing()
+    }
 }
 
 /// API error response from the SaaS.

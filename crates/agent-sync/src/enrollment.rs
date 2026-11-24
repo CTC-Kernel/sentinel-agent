@@ -61,7 +61,7 @@ impl<'a> EnrollmentManager<'a> {
             info!("Agent already enrolled with ID: {}", credentials.agent_id);
 
             // Check certificate expiration
-            if credentials.is_certificate_expired() {
+            if credentials.expiry_blocks_requests() {
                 warn!(
                     "Certificate expired at {}",
                     credentials.certificate_expires_at
@@ -70,6 +70,13 @@ impl<'a> EnrollmentManager<'a> {
                 return Err(SyncError::Certificate(
                     "Agent certificate has expired. Re-enrollment required.".to_string(),
                 ));
+            } else if credentials.is_certificate_expired() {
+                // Requests are signed with the HMAC secret: the platform
+                // still accepts a signed renewal, which the service attempts.
+                warn!(
+                    "Certificate expired at {}; the agent stays enrolled and will renew it",
+                    credentials.certificate_expires_at
+                );
             } else if credentials.certificate_expires_within(30) {
                 warn!(
                     "Certificate expires soon ({}), renewal recommended",
@@ -489,5 +496,49 @@ mod tests {
         // ensure_enrolled should return stored credentials without calling API
         let result = manager.ensure_enrolled().await.unwrap();
         assert_eq!(result.agent_id, stored.agent_id);
+    }
+
+    fn expired_credentials(hmac_secret: Option<String>) -> StoredCredentials {
+        StoredCredentials {
+            hmac_secret,
+            agent_id: Uuid::new_v4(),
+            organization_id: Uuid::new_v4(),
+            client_certificate: "cert".to_string(),
+            client_private_key: "key".to_string(),
+            certificate_expires_at: chrono::Utc::now() - chrono::Duration::days(3),
+            server_fingerprints: vec![],
+            enrolled_at: chrono::Utc::now() - chrono::Duration::days(400),
+        }
+    }
+
+    #[tokio::test]
+    async fn an_expired_certificate_keeps_an_hmac_agent_enrolled() {
+        let (_temp_dir, db) = create_test_db().await;
+        let config = test_config();
+        let manager = EnrollmentManager::new(&config, &db);
+        let stored = expired_credentials(Some("c2VjcmV0LWZvci10ZXN0cw==".to_string()));
+        CredentialsRepository::new(&db)
+            .store(&stored)
+            .await
+            .unwrap();
+
+        let result = manager.ensure_enrolled().await.unwrap();
+
+        assert_eq!(result.agent_id, stored.agent_id);
+    }
+
+    #[tokio::test]
+    async fn an_expired_certificate_still_stops_a_certificate_only_agent() {
+        let (_temp_dir, db) = create_test_db().await;
+        let config = test_config();
+        let manager = EnrollmentManager::new(&config, &db);
+        CredentialsRepository::new(&db)
+            .store(&expired_credentials(None))
+            .await
+            .unwrap();
+
+        let result = manager.ensure_enrolled().await;
+
+        assert!(matches!(result, Err(SyncError::Certificate(_))));
     }
 }
