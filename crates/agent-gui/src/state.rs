@@ -1850,6 +1850,8 @@ impl AppState {
                 success,
                 error,
             } => {
+                // The agent reports failures in English: say them in French.
+                let error = error.map(|e| crate::response_errors::french(&e));
                 let mut block_outcome = None;
                 // Find the matching pending action and update its status
                 if let Some(action) = self

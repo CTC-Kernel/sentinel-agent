@@ -324,7 +324,11 @@ async fn block_ip(ctx: &mut CommandContext, ip: String, duration_secs: u64) {
                     id: action_id,
                     action_type: agent_gui::dto::ResponseActionType::BlockIp,
                     target: ip_addr.clone(),
-                    target_detail: format!("{}s", duration_secs),
+                    target_detail: if duration_secs == 0 {
+                        "sans limite de dur\u{e9}e".to_string()
+                    } else {
+                        format!("{} min", duration_secs.div_ceil(60))
+                    },
                     status: agent_gui::dto::ResponseStatus::Pending,
                     created_at: chrono::Utc::now(),
                     completed_at: None,
@@ -365,7 +369,7 @@ async fn unblock_ip(ctx: &mut CommandContext, ip: String) {
                     id: action_id,
                     action_type: agent_gui::dto::ResponseActionType::UnblockIp,
                     target: ip_addr.clone(),
-                    target_detail: "unblock".to_string(),
+                    target_detail: "d\u{e9}blocage".to_string(),
                     status: agent_gui::dto::ResponseStatus::Pending,
                     created_at: chrono::Utc::now(),
                     completed_at: None,

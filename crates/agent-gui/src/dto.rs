@@ -2496,9 +2496,9 @@ impl SiemLogSeverity {
     /// Full label.
     pub fn full_label(&self) -> &'static str {
         match self {
-            Self::Info => "Info",
-            Self::Notice => "Notice",
-            Self::Warning => "Warning",
+            Self::Info => "Information",
+            Self::Notice => "Avis",
+            Self::Warning => "Avertissement",
             Self::Error => "Erreur",
             Self::Critical => "Critique",
         }

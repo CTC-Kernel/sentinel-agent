@@ -614,7 +614,7 @@ impl DiscoveryPage {
                 state.assets.pending_asset_saves.push(asset);
                 state.toasts.push(
                     crate::widgets::toast::Toast::success(
-                        "Device ajout\u{00e9} aux actifs g\u{00e9}r\u{00e9}s",
+                        "\u{00c9}quipement ajout\u{00e9} aux actifs g\u{00e9}r\u{00e9}s",
                     )
                     .with_time(time),
                 );
