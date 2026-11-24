@@ -49,8 +49,7 @@ impl KeyManager {
                 Ok(k) => k,
                 Err(e) => {
                     // Check if database exists before regenerating key
-                    let db_path = AgentConfig::platform_data_dir()
-                        .join(agent_common::constants::DB_FILE_NAME);
+                    let db_path = Self::database_path();
                     if db_path.exists() {
                         tracing::error!(
                             "Encryption key decryption failed but database exists. Refusing to regenerate key to prevent data loss: {}",
@@ -191,6 +190,14 @@ impl KeyManager {
     }
 
     /// Get the path to the key file.
+    /// Where the database this key encrypts lives: the path the agent
+    /// opens, not a path rebuilt here. On Windows the database is under
+    /// `data\`, and a guard looking beside it never saw it: an unreadable
+    /// key was then replaced, leaving the database undecipherable.
+    fn database_path() -> PathBuf {
+        crate::database::DatabaseConfig::default().path
+    }
+
     fn get_key_path() -> PathBuf {
         #[cfg(windows)]
         {
@@ -514,6 +521,15 @@ impl Default for KeyManager {
 mod tests {
     use super::*;
     use tempfile::TempDir;
+
+    /// The "database exists" guard must look where the database is opened,
+    /// which is beside the key on every platform.
+    #[test]
+    fn test_guard_looks_at_the_opened_database() {
+        let db_path = KeyManager::database_path();
+        assert_eq!(db_path, crate::database::DatabaseConfig::default().path);
+        assert_eq!(db_path.parent(), KeyManager::get_key_path().parent());
+    }
 
     #[test]
     fn test_key_manager_test_key() {
