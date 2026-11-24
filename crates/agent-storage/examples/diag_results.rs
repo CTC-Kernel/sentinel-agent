@@ -38,11 +38,7 @@ fn main() -> Result<()> {
     match conn.prepare("SELECT * FROM software_inventory LIMIT 5") {
         Ok(mut stmt) => {
             let column_count = stmt.column_count();
-            let column_names: Vec<String> = stmt
-                .column_names()
-                .into_iter()
-                .map(|s| s.to_string())
-                .collect();
+            let column_names: Vec<String> = stmt.column_names().map(|s| s.to_string()).collect();
             println!("Columns found: {:?}", column_names);
 
             let mut rows = stmt.query([])?;
