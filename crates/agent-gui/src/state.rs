@@ -1820,6 +1820,7 @@ impl AppState {
                 success,
                 error,
             } => {
+                let mut block_outcome = None;
                 // Find the matching pending action and update its status
                 if let Some(action) = self
                     .threats
@@ -1835,6 +1836,30 @@ impl AppState {
                     action.completed_at = Some(chrono::Utc::now());
                     action.error = error.clone();
 
+                    // The outcome of a block is announced here, when it is
+                    // known, and not by the page that asked for it.
+                    block_outcome = matches!(
+                        action.action_type,
+                        crate::dto::ResponseActionType::BlockIp
+                    )
+                    .then(|| {
+                        if success {
+                            crate::dto::GuiNotification::info(
+                                "Adresse bloqu\u{00e9}e",
+                                format!("{} est bloqu\u{00e9}e sur ce poste.", action.target),
+                            )
+                        } else {
+                            crate::dto::GuiNotification::error(
+                                "Blocage impossible",
+                                format!(
+                                    "{} n'a pas \u{00e9}t\u{00e9} bloqu\u{00e9}e : {}",
+                                    action.target,
+                                    error.as_deref().unwrap_or("raison inconnue")
+                                ),
+                            )
+                        }
+                    });
+
                     // Log the result
                     let log_entry = crate::dto::ResponseLogEntry {
                         id: uuid::Uuid::new_v4(),
@@ -1849,6 +1874,9 @@ impl AppState {
                     if self.threats.response_log.len() > 500 {
                         self.threats.response_log.pop_back();
                     }
+                }
+                if let Some(notification) = block_outcome {
+                    self.add_notification(notification);
                 }
             }
             AgentEvent::ReportGenerated { report } => {
@@ -2547,6 +2575,55 @@ impl AppState {
 
         self.policy = summary;
         self.summary.policy_summary = Some(summary);
+    }
+}
+
+#[cfg(test)]
+mod block_outcome_tests {
+    use crate::{app::AppState, dto, events::AgentEvent};
+
+    fn submitted(id: uuid::Uuid) -> AgentEvent {
+        AgentEvent::ResponseActionSubmitted {
+            action: dto::ResponseAction {
+                id,
+                action_type: dto::ResponseActionType::BlockIp,
+                target: "192.0.2.7".into(),
+                target_detail: "0s".into(),
+                status: dto::ResponseStatus::Pending,
+                created_at: chrono::Utc::now(),
+                completed_at: None,
+                error: None,
+            },
+        }
+    }
+
+    /// The Discovery page announced "Équipement bloqué" before the agent
+    /// had tried: the outcome is announced when the result arrives.
+    #[test]
+    fn a_block_is_announced_by_its_result() {
+        let mut state = AppState::default();
+        let id = uuid::Uuid::new_v4();
+        state.apply_event(submitted(id));
+        assert!(state.notifications.is_empty(), "nothing announced yet");
+
+        state.apply_event(AgentEvent::ResponseActionResult {
+            action_id: id,
+            success: false,
+            error: Some("pfctl: permission denied".into()),
+        });
+        assert_eq!(state.notifications.len(), 1);
+        assert_eq!(state.notifications[0].title, "Blocage impossible");
+        assert!(state.notifications[0].body.contains("permission denied"));
+
+        let id = uuid::Uuid::new_v4();
+        state.apply_event(submitted(id));
+        state.apply_event(AgentEvent::ResponseActionResult {
+            action_id: id,
+            success: true,
+            error: None,
+        });
+        assert_eq!(state.notifications.len(), 2);
+        assert_eq!(state.notifications[1].title, "Adresse bloqu\u{00e9}e");
     }
 }
 

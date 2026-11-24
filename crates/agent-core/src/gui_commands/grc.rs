@@ -27,6 +27,57 @@ pub(crate) async fn handle(ctx: &mut CommandContext, command: GuiCommand) {
     }
 }
 
+/// The entry could not be written to the local database.
+const NOT_STORED: &str = "non enregistr\u{00e9} sur ce poste";
+/// The entry is stored here but could not be queued for the platform.
+const NOT_QUEUED: &str = "non transmis \u{00e0} la plateforme";
+
+/// Tell the operator that an entry the interface announced as saved was
+/// not: the page shows its success toast when the command leaves, before
+/// anything is written.
+fn report_not_saved(
+    events: &std::sync::mpsc::Sender<AgentEvent>,
+    what: &str,
+    stage: &str,
+    error: &dyn std::fmt::Display,
+) {
+    let _ = events.send(AgentEvent::Notification {
+        notification: agent_gui::dto::GuiNotification::error(
+            format!("{what} : enregistrement incomplet"),
+            format!("{what} : {stage} ({error})."),
+        ),
+    });
+}
+
+/// Queue an entry for the platform. A failure used to be dropped
+/// (`let _ = repo.enqueue(..)`): the entry then never left the endpoint and
+/// nobody was told. It is logged and reported to the operator.
+async fn queue_for_sync<P: serde::Serialize>(
+    db: &agent_storage::Database,
+    events: &std::sync::mpsc::Sender<AgentEvent>,
+    entity: agent_storage::SyncEntityType,
+    id: String,
+    payload: &P,
+    what: &str,
+) -> bool {
+    let queued = match serde_json::to_string(payload) {
+        Ok(json) => agent_storage::SyncQueueRepository::new(db)
+            .enqueue(&agent_storage::SyncQueueEntry::new(entity, id, json))
+            .await
+            .map(|_| ())
+            .map_err(|e| e.to_string()),
+        Err(e) => Err(e.to_string()),
+    };
+    match queued {
+        Ok(()) => true,
+        Err(e) => {
+            warn!("Failed to queue {:?} for sync: {}", entity, e);
+            report_not_saved(events, what, NOT_QUEUED, &e);
+            false
+        }
+    }
+}
+
 /// Save or update a risk entry.
 async fn save_risk(ctx: &mut CommandContext, risk: Box<agent_gui::dto::RiskEntry>) {
     info!("[AUDIT] GUI saved risk entry: {}", risk.title);
@@ -36,6 +87,7 @@ async fn save_risk(ctx: &mut CommandContext, risk: Box<agent_gui::dto::RiskEntry
         let db_clone = std::sync::Arc::clone(db_arc);
         let risk_clone = risk.clone();
         let payload_clone = payload.clone();
+        let tx = ctx.events.clone();
         ctx.tasks
             .spawn_expected("save risk", expected::SHORT, async move {
                 let stored = agent_storage::repositories::grc::StoredRisk {
@@ -56,17 +108,18 @@ async fn save_risk(ctx: &mut CommandContext, risk: Box<agent_gui::dto::RiskEntry
                 let repo = agent_storage::repositories::grc::RiskRepository::new(&db_clone);
                 if let Err(e) = repo.upsert(&stored).await {
                     warn!("Failed to persist risk to SQLite: {}", e);
+                    report_not_saved(&tx, "Le risque", NOT_STORED, &e);
                 }
                 // Also queue for remote sync
-                if let Ok(json) = serde_json::to_string(&payload_clone) {
-                    let repo2 = agent_storage::SyncQueueRepository::new(&db_clone);
-                    let entry = agent_storage::SyncQueueEntry::new(
-                        agent_storage::SyncEntityType::Risk,
-                        risk_clone.id.to_string(),
-                        json,
-                    );
-                    let _ = repo2.enqueue(&entry).await;
-                }
+                queue_for_sync(
+                    &db_clone,
+                    &tx,
+                    agent_storage::SyncEntityType::Risk,
+                    risk_clone.id.to_string(),
+                    &payload_clone,
+                    "Le risque",
+                )
+                .await;
             });
     }
 }
@@ -102,6 +155,7 @@ async fn save_asset(ctx: &mut CommandContext, asset: Box<agent_gui::dto::Managed
         let db_clone = std::sync::Arc::clone(db_arc);
         let asset_clone = asset.clone();
         let payload_clone = payload.clone();
+        let tx = ctx.events.clone();
         ctx.tasks
             .spawn_expected("save asset", expected::SHORT, async move {
                 let stored = agent_storage::repositories::grc::StoredManagedAsset {
@@ -128,16 +182,17 @@ async fn save_asset(ctx: &mut CommandContext, asset: Box<agent_gui::dto::Managed
                 let repo = agent_storage::repositories::grc::ManagedAssetRepository::new(&db_clone);
                 if let Err(e) = repo.upsert(&stored).await {
                     warn!("Failed to persist asset to SQLite: {}", e);
+                    report_not_saved(&tx, "L'actif", NOT_STORED, &e);
                 }
-                if let Ok(json) = serde_json::to_string(&payload_clone) {
-                    let repo2 = agent_storage::SyncQueueRepository::new(&db_clone);
-                    let entry = agent_storage::SyncQueueEntry::new(
-                        agent_storage::SyncEntityType::Asset,
-                        asset_clone.id.to_string(),
-                        json,
-                    );
-                    let _ = repo2.enqueue(&entry).await;
-                }
+                queue_for_sync(
+                    &db_clone,
+                    &tx,
+                    agent_storage::SyncEntityType::Asset,
+                    asset_clone.id.to_string(),
+                    &payload_clone,
+                    "L'actif",
+                )
+                .await;
             });
     }
 }
@@ -156,6 +211,7 @@ async fn update_asset_lifecycle(
         let db_clone = std::sync::Arc::clone(db_arc);
         let aid = asset_id.clone();
         let status = format!("{}", lifecycle);
+        let tx = ctx.events.clone();
         ctx.tasks
             .spawn_expected("update asset lifecycle", expected::SHORT, async move {
                 let repo = agent_storage::repositories::grc::ManagedAssetRepository::new(&db_clone);
@@ -167,6 +223,7 @@ async fn update_asset_lifecycle(
                             asset.synced = false;
                             if let Err(e) = repo.upsert(asset).await {
                                 tracing::warn!("Failed to update asset lifecycle: {}", e);
+                                report_not_saved(&tx, "L'actif", NOT_STORED, &e);
                             }
                             // Queue for remote sync
                             let payload = agent_sync::types::AssetPayload {
@@ -191,15 +248,15 @@ async fn update_asset_lifecycle(
                                     .map(|dt| dt.with_timezone(&chrono::Utc))
                                     .unwrap_or_else(|_| chrono::Utc::now()),
                             };
-                            if let Ok(json) = serde_json::to_string(&payload) {
-                                let repo2 = agent_storage::SyncQueueRepository::new(&db_clone);
-                                let entry = agent_storage::SyncQueueEntry::new(
-                                    agent_storage::SyncEntityType::Asset,
-                                    asset.id.clone(),
-                                    json,
-                                );
-                                let _ = repo2.enqueue(&entry).await;
-                            }
+                            queue_for_sync(
+                                &db_clone,
+                                &tx,
+                                agent_storage::SyncEntityType::Asset,
+                                asset.id.clone(),
+                                &payload,
+                                "L'actif",
+                            )
+                            .await;
                         }
                     }
                     Err(e) => {
@@ -238,16 +295,17 @@ async fn save_alert_rule(ctx: &mut CommandContext, rule: Box<agent_gui::dto::Ale
                 let repo = agent_storage::repositories::grc::AlertRuleRepository::new(&db_clone);
                 if let Err(e) = repo.upsert(&stored).await {
                     warn!("Failed to persist alert rule to SQLite: {}", e);
+                    report_not_saved(&tx, "La r\u{00e8}gle d'alerte", NOT_STORED, &e);
                 }
-                if let Ok(json) = serde_json::to_string(&payload_clone) {
-                    let repo2 = agent_storage::SyncQueueRepository::new(&db_clone);
-                    let entry = agent_storage::SyncQueueEntry::new(
-                        agent_storage::SyncEntityType::AlertRule,
-                        rule_clone.id.to_string(),
-                        json,
-                    );
-                    let _ = repo2.enqueue(&entry).await;
-                }
+                queue_for_sync(
+                    &db_clone,
+                    &tx,
+                    agent_storage::SyncEntityType::AlertRule,
+                    rule_clone.id.to_string(),
+                    &payload_clone,
+                    "La r\u{00e8}gle d'alerte",
+                )
+                .await;
                 // Reload and emit AlertingLoaded
                 crate::emit_alerting_loaded_from_db(&db_clone, &tx).await;
             });
@@ -316,17 +374,18 @@ async fn save_webhook(ctx: &mut CommandContext, webhook: Box<agent_gui::dto::Web
                 let repo = agent_storage::repositories::grc::WebhookRepository::new(&db_clone);
                 if let Err(e) = repo.upsert(&stored).await {
                     warn!("Failed to persist webhook to SQLite: {}", e);
+                    report_not_saved(&tx, "Le webhook", NOT_STORED, &e);
                 }
                 let payload = agent_core::sync_converters::webhook_to_payload(&wh_clone);
-                if let Ok(json) = serde_json::to_string(&payload) {
-                    let repo2 = agent_storage::SyncQueueRepository::new(&db_clone);
-                    let entry = agent_storage::SyncQueueEntry::new(
-                        agent_storage::SyncEntityType::Webhook,
-                        wh_clone.id.to_string(),
-                        json,
-                    );
-                    let _ = repo2.enqueue(&entry).await;
-                }
+                queue_for_sync(
+                    &db_clone,
+                    &tx,
+                    agent_storage::SyncEntityType::Webhook,
+                    wh_clone.id.to_string(),
+                    &payload,
+                    "Le webhook",
+                )
+                .await;
                 // Reload and emit AlertingLoaded
                 crate::emit_alerting_loaded_from_db(&db_clone, &tx).await;
             });
@@ -441,4 +500,67 @@ async fn test_webhook(ctx: &mut CommandContext, webhook_id: String) {
 
         let _ = tx.send(AgentEvent::Notification { notification });
     });
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use agent_storage::{
+        Database, DatabaseConfig, KeyManager, SyncEntityType, SyncQueueRepository,
+    };
+
+    fn open_db(dir: &tempfile::TempDir) -> Database {
+        let key = KeyManager::new_with_key(b"01234567890123456789012345678901");
+        Database::open(DatabaseConfig::with_path(dir.path().join("test.db")), &key).unwrap()
+    }
+
+    /// A failed enqueue was discarded after the interface had announced
+    /// the save: it must reach the operator.
+    #[tokio::test]
+    async fn a_failed_enqueue_is_reported_to_the_operator() {
+        let dir = tempfile::tempdir().unwrap();
+        let db = open_db(&dir);
+        let (tx, rx) = std::sync::mpsc::channel();
+        let payload = serde_json::json!({ "id": "r-1" });
+
+        let queued = queue_for_sync(
+            &db,
+            &tx,
+            SyncEntityType::Risk,
+            "r-1".to_string(),
+            &payload,
+            "Le risque",
+        )
+        .await;
+        assert!(queued);
+        assert!(rx.try_recv().is_err(), "nothing to report on success");
+        assert_eq!(SyncQueueRepository::new(&db).count().await.unwrap(), 1);
+
+        // Make the queue unusable.
+        db.with_connection(|conn| {
+            conn.execute_batch("DROP TABLE sync_queue;")
+                .map_err(|e| agent_storage::StorageError::Query(e.to_string()))
+        })
+        .await
+        .unwrap();
+
+        let queued = queue_for_sync(
+            &db,
+            &tx,
+            SyncEntityType::Risk,
+            "r-2".to_string(),
+            &payload,
+            "Le risque",
+        )
+        .await;
+        assert!(!queued);
+        match rx.try_recv() {
+            Ok(AgentEvent::Notification { notification }) => {
+                assert_eq!(notification.severity, "error");
+                assert!(notification.title.starts_with("Le risque"));
+                assert!(notification.body.contains("non transmis"));
+            }
+            other => panic!("expected an error notification, got {other:?}"),
+        }
+    }
 }
