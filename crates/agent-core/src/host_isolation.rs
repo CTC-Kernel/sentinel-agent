@@ -815,18 +815,90 @@ async fn apply_rules(allowed: &[IpAddr], dns_servers: &[IpAddr]) -> Result<Optio
     }
 }
 
-async fn remove_rules(pf_token: Option<&str>) {
-    if cfg!(target_os = "macos") {
-        let mut commands = vec![Command::new("pfctl", &["-a", PF_ANCHOR, "-F", "all"])];
-        if let Some(token) = pf_token {
-            commands.push(Command::new("pfctl", &["-X", token]));
-        }
-        run_all_best_effort(&commands).await;
-        let _ = tokio::fs::remove_file(pf_rules_path()).await;
-    } else if cfg!(target_os = "windows") {
-        run_all_best_effort(&netsh_release()).await;
+/// Commands that succeed only while a rule of the isolation is still in
+/// place (Windows Firewall and iptables; pf is read with [`pf_lists_rules`]).
+pub(crate) fn rules_present_probes() -> Vec<Command> {
+    if cfg!(target_os = "windows") {
+        NETSH_RULES
+            .iter()
+            .map(|rule| Command {
+                program: "netsh",
+                args: vec![
+                    "advfirewall".to_string(),
+                    "firewall".to_string(),
+                    "show".to_string(),
+                    "rule".to_string(),
+                    netsh_rule_name(rule),
+                ],
+            })
+            .collect()
+    } else if cfg!(target_os = "macos") {
+        Vec::new()
     } else {
-        run_all_best_effort(&iptables_release()).await;
+        let mut probes = Vec::new();
+        for program in ["iptables", "ip6tables"] {
+            for chain in [IPTABLES_CHAIN_IN, IPTABLES_CHAIN_OUT] {
+                probes.push(Command::new(program, &["-S", chain]));
+            }
+        }
+        probes
+    }
+}
+
+/// Whether what `pfctl -s rules` printed lists a filter rule.
+pub(crate) fn pf_lists_rules(printed: &str) -> bool {
+    printed.lines().any(|line| {
+        let line = line.trim_start();
+        line.starts_with("block") || line.starts_with("pass")
+    })
+}
+
+/// Remove the isolation rules, and check that they are gone.
+///
+/// The removal commands fail for harmless reasons (a rule that was never
+/// created, no ip6tables), so their own result proves nothing: what counts
+/// is whether a rule is still there afterwards. An error means the endpoint
+/// is still cut off from the network.
+async fn remove_rules(pf_token: Option<&str>) -> Result<(), String> {
+    if cfg!(target_os = "macos") {
+        let anchor_rules = Command::new("pfctl", &["-a", PF_ANCHOR, "-s", "rules"]);
+        if let Err(flush_error) = run(&Command::new("pfctl", &["-a", PF_ANCHOR, "-F", "all"])).await
+        {
+            // Not flushed: fine only if the anchor verifiably holds no rule.
+            let empty = run(&anchor_rules)
+                .await
+                .is_ok_and(|printed| !pf_lists_rules(&printed));
+            if !empty {
+                return Err(flush_error);
+            }
+        }
+        if let Some(token) = pf_token {
+            run_all_best_effort(&[Command::new("pfctl", &["-X", token])]).await;
+        }
+        let _ = tokio::fs::remove_file(pf_rules_path()).await;
+        return Ok(());
+    }
+
+    let release = if cfg!(target_os = "windows") {
+        netsh_release()
+    } else {
+        iptables_release()
+    };
+    run_all_best_effort(&release).await;
+
+    let mut left = Vec::new();
+    for probe in rules_present_probes() {
+        if run(&probe).await.is_ok() {
+            left.push(format!("{} {}", probe.program, probe.args.join(" ")));
+        }
+    }
+    if left.is_empty() {
+        Ok(())
+    } else {
+        Err(format!(
+            "isolation rules are still in place ({})",
+            left.join("; ")
+        ))
     }
 }
 
@@ -888,7 +960,9 @@ pub async fn isolate_host(reason: &str, duration_secs: u64) -> Result<IsolationS
     };
     if let Err(e) = store_state(&state_path(), &state).await {
         // Without the record a restart could neither re-apply nor lift it.
-        remove_rules(state.pf_token.as_deref()).await;
+        if let Err(removal) = remove_rules(state.pf_token.as_deref()).await {
+            warn!("Isolation rules could not be withdrawn: {}", removal);
+        }
         return Err(CommonError::internal(format!(
             "Host isolation cancelled: its state could not be recorded ({e})"
         )));
@@ -910,7 +984,17 @@ pub async fn release_host() -> Result<(), CommonError> {
     }
     let path = state_path();
     let state = load_state(&path).await;
-    remove_rules(state.as_ref().and_then(|s| s.pf_token.as_deref())).await;
+    // Rules that could not be removed leave the endpoint cut off: say so,
+    // and keep the record and the isolated flag so that the interface still
+    // shows the isolation and a new attempt (or a restart) can lift it.
+    if let Err(e) = remove_rules(state.as_ref().and_then(|s| s.pf_token.as_deref())).await {
+        if state.is_some() {
+            return Err(CommonError::internal(format!("Isolation not lifted: {e}")));
+        }
+        // No record: nothing says this endpoint was isolated, and a
+        // removal that finds nothing to remove is not a failure.
+        tracing::debug!("No isolation on record; cleanup reported: {}", e);
+    }
     set_isolated(false);
     match tokio::fs::remove_file(&path).await {
         Ok(()) => info!("Endpoint isolation lifted"),
@@ -1191,6 +1275,37 @@ mod tests {
             !lines.iter().any(|l| l.contains("--dport 67")),
             "DHCPv4 only"
         );
+    }
+
+    /// `release_host` reported success whatever the removal commands did.
+    #[test]
+    fn leftover_rules_are_detected() {
+        // pf: the ALTQ notice on stderr is not a rule; a block line is.
+        let notice = "No ALTQ support in kernel\nALTQ related functions disabled\n";
+        assert!(!pf_lists_rules(notice));
+        assert!(!pf_lists_rules(""));
+        assert!(pf_lists_rules(&format!(
+            "{notice}block drop out quick all\npass out quick proto tcp to 192.0.2.1\n"
+        )));
+
+        let probes = rules_present_probes();
+        if cfg!(target_os = "windows") {
+            assert_eq!(probes.len(), NETSH_RULES.len());
+            assert!(probes.iter().all(|c| c.args[2] == "show"));
+        } else if cfg!(target_os = "macos") {
+            assert!(probes.is_empty());
+        } else {
+            let lines: Vec<String> = probes.iter().map(args).collect();
+            assert_eq!(
+                lines,
+                [
+                    "-S SENTINEL_ISO_IN",
+                    "-S SENTINEL_ISO_OUT",
+                    "-S SENTINEL_ISO_IN",
+                    "-S SENTINEL_ISO_OUT",
+                ]
+            );
+        }
     }
 
     #[test]
