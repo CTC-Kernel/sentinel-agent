@@ -136,6 +136,7 @@ fn group_of(command: &GuiCommand) -> Group {
         | GuiCommand::QuarantineFile { .. }
         | GuiCommand::RestoreQuarantinedFile { .. }
         | GuiCommand::RefreshQuarantine
+        | GuiCommand::LoadAuditTrail { .. }
         | GuiCommand::BlockIp { .. }
         | GuiCommand::UnblockIp { .. }
         | GuiCommand::IsolateHost { .. }

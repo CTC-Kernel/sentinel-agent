@@ -23,6 +23,7 @@ pub(crate) async fn handle(ctx: &mut CommandContext, command: GuiCommand) {
             restore_quarantined_file(ctx, quarantine_id).await
         }
         GuiCommand::RefreshQuarantine => refresh_quarantine(ctx).await,
+        GuiCommand::LoadAuditTrail { limit } => load_audit_trail(ctx, limit).await,
         GuiCommand::BlockIp { ip, duration_secs } => block_ip(ctx, ip, duration_secs).await,
         GuiCommand::UnblockIp { ip } => unblock_ip(ctx, ip).await,
         GuiCommand::IsolateHost { duration_secs } => isolate_host(ctx, duration_secs).await,
@@ -253,6 +254,57 @@ async fn restore_quarantined_file(ctx: &mut CommandContext, quarantine_id: Strin
                 }
             }
         });
+}
+
+/// Send the last entries of the persistent audit trail to the interface.
+///
+/// Handled with the response actions because most of what the trail
+/// records are those actions and the playbooks that run them.
+async fn load_audit_trail(ctx: &mut CommandContext, limit: u32) {
+    let Some(trail) = ctx.audit_trail.clone() else {
+        // No database: there is no trail. The page keeps the session.
+        return;
+    };
+    let tx = ctx.events.clone();
+    ctx.tasks
+        .spawn_expected("load audit trail", expected::SHORT, async move {
+            let filter = agent_core::audit_trail::AuditFilter::default();
+            match trail.recent(limit.min(5000) as usize, &filter).await {
+                Ok(records) => {
+                    let entries = records.iter().map(audit_row).collect();
+                    let _ = tx.send(AgentEvent::AuditTrailLoaded { entries });
+                }
+                Err(e) => warn!("Audit trail not read: {}", e),
+            }
+        });
+}
+
+/// An entry of the audit trail as a row of the audit page.
+fn audit_row(record: &agent_core::audit_trail::AuditRecord) -> agent_gui::dto::GuiLogEntry {
+    let mut message = record.summary();
+    if let Some(details) = &record.details {
+        message.push_str(" \u{2014} ");
+        message.push_str(details);
+    }
+    if !record.intact {
+        message.push_str(" (int\u{e9}grit\u{e9} non v\u{e9}rifi\u{e9}e\u{a0}: entr\u{e9}e modifi\u{e9}e apr\u{e8}s coup)");
+    }
+    agent_gui::dto::GuiLogEntry {
+        // Stable from one reading to the next: the row of the entry.
+        id: uuid::Uuid::from_u128(record.id as u128),
+        timestamp: record.timestamp,
+        level: if !record.intact || record.is_failure() {
+            "warn"
+        } else {
+            "info"
+        }
+        .to_string(),
+        message,
+        source: Some(format!(
+            "Journal de l'agent \u{b7} {}",
+            record.actor_label()
+        )),
+    }
 }
 
 /// Block an IP address via firewall rules.

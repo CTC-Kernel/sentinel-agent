@@ -1294,6 +1294,11 @@ pub struct AppState {
     /// Current page (0-indexed) of the paginated notification feed.
     pub notifications_page: usize,
     pub previous_compliance_score: Option<f32>,
+    /// What the agent recorded in its persistent audit trail, most recent
+    /// first. `logs` only holds the notifications of this session.
+    pub audit_history: Vec<crate::dto::GuiLogEntry>,
+    /// When the persistent trail was last asked for (seconds of UI time).
+    pub audit_history_requested_at: Option<f64>,
     pub audit_trail_search: String,
     pub audit_trail_filter: Option<String>,
     pub selected_audit_entry: Option<usize>,
@@ -1357,6 +1362,8 @@ impl Default for AppState {
             notification_detail_open: false,
             notifications_page: 0,
             previous_compliance_score: None,
+            audit_history: Vec::new(),
+            audit_history_requested_at: None,
             audit_trail_search: String::new(),
             audit_trail_filter: None,
             selected_audit_entry: None,
@@ -2364,6 +2371,15 @@ impl AppState {
                 self.threats.quarantine_queue.push_front(entry);
                 self.threats.quarantine_queue.truncate(200);
             }
+            AgentEvent::AuditTrailLoaded { entries } => {
+                // Rows are selected by position: a list that changed
+                // invalidates the selection, one that did not keeps it.
+                if self.audit_history != entries {
+                    self.audit_history = entries;
+                    self.selected_audit_entry = None;
+                    self.audit_detail_open = false;
+                }
+            }
             AgentEvent::QuarantineLoaded { entries } => {
                 self.threats.quarantine_queue = entries.into_iter().take(200).collect();
             }
@@ -2377,6 +2393,31 @@ impl AppState {
         }
         // Single recompute at end of every event
         self.recompute_summary_stats();
+    }
+
+    /// The rows of the audit page: the persistent trail of the agent and
+    /// the notifications of this session, most recent first.
+    pub fn audit_entries(&self) -> Vec<&crate::dto::GuiLogEntry> {
+        let mut entries: Vec<_> = self.logs.iter().chain(&self.audit_history).collect();
+        entries.sort_by(|a, b| b.timestamp.cmp(&a.timestamp));
+        entries
+    }
+
+    /// Command asking the agent for its persistent audit trail: when the
+    /// audit page opens, then every 15 s while it is shown. `now` is the UI
+    /// clock, in seconds.
+    pub fn take_audit_history_refresh(&mut self, now: f64) -> Option<crate::events::GuiCommand> {
+        const EVERY_SECS: f64 = 15.0;
+        /// Entries asked for: the page shows 50 per page.
+        const LIMIT: u32 = 1000;
+        if self
+            .audit_history_requested_at
+            .is_some_and(|at| now - at < EVERY_SECS)
+        {
+            return None;
+        }
+        self.audit_history_requested_at = Some(now);
+        Some(crate::events::GuiCommand::LoadAuditTrail { limit: LIMIT })
     }
 
     /// Update check results and maintain history
@@ -2751,6 +2792,44 @@ mod block_outcome_tests {
             entry: quarantined(kept),
         });
         assert_eq!(state.threats.quarantine_queue.len(), 2);
+    }
+
+    /// The audit page only listed the notifications of the session: it
+    /// also lists what the agent recorded, in one chronology.
+    #[test]
+    fn the_audit_page_lists_the_persistent_trail_with_the_session() {
+        let mut state = AppState::default();
+        let now = chrono::Utc::now();
+        let entry = |minutes: i64, message: &str| dto::GuiLogEntry {
+            id: uuid::Uuid::new_v4(),
+            timestamp: now - chrono::Duration::minutes(minutes),
+            level: "info".into(),
+            message: message.into(),
+            source: Some("Journal de l'agent".into()),
+        };
+        state.logs.push_front(entry(5, "notification"));
+        let history = vec![entry(1, "recent"), entry(60, "old")];
+        state.selected_audit_entry = Some(0);
+        state.apply_event(AgentEvent::AuditTrailLoaded {
+            entries: history.clone(),
+        });
+        let messages: Vec<_> = state
+            .audit_entries()
+            .iter()
+            .map(|e| e.message.clone())
+            .collect();
+        assert_eq!(messages, ["recent", "notification", "old"]);
+        assert_eq!(state.selected_audit_entry, None, "positions changed");
+
+        // The same list again keeps the selection: the page reloads it
+        // every few seconds while the operator reads an entry.
+        state.selected_audit_entry = Some(1);
+        state.apply_event(AgentEvent::AuditTrailLoaded { entries: history });
+        assert_eq!(state.selected_audit_entry, Some(1));
+
+        assert!(state.take_audit_history_refresh(1.0).is_some());
+        assert!(state.take_audit_history_refresh(5.0).is_none());
+        assert!(state.take_audit_history_refresh(17.0).is_some());
     }
 
     #[test]

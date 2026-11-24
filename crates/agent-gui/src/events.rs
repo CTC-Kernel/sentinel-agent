@@ -405,6 +405,13 @@ pub enum AgentEvent {
         /// Every file currently in quarantine, most recent first.
         entries: Vec<crate::dto::QuarantinedFile>,
     },
+    /// The last entries of the persistent audit trail (what the agent
+    /// recorded in its database, this run and the previous ones), most
+    /// recent first: replaces the ones shown.
+    AuditTrailLoaded {
+        /// The entries, as rows of the audit page.
+        entries: Vec<crate::dto::GuiLogEntry>,
+    },
     /// Toggle visibility of the standalone Jarvis widget.
     ToggleJarvisWidget {
         /// Whether the widget should be visible.
@@ -523,6 +530,12 @@ pub enum GuiCommand {
     },
     /// Export audit trail to CSV.
     ExportCsvAuditTrail,
+    /// Read the last entries of the persistent audit trail and send them
+    /// as [`AgentEvent::AuditTrailLoaded`].
+    LoadAuditTrail {
+        /// How many entries, at most.
+        limit: u32,
+    },
     /// Kill a suspicious process.
     KillProcess {
         /// Process name.
