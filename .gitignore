@@ -200,3 +200,6 @@ models/
 
 # YARA helper build output
 /tools/sentinel-yara/target/
+
+# Release packages built by scripts/release-vps.sh
+dist-release/
