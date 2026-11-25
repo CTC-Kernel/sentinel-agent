@@ -52,15 +52,27 @@ alias_as() {
   done
 }
 
+# Go to the sources of the release: the tag v$VERSION, whatever is checked
+# out. When HEAD is not that tag, the tag is checked out in a temporary
+# worktree, removed at exit: the script can be newer than the release it
+# builds (a tag made before a fix to the script is still buildable).
+#
+# RELEASE_REHEARSAL=1 builds the checkout as it is instead. Point
+# RELEASE_OUT elsewhere so a rehearsal can never be published.
 check_tree() {
-  # RELEASE_REHEARSAL=1: try the pipeline on any commit. Point RELEASE_OUT
-  # elsewhere so a rehearsal can never be published as the release.
-  if [ "${RELEASE_REHEARSAL:-0}" != 1 ]; then
-    [ -z "$(git status --porcelain)" ] || die "the working tree has changes: release from a clean checkout"
-    git describe --exact-match --tags HEAD 2>/dev/null | grep -qx "v$VERSION" \
-      || die "HEAD is not the tag v$VERSION"
-  fi
   need SENTINEL_SERVER_URL; need SENTINEL_RELEASES_BASE_URL
+  [ "${RELEASE_REHEARSAL:-0}" = 1 ] && return
+  if [ "$(git describe --exact-match --tags HEAD 2>/dev/null)" = "v$VERSION" ] \
+     && [ -z "$(git status --porcelain)" ]; then
+    return
+  fi
+  git rev-parse -q --verify "refs/tags/v$VERSION" >/dev/null \
+    || die "no tag v$VERSION: tag the release first (docs/RELEASE.md)"
+  RELEASE_SRC="$(mktemp -d)/sentinel-agent-v$VERSION"
+  git worktree add -q --detach "$RELEASE_SRC" "v$VERSION"
+  trap 'cd "$ROOT"; git worktree remove --force "$RELEASE_SRC" 2>/dev/null || true' EXIT
+  cd "$RELEASE_SRC"
+  say "building the sources of v$VERSION (temporary checkout: $RELEASE_SRC)"
 }
 
 # ── Linux ─────────────────────────────────────────────────────────────
@@ -133,7 +145,8 @@ build_macos() {
   check_tree
   [ "$(uname)" = Darwin ] || die "the macOS package is built on a Mac"
   local installer
-  installer="$(security find-identity -v 2>/dev/null | grep 'Developer ID Installer' | head -1 | sed 's/.*"\(.*\)".*/\1/')"
+  # `|| true`: with pipefail, no match would end the script without a word.
+  installer="$(security find-identity -v 2>/dev/null | grep 'Developer ID Installer' | head -1 | sed 's/.*"\(.*\)".*/\1/' || true)"
   if [ -z "$installer" ] && [ "${MACOS_DRY_RUN:-0}" != 1 ]; then
     die "no « Developer ID Installer » certificate in the keychain: the package could be neither signed nor notarized (MACOS_DRY_RUN=1 builds an unsigned one that is never published)"
   fi
