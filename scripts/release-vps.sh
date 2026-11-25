@@ -4,7 +4,8 @@
 #
 #   scripts/release-vps.sh build linux          deb + rpm, amd64 and arm64 (Docker)
 #   scripts/release-vps.sh build macos          universal .pkg, signed and notarized
-#   scripts/release-vps.sh add-windows <msi>    take an MSI built by release-windows.ps1
+#   scripts/release-vps.sh build windows        .msi, cross-built (MinGW, WiX under Wine)
+#   scripts/release-vps.sh add-windows <msi>    or take an MSI built on Windows (release-windows.ps1)
 #   scripts/release-vps.sh publish              send what is in dist-release/ and check it
 #   scripts/release-vps.sh finalize             announce the version (all platforms present)
 #   scripts/release-vps.sh status               what is built, what the server serves
@@ -172,6 +173,110 @@ add_windows() {
   say "Windows installer for $VERSION is in $AGENT/windows"
 }
 
+# ── Windows, cross-built ──────────────────────────────────────────────
+# No Windows machine: the executable is cross-compiled with MinGW, and
+# WiX 4 runs under Wine in a container to make the MSI. Wine's cabinet
+# library stores without compressing, so the archive inside the MSI is
+# rebuilt compressed and checked file by file against the original.
+#
+# What this cannot do is run the installer on Windows: do that on a real
+# machine before `finalize` (docs/RELEASE.md).
+wix_dockerfile() {
+  cat <<'EOS'
+FROM debian:12
+RUN apt-get update -qq && apt-get install -y -qq --no-install-recommends \
+      wine wine64 curl unzip ca-certificates openssl msitools gcab cabextract \
+ && rm -rf /var/lib/apt/lists/*
+RUN curl -fsSL --retry 5 --retry-all-errors -o /tmp/dotnet.zip https://builds.dotnet.microsoft.com/dotnet/Sdk/8.0.404/dotnet-sdk-8.0.404-win-x64.zip \
+ && mkdir -p /opt/dotnet && unzip -q /tmp/dotnet.zip -d /opt/dotnet && rm /tmp/dotnet.zip
+RUN for p in wix WixToolset.UI.wixext WixToolset.Util.wixext WixToolset.Firewall.wixext; do \
+      curl -fsSL --retry 5 --retry-all-errors -o /tmp/$p.zip https://www.nuget.org/api/v2/package/$p/4.0.0 \
+      && mkdir -p /opt/wix/$p && unzip -q /tmp/$p.zip -d /opt/wix/$p && rm /tmp/$p.zip || exit 1; \
+    done
+ENV WINEDEBUG=-all WINEPREFIX=/root/.wine DOTNET_ROLL_FORWARD=Major DOTNET_NOLOGO=1 DOTNET_CLI_TELEMETRY_OPTOUT=1
+RUN wineboot -i && wineserver -w
+EOS
+}
+
+wix_container_script() {
+  cat <<'EOS'
+set -euo pipefail
+cd /work
+# The installer adds this certificate to the machine's trusted publishers.
+# Its private key is destroyed here: nobody can sign with it afterwards.
+openssl req -x509 -newkey rsa:3072 -nodes -keyout /dev/shm/key.pem -out /dev/shm/cert.pem -days 1825 \
+  -subj "/CN=Sentinel GRC Agent/O=Cyber Threat Consulting" -addext "extendedKeyUsage=codeSigning" >/dev/null 2>&1
+openssl x509 -in /dev/shm/cert.pem -outform DER -out sentinel-selfsigned.cer
+shred -u /dev/shm/key.pem; rm -f /dev/shm/cert.pem
+
+X='Z:\opt\wix'
+msi="SentinelAgentSetup-$VERSION.msi"
+wine /opt/dotnet/dotnet.exe "$X\\wix\\tools\\net6.0\\any\\wix.dll" build \
+  -d 'TargetDir=.\target\release' -d "Version=$VERSION" -d 'AssetsDir=.\assets' -d "ServerUrl=$SENTINEL_SERVER_URL" \
+  -o "$msi" 'wix\main.wxs' \
+  -ext "$X\\WixToolset.UI.wixext\\wixext4\\WixToolset.UI.wixext.dll" \
+  -ext "$X\\WixToolset.Util.wixext\\wixext4\\WixToolset.Util.wixext.dll" \
+  -ext "$X\\WixToolset.Firewall.wixext\\wixext4\\WixToolset.Firewall.wixext.dll"
+[ -f "$msi" ] || { echo "WiX produced no MSI"; exit 1; }
+
+# Same files, same order, compressed this time.
+mkdir -p /tmp/re/old /tmp/re/new
+msiinfo extract "$msi" sentinel.cab > /tmp/re/old.cab
+cabextract -q -d /tmp/re/old /tmp/re/old.cab
+order=$(cabextract -l /tmp/re/old.cab | awk -F'|' 'NR>2 && NF==3 {gsub(/ /,"",$3); print $3}')
+(cd /tmp/re/old && gcab -c -z /tmp/re/new.cab $order)
+msibuild "$msi" -a sentinel.cab /tmp/re/new.cab
+msiinfo extract "$msi" sentinel.cab > /tmp/re/check.cab
+cabextract -q -d /tmp/re/new /tmp/re/check.cab
+(cd /tmp/re/old && sha256sum *) > /tmp/re/before
+(cd /tmp/re/new && sha256sum *) > /tmp/re/after
+cmp /tmp/re/before /tmp/re/after || { echo "the recompressed MSI does not hold the same files"; exit 1; }
+
+# What the installer will register, read back from the MSI itself.
+property() { msiinfo export "$msi" Property | tr -d '\r' | awk -F'\t' -v name="$1" '$1 == name { print $2 }'; }
+[ "$(property ProductVersion)" = "$VERSION" ] || { echo "ProductVersion is $(property ProductVersion), expected $VERSION"; exit 1; }
+[ "$(property SERVERURL)" = "$SENTINEL_SERVER_URL" ] || { echo "SERVERURL is $(property SERVERURL)"; exit 1; }
+msiinfo export "$msi" ServiceInstall | grep -q "SentinelGRCAgent" || { echo "no service in the MSI"; exit 1; }
+cp "$msi" /out/
+EOS
+}
+
+build_windows() {
+  check_tree
+  command -v docker >/dev/null || die "docker is required to make the MSI"
+  command -v x86_64-w64-mingw32-gcc >/dev/null || die "MinGW is required (brew install mingw-w64)"
+  local target=x86_64-pc-windows-gnu work; work="$(mktemp -d)"
+  # The build scripts look for the icon beside each crate; removed again so
+  # the checkout stays clean.
+  local icons=(crates/agent-gui/assets/icons/sentinel-agent.ico crates/agent-core/assets/icons/sentinel-agent.ico)
+  for icon in "${icons[@]}"; do mkdir -p "$(dirname "$icon")" && cp assets/icons/sentinel-agent.ico "$icon"; done
+  say "Windows: cross-compiling for $target"
+  CARGO_INCREMENTAL=0 cargo build --release --features gui --package agent-core --no-default-features --target "$target" \
+    || { rm -f "${icons[@]}"; die "the Windows build failed"; }
+  rm -f "${icons[@]}"; rmdir crates/agent-core/assets/icons crates/agent-core/assets 2>/dev/null || true
+  local exe="target/$target/release/agent-core.exe"
+  # Only system libraries: a MinGW runtime DLL would be missing on the PC.
+  if x86_64-w64-mingw32-objdump -p "$exe" | grep -iE 'DLL Name: (libgcc|libstdc|libwinpthread)'; then
+    die "the executable needs MinGW runtime libraries"
+  fi
+
+  mkdir -p "$work/src/target/release" "$work/src/docs" "$work/out"
+  cp "$exe" "$work/src/target/release/"
+  cp -R wix assets config "$work/src/"
+  cp docs/USER_GUIDE.md "$work/src/docs/"
+  wix_dockerfile > "$work/Dockerfile"
+  wix_container_script > "$work/src/build-msi.sh"
+  say "Windows: preparing the WiX container (first time: a few minutes)"
+  docker build -q --platform linux/amd64 -t sentinel-agent-wix:4.0.0 -f "$work/Dockerfile" "$work" >/dev/null
+  say "Windows: building the MSI with WiX 4 under Wine"
+  docker run --rm --platform linux/amd64 -v "$work/src:/work" -v "$work/out:/out" \
+    -e VERSION="$VERSION" -e SENTINEL_SERVER_URL sentinel-agent-wix:4.0.0 bash /work/build-msi.sh \
+    > "$work/wix.log" 2>&1 || { tail -30 "$work/wix.log"; die "the MSI could not be built"; }
+  add_windows "$work/out/SentinelAgentSetup-$VERSION.msi"
+  rm -rf "$work"
+  say "not run on Windows: install this MSI on a Windows machine before finalize"
+}
+
 # ── Server ────────────────────────────────────────────────────────────
 remote() { ssh -o BatchMode=yes ${RELEASE_SSH_KEY:+-i "$RELEASE_SSH_KEY"} "$RELEASE_SSH_HOST" "$@"; }
 
@@ -319,12 +424,13 @@ case "${1:-}" in
     case "${2:-}" in
       linux) build_linux ;;
       macos) build_macos ;;
-      *) die "usage: release-vps.sh build linux|macos" ;;
+      windows) build_windows ;;
+      *) die "usage: release-vps.sh build linux|macos|windows" ;;
     esac ;;
   add-windows) add_windows "${2:-}" ;;
   publish) publish ;;
   verify) verify ;;
   finalize) finalize ;;
   status) status ;;
-  *) sed -n '2,12p' "$0" | sed 's/^# \{0,1\}//'; exit 1 ;;
+  *) sed -n '2,13p' "$0" | sed 's/^# \{0,1\}//'; exit 1 ;;
 esac
