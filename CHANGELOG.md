@@ -10,6 +10,13 @@ Tous les changements notables apportés au projet **Sentinel GRC Agent** sont co
 
 ## 🚀 [Non publié]
 
+## 🚀 [4.0.57] — 2026-11-25
+
+> Première version compilée pour la plateforme auto-hébergée : l'agent
+> s'adresse à `https://grc.cyber-threat-consulting.com/fn/agentApi` et cherche
+> ses mises à jour sur le canal du même serveur. Publiée pour Linux (deb et
+> rpm, amd64 et arm64) ; macOS et Windows restent en 4.0.56.
+
 ### 🖥️ Interface : finition de bout en bout (audit du 25/11/2026)
 
 - **Canal service ↔ interface sous Windows** : quand le service tourne,
