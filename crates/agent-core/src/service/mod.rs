@@ -34,6 +34,31 @@ pub use unix::*;
 
 pub mod watchdog;
 
+/// What the binary runs on the service's agent once it is built and before
+/// it starts: the library runs the service, the binary owns what serves the
+/// desktop interface (its command handlers).
+pub type RuntimeHook = Box<
+    dyn FnOnce(
+            &mut crate::AgentRuntime,
+            &std::sync::Arc<agent_storage::Database>,
+            &tokio::runtime::Handle,
+        ) + Send,
+>;
+
+static RUNTIME_HOOK: std::sync::Mutex<Option<RuntimeHook>> = std::sync::Mutex::new(None);
+
+/// Register the hook; call it before [`run_as_service`].
+pub fn set_runtime_hook(hook: RuntimeHook) {
+    if let Ok(mut slot) = RUNTIME_HOOK.lock() {
+        *slot = Some(hook);
+    }
+}
+
+/// The registered hook, once.
+pub fn take_runtime_hook() -> Option<RuntimeHook> {
+    RUNTIME_HOOK.lock().ok()?.take()
+}
+
 /// Service name used for registration.
 pub const SERVICE_NAME: &str = "SentinelGRCAgent";
 

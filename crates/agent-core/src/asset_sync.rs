@@ -117,7 +117,11 @@ impl AgentRuntime {
         // Also load playbooks from SQLite
         let pb_repo = agent_storage::repositories::grc::PlaybookRepository::new(db);
         if let Ok(stored_pbs) = pb_repo.get_all().await {
-            let playbooks = crate::threat_pipeline::stored_playbooks_to_dto(&stored_pbs);
+            let playbooks = crate::threat_pipeline::with_trigger_status(
+                db,
+                crate::threat_pipeline::stored_playbooks_to_dto(&stored_pbs),
+            )
+            .await;
             info!(
                 "Loaded {} playbook(s) from SQLite into GUI",
                 playbooks.len()
@@ -136,106 +140,13 @@ impl AgentRuntime {
             self.emit_gui_event(agent_gui::events::AgentEvent::DetectionRulesLoaded { rules });
         }
 
-        // Also load alert rules and webhooks from SQLite
-        {
-            let alert_repo = agent_storage::repositories::grc::AlertRuleRepository::new(db);
-            let webhook_repo = agent_storage::repositories::grc::WebhookRepository::new(db);
-            let stored_rules = alert_repo.get_all().await.unwrap_or_default();
-            let stored_webhooks = webhook_repo.get_all().await.unwrap_or_default();
-
-            let gui_rules: Vec<agent_gui::dto::AlertRule> = stored_rules
-                .iter()
-                .map(|s| {
-                    let id = s.id.clone();
-                    let severity_threshold = s.severity_threshold.as_deref().map(|sev| match sev {
-                        "critical" | "Critical" => agent_gui::dto::Severity::Critical,
-                        "high" | "High" => agent_gui::dto::Severity::High,
-                        "low" | "Low" => agent_gui::dto::Severity::Low,
-                        "info" | "Info" => agent_gui::dto::Severity::Info,
-                        _ => agent_gui::dto::Severity::Medium,
-                    });
-                    let rule_type = match s.rule_type.as_str() {
-                        "TypeFilter" | "DetectionType" => agent_gui::dto::AlertRuleType::TypeFilter,
-                        "EscalationDelay" | "Escalation" => {
-                            agent_gui::dto::AlertRuleType::EscalationDelay
-                        }
-                        _ => agent_gui::dto::AlertRuleType::SeverityThreshold,
-                    };
-                    let detection_types: Vec<String> =
-                        serde_json::from_str(&s.detection_types).unwrap_or_default();
-                    let created_at = chrono::DateTime::parse_from_rfc3339(&s.created_at)
-                        .map(|dt| dt.with_timezone(&chrono::Utc))
-                        .unwrap_or_else(|_| chrono::Utc::now());
-
-                    agent_gui::dto::AlertRule {
-                        id,
-                        name: s.name.clone(),
-                        rule_type,
-                        severity_threshold,
-                        detection_types,
-                        escalation_minutes: s.escalation_minutes.map(|v| v as u32),
-                        enabled: s.enabled,
-                        created_at,
-                    }
-                })
-                .collect();
-
-            let gui_webhooks: Vec<agent_gui::dto::WebhookConfig> = stored_webhooks
-                .iter()
-                .map(|s| {
-                    let id = s.id.clone();
-                    agent_gui::dto::WebhookConfig {
-                        id,
-                        name: s.name.clone(),
-                        url: s.url.clone(),
-                        format: s.events.clone(),
-                        enabled: s.enabled,
-                        last_sent: None,
-                        error: None,
-                    }
-                })
-                .collect();
-
-            self.emit_alerting_loaded(gui_rules, gui_webhooks);
-        }
+        // Also load alert rules and webhooks from SQLite, with the outcome
+        // of the last alert sent to each webhook.
+        self.emit_gui_event(crate::gui_bridge::alerting_loaded_event(db).await);
 
         // Also load risks from SQLite so the Risks page is populated at startup
-        let risk_repo = agent_storage::repositories::grc::RiskRepository::new(db);
-        if let Ok(stored_risks) = risk_repo.get_all().await {
-            let gui_risks: Vec<agent_gui::dto::RiskEntry> = stored_risks
-                .iter()
-                .map(|s| {
-                    let id = s.id.clone();
-                    let created_at = chrono::DateTime::parse_from_rfc3339(&s.created_at)
-                        .map(|dt| dt.with_timezone(&chrono::Utc))
-                        .unwrap_or_else(|_| chrono::Utc::now());
-                    let updated_at = chrono::DateTime::parse_from_rfc3339(&s.updated_at)
-                        .map(|dt| dt.with_timezone(&chrono::Utc))
-                        .unwrap_or_else(|_| chrono::Utc::now());
-                    let status = match s.status.as_str() {
-                        "mitigating" => agent_gui::dto::RiskStatus::Mitigating,
-                        "accepted" => agent_gui::dto::RiskStatus::Accepted,
-                        "closed" => agent_gui::dto::RiskStatus::Closed,
-                        _ => agent_gui::dto::RiskStatus::Open,
-                    };
-                    agent_gui::dto::RiskEntry {
-                        id,
-                        title: s.title.clone(),
-                        description: s.description.clone(),
-                        probability: s.probability.clamp(1, 5) as u8,
-                        impact: s.impact.clamp(1, 5) as u8,
-                        owner: s.owner.clone(),
-                        status,
-                        mitigation: s.mitigation.clone(),
-                        source: s.source.clone(),
-                        created_at,
-                        updated_at,
-                        sla_target_days: s.sla_target_days.map(|v| v as u32),
-                    }
-                })
-                .collect();
-
-            self.emit_gui_event(agent_gui::events::AgentEvent::RisksSnapshot { risks: gui_risks });
+        if let Some(risks) = crate::gui_bridge::risks_snapshot_event(db).await {
+            self.emit_gui_event(risks);
         }
 
         // Re-enqueue unsynced entities to ensure they reach the platform.

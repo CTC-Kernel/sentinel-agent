@@ -22,6 +22,7 @@ pub mod api_client;
 pub mod audit_trail;
 pub mod cleanup;
 pub mod events;
+pub mod gui_ipc;
 #[cfg(feature = "llm")]
 pub mod llm_service;
 #[cfg(feature = "gui")]
@@ -67,7 +68,7 @@ mod enrollment;
 mod fim_attribution;
 #[cfg(target_os = "linux")]
 mod fim_audit;
-mod gui_bridge;
+pub mod gui_bridge;
 mod heartbeat;
 pub mod host_isolation;
 mod inventory_upload;

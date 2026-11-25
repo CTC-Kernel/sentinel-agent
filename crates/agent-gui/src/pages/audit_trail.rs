@@ -14,6 +14,46 @@ use crate::widgets;
 
 pub struct AuditTrailPage;
 
+/// Name the sort of the journal table is kept under.
+const JOURNAL_TABLE: &str = "audit_journal";
+
+/// The three levels the journal shows. Entries arrive with the level of a
+/// log line ("warn") or the severity of a notification ("warning", "high",
+/// "critical"…): the chip, the badge and the drawer all read them here.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum LevelClass {
+    Info,
+    Warning,
+    Error,
+}
+
+impl LevelClass {
+    fn of(level: &str) -> Self {
+        match level.to_lowercase().as_str() {
+            "error" | "critical" | "high" | "fatal" => Self::Error,
+            "warn" | "warning" | "medium" => Self::Warning,
+            _ => Self::Info,
+        }
+    }
+
+    /// The value of the level chip that selects this class.
+    fn filter_key(self) -> &'static str {
+        match self {
+            Self::Info => "info",
+            Self::Warning => "warn",
+            Self::Error => "error",
+        }
+    }
+
+    fn display(self) -> (&'static str, egui::Color32) {
+        match self {
+            Self::Info => ("INFO", theme::INFO),
+            Self::Warning => ("AVERTISSEMENT", theme::WARNING),
+            Self::Error => ("ERREUR", theme::ERROR),
+        }
+    }
+}
+
 impl AuditTrailPage {
     pub fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
         // What the agent recorded in its database is asked for when the
@@ -37,6 +77,7 @@ impl AuditTrailPage {
         // Filters (AAA Grade)
         // Count filtered results (matching the same logic as render_table)
         let n_items = Self::filtered(state).len();
+        let search_before = state.audit_trail_search.clone();
         let (toggled, export_clicked) = widgets::SearchFilterBar::new(
             &mut state.audit_trail_search,
             "Rechercher un événement…",
@@ -61,14 +102,19 @@ impl AuditTrailPage {
         .show_with_action(ui);
         // The export lives in the search bar's action slot, beside what it
         // exports; on a row of its own it left a band of empty space.
+        // Rows are selected by position in the filtered list: a new search
+        // changes what each position holds.
+        if state.audit_trail_search != search_before {
+            state.selected_audit_entry = None;
+            state.audit_detail_open = false;
+            state.audit_trail_page = 0;
+        }
         if export_clicked {
-            let success = Self::export_audit_trail_csv(state);
-            let toast = if success {
-                crate::widgets::toast::Toast::success("Journal d'audit exporté avec succès")
-            } else {
-                crate::widgets::toast::Toast::error("Échec de l'export du journal d'audit")
-            };
-            state.toasts.push(toast.with_time(ui.input(|i| i.time)));
+            let rows: Vec<crate::dto::GuiLogEntry> = Self::displayed(ui.ctx(), state)
+                .into_iter()
+                .cloned()
+                .collect();
+            Self::export_with_toast(ui, state, &rows);
         }
 
         if let Some(idx) = toggled {
@@ -86,6 +132,7 @@ impl AuditTrailPage {
             // Clear selection when filter changes — indices are no longer valid
             state.selected_audit_entry = None;
             state.audit_detail_open = false;
+            state.audit_trail_page = 0;
         }
 
         ui.add_space(theme::SPACE_MD);
@@ -105,14 +152,14 @@ impl AuditTrailPage {
     /// The rows shown: the persistent trail and the session, most recent
     /// first, narrowed by the level chip and the search field.
     fn filtered(state: &AppState) -> Vec<&crate::dto::GuiLogEntry> {
-        let level = state.audit_trail_filter.as_deref().map(str::to_lowercase);
+        let level = state.audit_trail_filter.as_deref();
         let search = state.audit_trail_search.to_lowercase();
         state
             .audit_entries()
             .into_iter()
             .filter(|log| {
-                if let Some(level) = &level
-                    && log.level.to_lowercase() != *level
+                if let Some(level) = level
+                    && LevelClass::of(&log.level).filter_key() != level
                 {
                     return false;
                 }
@@ -126,25 +173,29 @@ impl AuditTrailPage {
             .collect()
     }
 
+    /// The filtered rows in the order the sorted column asks for; most
+    /// recent first without a sort. The table, the drawer (rows are selected
+    /// by position) and the export all read this list.
+    fn displayed<'a>(ctx: &egui::Context, state: &'a AppState) -> Vec<&'a crate::dto::GuiLogEntry> {
+        let mut rows = Self::filtered(state);
+        sort_rows(&mut rows, &widgets::table::sort_of(ctx, JOURNAL_TABLE));
+        rows
+    }
+
     fn detail_drawer(ui: &mut Ui, state: &mut AppState) {
-        let filtered_logs = Self::filtered(state);
+        let filtered_logs = Self::displayed(ui.ctx(), state);
 
         let selected = match state.selected_audit_entry {
             Some(idx) if idx < filtered_logs.len() => idx,
             _ => return,
         };
 
-        let log = &filtered_logs[selected];
+        let log = filtered_logs[selected].clone();
         let id_str = log.id.to_string();
         let ts = crate::format::local_datetime_secs(log.timestamp);
-        let level = log.level.clone();
         let message = log.message.clone();
         let source = log.source.clone();
-        let level_color = match level.to_lowercase().as_str() {
-            "error" | "critical" => theme::ERROR,
-            "warn" | "warning" => theme::WARNING,
-            _ => theme::INFO,
-        };
+        let (level_label, level_color) = LevelClass::of(&log.level).display();
 
         let actions = [
             widgets::DetailAction::secondary("Copier l'ID", icons::COPY),
@@ -161,7 +212,7 @@ impl AuditTrailPage {
                     widgets::detail_section(ui, "ÉVÉNEMENT D'AUDIT");
                     widgets::detail_mono(ui, "ID", &id_str);
                     widgets::detail_field(ui, "Horodatage", &ts);
-                    widgets::detail_field_badge(ui, "Niveau", &level.to_uppercase(), level_color);
+                    widgets::detail_field_badge(ui, "Niveau", level_label, level_color);
                     if let Some(ref s) = source {
                         widgets::detail_mono(ui, "Source", s);
                     }
@@ -175,42 +226,65 @@ impl AuditTrailPage {
         match action {
             Some(0) => {
                 ui.ctx().copy_text(id_str);
+                state.push_toast(
+                    crate::widgets::toast::Toast::success("Identifiant copié"),
+                    ui.ctx(),
+                );
             }
-            Some(1) => {
-                Self::export_audit_trail_csv(state);
-            }
+            Some(1) => Self::export_with_toast(ui, state, std::slice::from_ref(&log)),
             _ => {}
         }
     }
 
-    fn export_audit_trail_csv(state: &AppState) -> bool {
-        let headers = &["date", "niveau", "message", "source"];
-        let rows: Vec<Vec<String>> = state
-            .audit_entries()
-            .into_iter()
-            .map(|l| {
-                vec![
-                    l.timestamp.to_rfc3339(),
-                    l.level.clone(),
-                    l.message.clone(),
-                    l.source.clone().unwrap_or_default(),
-                ]
-            })
-            .collect();
-        let path = crate::export::default_export_path("audit_trail.csv");
-        match crate::export::export_csv(headers, &rows, &path) {
-            Ok(_) => true,
+    /// Export `rows` and tell the operator where the file is, or that it failed.
+    fn export_with_toast(ui: &Ui, state: &mut AppState, rows: &[crate::dto::GuiLogEntry]) {
+        let toast = match Self::export_csv(rows) {
+            Ok(path) => crate::widgets::toast::Toast::success(format!(
+                "{} : {}",
+                if rows.len() == 1 {
+                    "Événement exporté".to_string()
+                } else {
+                    format!(
+                        "{} exporté{}",
+                        crate::format::count(rows.len(), "événement"),
+                        crate::format::plural_suffix(rows.len())
+                    )
+                },
+                path.display()
+            )),
             Err(e) => {
                 tracing::warn!("Export CSV failed: {}", e);
-                false
+                crate::widgets::toast::Toast::error(format!(
+                    "Échec de l’export du journal d’audit : {e}"
+                ))
             }
-        }
+        };
+        state.push_toast(toast, ui.ctx());
+    }
+
+    /// Write `rows` to a timestamped CSV file and return its path.
+    fn export_csv(rows: &[crate::dto::GuiLogEntry]) -> Result<std::path::PathBuf, String> {
+        let headers = &["identifiant", "date", "niveau", "message", "source"];
+        let rows: Vec<Vec<String>> = rows.iter().map(Self::csv_row).collect();
+        crate::export::export_csv_timestamped("journal_audit", headers, &rows)
+    }
+
+    fn csv_row(entry: &crate::dto::GuiLogEntry) -> Vec<String> {
+        vec![
+            entry.id.to_string(),
+            entry.timestamp.to_rfc3339(),
+            entry.level.clone(),
+            entry.message.clone(),
+            entry.source.clone().unwrap_or_default(),
+        ]
     }
 
     fn render_table(ui: &mut Ui, state: &mut AppState) {
         // Owned: the table below needs `state` again for its selection.
-        let filtered_logs: Vec<crate::dto::GuiLogEntry> =
-            Self::filtered(state).into_iter().cloned().collect();
+        let filtered_logs: Vec<crate::dto::GuiLogEntry> = Self::displayed(ui.ctx(), state)
+            .into_iter()
+            .cloned()
+            .collect();
 
         if filtered_logs.is_empty() {
             widgets::empty_state(ui, icons::CLIPBOARD, "Aucun événement trouvé", None);
@@ -241,6 +315,7 @@ impl AuditTrailPage {
 
         let selected = state.selected_audit_entry;
         let mut clicked_row: Option<usize> = None;
+        let mut sort_changed = false;
 
         table::fluid_clickable(
             ui,
@@ -251,15 +326,15 @@ impl AuditTrailPage {
             ],
         )
         .header(theme::TABLE_HEADER_HEIGHT, |mut header| {
-            header.col(|ui| {
-                table::header_cell(ui, "HORODATAGE");
-            });
-            header.col(|ui| {
-                table::header_cell(ui, "NIVEAU");
-            });
-            header.col(|ui| {
-                table::header_cell(ui, "D\u{00c9}TAILS DE L'\u{00c9}V\u{00c9}NEMENT");
-            });
+            for (label, key) in [
+                ("HORODATAGE", "time"),
+                ("NIVEAU", "level"),
+                ("D\u{00c9}TAILS DE L'\u{00c9}V\u{00c9}NEMENT", "message"),
+            ] {
+                header.col(|ui| {
+                    sort_changed |= table::header_cell_sortable(ui, label, JOURNAL_TABLE, key);
+                });
+            }
         })
         .body(|body| {
             body.rows(theme::TABLE_ROW_HEIGHT, at_len, |mut row| {
@@ -275,12 +350,8 @@ impl AuditTrailPage {
                 });
 
                 row.col(|ui| {
-                    let (level_upper, color) = match log.level.to_lowercase().as_str() {
-                        "error" | "critical" => ("ERREUR", theme::ERROR),
-                        "warn" | "warning" => ("AVERTISSEMENT", theme::WARNING),
-                        _ => ("INFO", theme::INFO),
-                    };
-                    widgets::status_badge(ui, level_upper, color);
+                    let (label, color) = LevelClass::of(&log.level).display();
+                    widgets::status_badge(ui, label, color);
                 });
 
                 row.col(|ui| {
@@ -297,6 +368,13 @@ impl AuditTrailPage {
             state.selected_audit_entry = Some(idx);
             state.audit_detail_open = true;
         }
+        // Rows are selected by position: a new order changes what each
+        // position holds.
+        if sort_changed {
+            state.selected_audit_entry = None;
+            state.audit_detail_open = false;
+            state.audit_trail_page = 0;
+        }
 
         widgets::paginate_controls(
             ui,
@@ -304,5 +382,116 @@ impl AuditTrailPage {
             AUDIT_PER_PAGE,
             &mut state.audit_trail_page,
         );
+    }
+}
+
+/// Reorder the rows on the sorted column; untouched without a sort. Stable.
+fn sort_rows(rows: &mut [&crate::dto::GuiLogEntry], sort: &widgets::data_table::TableSort) {
+    if let Some(key) = widgets::table::sort_key(sort) {
+        rows.sort_by(|a, b| widgets::table::directed(sort, compare_entries(key, a, b)));
+    }
+}
+
+/// Natural (ascending) order of two entries on the column `key`: oldest
+/// first, information before warning before error, text without case.
+fn compare_entries(
+    key: &str,
+    a: &crate::dto::GuiLogEntry,
+    b: &crate::dto::GuiLogEntry,
+) -> std::cmp::Ordering {
+    let rank = |entry: &crate::dto::GuiLogEntry| match LevelClass::of(&entry.level) {
+        LevelClass::Info => 0_u8,
+        LevelClass::Warning => 1,
+        LevelClass::Error => 2,
+    };
+    match key {
+        "time" => a.timestamp.cmp(&b.timestamp),
+        "level" => rank(a).cmp(&rank(b)),
+        "message" => a.message.to_lowercase().cmp(&b.message.to_lowercase()),
+        _ => std::cmp::Ordering::Equal,
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn entry(level: &str, message: &str) -> crate::dto::GuiLogEntry {
+        crate::dto::GuiLogEntry {
+            id: uuid::Uuid::new_v4(),
+            timestamp: chrono::Utc::now(),
+            level: level.into(),
+            message: message.into(),
+            source: None,
+        }
+    }
+
+    /// Regression: the chips compared the raw level, so a "warning" or
+    /// "critical" notification was shown with its badge but never filtered in.
+    #[test]
+    fn level_chips_select_what_the_badges_show() {
+        let mut state = AppState::default();
+        for (level, message) in [
+            ("info", "a"),
+            ("warn", "b"),
+            ("warning", "c"),
+            ("medium", "d"),
+            ("error", "e"),
+            ("critical", "f"),
+            ("high", "g"),
+            ("INFO", "h"),
+        ] {
+            state.logs.push_back(entry(level, message));
+        }
+        let shown = |state: &AppState| {
+            let mut messages: Vec<String> = AuditTrailPage::filtered(state)
+                .iter()
+                .map(|log| log.message.clone())
+                .collect();
+            messages.sort();
+            messages.concat()
+        };
+        state.audit_trail_filter = Some("info".into());
+        assert_eq!(shown(&state), "ah");
+        state.audit_trail_filter = Some("warn".into());
+        assert_eq!(shown(&state), "bcd");
+        state.audit_trail_filter = Some("error".into());
+        assert_eq!(shown(&state), "efg");
+        state.audit_trail_filter = None;
+        assert_eq!(shown(&state), "abcdefgh");
+    }
+
+    #[test]
+    fn the_journal_sorts_levels_by_gravity_and_dates_by_time() {
+        use widgets::data_table::{SortDirection, TableSort};
+        let mut first = entry("warning", "beta");
+        let mut second = entry("critical", "Alpha");
+        let mut third = entry("info", "gamma");
+        let now = chrono::Utc::now();
+        first.timestamp = now - chrono::Duration::minutes(5);
+        second.timestamp = now - chrono::Duration::minutes(50);
+        third.timestamp = now;
+        let order = |key: &str, direction| {
+            let mut rows = vec![&first, &second, &third];
+            sort_rows(&mut rows, &TableSort::by(key, direction));
+            rows.iter()
+                .map(|row| row.message.clone())
+                .collect::<Vec<_>>()
+                .concat()
+        };
+        // Info, warning, error — "critical" is not before "info".
+        assert_eq!(order("level", SortDirection::Ascending), "gammabetaAlpha");
+        assert_eq!(order("level", SortDirection::Descending), "Alphabetagamma");
+        assert_eq!(order("time", SortDirection::Ascending), "Alphabetagamma");
+        assert_eq!(order("message", SortDirection::Ascending), "Alphabetagamma");
+        assert_eq!(order("message", SortDirection::None), "betaAlphagamma");
+    }
+
+    #[test]
+    fn a_csv_row_carries_the_identifier() {
+        let log = entry("warn", "Isolement levé");
+        let row = AuditTrailPage::csv_row(&log);
+        assert_eq!(row[0], log.id.to_string());
+        assert_eq!(&row[2..4], ["warn", "Isolement levé"]);
     }
 }

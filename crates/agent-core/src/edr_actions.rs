@@ -11,6 +11,7 @@ use std::path::{Path, PathBuf};
 use tracing::{info, warn};
 
 // Compiled for tests on every platform: only `pfctl` itself needs macOS.
+pub mod block_ledger;
 #[cfg(any(target_os = "macos", test))]
 mod pf_blocklist;
 // Same for the iptables and netsh commands.
@@ -870,12 +871,16 @@ pub async fn block_ip(ip: &str, duration_secs: u64) -> Result<(), CommonError> {
     // Firewall operations require root. The desktop app runs as the user and
     // hands them to the agent service instead of asking to run as root itself.
     if !crate::service::is_admin() {
-        return crate::privileged::delegate(crate::privileged::Request::BlockIp {
+        let delegated = crate::privileged::delegate(crate::privileged::Request::BlockIp {
             ip: ip.to_string(),
             duration_secs,
         })
         .await
         .map(|_| ());
+        if delegated.is_ok() {
+            block_ledger::record(ip, duration_secs).await;
+        }
+        return delegated;
     }
 
     // Validate IP format first. An IPv4 address written as IPv6
@@ -965,6 +970,7 @@ pub async fn block_ip(ip: &str, duration_secs: u64) -> Result<(), CommonError> {
         });
     }
 
+    block_ledger::record(ip, duration_secs).await;
     info!("Successfully blocked IP '{}'", ip);
     Ok(())
 }
@@ -1070,11 +1076,15 @@ pub async fn reconcile_pending_blocks() {
 /// Unblock a previously blocked IP address.
 pub async fn unblock_ip(ip: &str) -> Result<(), CommonError> {
     if !crate::service::is_admin() {
-        return crate::privileged::delegate(crate::privileged::Request::UnblockIp {
+        let delegated = crate::privileged::delegate(crate::privileged::Request::UnblockIp {
             ip: ip.to_string(),
         })
         .await
         .map(|_| ());
+        if delegated.is_ok() {
+            block_ledger::forget(ip).await;
+        }
+        return delegated;
     }
     info!("Unblocking IP '{}'", ip);
     clear_pending_block(ip).await;
@@ -1114,6 +1124,7 @@ pub async fn unblock_ip(ip: &str) -> Result<(), CommonError> {
         }
     }
 
+    block_ledger::forget(ip).await;
     info!("Successfully unblocked IP '{}'", ip);
     Ok(())
 }

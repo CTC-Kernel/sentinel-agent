@@ -251,6 +251,78 @@ impl<'a> PlaybookRepository<'a> {
             })
             .await
     }
+
+    /// Count one more run of a playbook, at `at`. The count and the date
+    /// of the last run are kept apart from the playbook itself, whose row
+    /// is replaced whole on every save.
+    pub async fn record_trigger(
+        &self,
+        playbook_id: &str,
+        at: chrono::DateTime<chrono::Utc>,
+    ) -> StorageResult<()> {
+        let playbook_id = playbook_id.to_string();
+        let at = at.to_rfc3339();
+        self.db
+            .with_connection(move |conn| {
+                conn.execute(
+                    r#"
+                    INSERT INTO playbook_triggers (playbook_id, trigger_count, last_triggered)
+                    VALUES (?1, 1, ?2)
+                    ON CONFLICT(playbook_id) DO UPDATE SET
+                        trigger_count = playbook_triggers.trigger_count + 1,
+                        last_triggered = MAX(excluded.last_triggered, playbook_triggers.last_triggered)
+                    "#,
+                    rusqlite::params![playbook_id, at],
+                )
+                .map_err(|e| {
+                    StorageError::Query(format!("Failed to record playbook trigger: {}", e))
+                })?;
+                Ok(())
+            })
+            .await
+    }
+
+    /// How many times each playbook that still exists ran, and when it
+    /// last did, by playbook id. A playbook that never ran has no entry.
+    pub async fn trigger_status(
+        &self,
+    ) -> StorageResult<std::collections::HashMap<String, PlaybookTriggers>> {
+        self.db
+            .with_connection(|conn| {
+                let mut stmt = conn
+                    .prepare(
+                        "SELECT t.playbook_id, t.trigger_count, t.last_triggered \
+                         FROM playbook_triggers t JOIN playbooks p ON p.id = t.playbook_id",
+                    )
+                    .map_err(|e| StorageError::Query(format!("Failed to prepare query: {}", e)))?;
+                let rows = stmt
+                    .query_map([], |row| {
+                        Ok((
+                            row.get::<_, String>(0)?,
+                            PlaybookTriggers {
+                                trigger_count: row.get::<_, i64>(1)?.max(0) as u32,
+                                last_triggered: row.get(2)?,
+                            },
+                        ))
+                    })
+                    .map_err(|e| StorageError::Query(format!("Failed to execute query: {}", e)))?
+                    .collect::<Result<std::collections::HashMap<_, _>, _>>()
+                    .map_err(|e| {
+                        StorageError::Query(format!("Failed to collect results: {}", e))
+                    })?;
+                Ok(rows)
+            })
+            .await
+    }
+}
+
+/// How many times a playbook ran and when it last did.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct PlaybookTriggers {
+    /// Number of runs, automatic and manual.
+    pub trigger_count: u32,
+    /// When it last ran (RFC 3339).
+    pub last_triggered: String,
 }
 
 // ============================================================================
@@ -1017,5 +1089,55 @@ impl<'a> SoftwareInventoryRepository<'a> {
                 Ok(())
             })
             .await
+    }
+}
+
+#[cfg(test)]
+mod playbook_trigger_tests {
+    use super::*;
+    use crate::{DatabaseConfig, KeyManager};
+
+    fn playbook(id: &str) -> StoredPlaybook {
+        StoredPlaybook {
+            id: id.to_string(),
+            name: id.to_string(),
+            description: String::new(),
+            trigger_type: "general".to_string(),
+            severity: "medium".to_string(),
+            steps: "[]".to_string(),
+            enabled: true,
+            created_at: "2026-01-01T00:00:00+00:00".to_string(),
+            updated_at: "2026-01-01T00:00:00+00:00".to_string(),
+            synced: false,
+            conditions: "[]".to_string(),
+        }
+    }
+
+    #[tokio::test]
+    async fn the_runs_of_a_playbook_are_counted_and_survive_its_saves() {
+        let dir = tempfile::tempdir().unwrap();
+        let key = KeyManager::new_with_key(b"01234567890123456789012345678901");
+        let db =
+            Database::open(DatabaseConfig::with_path(dir.path().join("test.db")), &key).unwrap();
+        let repo = PlaybookRepository::new(&db);
+        repo.upsert(&playbook("pb-1")).await.unwrap();
+        repo.upsert(&playbook("pb-never")).await.unwrap();
+
+        let first = chrono::DateTime::parse_from_rfc3339("2026-03-01T10:00:00+00:00")
+            .unwrap()
+            .with_timezone(&chrono::Utc);
+        let second = first + chrono::Duration::hours(2);
+        repo.record_trigger("pb-1", second).await.unwrap();
+        // Recorded late: the count moves, the last run stays the latest.
+        repo.record_trigger("pb-1", first).await.unwrap();
+        // The row of the playbook is replaced whole by a save.
+        repo.upsert(&playbook("pb-1")).await.unwrap();
+        // Deleted playbooks are left out.
+        repo.record_trigger("pb-gone", first).await.unwrap();
+
+        let status = repo.trigger_status().await.unwrap();
+        assert_eq!(status.len(), 1);
+        assert_eq!(status["pb-1"].trigger_count, 2);
+        assert_eq!(status["pb-1"].last_triggered, second.to_rfc3339());
     }
 }

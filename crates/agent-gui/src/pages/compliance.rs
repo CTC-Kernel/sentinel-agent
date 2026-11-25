@@ -14,6 +14,9 @@ use crate::widgets;
 
 pub struct CompliancePage;
 
+/// Name the sort of the checks list is kept under.
+const CHECKS_TABLE: &str = "compliance_checks";
+
 impl CompliancePage {
     pub fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
         let mut command = None;
@@ -186,71 +189,22 @@ impl CompliancePage {
         let fail_active = state.compliance.status_filter == Some(GuiCheckStatus::Fail);
         let err_active = state.compliance.status_filter == Some(GuiCheckStatus::Error);
 
-        let search_id = ui.id().with("compliance_search_cache");
-        let search_lower: String = ui
-            .memory(|mem| {
-                mem.data
-                    .get_temp::<(String, String)>(search_id)
-                    .filter(|(orig, _)| orig == &state.compliance.search)
-                    .map(|(_, lower)| lower)
-            })
-            .unwrap_or_else(|| {
-                let lower = state.compliance.search.to_lowercase();
-                ui.memory_mut(|mem| {
-                    mem.data
-                        .insert_temp(search_id, (state.compliance.search.clone(), lower.clone()))
-                });
-                lower
-            });
-
-        let filter_fp = (
-            state.checks.len(),
-            search_lower.clone(),
-            state.compliance.status_filter,
-            state.compliance.group_by.index(),
-        );
-        let filter_fp_id = ui.id().with("compliance_filter_fp");
-        let filter_cache_id = ui.id().with("compliance_filter_cache");
-        let prev_fp: Option<(usize, String, Option<GuiCheckStatus>, u8)> =
-            ui.memory(|mem| mem.data.get_temp(filter_fp_id));
-        let filtered: Vec<usize> = if prev_fp.as_ref() == Some(&filter_fp) {
-            ui.memory(|mem| mem.data.get_temp(filter_cache_id))
-                .unwrap_or_default()
+        // Recomputed on every frame: check results are replaced in place, so
+        // a list cached on their number went on showing a control under
+        // « Défaillant » after it had passed.
+        // The flat list is sortable; grouped and matrix views keep the audit
+        // order. The CSV export follows what is displayed.
+        let filtered = Self::filtered_indices(state);
+        let flat_list = state.compliance.view_mode == ComplianceViewMode::List
+            && state.compliance.group_by == ComplianceGroupBy::None;
+        let filtered = if flat_list {
+            let sort = widgets::table::sort_of(ui.ctx(), CHECKS_TABLE);
+            Self::sorted(state, filtered, &sort)
         } else {
-            let result: Vec<usize> =
-                if search_lower.is_empty() && state.compliance.status_filter.is_none() {
-                    (0..state.checks.len()).collect()
-                } else {
-                    state
-                        .checks
-                        .iter()
-                        .enumerate()
-                        .filter(|(_, c)| {
-                            if !search_lower.is_empty()
-                                && !c.name.to_lowercase().contains(&search_lower)
-                                && !c.category.to_lowercase().contains(&search_lower)
-                                && !c.check_id.to_lowercase().contains(&search_lower)
-                            {
-                                return false;
-                            }
-                            match state.compliance.status_filter {
-                                Some(GuiCheckStatus::Pass) => c.status == GuiCheckStatus::Pass,
-                                Some(GuiCheckStatus::Fail) => c.status == GuiCheckStatus::Fail,
-                                Some(GuiCheckStatus::Error) => c.status == GuiCheckStatus::Error,
-                                _ => true,
-                            }
-                        })
-                        .map(|(i, _)| i)
-                        .collect()
-                };
-            ui.memory_mut(|mem| {
-                mem.data.insert_temp(filter_fp_id, filter_fp);
-                mem.data.insert_temp(filter_cache_id, result.clone());
-            });
-            result
+            filtered
         };
-
         let result_count = filtered.len();
+        let search_before = state.compliance.search.clone();
 
         let toggled = widgets::SearchFilterBar::new(
             &mut state.compliance.search,
@@ -261,6 +215,9 @@ impl CompliancePage {
         .chip("Erreur", err_active, theme::WARNING)
         .result_count(result_count)
         .show(ui);
+        if state.compliance.search != search_before {
+            state.compliance.current_page = 0;
+        }
 
         if let Some(idx) = toggled {
             let target = match idx {
@@ -319,10 +276,6 @@ impl CompliancePage {
                 |ui: &mut egui::Ui| {
                     if widgets::ghost_button(ui, format!("{}  CSV", icons::DOWNLOAD)).clicked() {
                         Self::export_csv(state, &filtered);
-                        state.push_toast(
-                            crate::widgets::toast::Toast::info("Export CSV en cours…"),
-                            ui.ctx(),
-                        );
                     }
                 },
             );
@@ -373,59 +326,31 @@ impl CompliancePage {
                 }
             } else if state.compliance.view_mode == ComplianceViewMode::Matrix {
                 // ── Matrix view ──
+                let mut clicked = None;
                 ui.push_id("compliance_matrix", |ui: &mut egui::Ui| {
-                    Self::render_matrix_view(ui, state, &filtered);
+                    clicked = Self::render_matrix_view(ui, state, &filtered);
                 });
+                if let Some(idx) = clicked {
+                    Self::open_check(state, idx);
+                }
             } else if state.compliance.group_by == ComplianceGroupBy::None {
-                // Paginated flat list (50 items per page)
                 const PAGE_SIZE: usize = 50;
-                let total_pages = filtered.len().div_ceil(PAGE_SIZE);
-                let page = state
-                    .compliance
-                    .current_page
-                    .min(total_pages.saturating_sub(1));
-                let start = page * PAGE_SIZE;
-                let end = (start + PAGE_SIZE).min(filtered.len());
-                let page_indices: Vec<usize> = filtered[start..end].to_vec();
+                let (start, len, _) = widgets::page_window(
+                    filtered.len(),
+                    PAGE_SIZE,
+                    &mut state.compliance.current_page,
+                );
+                let page_indices: Vec<usize> = filtered[start..start + len].to_vec();
 
                 ui.push_id("compliance_table_flat", |ui: &mut egui::Ui| {
-                    Self::render_check_table(ui, state, &page_indices, &mut command);
+                    Self::render_check_table(ui, state, &page_indices, true);
                 });
-
-                // Pagination controls
-                if total_pages > 1 {
-                    ui.add_space(theme::SPACE_MD);
-                    ui.horizontal(|ui: &mut egui::Ui| {
-                        ui.with_layout(
-                            egui::Layout::centered_and_justified(egui::Direction::LeftToRight),
-                            |ui: &mut egui::Ui| {
-                                ui.horizontal(|ui: &mut egui::Ui| {
-                                    let prev_resp =
-                                        widgets::ghost_button(ui, icons::CHEVRON_LEFT.to_string())
-                                            .on_hover_text("Page précédente");
-                                    if prev_resp.clicked() && page > 0 {
-                                        state.compliance.current_page = page - 1;
-                                    }
-                                    ui.label(
-                                        egui::RichText::new(format!(
-                                            "Page {} / {}",
-                                            page + 1,
-                                            total_pages
-                                        ))
-                                        .font(theme::font_body())
-                                        .color(theme::text_secondary()),
-                                    );
-                                    let next_resp =
-                                        widgets::ghost_button(ui, icons::CHEVRON_RIGHT.to_string())
-                                            .on_hover_text("Page suivante");
-                                    if next_resp.clicked() && page + 1 < total_pages {
-                                        state.compliance.current_page = page + 1;
-                                    }
-                                });
-                            },
-                        );
-                    });
-                }
+                widgets::paginate_controls(
+                    ui,
+                    filtered.len(),
+                    PAGE_SIZE,
+                    &mut state.compliance.current_page,
+                );
             } else {
                 let groups = Self::build_groups(state, &filtered);
                 for (group_name, indices) in &groups {
@@ -470,7 +395,7 @@ impl CompliancePage {
                     ui.push_id(
                         format!("compliance_group_{}", group_name),
                         |ui: &mut egui::Ui| {
-                            Self::render_check_table(ui, state, indices, &mut command);
+                            Self::render_check_table(ui, state, indices, false);
                         },
                     );
                     ui.add_space(theme::SPACE_SM);
@@ -495,7 +420,8 @@ impl CompliancePage {
 
             let is_failed = check.status == GuiCheckStatus::Fail;
             let mut actions = vec![
-                widgets::DetailAction::primary("Relancer le contr\u{00f4}le", icons::PLAY),
+                // The runtime runs the whole audit; it has no single-check run.
+                widgets::DetailAction::primary("Relancer l\u{2019}audit", icons::PLAY),
                 widgets::DetailAction::secondary("Exporter", icons::DOWNLOAD),
             ];
             if is_failed {
@@ -513,6 +439,20 @@ impl CompliancePage {
                 ));
             }
 
+            // The remediation under review: asked for this check, and what
+            // the agent answered it would run.
+            if !state.compliance.detail_open {
+                Self::close_remediation_review(state);
+            }
+            let reviewing =
+                state.compliance.remediation_requested.as_deref() == Some(check.check_id.as_str());
+            let remediation = state
+                .compliance
+                .remediation_preview
+                .clone()
+                .filter(|preview| reviewing && preview.check_id == check.check_id);
+            let mut remediation_choice: Option<bool> = None;
+
             let ai_analyzing = state.compliance.ai_analyzing;
             let ai_result = state.compliance.ai_analysis_result.clone();
             let check_id_for_prompt = check.check_id.clone();
@@ -523,6 +463,9 @@ impl CompliancePage {
                     .accent(accent)
                     .subtitle(&check.check_id)
                     .show(ui.ctx(), &mut state.compliance.detail_open, |ui| {
+                        if reviewing {
+                            remediation_choice = remediation_review(ui, remediation.as_ref());
+                        }
                         widgets::detail_section(ui, "CONTR\u{00d4}LE DE CONFORMIT\u{00c9}");
                         widgets::detail_mono(ui, "ID", &check.check_id);
                         widgets::detail_field(ui, "Nom", &check.name);
@@ -550,7 +493,7 @@ impl CompliancePage {
 
                         widgets::detail_section(ui, "R\u{00c9}F\u{00c9}RENTIELS");
                         for fw in &check.frameworks {
-                            widgets::detail_field_badge(ui, "", &fw.to_uppercase(), theme::INFO);
+                            widgets::detail_field_badge(ui, "", framework_label(fw), theme::INFO);
                         }
                         if check.frameworks.is_empty() {
                             widgets::detail_field(ui, "", "Aucun r\u{00e9}f\u{00e9}rentiel");
@@ -600,14 +543,16 @@ impl CompliancePage {
 
             if let Some(action_idx) = drawer_action {
                 match action_idx {
-                    0 => command = Some(GuiCommand::RunCheck),
-                    1 => {
-                        Self::export_csv(state, &[sel_idx]);
+                    0 => {
+                        command = Some(GuiCommand::RunCheck);
                         state.push_toast(
-                            crate::widgets::toast::Toast::info("Export CSV en cours…"),
+                            crate::widgets::toast::Toast::info(
+                                "Audit relanc\u{00e9} : tous les contr\u{00f4}les sont r\u{00e9}ex\u{00e9}cut\u{00e9}s",
+                            ),
                             ui.ctx(),
                         );
                     }
+                    1 => Self::export_csv(state, &[sel_idx]),
                     2 if is_failed => {
                         // Analyze with AI
                         state.compliance.ai_analyzing = true;
@@ -626,9 +571,15 @@ impl CompliancePage {
                             speak_response: false,
                         });
                     }
-                    3 if is_failed => {
-                        // Remediate
-                        command = Some(GuiCommand::Remediate {
+                    // Remediate: administrator mode, then the review of what
+                    // would run. Nothing is executed before the operator
+                    // confirms it in the drawer.
+                    3 if is_failed
+                        && state.require_admin("Appliquer une rem\u{00e9}diation automatique") =>
+                    {
+                        state.compliance.remediation_requested = Some(check_id_for_prompt.clone());
+                        state.compliance.remediation_preview = None;
+                        command = Some(GuiCommand::RemediatePreview {
                             check_id: check_id_for_prompt,
                         });
                     }
@@ -643,9 +594,90 @@ impl CompliancePage {
                     _ => {}
                 }
             }
+
+            match remediation_choice {
+                Some(true)
+                    if state.require_admin("Appliquer une rem\u{00e9}diation automatique") =>
+                {
+                    Self::close_remediation_review(state);
+                    command = Some(GuiCommand::Remediate {
+                        check_id: check.check_id.clone(),
+                    });
+                    state.push_toast(
+                        crate::widgets::toast::Toast::info(
+                            "Rem\u{00e9}diation lanc\u{00e9}e : le r\u{00e9}sultat arrive en notification",
+                        ),
+                        ui.ctx(),
+                    );
+                }
+                Some(false) => Self::close_remediation_review(state),
+                _ => {}
+            }
         }
 
         command
+    }
+
+    /// Checks matching the search field and the status chip, in audit order.
+    fn filtered_indices(state: &AppState) -> Vec<usize> {
+        let search_lower = state.compliance.search.to_lowercase();
+        state
+            .checks
+            .iter()
+            .enumerate()
+            .filter(|(_, c)| {
+                if !search_lower.is_empty()
+                    && !c.name.to_lowercase().contains(&search_lower)
+                    && !c.category.to_lowercase().contains(&search_lower)
+                    && !Self::format_category(&c.category)
+                        .to_lowercase()
+                        .contains(&search_lower)
+                    && !c.check_id.to_lowercase().contains(&search_lower)
+                {
+                    return false;
+                }
+                match state.compliance.status_filter {
+                    Some(GuiCheckStatus::Pass) => c.status == GuiCheckStatus::Pass,
+                    Some(GuiCheckStatus::Fail) => c.status == GuiCheckStatus::Fail,
+                    Some(GuiCheckStatus::Error) => c.status == GuiCheckStatus::Error,
+                    _ => true,
+                }
+            })
+            .map(|(i, _)| i)
+            .collect()
+    }
+
+    /// `indices` in the order the sorted column asks for; untouched without
+    /// a sort. Stable, so equal rows keep the audit order.
+    fn sorted(
+        state: &AppState,
+        mut indices: Vec<usize>,
+        sort: &widgets::data_table::TableSort,
+    ) -> Vec<usize> {
+        if let Some(key) = widgets::table::sort_key(sort) {
+            indices.sort_by(|&a, &b| match (state.checks.get(a), state.checks.get(b)) {
+                (Some(a), Some(b)) => widgets::table::directed(sort, compare_checks(key, a, b)),
+                _ => std::cmp::Ordering::Equal,
+            });
+        }
+        indices
+    }
+
+    /// Stop reviewing an automatic remediation.
+    fn close_remediation_review(state: &mut AppState) {
+        state.compliance.remediation_requested = None;
+        state.compliance.remediation_preview = None;
+    }
+
+    /// Select a check and open its drawer.
+    fn open_check(state: &mut AppState, idx: usize) {
+        if state.compliance.selected_check != Some(idx) {
+            state.compliance.ai_analysis_result = None;
+            state.compliance.ai_analyzing = false;
+            Self::close_remediation_review(state);
+        }
+        state.compliance.selected_check = Some(idx);
+        state.compliance.detail_open = true;
     }
 
     fn build_groups(state: &AppState, indices: &[usize]) -> Vec<(String, Vec<usize>)> {
@@ -661,26 +693,28 @@ impl CompliancePage {
             } else if check.frameworks.is_empty() {
                 map.entry("NON CLASSÉ".to_string()).or_default().push(i);
             } else {
+                // Grouped by framework, not by tag: "CIS" and "CIS_V8" are one.
                 for fw in &check.frameworks {
-                    map.entry(fw.clone()).or_default().push(i);
+                    let group = map
+                        .entry(framework_label(&framework_key(fw)).to_string())
+                        .or_default();
+                    if !group.contains(&i) {
+                        group.push(i);
+                    }
                 }
             }
         }
         map.into_iter().collect()
     }
 
-    fn render_check_table(
-        ui: &mut Ui,
-        state: &mut AppState,
-        indices: &[usize],
-        _command: &mut Option<GuiCommand>,
-    ) {
+    fn render_check_table(ui: &mut Ui, state: &mut AppState, indices: &[usize], sortable: bool) {
         use widgets::table;
 
         /// Framework badges shown inline before the "+N" overflow badge.
         const INLINE_FRAMEWORKS: usize = 3;
 
         let mut clicked_idx: Option<usize> = None;
+        let mut sort_changed = false;
         let selected = state.compliance.selected_check;
 
         table::fluid_clickable(
@@ -696,27 +730,25 @@ impl CompliancePage {
             ],
         )
         .header(theme::TABLE_HEADER_HEIGHT, |mut header| {
-            header.col(|ui| {
-                table::header_cell(ui, "D\u{00c9}SIGNATION DU POINT");
-            });
-            header.col(|ui| {
-                table::header_cell(ui, "DOMAINE");
-            });
-            header.col(|ui| {
-                table::header_cell(ui, "STATUT");
-            });
-            header.col(|ui| {
-                table::header_cell(ui, "IMPACT");
-            });
-            header.col(|ui| {
-                table::header_cell_right(ui, "TAUX");
-            });
-            header.col(|ui| {
-                table::header_cell(ui, "R\u{00c9}F\u{00c9}RENTIELS");
-            });
-            header.col(|ui| {
-                table::header_cell(ui, "EX\u{00c9}CUT\u{00c9}");
-            });
+            for (label, key) in [
+                ("D\u{00c9}SIGNATION DU POINT", "name"),
+                ("DOMAINE", "category"),
+                ("STATUT", "status"),
+                ("IMPACT", "severity"),
+                ("TAUX", "score"),
+                ("R\u{00c9}F\u{00c9}RENTIELS", "frameworks"),
+                ("EX\u{00c9}CUT\u{00c9}", "executed"),
+            ] {
+                header.col(|ui| {
+                    // A grouped view draws this table once per group: only
+                    // the flat list carries the sort.
+                    if sortable {
+                        sort_changed |= table::header_cell_sortable(ui, label, CHECKS_TABLE, key);
+                    } else {
+                        table::header_cell(ui, label);
+                    }
+                });
+            }
         })
         .body(|mut body| {
             for &idx in indices {
@@ -779,7 +811,7 @@ impl CompliancePage {
                             ui.horizontal(|ui| {
                                 ui.spacing_mut().item_spacing.x = theme::SPACE_XS;
                                 for fw in check.frameworks.iter().take(INLINE_FRAMEWORKS) {
-                                    widgets::status_badge(ui, fw, theme::INFO);
+                                    widgets::status_badge(ui, framework_label(fw), theme::INFO);
                                 }
                                 let rest = check.frameworks.len().saturating_sub(INLINE_FRAMEWORKS);
                                 if rest > 0 {
@@ -809,30 +841,30 @@ impl CompliancePage {
             }
         });
 
+        if sort_changed {
+            state.compliance.current_page = 0;
+        }
         if let Some(idx) = clicked_idx {
-            if state.compliance.selected_check != Some(idx) {
-                state.compliance.ai_analysis_result = None;
-                state.compliance.ai_analyzing = false;
-            }
-            state.compliance.selected_check = Some(idx);
-            state.compliance.detail_open = true;
+            Self::open_check(state, idx);
         }
     }
 
-    fn render_matrix_view(ui: &mut Ui, state: &AppState, indices: &[usize]) {
+    /// The controls against the frameworks they belong to. Returns the check
+    /// whose row was clicked, to open in the drawer.
+    fn render_matrix_view(ui: &mut Ui, state: &AppState, indices: &[usize]) -> Option<usize> {
         use std::collections::BTreeSet;
 
-        // Collect unique frameworks from filtered checks
-        let mut frameworks_set = BTreeSet::new();
-        for &i in indices {
-            let Some(check) = state.checks.get(i) else {
-                continue;
-            };
-            for fw in &check.frameworks {
-                frameworks_set.insert(fw.clone());
-            }
-        }
-        let frameworks: Vec<String> = frameworks_set.into_iter().collect();
+        // Unique frameworks of the filtered checks, by canonical id.
+        let covers = |check: &crate::dto::GuiCheckResult, key: &str| {
+            check.frameworks.iter().any(|fw| framework_key(fw) == key)
+        };
+        let frameworks: Vec<String> = indices
+            .iter()
+            .filter_map(|&i| state.checks.get(i))
+            .flat_map(|check| check.frameworks.iter().map(|fw| framework_key(fw)))
+            .collect::<BTreeSet<_>>()
+            .into_iter()
+            .collect();
 
         if frameworks.is_empty() {
             widgets::empty_state(
@@ -843,7 +875,7 @@ impl CompliancePage {
                     "Les contr\u{00f4}les s\u{00e9}lectionn\u{00e9}s ne sont associ\u{00e9}s \u{00e0} aucun r\u{00e9}f\u{00e9}rentiel.",
                 ),
             );
-            return;
+            return None;
         }
 
         // Compute per-framework scores for the header
@@ -854,7 +886,7 @@ impl CompliancePage {
                 continue;
             };
             for (fi, fw) in frameworks.iter().enumerate() {
-                if check.frameworks.contains(fw) {
+                if covers(check, fw) {
                     fw_total[fi] = fw_total[fi].saturating_add(1);
                     if check.status == GuiCheckStatus::Pass {
                         fw_pass[fi] = fw_pass[fi].saturating_add(1);
@@ -869,9 +901,12 @@ impl CompliancePage {
 
         let mut cols = Vec::with_capacity(frameworks.len() + 1);
         cols.push(table::Col::fluid(180.0, 2.0));
-        cols.extend(frameworks.iter().map(|_| table::Col::fluid(72.0, 1.0)));
+        cols.extend(frameworks.iter().map(|_| table::Col::fluid(96.0, 1.0)));
 
-        table::fluid(ui, &cols)
+        let selected = state.compliance.selected_check;
+        let mut clicked_idx: Option<usize> = None;
+
+        table::fluid_clickable(ui, &cols)
             .cell_layout(egui::Layout::centered_and_justified(
                 egui::Direction::LeftToRight,
             ))
@@ -891,7 +926,7 @@ impl CompliancePage {
                         let score_color = theme::readable_color(theme::score_color(pct));
                         ui.vertical_centered(|ui| {
                             ui.spacing_mut().item_spacing.y = 0.0;
-                            table::header_cell(ui, &fw.to_uppercase());
+                            table::header_cell(ui, &framework_label(fw).to_uppercase());
                             table::cell_styled(
                                 ui,
                                 &crate::format::pct(pct, 0),
@@ -907,18 +942,22 @@ impl CompliancePage {
                     let Some(check) = state.checks.get(idx) else {
                         continue;
                     };
+                    let is_selected = selected == Some(idx);
                     body.row(theme::TABLE_ROW_HEIGHT, |mut row| {
+                        row.set_selected(is_selected);
                         row.col(|ui| {
                             ui.with_layout(
                                 egui::Layout::left_to_right(egui::Align::Center),
                                 |ui| {
-                                    table::cell(ui, &check.name);
+                                    if table::cell_link_text(ui, &check.name).clicked() {
+                                        clicked_idx = Some(idx);
+                                    }
                                 },
                             );
                         });
                         for fw in &frameworks {
                             row.col(|ui| {
-                                if check.frameworks.contains(fw) {
+                                if covers(check, fw) {
                                     let (symbol, color) = match check.status {
                                         GuiCheckStatus::Pass => ("\u{2713}", theme::SUCCESS),
                                         GuiCheckStatus::Fail => ("\u{2717}", theme::ERROR),
@@ -930,6 +969,9 @@ impl CompliancePage {
                                     table::cell_empty(ui);
                                 }
                             });
+                        }
+                        if table::row_interaction(&row, is_selected) {
+                            clicked_idx = Some(idx);
                         }
                     });
                 }
@@ -951,8 +993,8 @@ impl CompliancePage {
             if fail_count > 0 {
                 ui.label(
                     egui::RichText::new(format!(
-                        "{} : {} contr\u{00f4}le{s} \u{00e9}chou\u{00e9}{s} sur {}",
-                        fw.to_uppercase(),
+                        "{} : {} contr\u{00f4}le{s} non conforme{s} sur {}",
+                        framework_label(fw),
                         fail_count,
                         fw_total[fi],
                         s = crate::format::plural_suffix(fail_count)
@@ -964,7 +1006,7 @@ impl CompliancePage {
                 ui.label(
                     egui::RichText::new(format!(
                         "{} : tous les contr\u{00f4}les conformes ({}/{})",
-                        fw.to_uppercase(),
+                        framework_label(fw),
                         fw_pass[fi],
                         fw_total[fi]
                     ))
@@ -973,6 +1015,7 @@ impl CompliancePage {
                 );
             }
         }
+        clicked_idx
     }
 
     fn export_csv(state: &AppState, indices: &[usize]) {
@@ -984,11 +1027,20 @@ impl CompliancePage {
                 Some(vec![
                     c.check_id.clone(),
                     c.name.clone(),
-                    c.category.clone(),
+                    Self::format_category(&c.category),
                     st.to_string(),
-                    c.severity.as_str().to_string(),
-                    c.score.map_or("--".into(), |s| format!("{}", s)),
-                    c.frameworks.join(", "),
+                    c.severity.label().to_string(),
+                    c.score.map(|s| s.to_string()).unwrap_or_default(),
+                    c.frameworks
+                        .iter()
+                        .map(|fw| framework_label(fw))
+                        .collect::<Vec<_>>()
+                        .join(", "),
+                    c.executed_at
+                        .map(crate::format::local_datetime)
+                        .unwrap_or_default(),
+                    c.message.clone().unwrap_or_default(),
+                    c.remediation.clone().unwrap_or_default(),
                 ])
             })
             .collect();
@@ -996,32 +1048,28 @@ impl CompliancePage {
         if let Some(tx) = state.async_task_tx.clone() {
             std::thread::spawn(move || {
                 let headers = &[
-                    "check_id",
+                    "identifiant",
                     "nom",
                     "categorie",
                     "statut",
                     "severite",
                     "score",
-                    "frameworks",
+                    "referentiels",
+                    "execute_le",
+                    "message",
+                    "remediation",
                 ];
-                let path = crate::export::default_export_path("conformite.csv");
-                match crate::export::export_csv(headers, &rows, &path) {
-                    Ok(_) => {
-                        if let Err(e) = tx.send(crate::app::AsyncTaskResult::CsvExport(
+                let result =
+                    match crate::export::export_csv_timestamped("conformite", headers, &rows) {
+                        Ok(path) => (
                             true,
-                            "Export CSV réussi".to_string(),
-                        )) {
-                            tracing::warn!("Failed to send CSV export success: {}", e);
-                        }
-                    }
-                    Err(e) => {
-                        if let Err(send_err) = tx.send(crate::app::AsyncTaskResult::CsvExport(
-                            false,
-                            format!("Échec export: {}", e),
-                        )) {
-                            tracing::warn!("Failed to send CSV export error: {}", send_err);
-                        }
-                    }
+                            format!("Contr\u{00f4}les export\u{00e9}s : {}", path.display()),
+                        ),
+                        Err(e) => (false, format!("\u{00c9}chec de l\u{2019}export : {e}")),
+                    };
+                if let Err(e) = tx.send(crate::app::AsyncTaskResult::CsvExport(result.0, result.1))
+                {
+                    tracing::warn!("Failed to send CSV export result: {}", e);
                 }
             });
         } else {
@@ -1098,7 +1146,9 @@ impl CompliancePage {
         match status {
             GuiCheckStatus::Pass => ("CONFORME", theme::SUCCESS),
             GuiCheckStatus::Fail => ("NON-CONFORME", theme::ERROR),
-            GuiCheckStatus::Error => ("ERREUR", theme::ERROR),
+            // Same colour as the « Erreur » chip and metric: the check could
+            // not run, which is not a failed control.
+            GuiCheckStatus::Error => ("ERREUR", theme::WARNING),
             GuiCheckStatus::Skipped => ("IGNOR\u{00c9}", theme::text_tertiary()),
             GuiCheckStatus::Pending => ("EN ATTENTE", theme::WARNING),
             GuiCheckStatus::Running => ("EN COURS", theme::INFO),
@@ -1106,7 +1156,7 @@ impl CompliancePage {
     }
 
     /// Format category name for display (snake_case -> TITLE CASE)
-    fn format_category(category: &str) -> String {
+    pub(super) fn format_category(category: &str) -> String {
         match category {
             "encryption" => "CHIFFREMENT".to_string(),
             "antivirus" => "ANTIVIRUS".to_string(),
@@ -1143,5 +1193,255 @@ impl CompliancePage {
             "system" => "SYSTÈME".to_string(),
             _ => category.to_uppercase().replace('_', " "),
         }
+    }
+}
+
+/// The review of an automatic remediation, at the top of the drawer: what
+/// would run, then « Corriger » or « Annuler ». `preview` is `None` until the
+/// agent has answered. Returns `Some(true)` to run it, `Some(false)` to give up.
+fn remediation_review(
+    ui: &mut Ui,
+    preview: Option<&crate::state::RemediationPreview>,
+) -> Option<bool> {
+    let mut choice = None;
+    widgets::detail_section(ui, "CORRECTION AUTOMATIQUE");
+    let available = preview.is_some_and(|p| p.available);
+    match preview {
+        None => {
+            ui.horizontal(|ui| {
+                ui.spinner();
+                ui.label(
+                    egui::RichText::new("Pr\u{00e9}paration de l\u{2019}aper\u{00e7}u…")
+                        .font(theme::font_small())
+                        .color(theme::text_secondary()),
+                );
+            });
+        }
+        Some(preview) if !preview.available => {
+            ui.label(
+                egui::RichText::new(
+                    "Aucune rem\u{00e9}diation automatique n\u{2019}existe pour ce contr\u{00f4}le sur ce syst\u{00e8}me. Suivez la proc\u{00e9}dure de correction d\u{00e9}crite plus bas.",
+                )
+                .font(theme::font_small())
+                .color(theme::readable_color(theme::WARNING)),
+            );
+        }
+        Some(preview) => {
+            widgets::detail_text(ui, "Action", &preview.description);
+            ui.label(
+                egui::RichText::new("Commande ex\u{00e9}cut\u{00e9}e")
+                    .font(theme::font_label())
+                    .color(theme::text_tertiary()),
+            );
+            ui.add(
+                egui::Label::new(
+                    egui::RichText::new(&preview.command)
+                        .font(theme::font_mono_sm())
+                        .color(theme::text_primary()),
+                )
+                .wrap_mode(egui::TextWrapMode::Wrap),
+            );
+            ui.add_space(theme::SPACE_XS);
+            widgets::detail_field(ui, "Risque", &preview.risk);
+            widgets::detail_field(
+                ui,
+                "Red\u{00e9}marrage requis",
+                if preview.requires_reboot {
+                    "Oui"
+                } else {
+                    "Non"
+                },
+            );
+            ui.label(
+                egui::RichText::new(
+                    "La commande modifie la configuration du poste. Relisez-la avant de confirmer.",
+                )
+                .font(theme::font_small())
+                .color(theme::text_tertiary()),
+            );
+        }
+    }
+    ui.add_space(theme::SPACE_SM);
+    ui.horizontal(|ui| {
+        if widgets::primary_button(ui, format!("{}  Corriger", icons::SHIELD_CHECK), available)
+            .clicked()
+            && available
+        {
+            choice = Some(true);
+        }
+        if widgets::secondary_button(ui, "Annuler", true).clicked() {
+            choice = Some(false);
+        }
+    });
+    choice
+}
+
+/// Rank of a status for sorting: compliant first, failed last.
+fn status_rank(status: GuiCheckStatus) -> u8 {
+    match status {
+        GuiCheckStatus::Pass => 0,
+        GuiCheckStatus::Skipped => 1,
+        GuiCheckStatus::Pending => 2,
+        GuiCheckStatus::Running => 3,
+        GuiCheckStatus::Error => 4,
+        GuiCheckStatus::Fail => 5,
+    }
+}
+
+/// Rank of a severity for sorting: informational first, critical last.
+fn severity_rank(severity: crate::dto::Severity) -> u8 {
+    use crate::dto::Severity;
+    match severity {
+        Severity::Info => 0,
+        Severity::Low => 1,
+        Severity::Medium => 2,
+        Severity::High => 3,
+        Severity::Critical => 4,
+    }
+}
+
+/// Natural (ascending) order of two checks on the column `key`.
+fn compare_checks(
+    key: &str,
+    a: &crate::dto::GuiCheckResult,
+    b: &crate::dto::GuiCheckResult,
+) -> std::cmp::Ordering {
+    let text = |a: &str, b: &str| a.to_lowercase().cmp(&b.to_lowercase());
+    let frameworks = |c: &crate::dto::GuiCheckResult| {
+        c.frameworks
+            .iter()
+            .map(|fw| framework_label(fw).to_lowercase())
+            .collect::<Vec<_>>()
+            .join(", ")
+    };
+    match key {
+        "name" => text(&a.name, &b.name),
+        "category" => text(
+            &CompliancePage::format_category(&a.category),
+            &CompliancePage::format_category(&b.category),
+        ),
+        "status" => status_rank(a.status).cmp(&status_rank(b.status)),
+        "severity" => severity_rank(a.severity).cmp(&severity_rank(b.severity)),
+        "score" => a.score.cmp(&b.score),
+        "frameworks" => frameworks(a).cmp(&frameworks(b)),
+        "executed" => a.executed_at.cmp(&b.executed_at),
+        _ => std::cmp::Ordering::Equal,
+    }
+}
+
+/// Canonical id of a framework tag, so that "CIS" and "CIS_V8" are one
+/// framework; an unknown tag stands for itself.
+pub(super) fn framework_key(raw: &str) -> String {
+    agent_common::frameworks::normalize_framework_id(raw)
+        .map(str::to_string)
+        .unwrap_or_else(|| raw.trim().to_ascii_uppercase())
+}
+
+/// Name of a framework as shown to the operator.
+pub(super) fn framework_label(raw: &str) -> &str {
+    agent_common::frameworks::framework_display_name(raw)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn check(id: &str, status: &str) -> crate::dto::GuiCheckResult {
+        serde_json::from_value(serde_json::json!({
+            "check_id": id, "name": id, "category": "firewall",
+            "status": status, "severity": "high", "frameworks": ["CIS"]
+        }))
+        .unwrap()
+    }
+
+    /// Regression: the list was cached on the number of checks, so a control
+    /// that passed after a new audit stayed under « Défaillant ».
+    #[test]
+    fn the_status_filter_follows_results_replaced_in_place() {
+        let mut state = AppState {
+            checks: vec![check("a", "fail"), check("b", "pass")],
+            ..Default::default()
+        };
+        state.compliance.status_filter = Some(GuiCheckStatus::Fail);
+        assert_eq!(CompliancePage::filtered_indices(&state), vec![0]);
+
+        state.checks[0] = check("a", "pass");
+        state.checks[1] = check("b", "fail");
+        assert_eq!(CompliancePage::filtered_indices(&state), vec![1]);
+    }
+
+    #[test]
+    fn checks_sort_by_rank_not_by_label() {
+        use widgets::data_table::{SortDirection, TableSort};
+        let mut state = AppState::default();
+        let mut critical: crate::dto::GuiCheckResult = check("Zèbre", "pass");
+        critical.severity = crate::dto::Severity::Critical;
+        critical.score = Some(100);
+        let mut low = check("alpha", "fail");
+        low.severity = crate::dto::Severity::Low;
+        low.score = Some(9);
+        let error = check("Beta", "error");
+        state.checks = vec![critical, low, error];
+
+        let order = |key: &str, direction| {
+            CompliancePage::sorted(&state, vec![0, 1, 2], &TableSort::by(key, direction))
+        };
+        // Text ignores case; « É » and friends do not jump ahead of ASCII.
+        assert_eq!(order("name", SortDirection::Ascending), [1, 2, 0]);
+        // Compliant, then in error, then failed: not the alphabet.
+        assert_eq!(order("status", SortDirection::Ascending), [0, 2, 1]);
+        assert_eq!(order("severity", SortDirection::Descending), [0, 2, 1]);
+        // Numeric: 9 before 100; a check without score sorts first.
+        assert_eq!(order("score", SortDirection::Ascending), [2, 1, 0]);
+        // No sort: the audit order.
+        assert_eq!(order("name", SortDirection::None), [0, 1, 2]);
+    }
+
+    #[test]
+    fn a_remediation_preview_is_kept_only_for_the_check_under_review() {
+        let preview = |id: &str| crate::events::AgentEvent::RemediationPreview {
+            check_id: id.into(),
+            available: true,
+            description: "Activer le pare-feu".into(),
+            command: "ufw enable".into(),
+            risk: "Faible".into(),
+            requires_reboot: false,
+        };
+        let mut state = AppState::default();
+        state.apply_event(preview("a"));
+        assert!(
+            state.compliance.remediation_preview.is_none(),
+            "nobody asked"
+        );
+
+        state.compliance.remediation_requested = Some("a".into());
+        state.apply_event(preview("b"));
+        assert!(
+            state.compliance.remediation_preview.is_none(),
+            "another check"
+        );
+        state.apply_event(preview("a"));
+        assert_eq!(
+            state
+                .compliance
+                .remediation_preview
+                .as_ref()
+                .map(|p| p.command.as_str()),
+            Some("ufw enable")
+        );
+
+        CompliancePage::close_remediation_review(&mut state);
+        assert!(state.compliance.remediation_requested.is_none());
+        assert!(state.compliance.remediation_preview.is_none());
+    }
+
+    #[test]
+    fn the_search_matches_the_category_as_displayed() {
+        let mut state = AppState {
+            checks: vec![check("a", "fail")],
+            ..Default::default()
+        };
+        state.compliance.search = "pare-feu".into();
+        assert_eq!(CompliancePage::filtered_indices(&state), vec![0]);
     }
 }

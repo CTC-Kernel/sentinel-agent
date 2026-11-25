@@ -438,8 +438,9 @@ fn trailing_cluster(
         pos2(x - run_w, center_y - CONTROL_H / 2.0),
         vec2(run_w, CONTROL_H),
     );
-    // The only run button in the app: pages no longer repeat it, so it
-    // says when the last scan ran and how to reach it from the keyboard.
+    // The run button of the whole app (the settings keep one beside the
+    // pause control): it says when the last scan ran and how to reach it
+    // from the keyboard.
     let run_hint = format!(
         "{}  \u{00b7}  {}",
         match cx.last_check {
@@ -456,7 +457,16 @@ fn trailing_cluster(
     }
     x = run_rect.left() - theme::SPACE_MD;
 
-    // Icon cluster.
+    // Icon cluster. The sync button names its shortcut, as the run button
+    // does: a shortcut nobody can discover is a shortcut nobody uses.
+    let sync_tooltip = if cx.syncing {
+        "Synchronisation en cours".to_owned()
+    } else {
+        format!(
+            "Synchroniser maintenant  \u{00b7}  {}",
+            shortcut_label(true, "S")
+        )
+    };
     for (icon, tooltip, act, badge, spinning) in [
         (
             if cx.dark_mode {
@@ -485,11 +495,7 @@ fn trailing_cluster(
         ),
         (
             icons::SYNC,
-            if cx.syncing {
-                "Synchronisation en cours"
-            } else {
-                "Synchroniser maintenant"
-            },
+            sync_tooltip.as_str(),
             TopBarAction::ForceSync,
             false,
             cx.syncing,
@@ -543,7 +549,10 @@ fn trailing_cluster(
         (
             icons::BUILDING,
             cx.organization,
-            format!("Workspace actif : {}", cx.organization.unwrap_or_default()),
+            format!(
+                "Espace de travail actif : {}",
+                cx.organization.unwrap_or_default()
+            ),
         )
     };
     if let Some(org) = chip_text {

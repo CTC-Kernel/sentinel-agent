@@ -8,7 +8,7 @@ pub(super) fn open(ctx: &egui::Context, memory: bool) {
     ctx.data_mut(|d| d.insert_temp(egui::Id::new("resource_inspector"), Some(memory)));
 }
 
-pub(super) fn show(ctx: &egui::Context, state: &AppState) {
+pub(super) fn show(ctx: &egui::Context, state: &mut AppState) {
     let id = egui::Id::new("resource_inspector");
     let Some(memory) = ctx.data_mut(|d| d.get_temp::<Option<bool>>(id).flatten()) else {
         return;
@@ -37,8 +37,8 @@ pub(super) fn show(ctx: &egui::Context, state: &AppState) {
                 return;
             }
             let (min, max, mean) = statistics(&values).expect("nonempty finite samples");
-            widgets::detail_field(ui, "Dernière mesure", &format!("{:.1} %", values.last().unwrap()[1]));
-            widgets::detail_field(ui, "Minimum / moyenne / maximum", &format!("{min:.1} % / {mean:.1} % / {max:.1} %"));
+            widgets::detail_field(ui, "Dernière mesure", &crate::format::pct(values.last().unwrap()[1], 1));
+            widgets::detail_field(ui, "Minimum / moyenne / maximum", &format!("{} / {} / {}", crate::format::pct(min, 1), crate::format::pct(mean, 1), crate::format::pct(max, 1)));
             widgets::detail_field(ui, "Échantillons", &values.len().to_string());
             if memory {
                 widgets::detail_field(ui, "Mémoire utilisée / totale", &format!("{} / {} Mo", state.resources.memory_used_mb, state.resources.memory_total_mb));
@@ -53,16 +53,20 @@ pub(super) fn show(ctx: &egui::Context, state: &AppState) {
             egui::Grid::new(id.with("samples")).striped(true).show(ui, |ui| {
                 ui.strong("Ancienneté"); ui.strong("Utilisation"); ui.end_row();
                 for p in values.iter().rev().take(20) {
-                    ui.label(format!("{:.0} s", last_time - p[0])); ui.label(format!("{:.1} %", p[1])); ui.end_row();
+                    ui.label(format!("{:.0} s", last_time - p[0])); ui.label(crate::format::pct(p[1], 1)); ui.end_row();
                 }
             });
         }, &[widgets::DetailAction::secondary("Copier les mesures CSV", icons::COPY).enabled(!values.is_empty())]);
     if action == Some(0) {
-        let mut csv = String::from("uptime_seconds,usage_percent\n");
+        let mut csv = String::from("secondes_depuis_demarrage,utilisation_pourcent\n");
         for [time, value] in &values {
             csv.push_str(&format!("{time},{value}\n"));
         }
         ctx.copy_text(csv);
+        state.push_toast(
+            widgets::toast::Toast::success("Mesures copiées dans le presse-papiers"),
+            ctx,
+        );
     }
     if !visible {
         ctx.data_mut(|d| d.insert_temp(id, Option::<bool>::None));

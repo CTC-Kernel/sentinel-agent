@@ -311,6 +311,8 @@ async fn upgrading_v9_preserves_webhook_credentials_and_format() {
     let db = open(&dir.path().join("db"));
     db.with_connection_mut(|conn| {
         // Back to version 9, one migration at a time.
+        agent_storage::migrations::rollback_migration(conn, 14)?;
+        agent_storage::migrations::rollback_migration(conn, 13)?;
         agent_storage::migrations::rollback_migration(conn, 12)?;
         agent_storage::migrations::rollback_migration(conn, 11)?;
         agent_storage::migrations::rollback_migration(conn, 10)?;

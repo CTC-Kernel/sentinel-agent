@@ -15,6 +15,229 @@ use crate::icons;
 use crate::theme;
 use crate::widgets;
 
+/// Key of the "decommission this asset" confirmation dialog.
+const DECOMMISSION_CONFIRM: &str = "asset_decommission_confirm";
+
+/// Device types the form offers, as discovery reports them.
+const DEVICE_TYPES: &[&str] = &[
+    "workstation",
+    "server",
+    "router",
+    "switch",
+    "firewall",
+    "printer",
+    "phone",
+    "iot",
+    "nas",
+    "camera",
+    "unknown",
+];
+
+/// The fields of the inline form that creates or edits an asset.
+struct InlineAssetForm {
+    hostname: String,
+    ip: String,
+    device_type: String,
+    criticality_idx: usize,
+}
+
+impl InlineAssetForm {
+    const fn empty() -> Self {
+        Self {
+            hostname: String::new(),
+            ip: String::new(),
+            device_type: String::new(),
+            criticality_idx: 2, // Medium by default
+        }
+    }
+}
+
+thread_local! {
+    static FORM: std::cell::RefCell<InlineAssetForm> =
+        const { std::cell::RefCell::new(InlineAssetForm::empty()) };
+}
+
+/// Why the form cannot be saved, or `None` when it can. `editing` is the
+/// identifier of the asset being edited, which may keep its own address.
+fn form_error(ip: &str, editing: Option<&str>, assets: &[ManagedAsset]) -> Option<&'static str> {
+    let ip = ip.trim();
+    if ip.is_empty() {
+        return Some("L'adresse IP est obligatoire.");
+    }
+    if ip.parse::<std::net::IpAddr>().is_err() {
+        return Some("Adresse IP invalide (exemple : 192.168.1.10).");
+    }
+    if assets
+        .iter()
+        .any(|a| a.ip == ip && Some(a.id.as_str()) != editing)
+    {
+        return Some("Un actif porte déjà cette adresse IP.");
+    }
+    None
+}
+
+/// The lifecycle "Promouvoir" leads to, or `None` at the end of the path.
+fn promoted(lifecycle: AssetLifecycle) -> Option<AssetLifecycle> {
+    match lifecycle {
+        AssetLifecycle::Unauthorized => Some(AssetLifecycle::Discovered),
+        AssetLifecycle::Discovered => Some(AssetLifecycle::Qualified),
+        AssetLifecycle::Qualified => Some(AssetLifecycle::Monitored),
+        AssetLifecycle::Monitored | AssetLifecycle::Decommissioned => None,
+    }
+}
+
+/// Ordering helpers for the sortable tables of the asset and network pages.
+pub(super) mod order {
+    use std::cmp::Ordering;
+
+    use crate::widgets::table;
+
+    /// Text, whatever its case.
+    pub fn text(a: &str, b: &str) -> Ordering {
+        a.to_lowercase().cmp(&b.to_lowercase())
+    }
+
+    /// A value that is there: neither missing nor blank.
+    fn present(value: Option<&str>) -> Option<&str> {
+        value.filter(|v| !v.trim().is_empty())
+    }
+
+    /// Text with the missing or empty values last.
+    pub fn opt_text(a: Option<&str>, b: Option<&str>) -> Ordering {
+        match (present(a), present(b)) {
+            (Some(a), Some(b)) => text(a, b),
+            (Some(_), None) => Ordering::Less,
+            (None, Some(_)) => Ordering::Greater,
+            (None, None) => Ordering::Equal,
+        }
+    }
+
+    /// Addresses by value, not by spelling: `10.0.0.9` before `10.0.0.10`.
+    /// IPv4 before IPv6; what is not an address last, as text.
+    pub fn ip(a: &str, b: &str) -> Ordering {
+        use std::net::IpAddr;
+        match (a.trim().parse::<IpAddr>(), b.trim().parse::<IpAddr>()) {
+            (Ok(a), Ok(b)) => a.cmp(&b),
+            (Ok(_), Err(_)) => Ordering::Less,
+            (Err(_), Ok(_)) => Ordering::Greater,
+            (Err(_), Err(_)) => opt_text(Some(a), Some(b)),
+        }
+    }
+
+    /// Runs of digits and of anything else: `["24", ".", "8"]`.
+    fn runs(value: &str) -> Vec<&str> {
+        let mut out = Vec::new();
+        let mut start = 0;
+        let mut digits: Option<bool> = None;
+        for (index, ch) in value.char_indices() {
+            let is_digit = ch.is_ascii_digit();
+            if digits.is_some_and(|d| d != is_digit) {
+                out.push(&value[start..index]);
+                start = index;
+            }
+            digits = Some(is_digit);
+        }
+        if start < value.len() {
+            out.push(&value[start..]);
+        }
+        out
+    }
+
+    /// Versions and identifiers by their numbers: `1.9` before `1.10`,
+    /// `KB999` before `KB1000`. The rest compares as text.
+    pub fn version(a: &str, b: &str) -> Ordering {
+        let (left, right) = (runs(a.trim()), runs(b.trim()));
+        for (x, y) in left.iter().zip(&right) {
+            let numeric = x.starts_with(|c: char| c.is_ascii_digit())
+                && y.starts_with(|c: char| c.is_ascii_digit());
+            let ordering = if numeric {
+                let (x, y) = (x.trim_start_matches('0'), y.trim_start_matches('0'));
+                x.len().cmp(&y.len()).then_with(|| x.cmp(y))
+            } else {
+                text(x, y)
+            };
+            if ordering != Ordering::Equal {
+                return ordering;
+            }
+        }
+        left.len().cmp(&right.len())
+    }
+
+    /// [`version`] with the missing or empty values last.
+    pub fn opt_version(a: Option<&str>, b: Option<&str>) -> Ordering {
+        match (present(a), present(b)) {
+            (Some(a), Some(b)) => version(a, b),
+            (a, b) => opt_text(a, b),
+        }
+    }
+
+    /// The header row of a sortable table: a sortable cell for each column
+    /// with a key, a plain one otherwise (nothing for an empty label).
+    /// Returns true when a click changed the sort.
+    pub fn headers(
+        header: &mut egui_extras::TableRow<'_, '_>,
+        table_name: &'static str,
+        columns: &[(&str, Option<&str>)],
+    ) -> bool {
+        let mut changed = false;
+        for (label, key) in columns {
+            header.col(|ui| match key {
+                Some(key) => changed |= table::header_cell_sortable(ui, label, table_name, key),
+                None if label.is_empty() => {}
+                None => {
+                    table::header_cell(ui, label);
+                }
+            });
+        }
+        changed
+    }
+
+    /// Order `indices` by the column the header of `table_name` asks for,
+    /// if any. The sort is stable: rows that compare equal keep the page's
+    /// own order. `compare` orders two indices under a column key,
+    /// ascending.
+    pub fn sort(
+        ctx: &egui::Context,
+        table_name: &'static str,
+        indices: &mut [usize],
+        compare: impl Fn(&str, usize, usize) -> Ordering,
+    ) {
+        let sort = table::sort_of(ctx, table_name);
+        if let Some(key) = table::sort_key(&sort) {
+            indices.sort_by(|&a, &b| table::directed(&sort, compare(key, a, b)));
+        }
+    }
+}
+
+/// Rank of a lifecycle along its path, for sorting.
+fn lifecycle_rank(lifecycle: AssetLifecycle) -> usize {
+    AssetLifecycle::all()
+        .iter()
+        .position(|l| *l == lifecycle)
+        .unwrap_or(usize::MAX)
+}
+
+/// Order two assets under a column key of the inventory table, ascending.
+fn compare_assets(key: &str, a: &ManagedAsset, b: &ManagedAsset) -> std::cmp::Ordering {
+    match key {
+        "name" => order::text(
+            a.hostname.as_deref().unwrap_or(&a.ip),
+            b.hostname.as_deref().unwrap_or(&b.ip),
+        ),
+        "ip" => order::ip(&a.ip, &b.ip),
+        "type" => order::text(
+            asset_type_label(&a.device_type),
+            asset_type_label(&b.device_type),
+        ),
+        // Least critical first, so descending puts the critical on top.
+        "criticality" => a.criticality.weight().total_cmp(&b.criticality.weight()),
+        "lifecycle" => lifecycle_rank(a.lifecycle).cmp(&lifecycle_rank(b.lifecycle)),
+        "score" => a.risk_score.total_cmp(&b.risk_score),
+        "last_seen" => a.last_seen.cmp(&b.last_seen),
+        _ => std::cmp::Ordering::Equal,
+    }
+}
+
 /// Asset management page.
 pub struct AssetsPage;
 
@@ -33,6 +256,13 @@ impl AssetsPage {
             ),
         );
         ui.add_space(theme::SPACE_LG);
+
+        // A page number only means something for one set of filters.
+        let filters_before = (
+            state.assets.search.clone(),
+            state.assets.criticality_filter,
+            state.assets.lifecycle_filter,
+        );
 
         // Summary cards
         let total = state.assets.assets.len();
@@ -84,7 +314,7 @@ impl AssetsPage {
                 icons::EYE,
             ),
             (
-                "D\u{00c9}COMMISSION\u{00c9}S",
+                "D\u{00c9}COMMISSIONN\u{00c9}S",
                 decommissioned_count.to_string(),
                 theme::text_tertiary(),
                 icons::TRASH,
@@ -163,6 +393,8 @@ impl AssetsPage {
             )
             .clicked()
             {
+                FORM.with(|form| *form.borrow_mut() = InlineAssetForm::empty());
+                state.assets.editing_id = None;
                 state.assets.asset_editing = true;
             }
 
@@ -170,7 +402,7 @@ impl AssetsPage {
                 egui::Layout::right_to_left(egui::Align::Center),
                 |ui: &mut egui::Ui| {
                     if widgets::ghost_button(ui, format!("{}  CSV", icons::DOWNLOAD)).clicked() {
-                        let filtered = Self::filtered_indices(state);
+                        let filtered = Self::displayed_indices(ui.ctx(), state);
                         Self::export_csv(state, &filtered);
                         state.push_toast(
                             crate::widgets::toast::Toast::info("Export CSV en cours…"),
@@ -189,7 +421,7 @@ impl AssetsPage {
         let med_active = state.assets.criticality_filter == Some(AssetCriticality::Medium);
         let low_active = state.assets.criticality_filter == Some(AssetCriticality::Low);
 
-        let filtered = Self::filtered_indices(state);
+        let filtered = Self::displayed_indices(ui.ctx(), state);
         let result_count = filtered.len();
 
         let toggled = widgets::SearchFilterBar::new(
@@ -242,6 +474,16 @@ impl AssetsPage {
             }
         });
 
+        if filters_before
+            != (
+                state.assets.search.clone(),
+                state.assets.criticality_filter,
+                state.assets.lifecycle_filter,
+            )
+        {
+            state.assets.page = 0;
+        }
+
         ui.add_space(theme::SPACE_SM);
 
         // Inline new asset form
@@ -251,7 +493,7 @@ impl AssetsPage {
         }
 
         // Asset table
-        let filtered = Self::filtered_indices(state);
+        let filtered = Self::displayed_indices(ui.ctx(), state);
 
         widgets::data_card(ui, "Inventaire des actifs", |ui: &mut egui::Ui| {
             ui.label(
@@ -291,7 +533,21 @@ impl AssetsPage {
         // Detail drawer
         Self::detail_drawer(ui, state, &mut command);
 
+        if let Some(decommission) = Self::resolve_decommission(ui, state) {
+            command = Some(decommission);
+        }
+
         command
+    }
+
+    /// The filtered assets in the order the table shows them: the CSV
+    /// export and the keyboard follow it.
+    fn displayed_indices(ctx: &egui::Context, state: &AppState) -> Vec<usize> {
+        let mut indices = Self::filtered_indices(state);
+        order::sort(ctx, "assets", &mut indices, |key, a, b| {
+            compare_assets(key, &state.assets.assets[a], &state.assets.assets[b])
+        });
+        indices
     }
 
     fn filtered_indices(state: &AppState) -> Vec<usize> {
@@ -336,6 +592,7 @@ impl AssetsPage {
 
     fn render_asset_table(ui: &mut Ui, state: &mut AppState, indices: &[usize]) {
         let mut clicked_idx: Option<usize> = None;
+        let mut resorted = false;
 
         const ASSETS_PER_PAGE: usize = 50;
         let (a_start, a_len, _) =
@@ -359,27 +616,21 @@ impl AssetsPage {
                 ],
             )
             .header(theme::TABLE_HEADER_HEIGHT, |mut header| {
-                header.col(|ui| {
-                    table::header_cell(ui, "NOM");
-                });
-                header.col(|ui| {
-                    table::header_cell(ui, "IP");
-                });
-                header.col(|ui| {
-                    table::header_cell(ui, "TYPE");
-                });
-                header.col(|ui| {
-                    table::header_cell(ui, "CRITICIT\u{00c9}");
-                });
-                header.col(|ui| {
-                    table::header_cell(ui, "CYCLE DE VIE");
-                });
-                header.col(|ui| {
-                    table::header_cell_right(ui, "SCORE");
-                });
-                header.col(|ui| {
-                    table::header_cell(ui, "DERNI\u{00c8}RE VUE");
-                });
+                if order::headers(
+                    &mut header,
+                    "assets",
+                    &[
+                        ("NOM", Some("name")),
+                        ("IP", Some("ip")),
+                        ("TYPE", Some("type")),
+                        ("CRITICIT\u{00c9}", Some("criticality")),
+                        ("CYCLE DE VIE", Some("lifecycle")),
+                        ("SCORE", Some("score")),
+                        ("DERNI\u{00c8}RE VUE", Some("last_seen")),
+                    ],
+                ) {
+                    resorted = true;
+                }
             })
             .body(|body| {
                 let now = chrono::Utc::now();
@@ -458,6 +709,9 @@ impl AssetsPage {
             });
         });
 
+        if resorted {
+            state.assets.page = 0;
+        }
         if let Some(idx) = clicked_idx {
             state.assets.selected_asset = Some(idx);
             state.assets.detail_open = true;
@@ -493,9 +747,14 @@ impl AssetsPage {
         let (crit_label, crit_color) = Self::criticality_display(&asset.criticality);
         let (lc_label, lc_color) = Self::lifecycle_display(&asset.lifecycle);
 
+        let next_lifecycle = promoted(asset.lifecycle);
         let actions = vec![
-            widgets::DetailAction::primary("Promouvoir", icons::ARROW_UP),
+            widgets::DetailAction::primary("Promouvoir", icons::ARROW_UP)
+                .enabled(next_lifecycle.is_some()),
+            widgets::DetailAction::secondary("Modifier", icons::PENCIL),
             widgets::DetailAction::secondary("Exporter", icons::DOWNLOAD),
+            widgets::DetailAction::danger("Décommissionner", icons::TRASH)
+                .enabled(asset.lifecycle != AssetLifecycle::Decommissioned),
         ];
 
         let drawer_action = widgets::DetailDrawer::new(
@@ -594,22 +853,39 @@ impl AssetsPage {
             match action_idx {
                 0 => {
                     // Promote lifecycle: Unauthorized -> Discovered -> Qualified -> Monitored
-                    if selected < state.assets.assets.len() {
-                        let new_lifecycle = match state.assets.assets[selected].lifecycle {
-                            AssetLifecycle::Unauthorized => AssetLifecycle::Discovered,
-                            AssetLifecycle::Discovered => AssetLifecycle::Qualified,
-                            AssetLifecycle::Qualified => AssetLifecycle::Monitored,
-                            other => other,
-                        };
+                    if let Some(new_lifecycle) = next_lifecycle {
                         state.assets.assets[selected].lifecycle = new_lifecycle;
-                        let asset_id = state.assets.assets[selected].id.to_string();
                         *command = Some(GuiCommand::UpdateAssetLifecycle {
-                            asset_id,
+                            asset_id: asset.id.clone(),
                             lifecycle: new_lifecycle,
                         });
+                        state.push_toast(
+                            crate::widgets::toast::Toast::success(format!(
+                                "Cycle de vie : {}",
+                                new_lifecycle.label_fr()
+                            )),
+                            ui.ctx(),
+                        );
                     }
                 }
                 1 => {
+                    // Edit in the inline form, filled with this asset.
+                    FORM.with(|form| {
+                        *form.borrow_mut() = InlineAssetForm {
+                            hostname: asset.hostname.clone().unwrap_or_default(),
+                            ip: asset.ip.clone(),
+                            device_type: asset.device_type.clone(),
+                            criticality_idx: AssetCriticality::all()
+                                .iter()
+                                .position(|c| *c == asset.criticality)
+                                .unwrap_or(2),
+                        };
+                    });
+                    state.assets.editing_id = Some(asset.id.clone());
+                    state.assets.asset_editing = true;
+                    state.assets.detail_open = false;
+                }
+                2 => {
                     // Export single asset
                     Self::export_csv(state, &[selected]);
                     state.push_toast(
@@ -617,9 +893,55 @@ impl AssetsPage {
                         ui.ctx(),
                     );
                 }
+                3 => {
+                    // Ask first: nothing changes until the operator confirms.
+                    widgets::modal::ask_confirmation(
+                        ui.ctx(),
+                        DECOMMISSION_CONFIRM,
+                        asset.id.clone(),
+                    );
+                    state.assets.detail_open = false;
+                }
                 _ => {}
             }
         }
+    }
+
+    /// Draw the pending decommission confirmation, if any, and return the
+    /// lifecycle change to send once confirmed.
+    fn resolve_decommission(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
+        let asset_id =
+            widgets::modal::pending_confirmation::<String>(ui.ctx(), DECOMMISSION_CONFIRM)?;
+        let name = state
+            .assets
+            .assets
+            .iter()
+            .find(|a| a.id == asset_id)
+            .map(|a| a.hostname.clone().unwrap_or_else(|| a.ip.clone()))
+            .unwrap_or_default();
+        let confirmed = widgets::modal::resolve_confirmation::<String>(
+            ui.ctx(),
+            DECOMMISSION_CONFIRM,
+            "Décommissionner l'actif ?",
+            &format!(
+                "{name} sortira du périmètre surveillé. Il reste dans l'inventaire, \
+                 au cycle de vie « Décommissionné »."
+            ),
+            "Décommissionner",
+        );
+        if !confirmed {
+            return None;
+        }
+        let asset = state.assets.assets.iter_mut().find(|a| a.id == asset_id)?;
+        asset.lifecycle = AssetLifecycle::Decommissioned;
+        state.push_toast(
+            crate::widgets::toast::Toast::success("Actif décommissionné"),
+            ui.ctx(),
+        );
+        Some(GuiCommand::UpdateAssetLifecycle {
+            asset_id,
+            lifecycle: AssetLifecycle::Decommissioned,
+        })
     }
 
     /// Import discovered devices as managed assets (skip already-imported IPs).
@@ -727,32 +1049,30 @@ impl AssetsPage {
         widgets::metric_card(ui, width, label, value, color, icon)
     }
 
-    /// Inline form to create a new managed asset.
+    /// Inline form that creates a managed asset, or edits the one named by
+    /// `state.assets.editing_id`.
     fn show_asset_form(ui: &mut Ui, state: &mut AppState, command: &mut Option<GuiCommand>) {
-        /// Inline editing state for the new-asset form.
-        struct InlineAssetForm {
-            hostname: String,
-            ip: String,
-            device_type: String,
-            criticality_idx: usize,
-        }
-
-        thread_local! {
-            static FORM: std::cell::RefCell<InlineAssetForm> = const { std::cell::RefCell::new(InlineAssetForm {
-                hostname: String::new(),
-                ip: String::new(),
-                device_type: String::new(),
-                criticality_idx: 2, // Medium by default
-            }) };
+        let editing = state.assets.editing_id.clone();
+        // The asset being edited left the inventory: nothing to edit.
+        if let Some(id) = &editing
+            && !state.assets.assets.iter().any(|a| &a.id == id)
+        {
+            state.assets.editing_id = None;
+            state.assets.asset_editing = false;
+            return;
         }
 
         widgets::card(ui, |ui: &mut egui::Ui| {
             ui.label(
-                egui::RichText::new("NOUVEL ACTIF")
-                    .font(theme::font_label())
-                    .color(theme::accent_text())
-                    .extra_letter_spacing(theme::TRACKING_NORMAL)
-                    .strong(),
+                egui::RichText::new(if editing.is_some() {
+                    "MODIFIER L'ACTIF"
+                } else {
+                    "NOUVEL ACTIF"
+                })
+                .font(theme::font_label())
+                .color(theme::accent_text())
+                .extra_letter_spacing(theme::TRACKING_NORMAL)
+                .strong(),
             );
             ui.add_space(theme::SPACE_SM);
 
@@ -766,12 +1086,29 @@ impl AssetsPage {
 
                 // IP address
                 widgets::form::row(ui, "IP", |ui: &mut egui::Ui| {
-                    widgets::text_input(ui, &mut f.ip, "192.168.1.1…");
+                    widgets::text_input(ui, &mut f.ip, "192.168.1.10");
                 });
 
-                // Device type
+                // Device type: the known types, plus the one a hand-entered
+                // or synchronised asset already carries.
                 widgets::form::row(ui, "Type", |ui: &mut egui::Ui| {
-                    widgets::text_input(ui, &mut f.device_type, "serveur, poste, routeur…");
+                    let mut keys: Vec<&str> = DEVICE_TYPES.to_vec();
+                    let current = f.device_type.trim().to_ascii_lowercase();
+                    let mut index = keys.iter().position(|key| {
+                        *key == current || (current.is_empty() && *key == "unknown")
+                    });
+                    let custom = f.device_type.clone();
+                    if index.is_none() {
+                        keys.push(&custom);
+                        index = Some(keys.len() - 1);
+                    }
+                    let mut index = index.unwrap_or(0);
+                    let labels: Vec<&str> = keys.iter().map(|key| asset_type_label(key)).collect();
+                    if widgets::dropdown(ui, "asset_type", &labels, &mut index)
+                        && let Some(key) = keys.get(index)
+                    {
+                        f.device_type = (*key).to_string();
+                    }
                 });
 
                 // Criticality dropdown
@@ -782,11 +1119,24 @@ impl AssetsPage {
                         .collect();
                     widgets::dropdown(ui, "asset_crit", &crit_labels, &mut f.criticality_idx);
                 });
+
+                let error = form_error(&f.ip, editing.as_deref(), &state.assets.assets);
+                // Nothing typed yet is not an error worth printing.
+                if let Some(message) = error
+                    && !f.ip.trim().is_empty()
+                {
+                    ui.add_space(theme::SPACE_XS);
+                    ui.label(
+                        egui::RichText::new(format!("{}  {message}", icons::WARNING))
+                            .font(theme::font_small())
+                            .color(theme::readable_color(theme::ERROR)),
+                    );
+                }
                 ui.add_space(theme::SPACE_SM);
 
                 // Save / Cancel
                 ui.horizontal(|ui: &mut egui::Ui| {
-                    let can_save = !f.ip.trim().is_empty();
+                    let can_save = error.is_none();
 
                     if widgets::primary_button(
                         ui,
@@ -800,54 +1150,74 @@ impl AssetsPage {
                             .get(f.criticality_idx)
                             .copied()
                             .unwrap_or(AssetCriticality::Medium);
+                        let hostname = if f.hostname.trim().is_empty() {
+                            None
+                        } else {
+                            Some(f.hostname.trim().to_string())
+                        };
+                        let device_type = if f.device_type.trim().is_empty() {
+                            "unknown".to_string()
+                        } else {
+                            f.device_type.trim().to_string()
+                        };
                         let now = Utc::now();
-                        let asset = ManagedAsset {
-                            id: Uuid::new_v4().to_string(),
-                            ip: f.ip.trim().to_string(),
-                            hostname: if f.hostname.trim().is_empty() {
-                                None
-                            } else {
-                                Some(f.hostname.trim().to_string())
-                            },
-                            mac: None,
-                            vendor: None,
-                            device_type: if f.device_type.trim().is_empty() {
-                                "inconnu".to_string()
-                            } else {
-                                f.device_type.trim().to_string()
-                            },
-                            criticality,
-                            lifecycle: AssetLifecycle::Discovered,
-                            tags: Vec::new(),
-                            risk_score: 0.0,
-                            vulnerability_count: 0,
-                            open_ports: Vec::new(),
-                            software: Vec::new(),
-                            first_seen: now,
-                            last_seen: now,
+                        let existing = editing
+                            .as_ref()
+                            .and_then(|id| state.assets.assets.iter_mut().find(|a| &a.id == id));
+                        let asset = match existing {
+                            // Editing keeps everything the form does not show.
+                            Some(asset) => {
+                                asset.ip = f.ip.trim().to_string();
+                                asset.hostname = hostname;
+                                asset.device_type = device_type;
+                                asset.criticality = criticality;
+                                asset.clone()
+                            }
+                            None => {
+                                let asset = ManagedAsset {
+                                    id: Uuid::new_v4().to_string(),
+                                    ip: f.ip.trim().to_string(),
+                                    hostname,
+                                    mac: None,
+                                    vendor: None,
+                                    device_type,
+                                    criticality,
+                                    lifecycle: AssetLifecycle::Discovered,
+                                    tags: Vec::new(),
+                                    risk_score: 0.0,
+                                    vulnerability_count: 0,
+                                    open_ports: Vec::new(),
+                                    software: Vec::new(),
+                                    first_seen: now,
+                                    last_seen: now,
+                                };
+                                state.assets.assets.push(asset.clone());
+                                asset
+                            }
                         };
 
                         *command = Some(GuiCommand::SaveAsset {
-                            asset: Box::new(asset.clone()),
+                            asset: Box::new(asset),
                         });
-                        state.assets.assets.push(asset);
+                        state.push_toast(
+                            crate::widgets::toast::Toast::success(if editing.is_some() {
+                                "Actif modifié"
+                            } else {
+                                "Actif ajouté à l'inventaire"
+                            }),
+                            ui.ctx(),
+                        );
                         state.assets.asset_editing = false;
-
-                        // Reset form
-                        f.hostname.clear();
-                        f.ip.clear();
-                        f.device_type.clear();
-                        f.criticality_idx = 2;
+                        state.assets.editing_id = None;
+                        *f = InlineAssetForm::empty();
                     }
 
                     ui.add_space(theme::SPACE_SM);
 
                     if widgets::ghost_button(ui, format!("{}  Annuler", icons::XMARK)).clicked() {
                         state.assets.asset_editing = false;
-                        f.hostname.clear();
-                        f.ip.clear();
-                        f.device_type.clear();
-                        f.criticality_idx = 2;
+                        state.assets.editing_id = None;
+                        *f = InlineAssetForm::empty();
                     }
                 });
             });
@@ -862,7 +1232,7 @@ impl AssetsPage {
                 Some(vec![
                     a.hostname.clone().unwrap_or_default(),
                     a.ip.clone(),
-                    a.device_type.clone(),
+                    asset_type_label(&a.device_type).to_string(),
                     a.criticality.label_fr().to_string(),
                     a.lifecycle.label_fr().to_string(),
                     format!("{:.1}", a.risk_score),
@@ -943,5 +1313,110 @@ fn asset_type_label(kind: &str) -> &str {
         "camera" => "Caméra",
         "unknown" | "" => "Non identifié",
         _ => kind,
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn asset(id: &str, ip: &str) -> ManagedAsset {
+        ManagedAsset {
+            id: id.to_string(),
+            ip: ip.to_string(),
+            hostname: None,
+            mac: None,
+            vendor: None,
+            device_type: "server".to_string(),
+            criticality: AssetCriticality::Medium,
+            lifecycle: AssetLifecycle::Discovered,
+            tags: Vec::new(),
+            risk_score: 0.0,
+            vulnerability_count: 0,
+            open_ports: Vec::new(),
+            software: Vec::new(),
+            first_seen: Utc::now(),
+            last_seen: Utc::now(),
+        }
+    }
+
+    #[test]
+    fn the_form_wants_a_real_address_that_no_other_asset_has() {
+        let assets = vec![asset("a", "192.168.1.10")];
+        assert!(form_error("", None, &assets).is_some());
+        assert!(form_error("abc", None, &assets).is_some());
+        assert!(form_error("192.168.1.10", None, &assets).is_some());
+        assert_eq!(form_error(" 192.168.1.11 ", None, &assets), None);
+        assert_eq!(form_error("fe80::1", None, &assets), None);
+        // The asset being edited keeps its own address.
+        assert_eq!(form_error("192.168.1.10", Some("a"), &assets), None);
+        assert!(form_error("192.168.1.10", Some("b"), &assets).is_some());
+    }
+
+    #[test]
+    fn addresses_sort_by_value_and_versions_by_their_numbers() {
+        use std::cmp::Ordering::{Equal, Greater, Less};
+        assert_eq!(order::ip("10.0.0.9", "10.0.0.10"), Less);
+        assert_eq!(order::ip("192.168.1.2", "192.168.1.100"), Less);
+        assert_eq!(order::ip("192.168.10.1", "192.168.9.1"), Greater);
+        assert_eq!(order::ip("10.0.0.1", " 10.0.0.1 "), Equal);
+        // IPv4 before IPv6, anything else last.
+        assert_eq!(order::ip("192.168.1.1", "fe80::1"), Less);
+        assert_eq!(order::ip("fe80::1", "inconnu"), Less);
+        assert_eq!(order::ip("*", "10.0.0.1"), Greater);
+
+        assert_eq!(order::version("1.9", "1.10"), Less);
+        assert_eq!(order::version("24.08", "24.8"), Equal);
+        assert_eq!(order::version("2.0.0", "2.0"), Greater);
+        assert_eq!(order::version("KB999", "KB1000"), Less);
+        assert_eq!(
+            order::version("3.0.2-0ubuntu1.15", "3.0.2-0ubuntu1.9"),
+            Greater
+        );
+        assert_eq!(order::opt_version(None, Some("1.0")), Greater);
+
+        assert_eq!(order::text("alpha", "Beta"), Less);
+        assert_eq!(order::opt_text(Some(""), Some("zeta")), Greater);
+        assert_eq!(order::opt_text(None, None), Equal);
+    }
+
+    #[test]
+    fn assets_sort_by_rank_not_by_label() {
+        use std::cmp::Ordering::{Greater, Less};
+        let mut critical = asset("a", "10.0.0.10");
+        critical.criticality = AssetCriticality::Critical;
+        critical.lifecycle = AssetLifecycle::Monitored;
+        critical.risk_score = 9.0;
+        let mut low = asset("b", "10.0.0.9");
+        low.criticality = AssetCriticality::Low;
+        low.lifecycle = AssetLifecycle::Discovered;
+        low.risk_score = 80.0;
+        assert_eq!(compare_assets("criticality", &critical, &low), Greater);
+        assert_eq!(compare_assets("lifecycle", &critical, &low), Greater);
+        assert_eq!(compare_assets("score", &critical, &low), Less);
+        assert_eq!(compare_assets("ip", &critical, &low), Greater);
+        // Without a host name, the name column falls back on the address.
+        assert_eq!(compare_assets("name", &critical, &low), Less);
+    }
+
+    #[test]
+    fn promotion_stops_at_monitored() {
+        assert_eq!(
+            promoted(AssetLifecycle::Unauthorized),
+            Some(AssetLifecycle::Discovered)
+        );
+        assert_eq!(
+            promoted(AssetLifecycle::Qualified),
+            Some(AssetLifecycle::Monitored)
+        );
+        assert_eq!(promoted(AssetLifecycle::Monitored), None);
+        assert_eq!(promoted(AssetLifecycle::Decommissioned), None);
+    }
+
+    #[test]
+    fn every_offered_type_has_a_french_name() {
+        for key in DEVICE_TYPES {
+            assert_ne!(asset_type_label(key), *key, "{key}");
+        }
     }
 }

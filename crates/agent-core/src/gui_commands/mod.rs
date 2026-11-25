@@ -123,7 +123,14 @@ fn group_of(command: &GuiCommand) -> Group {
         | GuiCommand::GetCheckResults
         | GuiCommand::MarkNotificationRead { .. }
         | GuiCommand::MarkAllNotificationsRead
-        | GuiCommand::DeleteNotification { .. } => Group::Control,
+        | GuiCommand::SaveNotification { .. }
+        | GuiCommand::LoadNotifications { .. }
+        | GuiCommand::DeleteNotification { .. }
+        | GuiCommand::RefreshMdmDeployments
+        | GuiCommand::RestoreSettings { .. }
+        | GuiCommand::ServiceAdminUnlock { .. }
+        | GuiCommand::ServiceAdminSetPassword { .. }
+        | GuiCommand::ServiceAdminLock => Group::Control,
         GuiCommand::UpdateCheckInterval { .. }
         | GuiCommand::UpdateAllowlist { .. }
         | GuiCommand::SetLogLevel { .. }
@@ -141,10 +148,7 @@ fn group_of(command: &GuiCommand) -> Group {
         | GuiCommand::UnblockIp { .. }
         | GuiCommand::IsolateHost { .. }
         | GuiCommand::ReleaseHost => Group::Response,
-        GuiCommand::ExportSbom
-        | GuiCommand::GenerateReport { .. }
-        | GuiCommand::ExportReportHtml { .. }
-        | GuiCommand::ExportCsvAuditTrail => Group::Reports,
+        GuiCommand::ExportSbom | GuiCommand::ExportCsvAuditTrail => Group::Reports,
         GuiCommand::ExecutePlaybook { .. }
         | GuiCommand::TogglePlaybook { .. }
         | GuiCommand::SavePlaybook { .. }
@@ -154,6 +158,7 @@ fn group_of(command: &GuiCommand) -> Group {
         | GuiCommand::ToggleDetectionRule { .. }
         | GuiCommand::RestoreDefaultDetectionRules => Group::Playbooks,
         GuiCommand::SaveRisk { .. }
+        | GuiCommand::SaveRisks { .. }
         | GuiCommand::DeleteRisk { .. }
         | GuiCommand::SaveAsset { .. }
         | GuiCommand::UpdateAssetLifecycle { .. }
@@ -188,8 +193,55 @@ fn group_of(command: &GuiCommand) -> Group {
     }
 }
 
+/// Whether the background service runs `command` when the interface is
+/// only its companion (Windows). The other commands stay in the
+/// interface's own process:
+///
+/// | Group | Runs in | Why |
+/// |---|---|---|
+/// | Control | service | scans, sync, pause, remediation, notifications: the agent's own state |
+/// | Control: `Shutdown`, `Restart` | interface | they end the interface's process, never the service |
+/// | Control: `ConnectToPlatform` | interface | opens the wizard |
+/// | Settings | service | the service owns the agent's settings |
+/// | Response | service | acts on the host with the service's rights |
+/// | Reports: `ExportSbom` | service | reads the service's last vulnerability scan |
+/// | Reports: `ExportCsvAuditTrail` | interface | written by the interface from what it shows |
+/// | Playbooks, Grc | service | the service's database, one writer |
+/// | Ai | interface | the model, its downloads and the prompts live in the user's session |
+/// | Voice | interface | microphone and speakers belong to the user's session |
+///
+/// `RestoreSettings` and the `ServiceAdmin*` requests are never commands
+/// for the service: the first is dropped by a companion interface, the
+/// others travel as their own frames.
+pub(crate) fn runs_in_service(command: &GuiCommand) -> bool {
+    match command {
+        GuiCommand::Shutdown
+        | GuiCommand::Restart
+        | GuiCommand::ConnectToPlatform
+        | GuiCommand::ExportCsvAuditTrail
+        | GuiCommand::RestoreSettings { .. }
+        | GuiCommand::ServiceAdminUnlock { .. }
+        | GuiCommand::ServiceAdminSetPassword { .. }
+        | GuiCommand::ServiceAdminLock => false,
+        _ => !matches!(group_of(command), Group::Ai | Group::Voice),
+    }
+}
+
 /// Hand `command` to its group of handlers.
 async fn dispatch(ctx: &mut CommandContext, command: GuiCommand) -> Flow {
+    // Preferences restored by the interface at start-up: each one is a
+    // command of its own (a batch inside a batch is ignored).
+    if let GuiCommand::RestoreSettings { commands } = command {
+        for command in commands {
+            if matches!(command, GuiCommand::RestoreSettings { .. }) {
+                continue;
+            }
+            if Box::pin(dispatch(ctx, command)).await == Flow::Stop {
+                return Flow::Stop;
+            }
+        }
+        return Flow::Continue;
+    }
     match group_of(&command) {
         Group::Control => return control::handle(ctx, command).await,
         Group::Settings => settings::handle(ctx, command).await,
@@ -318,6 +370,54 @@ mod tests {
         );
         assert_eq!(group_of(&GuiCommand::LlmCancel), Group::Ai);
         assert_eq!(group_of(&GuiCommand::StopVoice), Group::Voice);
+    }
+
+    #[test]
+    fn a_companion_interface_keeps_its_own_session_and_its_own_process() {
+        for service in [
+            GuiCommand::RunCheck,
+            GuiCommand::Pause,
+            GuiCommand::SetLogLevel { level: 2 },
+            GuiCommand::ReleaseHost,
+            GuiCommand::ExportSbom,
+            GuiCommand::RestoreDefaultDetectionRules,
+            GuiCommand::DeleteRisk {
+                risk_id: "risk-1".to_string(),
+            },
+        ] {
+            assert!(runs_in_service(&service), "{service:?}");
+        }
+        for local in [
+            GuiCommand::Shutdown,
+            GuiCommand::Restart,
+            GuiCommand::ConnectToPlatform,
+            GuiCommand::ExportCsvAuditTrail,
+            GuiCommand::LlmCancel,
+            GuiCommand::StopVoice,
+            GuiCommand::ServiceAdminLock,
+            GuiCommand::RestoreSettings { commands: vec![] },
+        ] {
+            assert!(!runs_in_service(&local), "{local:?}");
+        }
+    }
+
+    #[tokio::test]
+    async fn restored_settings_are_applied_one_by_one() {
+        let (mut ctx, _events) = testing::context();
+        let flow = dispatch(
+            &mut ctx,
+            GuiCommand::RestoreSettings {
+                commands: vec![
+                    GuiCommand::Pause,
+                    GuiCommand::RestoreSettings {
+                        commands: vec![GuiCommand::Resume],
+                    },
+                ],
+            },
+        )
+        .await;
+        assert_eq!(flow, Flow::Continue);
+        assert!(ctx.handle.is_paused(), "the nested batch was ignored");
     }
 
     #[tokio::test]

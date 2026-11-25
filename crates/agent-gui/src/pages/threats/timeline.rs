@@ -109,7 +109,14 @@ pub(super) fn event_timeline(ui: &mut Ui, threats: &[ThreatEvent]) {
         // Hour labels
         ui.add_space(theme::SPACE_XS);
         ui.horizontal(|ui: &mut egui::Ui| {
-            let labels = ["00:00", "06:00", "12:00", "18:00", "Maintenant"];
+            // The bar is a rolling window ending now, not a calendar day.
+            let labels = [
+                "\u{2212}24\u{a0}h",
+                "\u{2212}18\u{a0}h",
+                "\u{2212}12\u{a0}h",
+                "\u{2212}6\u{a0}h",
+                "Maintenant",
+            ];
             let positions = [0.0, 0.25, 0.5, 0.75, 1.0];
             let label_area_w = available_w;
 

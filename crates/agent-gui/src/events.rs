@@ -15,6 +15,57 @@ use crate::dto::{
     GuiVulnerabilityFinding, GuiVulnerabilitySummary, UpdateStatus,
 };
 
+/// A secret typed by the operator (the administrator password on its way
+/// to the background service): never printed, wiped when dropped.
+#[derive(Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(transparent)]
+pub struct Secret(String);
+
+impl Secret {
+    pub fn new(value: impl Into<String>) -> Self {
+        Self(value.into())
+    }
+
+    /// The secret itself, for the one place that checks or hashes it.
+    pub fn expose(&self) -> &str {
+        &self.0
+    }
+}
+
+impl std::fmt::Debug for Secret {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str("Secret(***)")
+    }
+}
+
+impl Drop for Secret {
+    fn drop(&mut self) {
+        zeroize::Zeroize::zeroize(&mut self.0);
+    }
+}
+
+/// What the background service answered to an administrator request sent
+/// over the service channel (Windows: the interface is a companion of the
+/// `SentinelGRCAgent` service, which checks the password itself).
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(tag = "kind", rename_all = "snake_case")]
+pub enum ServiceAdminOutcome {
+    /// The connection may send administrator commands for this long.
+    Unlocked { session_secs: u64 },
+    /// The password was stored; the connection is unlocked as well.
+    PasswordSet { session_secs: u64 },
+    /// Wrong password.
+    Rejected { attempts_left: u32 },
+    /// Too many wrong passwords: no attempt is evaluated before the delay.
+    LockedOut { retry_after_secs: u64 },
+    /// The service holds no administrator password yet.
+    NotConfigured,
+    /// The request was refused for another reason, said in French.
+    Refused { message: String },
+    /// The connection is locked again (asked for, or the session ended).
+    Locked,
+}
+
 /// A single terminal log entry captured from the tracing subsystem.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TerminalLogEntry {
@@ -51,6 +102,22 @@ pub enum AgentEvent {
     Notification {
         /// The notification.
         notification: GuiNotification,
+    },
+    /// What the automatic remediation of a check would run, in answer to
+    /// `GuiCommand::RemediatePreview`. Nothing has been executed.
+    RemediationPreview {
+        /// Check the preview is about.
+        check_id: String,
+        /// Whether an automatic remediation exists on this system.
+        available: bool,
+        /// What the remediation does.
+        description: String,
+        /// The script that would run.
+        command: String,
+        /// Risk of running it, as shown to the operator.
+        risk: String,
+        /// Whether the system must restart afterwards.
+        requires_reboot: bool,
     },
     /// Sync status changed (started, completed, failed).
     SyncStatus {
@@ -116,6 +183,15 @@ pub enum AgentEvent {
         /// Extensions of every user, widest reach first.
         extensions: Vec<crate::dto::GuiBrowserExtension>,
     },
+    /// History of the software deployments ordered by the platform: sent
+    /// at start, after every change and on
+    /// [`GuiCommand::RefreshMdmDeployments`].
+    MdmDeployments {
+        /// Newest first.
+        deployments: Vec<crate::dto::GuiMdmDeployment>,
+        /// What the local configuration allows; `None` when unreadable.
+        policy: Option<crate::dto::GuiMdmPolicy>,
+    },
     /// Vulnerability findings updated.
     VulnerabilityFindings {
         /// List of vulnerability findings.
@@ -148,6 +224,12 @@ pub enum AgentEvent {
         progress: f32,
         /// Number of devices found so far.
         devices_found: usize,
+    },
+    /// The discovery scan did not run, or stopped on an error: nothing is
+    /// in progress any more.
+    DiscoveryFailed {
+        /// Why, in the operator's language.
+        reason: String,
     },
     /// File integrity alert.
     FimAlert {
@@ -208,10 +290,6 @@ pub enum AgentEvent {
         success: bool,
         /// Error message if the action failed.
         error: Option<String>,
-    },
-    /// A report has been generated.
-    ReportGenerated {
-        report: Box<crate::dto::GeneratedReport>,
     },
     /// A playbook was triggered automatically.
     PlaybookTriggered {
@@ -418,6 +496,12 @@ pub enum AgentEvent {
         /// Every file currently in quarantine, most recent first.
         entries: Vec<crate::dto::QuarantinedFile>,
     },
+    /// The addresses blocked right now, whoever blocked them (operator,
+    /// playbook, detection rule) and whenever: replaces the list shown.
+    BlockedIpsLoaded {
+        /// Every address currently blocked, most recent first.
+        entries: Vec<crate::dto::BlockedIp>,
+    },
     /// The last entries of the persistent audit trail (what the agent
     /// recorded in its database, this run and the previous ones), most
     /// recent first: replaces the ones shown.
@@ -425,10 +509,36 @@ pub enum AgentEvent {
         /// The entries, as rows of the audit page.
         entries: Vec<crate::dto::GuiLogEntry>,
     },
+    /// The notifications the agent kept from the previous sessions, with
+    /// their read mark: merged with those of this session.
+    NotificationsLoaded {
+        /// Stored notifications, most recent first.
+        notifications: Vec<GuiNotification>,
+    },
     /// Toggle visibility of the standalone Jarvis widget.
     ToggleJarvisWidget {
         /// Whether the widget should be visible.
         visible: bool,
+    },
+    /// State of the channel to the background service, sent by the
+    /// interface's own bridge when it runs as the service's companion.
+    ServiceLink {
+        /// The service answers on the channel.
+        connected: bool,
+        /// The service holds an administrator password.
+        admin_configured: bool,
+    },
+    /// Answer of the service to an administrator request.
+    ServiceAdmin {
+        outcome: ServiceAdminOutcome,
+    },
+    /// The service refused a command because its connection is not in
+    /// administrator mode: the interface asks for the password, then sends
+    /// the command again.
+    ServiceCommandRefused {
+        command: Box<GuiCommand>,
+        /// Why the administrator mode is needed, in French.
+        reason: String,
     },
 }
 
@@ -536,6 +646,15 @@ pub enum GuiCommand {
     CheckUpdate,
     /// Mark all notifications as read.
     MarkAllNotificationsRead,
+    /// Keep a notification of this session in the agent's database, so the
+    /// notification centre is not empty after a restart.
+    SaveNotification { notification: Box<GuiNotification> },
+    /// Read the stored notifications and send them as
+    /// [`AgentEvent::NotificationsLoaded`].
+    LoadNotifications {
+        /// How many, at most (the most recent ones).
+        limit: u32,
+    },
     /// Delete a notification.
     DeleteNotification {
         /// Notification ID.
@@ -567,8 +686,12 @@ pub enum GuiCommand {
         quarantine_id: String,
     },
     /// Read the quarantine store again and send it as
-    /// [`AgentEvent::QuarantineLoaded`].
+    /// [`AgentEvent::QuarantineLoaded`], with the blocked addresses as
+    /// [`AgentEvent::BlockedIpsLoaded`].
     RefreshQuarantine,
+    /// Read the deployment history again from the database and send it as
+    /// [`AgentEvent::MdmDeployments`].
+    RefreshMdmDeployments,
     /// Block an IP address via firewall rules.
     BlockIp {
         /// IP address to block.
@@ -581,13 +704,6 @@ pub enum GuiCommand {
         /// IP address to unblock.
         ip: String,
     },
-    /// Generate a report.
-    GenerateReport {
-        report_type: crate::dto::ReportType,
-        framework: Option<String>,
-    },
-    /// Export a report as HTML file.
-    ExportReportHtml { report_id: String },
     /// Execute a playbook manually.
     ExecutePlaybook { playbook_id: String },
     /// Toggle playbook enabled state.
@@ -608,6 +724,8 @@ pub enum GuiCommand {
     RestoreDefaultDetectionRules,
     /// Save or update a risk entry.
     SaveRisk { risk: Box<crate::dto::RiskEntry> },
+    /// Save several risk entries at once (the generated ones).
+    SaveRisks { risks: Vec<crate::dto::RiskEntry> },
     /// Delete a risk entry.
     DeleteRisk { risk_id: String },
     /// Save or update a managed asset.
@@ -755,6 +873,19 @@ pub enum GuiCommand {
         /// Polling interval in seconds.
         poll_interval_secs: u64,
     },
+    /// Preferences saved by the interface, sent once at start-up. An agent
+    /// running inside the interface applies them; a background service
+    /// owns its settings and never receives them.
+    RestoreSettings { commands: Vec<GuiCommand> },
+    /// Ask the background service to open the administrator mode for this
+    /// interface. Travels as its own frame on the service channel, never
+    /// as a command.
+    ServiceAdminUnlock { password: Secret },
+    /// Ask the background service to store a new administrator password
+    /// (first password, or a change from an unlocked connection).
+    ServiceAdminSetPassword { password: Secret },
+    /// Close the administrator mode of this interface on the service.
+    ServiceAdminLock,
 }
 
 impl GuiCommand {
@@ -764,14 +895,24 @@ impl GuiCommand {
     /// The rule: anything that silently lowers protection, removes detection
     /// or alerting content, undoes a containment, or sends security data to
     /// a new destination. Protective actions (block, isolate, quarantine,
-    /// scan) stay available to every operator. Quitting the application is
-    /// not listed: the operator owns the process and can end it anyway, and
-    /// a password on the window's close button would only trap them. The
+    /// scan) stay available to every operator. Quitting the agent from a
+    /// menu or a button stops protection, so it is listed too (settings and
+    /// tray menu follow the same rule); the window's close button is not a
+    /// command and is never held: a password there would only trap the
+    /// operator. Stopping the SIEM transfer or the log collection removes
+    /// visibility; retargeting the SIEM is checked where it is edited. The
     /// application enforces this where commands leave the interface,
     /// whatever button, tray menu or assistant suggestion produced them.
     pub fn admin_reason(&self) -> Option<&'static str> {
         Some(match self {
             Self::Pause => "Mettre la protection de l'agent en pause",
+            Self::Shutdown => "Quitter l'agent Sentinel",
+            Self::UpdateSiemConfig { enabled: false, .. } => {
+                "Arrêter le transfert des événements vers le SIEM"
+            }
+            Self::UpdateLogCollectorConfig { enabled: false, .. } => {
+                "Arrêter la collecte des journaux"
+            }
             Self::ReleaseHost => "Lever l'isolement réseau du poste",
             Self::UnblockIp { .. } => "Débloquer une adresse IP",
             Self::RestoreQuarantinedFile { .. } => "Restaurer un fichier mis en quarantaine",
@@ -780,6 +921,10 @@ impl GuiCommand {
                 option,
                 enabled: false,
             } if option.lowers_protection_when_off() => "Désactiver une détection",
+            Self::SetDetectionOption {
+                option: crate::dto::DetectionOption::UsbStorageBlocking,
+                enabled: true,
+            } => "Activer le blocage du stockage USB",
             Self::TogglePlaybook { enabled: false, .. } => "Désactiver un playbook",
             Self::DeletePlaybook { .. } => "Supprimer un playbook",
             Self::ToggleDetectionRule { enabled: false, .. } => "Désactiver une règle de détection",
@@ -801,6 +946,18 @@ mod tests {
     fn commands_that_weaken_protection_need_the_administrator() {
         for cmd in [
             GuiCommand::Pause,
+            GuiCommand::Shutdown,
+            GuiCommand::UpdateSiemConfig {
+                enabled: false,
+                format: "CEF".into(),
+                transport: "Syslog".into(),
+                destination: String::new(),
+            },
+            GuiCommand::UpdateLogCollectorConfig {
+                enabled: false,
+                sources: Vec::new(),
+                poll_interval_secs: 60,
+            },
             GuiCommand::ReleaseHost,
             GuiCommand::SetRansomwareCanaries { enabled: false },
             GuiCommand::SetDetectionOption {
@@ -826,7 +983,12 @@ mod tests {
     fn protective_and_routine_commands_stay_open() {
         for cmd in [
             GuiCommand::Resume,
-            GuiCommand::Shutdown,
+            GuiCommand::UpdateSiemConfig {
+                enabled: true,
+                format: "CEF".into(),
+                transport: "Syslog".into(),
+                destination: "siem.example.com:514".into(),
+            },
             GuiCommand::RunCheck,
             GuiCommand::IsolateHost { duration_secs: 0 },
             GuiCommand::BlockIp {
@@ -890,5 +1052,49 @@ mod tests {
         let event = AgentEvent::ShuttingDown;
         let json = serde_json::to_string(&event).unwrap();
         assert!(json.contains("shutting_down"));
+    }
+}
+
+#[cfg(test)]
+mod secret_tests {
+    use super::*;
+
+    #[test]
+    fn a_secret_is_never_printed() {
+        let command = GuiCommand::ServiceAdminUnlock {
+            password: Secret::new("phrase de passe solide"),
+        };
+        let printed = format!("{command:?}");
+        assert!(!printed.contains("phrase"), "{printed}");
+        assert!(printed.contains("***"));
+    }
+
+    #[test]
+    fn commands_and_events_survive_a_json_round_trip() {
+        let command = GuiCommand::RestoreSettings {
+            commands: vec![
+                GuiCommand::SetLogLevel { level: 2 },
+                GuiCommand::UpdateCheckInterval {
+                    interval_secs: 3600,
+                },
+            ],
+        };
+        let json = serde_json::to_string(&command).expect("serialize");
+        let back: GuiCommand = serde_json::from_str(&json).expect("deserialize");
+        assert!(matches!(
+            back,
+            GuiCommand::RestoreSettings { commands } if commands.len() == 2
+        ));
+
+        let event = AgentEvent::ServiceAdmin {
+            outcome: ServiceAdminOutcome::Rejected { attempts_left: 3 },
+        };
+        let json = serde_json::to_string(&event).expect("serialize");
+        assert!(matches!(
+            serde_json::from_str::<AgentEvent>(&json).expect("deserialize"),
+            AgentEvent::ServiceAdmin {
+                outcome: ServiceAdminOutcome::Rejected { attempts_left: 3 }
+            }
+        ));
     }
 }

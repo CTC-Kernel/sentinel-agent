@@ -97,8 +97,13 @@ pub enum EnrollmentCommand {
         token: String,
         admin_password: Option<String>,
     },
-    /// User submitted a QR payload.
-    SubmitQr(String),
+    /// User submitted a QR payload, with the administrator password of a
+    /// first enrollment (`None` when an already protected agent joins a
+    /// platform: its password stays as it is).
+    SubmitQr {
+        payload: String,
+        admin_password: Option<String>,
+    },
     /// User chose to run without a platform (standalone), with the local
     /// administrator password that guards the critical settings.
     SetupStandalone { admin_password: Option<String> },
@@ -198,7 +203,12 @@ impl EnrollmentWizard {
                             ui.add_space(theme::SPACE_LG);
 
                             // Step indicator
-                            Self::step_indicator(ui, &self.step, self.standalone);
+                            Self::step_indicator(
+                                ui,
+                                &self.step,
+                                self.standalone,
+                                self.connect_later,
+                            );
                             ui.add_space(theme::SPACE_LG);
 
                             match &self.step {
@@ -269,8 +279,9 @@ impl EnrollmentWizard {
                 ui.add_space(theme::SPACE_SM);
                 ui.label(
                     egui::RichText::new(
-                        "Comment ce poste doit-il \u{00ea}tre prot\u{00e9}g\u{00e9} ? Le choix \
-                         se change plus tard dans les param\u{00e8}tres.",
+                        "Comment ce poste doit-il \u{00ea}tre prot\u{00e9}g\u{00e9} ? Un poste \
+                         autonome peut rejoindre une plateforme plus tard, depuis les \
+                         param\u{00e8}tres.",
                     )
                     .font(theme::font_body())
                     .color(theme::text_secondary())
@@ -473,28 +484,28 @@ impl EnrollmentWizard {
 
                     if widgets::primary_button_loading(
                         ui,
-                        "Suivant",
+                        if self.connect_later {
+                            "Connecter"
+                        } else {
+                            "Suivant"
+                        },
                         is_valid && !self.is_enrolling,
                         self.is_enrolling,
                     )
                     .clicked()
                     {
-                        if self.use_qr {
-                            // QR goes directly to enrollment (no admin setup for QR)
-                            let qr = self.qr_input.trim().to_string();
-                            self.step = EnrollmentStep::InProgress;
-                            self.is_enrolling = true;
-                            self.progress_message = "Traitement du code QR…".to_string();
-                            command = Some(EnrollmentCommand::SubmitQr(qr));
-                        } else {
-                            // Token goes to admin setup step
-                            self.step = EnrollmentStep::AdminSetup;
-                        }
+                        command = self.leave_token_entry();
                     }
 
                     ui.add_space(theme::SPACE_SM);
-                    if widgets::secondary_button(ui, "Annuler", true).clicked() {
-                        command = Some(EnrollmentCommand::Cancel);
+                    if self.connect_later {
+                        // Opened from a running agent: back to its interface.
+                        if widgets::secondary_button(ui, "Annuler", true).clicked() {
+                            command = Some(EnrollmentCommand::Cancel);
+                        }
+                    } else if widgets::secondary_button(ui, "Retour", true).clicked() {
+                        // First launch: the other choice is one step back.
+                        self.step = EnrollmentStep::Welcome;
                     }
                 });
             });
@@ -619,12 +630,7 @@ impl EnrollmentWizard {
                                 admin_password: password,
                             });
                         } else {
-                            let token = self.token_input.trim().to_string();
-                            self.progress_message = "Connexion au serveur…".to_string();
-                            command = Some(EnrollmentCommand::SubmitEnrollment {
-                                token,
-                                admin_password: password,
-                            });
+                            command = Some(self.submit_platform(password));
                         }
                     }
 
@@ -768,7 +774,15 @@ impl EnrollmentWizard {
 
     /// Numbered stepper: done steps carry a check, the current one is filled,
     /// the rest wait in outline. Painted, so it centres as one block.
-    fn step_indicator(ui: &mut Ui, current: &EnrollmentStep, standalone: bool) {
+    fn step_indicator(
+        ui: &mut Ui,
+        current: &EnrollmentStep,
+        standalone: bool,
+        connect_later: bool,
+    ) {
+        // A protected agent joining a platform: no choice to make and no
+        // administrator password to define again.
+        const CONNECT_LABELS: [&str; 3] = ["Jeton", "Connexion", "Termin\u{00e9}"];
         const PLATFORM_LABELS: [&str; 5] = [
             "Bienvenue",
             "Jeton",
@@ -782,15 +796,31 @@ impl EnrollmentWizard {
             "Activation",
             "Termin\u{00e9}",
         ];
-        const STEP_W: f32 = 96.0;
-        const RADIUS: f32 = 11.0;
-
-        let labels: &[&str] = if standalone {
+        let labels: &[&str] = if connect_later {
+            &CONNECT_LABELS
+        } else if standalone {
             &STANDALONE_LABELS
         } else {
             &PLATFORM_LABELS
         };
-        let current_idx = match (current, standalone) {
+        let current_idx = if connect_later {
+            match current {
+                EnrollmentStep::Welcome
+                | EnrollmentStep::TokenEntry
+                | EnrollmentStep::AdminSetup => 0,
+                EnrollmentStep::InProgress | EnrollmentStep::Complete { success: false, .. } => 1,
+                EnrollmentStep::Complete { .. } => 2,
+            }
+        } else {
+            Self::first_launch_step_index(current, standalone)
+        };
+        let failed = matches!(current, EnrollmentStep::Complete { success: false, .. });
+        Self::paint_steps(ui, labels, current_idx, failed);
+    }
+
+    /// Position of `current` in the first-launch steppers.
+    fn first_launch_step_index(current: &EnrollmentStep, standalone: bool) -> usize {
+        match (current, standalone) {
             (EnrollmentStep::Welcome, _) => 0,
             (EnrollmentStep::TokenEntry, _) => 1,
             (EnrollmentStep::AdminSetup, false) => 2,
@@ -804,8 +834,12 @@ impl EnrollmentWizard {
             (EnrollmentStep::Complete { success: false, .. }, true) => 2,
             (EnrollmentStep::Complete { .. }, false) => 4,
             (EnrollmentStep::Complete { .. }, true) => 3,
-        };
-        let failed = matches!(current, EnrollmentStep::Complete { success: false, .. });
+        }
+    }
+
+    fn paint_steps(ui: &mut Ui, labels: &[&str], current_idx: usize, failed: bool) {
+        const STEP_W: f32 = 96.0;
+        const RADIUS: f32 = 11.0;
 
         let height = RADIUS * 2.0 + theme::SPACE_XS + theme::ICON_SM;
         let (rect, _) = ui.allocate_exact_size(
@@ -904,6 +938,38 @@ impl EnrollmentWizard {
         self.step = EnrollmentStep::Complete { success, message };
     }
 
+    /// Leave the token step. A first enrollment defines the administrator
+    /// password next, for a token as for a QR code. An agent that is already
+    /// protected and joins a platform keeps its password: the token is
+    /// submitted at once, and nothing typed here can replace that password.
+    fn leave_token_entry(&mut self) -> Option<EnrollmentCommand> {
+        if self.connect_later {
+            Some(self.submit_platform(None))
+        } else {
+            self.step = EnrollmentStep::AdminSetup;
+            None
+        }
+    }
+
+    /// Start the platform enrollment with what the token step holds.
+    fn submit_platform(&mut self, admin_password: Option<String>) -> EnrollmentCommand {
+        self.step = EnrollmentStep::InProgress;
+        self.is_enrolling = true;
+        if self.use_qr {
+            self.progress_message = "Traitement du code QR…".to_string();
+            EnrollmentCommand::SubmitQr {
+                payload: self.qr_input.trim().to_string(),
+                admin_password,
+            }
+        } else {
+            self.progress_message = "Connexion au serveur…".to_string();
+            EnrollmentCommand::SubmitEnrollment {
+                token: self.token_input.trim().to_string(),
+                admin_password,
+            }
+        }
+    }
+
     /// The step the wizard goes back to after a failed attempt: where the
     /// operator can change what failed (the token, or nothing but retry).
     fn retry_step(&self) -> EnrollmentStep {
@@ -998,6 +1064,54 @@ mod tests {
             !EnrollmentWizard::default().connect_later,
             "a first launch has nothing to restart"
         );
+    }
+
+    #[test]
+    fn joining_a_platform_never_carries_an_administrator_password() {
+        // The existing password guards the agent: a wizard opened from the
+        // running interface must not be a way to define another one.
+        for use_qr in [false, true] {
+            let mut wizard = EnrollmentWizard::for_platform_connection();
+            wizard.use_qr = use_qr;
+            wizard.token_input = "jeton".into();
+            wizard.qr_input = "{\"token\":\"jeton\"}".into();
+            let command = wizard.leave_token_entry();
+            assert!(
+                matches!(wizard.step, EnrollmentStep::InProgress),
+                "no administrator step when the agent is already protected"
+            );
+            match command {
+                Some(EnrollmentCommand::SubmitEnrollment { admin_password, .. })
+                | Some(EnrollmentCommand::SubmitQr { admin_password, .. }) => {
+                    assert!(admin_password.is_none());
+                }
+                other => panic!("expected a submission, got {other:?}"),
+            }
+        }
+    }
+
+    #[test]
+    fn a_first_enrollment_defines_the_password_for_a_token_and_for_a_qr_code() {
+        for use_qr in [false, true] {
+            let mut wizard = EnrollmentWizard {
+                step: EnrollmentStep::TokenEntry,
+                use_qr,
+                token_input: "jeton".into(),
+                qr_input: "contenu".into(),
+                ..Default::default()
+            };
+            assert!(wizard.leave_token_entry().is_none());
+            assert!(matches!(wizard.step, EnrollmentStep::AdminSetup));
+            match wizard.submit_platform(Some("phrase de passe solide".into())) {
+                EnrollmentCommand::SubmitQr { admin_password, .. } if use_qr => {
+                    assert!(admin_password.is_some());
+                }
+                EnrollmentCommand::SubmitEnrollment { admin_password, .. } if !use_qr => {
+                    assert!(admin_password.is_some());
+                }
+                other => panic!("unexpected command: {other:?}"),
+            }
+        }
     }
 
     #[test]

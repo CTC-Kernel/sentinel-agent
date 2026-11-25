@@ -1,7 +1,8 @@
 // Copyright (c) 2024-2026 Cyber Threat Consulting
 // SPDX-License-Identifier: MIT
 
-//! EDR investigation tab — IOC search, cross-source correlation, and process chain viewer.
+//! EDR investigation tab — search of an indicator of compromise across the
+//! detection sources. A result opens the event it comes from.
 
 use chrono::{DateTime, Utc};
 use egui::Ui;
@@ -24,6 +25,24 @@ struct IocSearchResult {
     severity: &'static str,
     timestamp: DateTime<Utc>,
     mitre_id: Option<&'static str>,
+    /// The event the result comes from: source collection and index in it.
+    kind: &'static str,
+    source_index: usize,
+}
+
+/// Name under which the sort order of the results is kept.
+const RESULTS_TABLE: &str = "ioc_results";
+
+/// Ascending order of two results on a sort key.
+fn result_order(key: &str, a: &IocSearchResult, b: &IocSearchResult) -> std::cmp::Ordering {
+    use super::types::{severity_rank, text_order};
+    match key {
+        "date" => a.timestamp.cmp(&b.timestamp),
+        "severity" => severity_rank(a.severity).cmp(&severity_rank(b.severity)),
+        "source" => a.source.cmp(b.source),
+        "title" => text_order(&a.title, &b.title),
+        _ => std::cmp::Ordering::Equal,
+    }
 }
 
 /// Render the investigation tab.
@@ -79,27 +98,14 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                     IocSearchType::Process => "powershell, curl, nc…",
                     IocSearchType::Cve => "CVE-2024-12345…",
                 };
-                let input_width = (ui.available_width() - 140.0).max(200.0);
+                // The search is live: no button to press.
+                let input_width = ui.available_width().max(200.0);
                 widgets::SearchInput::new(&mut state.threats.ioc_search, hint)
                     .width(input_width)
                     .height(theme::BUTTON_HEIGHT)
                     .font(theme::font_body())
                     .id_salt("ioc_search")
                     .show(ui);
-
-                ui.add_space(theme::SPACE_SM);
-
-                if widgets::button::primary_button(
-                    ui,
-                    format!("{}  Rechercher", icons::SEARCH),
-                    true,
-                )
-                .clicked()
-                    || (ui.input(|i| i.key_pressed(egui::Key::Enter))
-                        && !state.threats.ioc_search.is_empty())
-                {
-                    // Search is live — results computed below from current query
-                }
             });
         },
     );
@@ -121,16 +127,23 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
         return None;
     }
 
-    let results = search_ioc(state, &query, state.threats.ioc_type);
+    let mut results = search_ioc(state, &query, state.threats.ioc_type);
     state.threats.ioc_results_count = results.len();
+    // Most recent first, then the key chosen in the results card.
+    super::types::sort_rows(
+        &mut results,
+        &widgets::table::sort_of(ui.ctx(), RESULTS_TABLE),
+        result_order,
+    );
 
     // ── Results panel ───────────────────────────────────────────────
+    let mut opened: Option<(&'static str, usize)> = None;
     widgets::data_card(ui, "Résultats d’investigation", |ui: &mut egui::Ui| {
         ui.horizontal(|ui: &mut egui::Ui| {
             ui.label(
                 egui::RichText::new(format!(
-                    "R\u{00c9}SULTATS ({} correspondances)",
-                    results.len()
+                    "R\u{00c9}SULTATS ({})",
+                    crate::format::count(results.len(), "correspondance")
                 ))
                 .font(theme::font_label())
                 .color(theme::text_tertiary())
@@ -139,6 +152,20 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
             );
         });
         ui.add_space(theme::SPACE_SM);
+
+        if results.len() > 1 {
+            super::types::sort_bar(
+                ui,
+                RESULTS_TABLE,
+                &[
+                    ("date", "Date"),
+                    ("severity", "S\u{00e9}v\u{00e9}rit\u{00e9}"),
+                    ("source", "Source"),
+                    ("title", "Titre"),
+                ],
+            );
+            ui.add_space(theme::SPACE_SM);
+        }
 
         if results.is_empty() {
             widgets::empty_state(
@@ -150,7 +177,7 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                 ),
             );
         } else {
-            for result in &results {
+            for (row, result) in results.iter().enumerate() {
                 let (sev_icon, sev_color) = severity_display(result.severity);
 
                 let accent_bar_width = 3.0_f32;
@@ -210,8 +237,21 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                         });
                     });
 
-                // Accent bar
+                // The whole row opens the event it comes from.
                 let rect = frame_resp.response.rect;
+                let click = ui
+                    .interact(
+                        rect,
+                        ui.id().with(("ioc_result", row)),
+                        egui::Sense::click(),
+                    )
+                    .on_hover_cursor(egui::CursorIcon::PointingHand)
+                    .on_hover_text("Ouvrir l'\u{00e9}v\u{00e9}nement");
+                if click.clicked() {
+                    opened = Some((result.kind, result.source_index));
+                }
+
+                // Accent bar
                 let bar_rect = egui::Rect::from_min_size(
                     rect.left_top(),
                     egui::vec2(accent_bar_width, rect.height()),
@@ -231,6 +271,11 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
         }
     });
 
+    if let Some((kind, source_index)) = opened {
+        super::types::request_open(ui.ctx(), kind, source_index);
+        state.threats.active_tab = crate::dto::EdrTab::Overview;
+    }
+
     None
 }
 
@@ -241,7 +286,7 @@ fn search_ioc(state: &AppState, query: &str, ioc_type: IocSearchType) -> Vec<Ioc
     match ioc_type {
         IocSearchType::Ip => {
             // Search network alerts by source_ip / destination_ip
-            for alert in &state.network.alerts {
+            for (index, alert) in state.network.alerts.iter().enumerate() {
                 let src_match = alert
                     .source_ip
                     .as_deref()
@@ -267,13 +312,15 @@ fn search_ioc(state: &AppState, query: &str, ioc_type: IocSearchType) -> Vec<Ioc
                         severity: alert.severity.as_str(),
                         timestamp: alert.detected_at,
                         mitre_id: mitre.map(|m| m.id),
+                        kind: "network",
+                        source_index: index,
                     });
                 }
             }
         }
         IocSearchType::Domain => {
             // Search network alerts descriptions for domain matches
-            for alert in &state.network.alerts {
+            for (index, alert) in state.network.alerts.iter().enumerate() {
                 if alert.description.to_lowercase().contains(query)
                     || alert.alert_type.to_lowercase().contains(query)
                 {
@@ -285,13 +332,15 @@ fn search_ioc(state: &AppState, query: &str, ioc_type: IocSearchType) -> Vec<Ioc
                         severity: alert.severity.as_str(),
                         timestamp: alert.detected_at,
                         mitre_id: mitre.map(|m| m.id),
+                        kind: "network",
+                        source_index: index,
                     });
                 }
             }
         }
         IocSearchType::Hash => {
             // Search FIM alerts by old_hash / new_hash
-            for alert in &state.fim.alerts {
+            for (index, alert) in state.fim.alerts.iter().enumerate() {
                 let old_match = alert
                     .old_hash
                     .as_deref()
@@ -313,13 +362,15 @@ fn search_ioc(state: &AppState, query: &str, ioc_type: IocSearchType) -> Vec<Ioc
                         severity: "high",
                         timestamp: alert.timestamp,
                         mitre_id: mitre.map(|m| m.id),
+                        kind: "fim",
+                        source_index: index,
                     });
                 }
             }
         }
         IocSearchType::Process => {
             // Search suspicious processes by name / command line
-            for proc in &state.threats.suspicious_processes {
+            for (index, proc) in state.threats.suspicious_processes.iter().enumerate() {
                 if proc.process_name.to_lowercase().contains(query)
                     || proc.command_line.to_lowercase().contains(query)
                 {
@@ -345,11 +396,13 @@ fn search_ioc(state: &AppState, query: &str, ioc_type: IocSearchType) -> Vec<Ioc
                         severity,
                         timestamp: proc.detected_at,
                         mitre_id: mitre.map(|m| m.id),
+                        kind: "process",
+                        source_index: index,
                     });
                 }
             }
             // Also search system incidents
-            for inc in &state.threats.system_incidents {
+            for (index, inc) in state.threats.system_incidents.iter().enumerate() {
                 if inc.title.to_lowercase().contains(query)
                     || inc.description.to_lowercase().contains(query)
                 {
@@ -361,13 +414,15 @@ fn search_ioc(state: &AppState, query: &str, ioc_type: IocSearchType) -> Vec<Ioc
                         severity: inc.severity.as_str(),
                         timestamp: inc.detected_at,
                         mitre_id: mitre.map(|m| m.id),
+                        kind: "system",
+                        source_index: index,
                     });
                 }
             }
         }
         IocSearchType::Cve => {
             // Search vulnerability findings by CVE ID
-            for vuln in &state.vulnerability_findings {
+            for (index, vuln) in state.vulnerability_findings.iter().enumerate() {
                 if vuln.cve_id.to_lowercase().contains(query) {
                     results.push(IocSearchResult {
                         source: "CVE",
@@ -376,6 +431,8 @@ fn search_ioc(state: &AppState, query: &str, ioc_type: IocSearchType) -> Vec<Ioc
                         severity: vuln.severity.as_str(),
                         timestamp: vuln.discovered_at.unwrap_or_else(Utc::now),
                         mitre_id: None,
+                        kind: "vulnerability",
+                        source_index: index,
                     });
                 }
             }

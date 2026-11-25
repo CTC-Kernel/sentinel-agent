@@ -49,19 +49,6 @@ pub struct CartographyPage;
 
 impl CartographyPage {
     pub fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
-        if state.discovery.devices.is_empty() {
-            ui.add_space(theme::SPACE_LG);
-            widgets::empty_state(
-                ui,
-                icons::CARTOGRAPHY,
-                "Aucun actif découvert",
-                Some(
-                    "Veuillez lancer une découverte réseau pour cartographier votre infrastructure.",
-                ),
-            );
-            return None;
-        }
-
         ui.add_space(theme::SPACE_XS);
         widgets::page_header_nav(
             ui,
@@ -69,10 +56,52 @@ impl CartographyPage {
             "Cartographie Réseau",
             Some("Visualisation topologique et relations entre actifs."),
             Some(
-                "Explorez les relations entre les actifs de votre réseau. Les noeuds représentent les machines et les liens indiquent les interactions détectées. Utilisez le zoom et le panoramique pour naviguer.",
+                "Explorez les relations entre les actifs de votre réseau. Les nœuds représentent les machines et les liens indiquent les interactions détectées. Utilisez le zoom et le panoramique pour naviguer.",
             ),
         );
         ui.add_space(theme::SPACE_LG);
+
+        if state.discovery.devices.is_empty() {
+            let mut command = None;
+            widgets::data_card(ui, "Cartographie", |ui: &mut egui::Ui| {
+                widgets::empty_state(
+                    ui,
+                    icons::CARTOGRAPHY,
+                    "Aucun actif découvert",
+                    Some(
+                        "La carte se construit à partir des équipements trouvés par la découverte réseau.",
+                    ),
+                );
+                ui.add_space(theme::SPACE_MD);
+                ui.vertical_centered(|ui: &mut egui::Ui| {
+                    let scanning = state.discovery.in_progress;
+                    let label = if scanning {
+                        format!("{}  Découverte en cours…", icons::PLAY)
+                    } else if state.security.admin_unlocked {
+                        format!("{}  Lancer la découverte", icons::PLAY)
+                    } else {
+                        format!("{}  Lancer la découverte  {}", icons::PLAY, icons::LOCK)
+                    };
+                    // Discovery probes the network: an administrator action,
+                    // here as on the Shadow IT page.
+                    if widgets::primary_button(ui, label, !scanning).clicked()
+                        && !scanning
+                        && state.require_admin("Lancer la découverte réseau")
+                    {
+                        command = Some(GuiCommand::StartDiscovery);
+                    }
+                    if let Some(reason) = &state.discovery.error {
+                        ui.add_space(theme::SPACE_SM);
+                        ui.label(
+                            egui::RichText::new(reason)
+                                .font(theme::font_small())
+                                .color(theme::readable_color(theme::ERROR)),
+                        );
+                    }
+                });
+            });
+            return command;
+        }
 
         // Control bar (AAA Grade)
         ui.push_id("cartography_controls", |ui: &mut egui::Ui| {
@@ -80,8 +109,13 @@ impl CartographyPage {
                 ui.horizontal(|ui: &mut egui::Ui| {
                     ui.label(
                         egui::RichText::new(format!(
-                            "{} NOEUD(S) RÉSEAU",
-                            state.discovery.devices.len()
+                            "{} {} RÉSEAU",
+                            state.discovery.devices.len(),
+                            if state.discovery.devices.len() > 1 {
+                                "NŒUDS"
+                            } else {
+                                "NŒUD"
+                            }
                         ))
                         .font(theme::font_label())
                         .color(theme::text_tertiary())
@@ -136,14 +170,27 @@ impl CartographyPage {
                     )
                     .clicked()
                     {
-                        if state.settings.architecture_url.starts_with("https://") {
-                            if let Err(e) = open::that(&state.settings.architecture_url) {
-                                tracing::warn!("Failed to open URL: {}", e);
-                            }
+                        // A refusal or a failure is said, not only logged.
+                        let failure = if state.settings.architecture_url.starts_with("https://") {
+                            open::that(&state.settings.architecture_url)
+                                .err()
+                                .map(|e| {
+                                    tracing::warn!("Failed to open URL: {}", e);
+                                    "Impossible d'ouvrir la vue 3D dans le navigateur"
+                                })
                         } else {
                             tracing::warn!(
                                 "Refused to open non-HTTPS URL: {}",
                                 state.settings.architecture_url
+                            );
+                            Some(
+                                "Adresse de la vue 3D absente ou non HTTPS : corrigez-la dans Paramètres",
+                            )
+                        };
+                        if let Some(message) = failure {
+                            state.push_toast(
+                                crate::widgets::toast::Toast::error(message),
+                                ui.ctx(),
                             );
                         }
                     }
@@ -174,16 +221,20 @@ impl CartographyPage {
 
         ui.add_space(theme::SPACE_MD);
 
-        // Invalidate layout if device list changed
-        let device_count = state.discovery.devices.len();
+        // Invalidate the layout when the devices changed: another count,
+        // but also another address, type or role behind the same count.
         if state
             .cartography
             .layout
             .as_ref()
-            .is_some_and(|l| l.nodes.len() != device_count)
+            .is_some_and(|l| !l.matches(&state.discovery.devices))
         {
             state.cartography.layout = None;
-            state.cartography.selected_device = None;
+            if let Some(ip) = &state.cartography.selected_device
+                && !state.discovery.devices.iter().any(|d| &d.ip == ip)
+            {
+                state.cartography.selected_device = None;
+            }
         }
 
         // Build graph layout if needed (avoid cloning on every frame)
@@ -400,13 +451,16 @@ impl CartographyPage {
                         .strong(),
                 );
                 ui.add_space(theme::SPACE_MD);
+                // One entry per type the map draws, in the colour it uses.
                 let legend_items = [
-                    ("PASSERELLE", theme::ACCENT),
-                    ("SERVEUR", theme::SUCCESS),
-                    ("POSTE CLIENT", theme::text_primary()),
-                    ("PÉRIPHÉRIQUE", theme::text_tertiary()),
-                    ("IOT / EMBARQUÉ", theme::WARNING),
-                    ("NON IDENTIFIÉ", theme::text_secondary()),
+                    ("ROUTEUR / PASSERELLE", device_type_color("router")),
+                    ("COMMUTATEUR", device_type_color("switch")),
+                    ("SERVEUR", device_type_color("server")),
+                    ("POSTE DE TRAVAIL", device_type_color("workstation")),
+                    ("IMPRIMANTE", device_type_color("printer")),
+                    ("MOBILE", device_type_color("phone")),
+                    ("IOT / EMBARQUÉ", device_type_color("iot")),
+                    ("NON IDENTIFIÉ", device_type_color("unknown")),
                 ];
                 ui.horizontal_wrapped(|ui| {
                     for (label, color) in legend_items {
@@ -418,7 +472,7 @@ impl CartographyPage {
                             ui.painter().circle_filled(
                                 dot_rect.center(),
                                 theme::STATUS_DOT_SIZE / 2.0,
-                                color,
+                                theme::readable_color(color),
                             );
                             ui.label(
                                 egui::RichText::new(label)
@@ -533,7 +587,14 @@ impl CartographyPage {
     }
 
     fn export_csv(state: &AppState) -> bool {
-        let headers = &["ip", "hostname", "mac", "vendor", "type", "passerelle"];
+        let headers = &[
+            "ip",
+            "nom_hote",
+            "mac",
+            "constructeur",
+            "type",
+            "passerelle",
+        ];
         let rows: Vec<Vec<String>> = state
             .discovery
             .devices
@@ -568,9 +629,23 @@ pub struct GraphLayout {
     converged: bool,
 }
 
+impl GraphLayout {
+    /// Whether the nodes still describe `devices`, one for one.
+    fn matches(&self, devices: &[GuiDiscoveredDevice]) -> bool {
+        self.nodes.len() == devices.len()
+            && self.nodes.iter().zip(devices).all(|(node, device)| {
+                node.device.ip == device.ip
+                    && node.device.device_type == device.device_type
+                    && node.device.hostname == device.hostname
+                    && node.device.is_gateway == device.is_gateway
+            })
+    }
+}
+
 fn device_type_color(device_type: &str) -> Color32 {
     match device_type {
         "router" => theme::ACCENT,
+        "switch" => theme::INFO,
         "server" => theme::SUCCESS,
         "workstation" => theme::text_primary(),
         "printer" => theme::text_tertiary(),
@@ -600,6 +675,7 @@ fn device_type_icon(device: &GuiDiscoveredDevice) -> &'static str {
     }
     match device.device_type.as_str() {
         "router" => icons::NETWORK,
+        "switch" => icons::SHARE_NODES,
         "server" => icons::SERVER,
         "workstation" => icons::DESKTOP,
         "printer" => icons::PRINT,

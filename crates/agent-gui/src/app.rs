@@ -198,7 +198,7 @@ fn page_catalog() -> [(Page, &'static str, &'static str, &'static str, &'static 
 /// Build the full command list shown in the palette: one entry per page plus
 /// the global actions that already have keyboard shortcuts. A standalone
 /// agent has no synchronisation page and nothing to synchronise.
-fn build_palette_commands(standalone: bool) -> Vec<widgets::CommandItem> {
+fn build_palette_commands(standalone: bool, paused: bool) -> Vec<widgets::CommandItem> {
     let mut commands: Vec<widgets::CommandItem> = page_catalog()
         .into_iter()
         .filter(|(page, ..)| !(standalone && *page == Page::Sync))
@@ -228,9 +228,57 @@ fn build_palette_commands(standalone: bool) -> Vec<widgets::CommandItem> {
             .icon(icons::SETTINGS)
             .category("Actions"),
     );
+    // What the tray menu offers, for a session without a tray (headless
+    // Linux, a tray that failed to start) and for the keyboard.
+    commands.push(if paused {
+        widgets::CommandItem::new("action:toggle_pause", "Reprendre la protection")
+            .icon(icons::PLAY)
+            .category("Actions")
+    } else {
+        widgets::CommandItem::new("action:toggle_pause", "Mettre la protection en pause")
+            .description("Mode administrateur requis")
+            .icon(icons::PAUSE)
+            .category("Actions")
+    });
+    commands.push(
+        widgets::CommandItem::new("action:check_update", "Vérifier les mises à jour")
+            .icon(icons::DOWNLOAD)
+            .category("Actions"),
+    );
+    commands.push(
+        widgets::CommandItem::new("action:assistant_widget", "Assistant flottant")
+            .description("Afficher ou masquer la fenêtre de l'assistant")
+            .icon(icons::BRAIN)
+            .category("Actions"),
+    );
+    commands.push(
+        widgets::CommandItem::new("action:open_logs", "Ouvrir le dossier des journaux")
+            .icon(icons::FOLDER_OPEN)
+            .category("Actions"),
+    );
+    commands.push(
+        widgets::CommandItem::new("action:open_guide", "Guide utilisateur")
+            .icon(icons::BOOK)
+            .category("Actions"),
+    );
 
     commands
 }
+
+/// Seconds between two scans of "Découverte réseau automatique".
+const AUTO_DISCOVERY_INTERVAL_SECS: f64 = 3600.0;
+
+/// Whether the automatic network discovery should start a scan now: the
+/// option is on, protection is not paused, no scan is running, and the
+/// last automatic scan is at least an interval old.
+fn auto_discovery_due(enabled: bool, paused: bool, scanning: bool, now: f64, last: f64) -> bool {
+    enabled && !paused && !scanning && now - last >= AUTO_DISCOVERY_INTERVAL_SECS
+}
+
+/// Why quitting asks for the administrator mode.
+const QUIT_REASON: &str = "Quitter l'agent Sentinel";
+/// Key of the confirmation shown before quitting from the tray menu.
+const QUIT_CONFIRM: &str = "shell_quit_confirm";
 
 /// Palette entries for the data on screen — a CVE, an asset, a package, a
 /// process, a risk — each opening its page and its record. Capped per kind
@@ -464,6 +512,17 @@ pub struct SentinelApp {
     /// while it was locked. Moved into the administrator dialog each frame;
     /// interior mutability because commands are sent from `&self`.
     admin_held: std::cell::RefCell<Vec<(&'static str, GuiCommand)>>,
+
+    /// The administrator mode was open at the previous pass.
+    admin_was_unlocked: bool,
+
+    /// "Quitter" was chosen in the tray menu: the administrator mode, then
+    /// a confirmation, stand between that click and the shutdown.
+    quit_confirm: bool,
+
+    /// When "Découverte réseau automatique" last started a scan (egui time,
+    /// seconds); negative infinity while the option is off.
+    last_auto_discovery: f64,
 }
 
 impl SentinelApp {
@@ -533,6 +592,9 @@ impl SentinelApp {
             visible: true,
             quit_requested: false,
             admin_held: Default::default(),
+            admin_was_unlocked: false,
+            quit_confirm: false,
+            last_auto_discovery: f64::NEG_INFINITY,
             splash_start: std::time::Instant::now(),
             splash_done: false,
             show_tray_satellite: is_tray_popup,
@@ -549,32 +611,60 @@ impl SentinelApp {
     /// Called once at startup from the `run_native` closure before the first
     /// frame is rendered.  Also re-sends the relevant `GuiCommand`s so the
     /// agent-core runtime picks up the restored values.
+    /// Load the reports generated on this workstation and keep the next
+    /// ones. Main window only: the tray popup never reads nor writes them.
+    pub fn restore_report_history(&mut self) {
+        // The preferences path is a file (eframe's storage): the history is
+        // a folder beside it, in the same data directory.
+        let preferences = Self::preferences_dir();
+        let mut name = preferences
+            .file_name()
+            .map(std::ffi::OsStr::to_os_string)
+            .unwrap_or_default();
+        name.push(".reports");
+        crate::pages::ReportsPage::restore_history(
+            &mut self.state,
+            preferences.with_file_name(name),
+        );
+    }
+
     pub fn apply_persisted_preferences(&mut self, prefs: crate::state::GuiPreferences) {
         prefs.apply_to(&mut self.state);
         self.last_dark_mode = self.state.settings.dark_mode;
 
-        // Re-send ALL commands to agent-core so runtime matches restored prefs.
-        // Send unconditionally (even when disabled) to ensure runtime state is consistent.
-        self.send_command(GuiCommand::UpdateCheckInterval {
-            interval_secs: self.state.settings.check_interval_secs,
-        });
-        self.send_command(GuiCommand::SetLogLevel {
-            level: self.state.settings.log_level.index() as u8,
-        });
-        self.send_command(GuiCommand::UpdateSiemConfig {
+        // Re-send the settings this interface keeps, so the runtime matches
+        // them (even when disabled).
+        // Not the check interval: it is the agent's, which keeps the one
+        // chosen here in its configuration and reports the one in effect.
+        // Sent again at every start, the copy saved here (the built-in
+        // default on a first launch) replaced what the configuration file
+        // or the platform had set.
+        // The log level is a choice of this interface: restored when it is
+        // not the default, which the agent already starts with.
+        let mut commands = Vec::new();
+        if self.state.settings.log_level != crate::dto::LogLevel::Info {
+            commands.push(GuiCommand::SetLogLevel {
+                level: self.state.settings.log_level.index() as u8,
+            });
+        }
+        commands.push(GuiCommand::UpdateSiemConfig {
             enabled: self.state.settings.siem_enabled,
             format: self.state.settings.siem_format.clone(),
             transport: self.state.settings.siem_transport.clone(),
             destination: self.state.settings.siem_destination.clone(),
         });
-        self.send_command(GuiCommand::UpdateLogCollectorConfig {
+        commands.push(GuiCommand::UpdateLogCollectorConfig {
             enabled: self.state.settings.log_collector_enabled,
             sources: self.state.settings.log_collector_sources.clone(),
             poll_interval_secs: self.state.settings.log_collector_poll_secs,
         });
-        if self.state.discovery.enabled {
-            self.send_command(GuiCommand::StartDiscovery);
-        }
+        commands.extend(self.state.threats.take_allowlist_sync());
+        // One batch, sent without the administrator check (restoring what
+        // was saved is not an operator action). An agent running inside the
+        // interface applies it; a background service never receives it: it
+        // owns its settings (see `GuiCommand::RestoreSettings`).
+        self.dispatch(GuiCommand::RestoreSettings { commands });
+        // The automatic network discovery, when on, starts from `logic`.
     }
 
     /// Configure the eframe `NativeOptions`.
@@ -707,6 +797,10 @@ impl SentinelApp {
         if let Some(cmd) = self.state.threats.take_allowlist_sync() {
             self.send_command(cmd);
         }
+        // The notification centre is kept by the agent across restarts.
+        for cmd in self.state.take_notification_sync() {
+            self.send_command(cmd);
+        }
         if let Some(cmd) = self.state.ai.take_voice_config_sync() {
             self.send_command(cmd);
             if self.state.ai.voice_engine.is_none() {
@@ -765,14 +859,7 @@ impl SentinelApp {
         };
         while let Ok(action) = rx_lock.try_recv() {
             match action {
-                TrayAction::ShowWindow => {
-                    self.show_tray_satellite = false;
-                    #[cfg(target_os = "macos")]
-                    crate::os::macos::dock::show_icon();
-                    self.visible = true;
-                    ctx.send_viewport_cmd(egui::ViewportCommand::Visible(true));
-                    ctx.send_viewport_cmd(egui::ViewportCommand::Focus);
-                }
+                TrayAction::ShowWindow => self.show_main_window(ctx),
                 TrayAction::QuickStatus => {
                     self.show_tray_satellite = !self.show_tray_satellite;
                     if self.show_tray_satellite {
@@ -819,11 +906,11 @@ impl SentinelApp {
                     self.send_command(GuiCommand::RunCheck);
                 }
                 TrayAction::ForceSync => {
-                    self.send_command(GuiCommand::ForceSync);
+                    if !self.state.summary.standalone {
+                        self.send_command(GuiCommand::ForceSync);
+                    }
                 }
-                TrayAction::OpenLogs => {
-                    crate::tray_bridge::open_logs_folder();
-                }
+                TrayAction::OpenLogs => self.open_logs_folder(ctx),
                 TrayAction::OpenGuide => {
                     crate::tray_bridge::open_guide();
                 }
@@ -831,17 +918,119 @@ impl SentinelApp {
                     crate::tray_bridge::open_console();
                 }
                 TrayAction::About => {
-                    crate::tray_bridge::open_about();
+                    // The product's own page, not a browser tab.
+                    self.show_main_window(ctx);
+                    self.navigate_to(Page::About);
                 }
                 TrayAction::ToggleJarvis => {
                     self.state.jarvis_visible = !self.state.jarvis_visible;
                 }
                 TrayAction::Quit => {
-                    self.quit_requested = true;
-                    self.send_command(GuiCommand::Shutdown);
-                    ctx.send_viewport_cmd(egui::ViewportCommand::Close);
+                    if !self.enrolled && !self.enrollment_wizard.connect_later {
+                        // First launch, nothing is protected yet and no
+                        // administrator exists: quitting is just quitting.
+                        self.quit_requested = true;
+                        self.dispatch(GuiCommand::Shutdown);
+                        ctx.send_viewport_cmd(egui::ViewportCommand::Close);
+                    } else {
+                        // Same rule as the settings: administrator mode,
+                        // then a confirmation, both asked in the main
+                        // window. A platform wizard left open is closed:
+                        // the agent behind it is running and protected.
+                        self.enrolled = true;
+                        self.show_main_window(ctx);
+                        self.quit_confirm = true;
+                    }
                 }
             }
+        }
+    }
+
+    /// Bring the main window forward in its full shape. The radar popup
+    /// borrows the same window, borderless and small: leaving it has to give
+    /// the decorations and the size back.
+    fn show_main_window(&mut self, ctx: &egui::Context) {
+        if std::mem::take(&mut self.show_tray_satellite) {
+            Self::restore_main_window(ctx);
+        }
+        #[cfg(target_os = "macos")]
+        crate::os::macos::dock::show_icon();
+        self.visible = true;
+        ctx.send_viewport_cmd(egui::ViewportCommand::Visible(true));
+        ctx.send_viewport_cmd(egui::ViewportCommand::Focus);
+    }
+
+    /// Give the window its decorations and its working size back.
+    fn restore_main_window(ctx: &egui::Context) {
+        ctx.send_viewport_cmd(egui::ViewportCommand::Decorations(true));
+        ctx.send_viewport_cmd(egui::ViewportCommand::InnerSize(egui::vec2(
+            theme::WINDOW_WIDTH,
+            theme::WINDOW_HEIGHT,
+        )));
+    }
+
+    /// Hide the window in the tray (the agent keeps running).
+    fn hide_to_tray(&mut self, ctx: &egui::Context) {
+        ctx.send_viewport_cmd(egui::ViewportCommand::Visible(false));
+        self.visible = false;
+        #[cfg(target_os = "macos")]
+        crate::os::macos::dock::hide_icon();
+    }
+
+    /// Open the folder the logger writes to, and say so when it cannot be.
+    fn open_logs_folder(&mut self, ctx: &egui::Context) {
+        if !crate::tray_bridge::open_logs_folder() {
+            self.state.push_toast(
+                widgets::toast::Toast::error("Dossier des journaux introuvable"),
+                ctx,
+            );
+        }
+    }
+
+    /// Pause protection for the default duration, or ask for the
+    /// administrator mode first; resume when it is paused.
+    fn toggle_pause(&mut self) {
+        if self.state.settings.is_paused {
+            self.state.end_pause();
+            self.send_command(GuiCommand::Resume);
+        } else if self.state.security.admin_unlocked {
+            let cmd = self.state.begin_pause(AppState::DEFAULT_PAUSE_MINUTES);
+            self.dispatch(cmd);
+        } else {
+            // Held by `send_command` until the administrator unlocks.
+            self.send_command(GuiCommand::Pause);
+        }
+    }
+
+    /// The last two steps before quitting from the tray menu: the
+    /// administrator mode, then an explicit confirmation.
+    fn quit_gate(&mut self, ctx: &egui::Context) {
+        if !self.quit_confirm {
+            return;
+        }
+        if !self.state.security.admin_unlocked {
+            // Cancelling the administrator dialog drops the request (see
+            // `admin_gate`).
+            self.state.security.request_unlock(QUIT_REASON);
+            return;
+        }
+        if widgets::modal::pending_confirmation::<()>(ctx, QUIT_CONFIRM).is_none() {
+            widgets::modal::ask_confirmation(ctx, QUIT_CONFIRM, ());
+        }
+        if widgets::modal::resolve_confirmation::<()>(
+            ctx,
+            QUIT_CONFIRM,
+            "Quitter l'agent Sentinel ?",
+            "L'agent cessera de protéger ce poste de travail.",
+            "Quitter",
+        ) {
+            self.quit_confirm = false;
+            self.quit_requested = true;
+            tracing::info!("[AUDIT] Shutdown confirmed from the tray menu");
+            self.dispatch(GuiCommand::Shutdown);
+            ctx.send_viewport_cmd(egui::ViewportCommand::Close);
+        } else if widgets::modal::pending_confirmation::<()>(ctx, QUIT_CONFIRM).is_none() {
+            self.quit_confirm = false;
         }
     }
 
@@ -854,6 +1043,9 @@ impl SentinelApp {
             );
             tray.set_jarvis_checked(self.state.jarvis_visible);
             tray.set_standalone(self.state.summary.standalone);
+            // Wherever the pause came from (settings, palette, tray, the
+            // automatic resume), the menu says what the agent does.
+            tray.set_paused(self.state.settings.is_paused);
         }
     }
 
@@ -890,7 +1082,13 @@ impl SentinelApp {
             self.state.security.request_unlock(reason);
             self.state.security.held_commands.push(cmd);
         }
-        match crate::admin_dialog::show(ctx, &mut self.state) {
+        let outcome = crate::admin_dialog::show(ctx, &mut self.state);
+        // A companion interface asks the service: the dialog prepared the
+        // request, it leaves here.
+        if let Some(request) = self.state.security.service_request.take() {
+            self.dispatch(request);
+        }
+        match outcome {
             crate::admin_dialog::DialogOutcome::Unlocked => {
                 let held = std::mem::take(&mut self.state.security.held_commands);
                 for cmd in held {
@@ -920,6 +1118,7 @@ impl SentinelApp {
                 );
             }
             crate::admin_dialog::DialogOutcome::Cancelled => {
+                self.quit_confirm = false;
                 if !std::mem::take(&mut self.state.security.held_commands).is_empty() {
                     self.state.push_toast(
                         widgets::toast::Toast::info(
@@ -937,13 +1136,8 @@ impl SentinelApp {
     /// Compact tray popup: one glance at the agent's posture, two ways out.
     fn show_tray_satellite_view(&mut self, ui: &mut egui::Ui) {
         let ctx = &ui.ctx().clone();
-        let restore_window = |ctx: &egui::Context| {
-            ctx.send_viewport_cmd(egui::ViewportCommand::Decorations(true));
-            ctx.send_viewport_cmd(egui::ViewportCommand::InnerSize(egui::vec2(
-                theme::WINDOW_WIDTH,
-                theme::WINDOW_HEIGHT,
-            )));
-        };
+        let restore_window = Self::restore_main_window;
+        let mut close_popup = false;
 
         egui::CentralPanel::default()
             .frame(
@@ -971,8 +1165,7 @@ impl SentinelApp {
                             |ui: &mut egui::Ui| {
                                 if widgets::icon_button(ui, icons::XMARK, Some("Fermer")).clicked()
                                 {
-                                    self.show_tray_satellite = false;
-                                    restore_window(ctx);
+                                    close_popup = true;
                                 }
                                 if widgets::icon_button(
                                     ui,
@@ -1061,11 +1254,15 @@ impl SentinelApp {
                     let stats: [(&str, String, egui::Color32); 2] = [
                         (
                             "Conformité",
-                            format!(
-                                "{:.0}\u{202f}%",
-                                self.state.summary.compliance_score.unwrap_or(0.0)
-                            ),
-                            theme::score_color(self.state.summary.compliance_score.unwrap_or(0.0)),
+                            // No evaluation yet is not a score of zero.
+                            match self.state.summary.compliance_score {
+                                Some(score) => format!("{score:.0}\u{202f}%"),
+                                None => "\u{2014}".to_string(),
+                            },
+                            match self.state.summary.compliance_score {
+                                Some(score) => theme::score_color(score),
+                                None => theme::text_tertiary(),
+                            },
                         ),
                         (
                             "Menaces",
@@ -1104,14 +1301,22 @@ impl SentinelApp {
                     ui.add_space(theme::SPACE_MD);
 
                     ui.vertical_centered(|ui: &mut egui::Ui| {
-                        if widgets::primary_button(ui, "Lancer une analyse complète", true)
-                            .clicked()
-                        {
+                        if widgets::primary_button(ui, "Lancer l'analyse", true).clicked() {
                             self.send_command(GuiCommand::RunCheck);
                         }
                     });
                 });
             });
+
+        // "Fermer" closes the popup: the window goes back to the tray it
+        // came from, in its full shape for the next time it is opened.
+        if close_popup {
+            self.show_tray_satellite = false;
+            restore_window(ctx);
+            if self.tray.is_some() {
+                self.hide_to_tray(ctx);
+            }
+        }
     }
 }
 
@@ -1263,6 +1468,24 @@ impl eframe::App for SentinelApp {
             });
         }
 
+        // "Découverte réseau automatique": a scan when the option is turned
+        // on (or restored at start-up), then one per interval while it stays
+        // on. Turned off, the next activation scans at once.
+        if !self.state.discovery.enabled {
+            self.last_auto_discovery = f64::NEG_INFINITY;
+        } else if self.enrolled
+            && auto_discovery_due(
+                true,
+                self.state.settings.is_paused,
+                self.state.discovery.in_progress,
+                now,
+                self.last_auto_discovery,
+            )
+        {
+            self.last_auto_discovery = now;
+            self.send_command(GuiCommand::StartDiscovery);
+        }
+
         self.update_tray_info();
         self.process_tray_actions(ctx);
 
@@ -1278,6 +1501,16 @@ impl eframe::App for SentinelApp {
         if let Some(target_page) = self.state.pending_navigation.take() {
             self.page = target_page;
         }
+
+        // The administrator mode just closed here (its term, "Verrouiller
+        // maintenant"): a background service closes it on its side too.
+        if self.admin_was_unlocked
+            && !self.state.security.admin_unlocked
+            && self.state.security.service.is_some()
+        {
+            self.dispatch(GuiCommand::ServiceAdminLock);
+        }
+        self.admin_was_unlocked = self.state.security.admin_unlocked;
 
         // Close the administrator session once it has lasted its term.
         if self.state.security.admin_unlocked
@@ -1366,13 +1599,12 @@ impl eframe::App for SentinelApp {
         if ctx.input(|i| i.viewport().close_requested()) && !self.quit_requested {
             if self.tray.is_some() {
                 ctx.send_viewport_cmd(egui::ViewportCommand::CancelClose);
-                ctx.send_viewport_cmd(egui::ViewportCommand::Visible(false));
-                self.visible = false;
-                #[cfg(target_os = "macos")]
-                crate::os::macos::dock::hide_icon();
+                self.hide_to_tray(ctx);
             } else {
+                // No tray to come back from: the window closing is the
+                // agent stopping, as the window manager was asked to.
                 self.quit_requested = true;
-                self.send_command(GuiCommand::Shutdown);
+                self.dispatch(GuiCommand::Shutdown);
             }
         }
 
@@ -1435,7 +1667,12 @@ impl eframe::App for SentinelApp {
                                     // the protected, standalone interface.
                                     self.enrolled = true;
                                 } else {
-                                    // Exit the app if user cancels enrollment.
+                                    // Nothing to protect yet and the runtime
+                                    // stops waiting for a token: really quit,
+                                    // instead of hiding a dead wizard in the
+                                    // tray.
+                                    self.quit_requested = true;
+                                    self.dispatch(GuiCommand::Shutdown);
                                     ctx.send_viewport_cmd(egui::ViewportCommand::Close);
                                 }
                             }
@@ -1460,10 +1697,15 @@ impl eframe::App for SentinelApp {
 
         // ── Main UI ──
 
+        // Global shortcuts act on the page: not while a dialog or the palette
+        // holds the keyboard.
+        let shortcuts_free = self.state.security.unlock_reason.is_none()
+            && !self.command_palette.open
+            && !self.quit_confirm;
+
         // Keyboard shortcuts for page navigation
         if let Some(new_page) = ctx.input(|i| {
-            i.modifiers
-                .command
+            (shortcuts_free && i.modifiers.command)
                 .then(|| {
                     crate::widgets::sidebar::PAGE_SHORTCUTS
                         .iter()
@@ -1476,10 +1718,18 @@ impl eframe::App for SentinelApp {
         }
 
         // Cmd+R = Run check, Cmd+Shift+S = Force sync
-        if ctx.input(|i| i.modifiers.command && !i.modifiers.shift && i.key_pressed(egui::Key::R)) {
+        if shortcuts_free
+            && ctx
+                .input(|i| i.modifiers.command && !i.modifiers.shift && i.key_pressed(egui::Key::R))
+        {
             self.send_command(GuiCommand::RunCheck);
         }
-        if ctx.input(|i| i.modifiers.command && i.modifiers.shift && i.key_pressed(egui::Key::S)) {
+        // A standalone agent has nothing to synchronise.
+        if shortcuts_free
+            && !self.state.summary.standalone
+            && ctx
+                .input(|i| i.modifiers.command && i.modifiers.shift && i.key_pressed(egui::Key::S))
+        {
             self.send_command(GuiCommand::ForceSync);
         }
 
@@ -1581,6 +1831,27 @@ impl eframe::App for SentinelApp {
                     ui.set_opacity(combined_alpha);
                 }
 
+                // A companion interface without its service says so on
+                // every page: what it shows is no longer live, and what it
+                // is asked does not leave.
+                if self
+                    .state
+                    .security
+                    .service
+                    .is_some_and(|link| !link.connected)
+                {
+                    page_column(ui, |ui: &mut egui::Ui| {
+                        ui.add_space(theme::SPACE_SM);
+                        widgets::alert::alert_compact(
+                            ui,
+                            widgets::alert::AlertLevel::Warning,
+                            "Service Sentinel injoignable \u{2014} reconnexion\u{2026} Les données \
+                             affichées ne sont plus actualisées et les actions ne sont pas transmises.",
+                        );
+                    });
+                    ctx.request_repaint_after(std::time::Duration::from_secs(1));
+                }
+
                 // An isolated endpoint says so on every page, with the way out.
                 if self.state.summary.host_isolated {
                     let mut release = false;
@@ -1590,7 +1861,7 @@ impl eframe::App for SentinelApp {
                             ui,
                             widgets::AlertLevel::Error,
                             host_isolation_notice(self.state.summary.standalone),
-                            "Lever l'isolation",
+                            "Lever l'isolement",
                         )
                         .action_clicked;
                     });
@@ -1666,7 +1937,11 @@ impl eframe::App for SentinelApp {
                         }
                         Page::Sync => {
                             if let Some(cmd) = pages::SyncPage::show(ui, &self.state) {
-                                self.send_command(cmd);
+                                if matches!(cmd, GuiCommand::ConnectToPlatform) {
+                                    self.start_platform_connection();
+                                } else {
+                                    self.send_command(cmd);
+                                }
                             }
                         }
                         Page::Terminal => {
@@ -1703,7 +1978,7 @@ impl eframe::App for SentinelApp {
                             }
                         }
                         Page::About => {
-                            if let Some(cmd) = pages::AboutPage::show(ui) {
+                            if let Some(cmd) = pages::AboutPage::show(ui, &self.state) {
                                 self.send_command(cmd);
                             }
                         }
@@ -1742,6 +2017,8 @@ impl eframe::App for SentinelApp {
 
         // Administrator dialog: asked for by a page, or holding a command.
         self.admin_gate(ctx);
+        // Then the confirmation of a "Quitter" chosen in the tray menu.
+        self.quit_gate(ctx);
 
         // Render toast notifications (overlay on top of content)
         if !self.state.toasts.is_empty() {
@@ -1757,14 +2034,17 @@ impl eframe::App for SentinelApp {
 
         // Command palette (⌘K) — rendered last so it overlays everything.
         if self.command_palette.open {
-            let mut commands = build_palette_commands(self.state.summary.standalone);
+            let mut commands = build_palette_commands(
+                self.state.summary.standalone,
+                self.state.settings.is_paused,
+            );
             commands.extend(entity_commands(&self.state));
             let selected = widgets::CommandPalette::new(&commands)
                 .placeholder("Rechercher une page, une action, une CVE, un actif…")
                 .max_results(commands.len())
                 .show(ctx, &mut self.command_palette);
             if let Some(id) = selected {
-                self.handle_palette_command(&id);
+                self.handle_palette_command(ctx, &id);
             }
         }
 
@@ -1903,7 +2183,7 @@ impl SentinelApp {
     /// Dispatch a command selected from the command palette.
     ///
     /// Ids are either `nav:<page>` (navigate) or `action:<name>` (side effect).
-    fn handle_palette_command(&mut self, id: &str) {
+    fn handle_palette_command(&mut self, ctx: &egui::Context, id: &str) {
         // Data results: `kind:index` into the state the palette was built from.
         if let Some((kind, idx)) = id
             .split_once(':')
@@ -1967,6 +2247,20 @@ impl SentinelApp {
         match id {
             "action:run_check" => self.send_command(GuiCommand::RunCheck),
             "action:force_sync" => self.send_command(GuiCommand::ForceSync),
+            "action:toggle_pause" => self.toggle_pause(),
+            "action:check_update" => {
+                self.state.settings.update_status = crate::dto::UpdateStatus::Checking;
+                self.send_command(GuiCommand::CheckUpdate);
+                self.state.push_toast(
+                    widgets::toast::Toast::info("Recherche de mises à jour…"),
+                    ctx,
+                );
+            }
+            "action:assistant_widget" => {
+                self.state.jarvis_visible = !self.state.jarvis_visible;
+            }
+            "action:open_logs" => self.open_logs_folder(ctx),
+            "action:open_guide" => crate::tray_bridge::open_guide(),
             // Flipping the flag makes the next frame re-apply the theme
             // (see the `dark_mode != last_dark_mode` branch in `logic`).
             "action:toggle_theme" => {
@@ -1981,6 +2275,14 @@ impl SentinelApp {
     /// runtime enrolls in the background; the connection is live at the next
     /// start, the wizard says so.
     fn start_platform_connection(&mut self) {
+        // Joining a platform hands this endpoint to whoever holds the
+        // token: an administrator decision, like the other critical ones.
+        if !self
+            .state
+            .require_admin("Connecter ce poste à une plateforme Sentinel GRC")
+        {
+            return;
+        }
         self.enrollment_wizard = EnrollmentWizard::for_platform_connection();
         self.enrolled = false;
     }
@@ -2308,6 +2610,69 @@ mod wake_on_message_tests {
         drop(slot);
         // The forwarder's send fails and it exits; the producer must not panic.
         assert!(tx.send(1).is_ok());
+    }
+}
+
+#[cfg(test)]
+mod shell_action_tests {
+    use super::*;
+
+    #[test]
+    fn the_palette_offers_what_the_tray_menu_offers() {
+        let ids = |standalone, paused| -> Vec<String> {
+            build_palette_commands(standalone, paused)
+                .into_iter()
+                .map(|c| c.id)
+                .collect()
+        };
+        let connected = ids(false, false);
+        for action in [
+            "action:run_check",
+            "action:force_sync",
+            "action:toggle_pause",
+            "action:check_update",
+            "action:assistant_widget",
+            "action:open_logs",
+            "action:open_guide",
+        ] {
+            assert!(connected.iter().any(|id| id == action), "{action}");
+        }
+        let standalone = ids(true, false);
+        assert!(!standalone.iter().any(|id| id == "action:force_sync"));
+        assert!(!standalone.iter().any(|id| id == "nav:sync"));
+    }
+
+    #[test]
+    fn the_pause_entry_names_what_it_will_do() {
+        let label = |paused| {
+            build_palette_commands(false, paused)
+                .into_iter()
+                .find(|c| c.id == "action:toggle_pause")
+                .map(|c| c.label)
+                .expect("pause entry")
+        };
+        assert_eq!(label(false), "Mettre la protection en pause");
+        assert_eq!(label(true), "Reprendre la protection");
+    }
+
+    #[test]
+    fn automatic_discovery_scans_at_once_then_once_per_interval() {
+        const NEVER: f64 = f64::NEG_INFINITY;
+        // Just turned on: the last scan is "never".
+        assert!(auto_discovery_due(true, false, false, 5.0, NEVER));
+        // Then nothing until the interval has passed.
+        assert!(!auto_discovery_due(true, false, false, 1800.0, 5.0));
+        assert!(auto_discovery_due(
+            true,
+            false,
+            false,
+            5.0 + AUTO_DISCOVERY_INTERVAL_SECS,
+            5.0
+        ));
+        // Never while off, paused, or while a scan is still running.
+        assert!(!auto_discovery_due(false, false, false, 1e9, NEVER));
+        assert!(!auto_discovery_due(true, true, false, 1e9, NEVER));
+        assert!(!auto_discovery_due(true, false, true, 1e9, NEVER));
     }
 }
 

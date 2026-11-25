@@ -9,6 +9,11 @@
 //! why, and the held command goes out as soon as the session opens. It
 //! replaces the settings-only window that left the rest of the interface
 //! clickable behind it and the disabled "· admin" buttons elsewhere.
+//!
+//! When the agent runs in a background service and this interface is its
+//! companion (`SecurityState::service`), the service is the one that knows
+//! the password: the dialog sends it there and waits for the answer,
+//! instead of checking it against the interface's own copy of the hash.
 
 use crate::admin_auth::{self, Verification};
 use crate::app::AppState;
@@ -36,8 +41,7 @@ pub fn show(ctx: &egui::Context, state: &mut AppState) -> DialogOutcome {
     let Some(reason) = state.security.unlock_reason.clone() else {
         return DialogOutcome::Pending;
     };
-    let setting_password =
-        state.security.changing_password || state.settings.admin_password_hash.is_empty();
+    let setting_password = state.security.changing_password || !state.admin_password_configured();
 
     let mut outcome = DialogOutcome::Pending;
     let width = DIALOG_WIDTH.min(ctx.content_rect().width() - theme::SPACE_LG * 2.0);
@@ -63,7 +67,9 @@ pub fn show(ctx: &egui::Context, state: &mut AppState) -> DialogOutcome {
                 &reason,
             );
             ui.add_space(theme::SPACE_MD);
-            outcome = if setting_password {
+            outcome = if let Some(step) = service_step(ui, state) {
+                step
+            } else if setting_password {
                 password_form(ui, state)
             } else {
                 unlock_form(ui, state)
@@ -75,8 +81,133 @@ pub fn show(ctx: &egui::Context, state: &mut AppState) -> DialogOutcome {
     }
     if outcome != DialogOutcome::Pending {
         state.security.close_dialog();
+        state.security.service_waiting = None;
+        state.security.service_outcome = None;
     }
     outcome
+}
+
+/// How long the dialog waits for the service before giving the form back.
+const SERVICE_ANSWER_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(20);
+
+/// Hand an administrator request to the shell, which sends it to the
+/// service; the dialog waits for the answer.
+fn ask_service(state: &mut AppState, request: crate::events::GuiCommand) {
+    state.security.form.error = None;
+    state.security.service_outcome = None;
+    state.security.service_request = Some(request);
+    state.security.service_waiting = Some(std::time::Instant::now());
+}
+
+/// The typed password, on its way to the service.
+fn typed_password(state: &AppState) -> crate::events::Secret {
+    crate::events::Secret::new(state.security.form.password.as_str())
+}
+
+/// The part of the dialog that belongs to the background service: its
+/// answer, the wait for it, or the fact that it cannot be reached. `None`
+/// when the form is to be drawn (no service, or nothing pending).
+fn service_step(ui: &mut egui::Ui, state: &mut AppState) -> Option<DialogOutcome> {
+    use crate::events::ServiceAdminOutcome;
+    let link = state.security.service?;
+
+    if let Some(answer) = state.security.service_outcome.take() {
+        state.security.service_waiting = None;
+        let error = match answer {
+            ServiceAdminOutcome::Unlocked { .. } => {
+                open_session(state);
+                return Some(DialogOutcome::Unlocked);
+            }
+            ServiceAdminOutcome::PasswordSet { .. } => {
+                // The interface keeps its own copy in step, for the day it
+                // runs the agent itself again.
+                match admin_auth::hash_password(&state.security.form.password) {
+                    Ok(hash) => state.settings.admin_password_hash = hash,
+                    Err(e) => tracing::warn!("Local copy of the admin hash not updated: {e}"),
+                }
+                tracing::info!("[AUDIT] Administrator password stored by the service");
+                if state.security.changing_password {
+                    return Some(DialogOutcome::PasswordChanged);
+                }
+                open_session(state);
+                return Some(DialogOutcome::Unlocked);
+            }
+            ServiceAdminOutcome::Rejected { attempts_left } => {
+                state.security.form.password = Default::default();
+                if attempts_left > 0 {
+                    format!(
+                        "Mot de passe incorrect. {attempts_left} essai{} avant blocage temporaire.",
+                        crate::format::plural_suffix(attempts_left)
+                    )
+                } else {
+                    "Mot de passe incorrect.".to_string()
+                }
+            }
+            ServiceAdminOutcome::LockedOut { retry_after_secs } => {
+                state.security.form.password = Default::default();
+                format!(
+                    "Trop de tentatives incorrectes. Nouvel essai possible dans {}.",
+                    crate::format::duration_short(retry_after_secs.max(1))
+                )
+            }
+            ServiceAdminOutcome::NotConfigured => {
+                "Le service n'a pas encore de mot de passe administrateur.".to_string()
+            }
+            ServiceAdminOutcome::Refused { message } => message,
+            ServiceAdminOutcome::Locked => {
+                "La connexion au service a été interrompue. Réessayez.".to_string()
+            }
+        };
+        state.security.form.error = Some(error);
+        return None;
+    }
+
+    if let Some(since) = state.security.service_waiting {
+        if since.elapsed() > SERVICE_ANSWER_TIMEOUT {
+            state.security.service_waiting = None;
+            state.security.form.error =
+                Some("Le service Sentinel n'a pas répondu. Réessayez.".to_string());
+            return None;
+        }
+        ui.horizontal(|ui| {
+            ui.spinner();
+            ui.label(
+                egui::RichText::new("Vérification par le service Sentinel…")
+                    .font(theme::font_body())
+                    .color(theme::text_secondary()),
+            );
+        });
+        ui.ctx()
+            .request_repaint_after(std::time::Duration::from_millis(100));
+        ui.add_space(theme::SPACE_LG);
+        return Some(
+            if widgets::secondary_button(ui, "Annuler", true).clicked() {
+                DialogOutcome::Cancelled
+            } else {
+                DialogOutcome::Pending
+            },
+        );
+    }
+
+    if !link.connected {
+        ui.label(
+            egui::RichText::new(
+                "Service Sentinel injoignable : le mode administrateur est indisponible tant \
+                 que la connexion n'est pas rétablie.",
+            )
+            .font(theme::font_body())
+            .color(theme::readable_color(theme::WARNING)),
+        );
+        ui.ctx()
+            .request_repaint_after(std::time::Duration::from_secs(1));
+        ui.add_space(theme::SPACE_LG);
+        return Some(if widgets::secondary_button(ui, "Fermer", true).clicked() {
+            DialogOutcome::Cancelled
+        } else {
+            DialogOutcome::Pending
+        });
+    }
+    None
 }
 
 fn header(ui: &mut egui::Ui, setting_password: bool, changing: bool, reason: &str) {
@@ -161,6 +292,20 @@ fn unlock_form(ui: &mut egui::Ui, state: &mut AppState) -> DialogOutcome {
         return DialogOutcome::Pending;
     }
 
+    // A companion interface does not decide: the service checks the
+    // password against its own hash, with its own lockout.
+    if state
+        .security
+        .service
+        .is_some_and(|link| link.admin_configured)
+    {
+        let request = crate::events::GuiCommand::ServiceAdminUnlock {
+            password: typed_password(state),
+        };
+        ask_service(state, request);
+        return DialogOutcome::Pending;
+    }
+
     match admin_auth::verify_password(
         &state.security.form.password,
         &state.settings.admin_password_hash,
@@ -174,6 +319,15 @@ fn unlock_form(ui: &mut egui::Ui, state: &mut AppState) -> DialogOutcome {
                 }
             }
             state.security.lockout.record_success();
+            if state.security.service.is_some() {
+                // The service has no password yet and the interface's own
+                // just proved right: hand it over, the service unlocks.
+                let request = crate::events::GuiCommand::ServiceAdminSetPassword {
+                    password: typed_password(state),
+                };
+                ask_service(state, request);
+                return DialogOutcome::Pending;
+            }
             open_session(state);
             DialogOutcome::Unlocked
         }
@@ -273,6 +427,15 @@ fn password_form(ui: &mut egui::Ui, state: &mut AppState) -> DialogOutcome {
         form.error = Some(issue.message());
         return DialogOutcome::Pending;
     }
+    if state.security.service.is_some() {
+        // Stored by the service, which answers; the local copy follows.
+        let request = crate::events::GuiCommand::ServiceAdminSetPassword {
+            password: typed_password(state),
+        };
+        ask_service(state, request);
+        return DialogOutcome::Pending;
+    }
+    let form = &mut state.security.form;
     match admin_auth::hash_password(&form.password) {
         Ok(hash) => {
             state.settings.admin_password_hash = hash;

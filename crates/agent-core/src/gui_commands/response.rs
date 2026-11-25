@@ -140,12 +140,37 @@ async fn send_quarantine(tx: &std::sync::mpsc::Sender<AgentEvent>) {
     let _ = tx.send(AgentEvent::QuarantineLoaded { entries });
 }
 
+/// A blocked address of the ledger as the interface lists it.
+fn blocked_entry(
+    record: agent_core::edr_actions::block_ledger::BlockedAddress,
+) -> agent_gui::dto::BlockedIp {
+    let at = |secs: i64| chrono::DateTime::from_timestamp(secs, 0).unwrap_or_else(chrono::Utc::now);
+    agent_gui::dto::BlockedIp {
+        ip: record.ip,
+        blocked_at: at(record.blocked_at),
+        expires_at: record.unblock_at.map(at),
+    }
+}
+
+/// Send the addresses blocked right now to the interface: the ones blocked
+/// by a playbook, or before this run, are listed like the rest.
+async fn send_blocked_ips(tx: &std::sync::mpsc::Sender<AgentEvent>) {
+    let entries = agent_core::edr_actions::block_ledger::list()
+        .await
+        .into_iter()
+        .map(blocked_entry)
+        .collect();
+    let _ = tx.send(AgentEvent::BlockedIpsLoaded { entries });
+}
+
 /// Send the content of the quarantine store to the interface.
 async fn refresh_quarantine(ctx: &mut CommandContext) {
     let tx = ctx.events.clone();
     ctx.tasks
         .spawn_expected("list quarantine", expected::SHORT, async move {
             send_quarantine(&tx).await;
+            // The same periodic refresh carries the blocked addresses.
+            send_blocked_ips(&tx).await;
         });
 }
 
@@ -352,6 +377,7 @@ async fn block_ip(ctx: &mut CommandContext, ip: String, duration_secs: u64) {
                     });
                 }
             }
+            send_blocked_ips(&tx).await;
         });
 }
 
@@ -393,6 +419,7 @@ async fn unblock_ip(ctx: &mut CommandContext, ip: String) {
                     });
                 }
             }
+            send_blocked_ips(&tx).await;
         });
 }
 
@@ -450,7 +477,7 @@ async fn release_host(ctx: &mut CommandContext) {
                     id: action_id,
                     action_type: agent_gui::dto::ResponseActionType::ReleaseHost,
                     target: "Ce poste".to_string(),
-                    target_detail: "levée de l'isolation".to_string(),
+                    target_detail: "levée de l'isolement".to_string(),
                     status: agent_gui::dto::ResponseStatus::Pending,
                     created_at: chrono::Utc::now(),
                     completed_at: None,

@@ -119,7 +119,19 @@ impl AgentRuntime {
 
             success
         } else {
-            // ...
+            // Nothing to run for this check on this system: said to the
+            // operator, who was otherwise left with a button that did
+            // nothing and no word of why.
+            info!("No automatic remediation for check '{}'", check_id);
+            self.emit_notification(
+                "Remédiation indisponible",
+                &format!(
+                    "Aucune remédiation automatique n'existe pour le contrôle « {} » sur ce système. \
+                     Appliquez la correction indiquée dans le détail du contrôle.",
+                    check_id
+                ),
+                "warning",
+            );
             false
         }
     }
@@ -217,33 +229,82 @@ impl AgentRuntime {
 
         let actions = self.remediation_engine.get_platform_remediation(check_id);
 
-        if let Some(action) = actions.first() {
-            let preview_text = format!(
-                "## Audit Visuel : {}\n\n**Action :** {}\n**Commande :** `{}`\n**Risque :** {}\n**Redémarrage requis :** {}\n\n> [!NOTE]\n> Cliquez sur 'Recours / Remédiation' pour exécuter ce script. Des privilèges Administrateur peuvent être requis.",
-                action.description,
-                action.description,
-                action.script,
-                action.risk_level.label(),
-                if action.requires_reboot { "Oui" } else { "Non" }
-            );
+        // Answered either way: the interface waits for it before it lets
+        // the operator confirm, and says so when nothing can be run.
+        let event = match actions.first() {
+            Some(action) => agent_gui::events::AgentEvent::RemediationPreview {
+                check_id: check_id.to_string(),
+                available: true,
+                description: action.description.clone(),
+                command: action.script.clone(),
+                risk: match action.risk_level {
+                    agent_common::types::RemediationRisk::Safe => "Faible",
+                    agent_common::types::RemediationRisk::Moderate => "Mod\u{e9}r\u{e9}",
+                    agent_common::types::RemediationRisk::Risky => "\u{c9}lev\u{e9}",
+                }
+                .to_string(),
+                requires_reboot: action.requires_reboot,
+            },
+            None => agent_gui::events::AgentEvent::RemediationPreview {
+                check_id: check_id.to_string(),
+                available: false,
+                description: String::new(),
+                command: String::new(),
+                risk: String::new(),
+                requires_reboot: false,
+            },
+        };
+        self.emit_gui_event(event);
+    }
+}
 
-            self.emit_gui_event(agent_gui::events::AgentEvent::Notification {
-                notification: agent_gui::dto::GuiNotification {
-                    id: uuid::Uuid::new_v4(),
-                    title: format!("Aperçu : {}", check_id),
-                    body: preview_text,
-                    severity: "info".to_string(),
-                    timestamp: chrono::Utc::now(),
-                    read: false,
-                    action: None,
-                },
-            });
-        } else {
-            self.emit_notification(
-                "Aperçu Indisponible",
-                &format!("Aucun aperçu disponible pour le contrôle \'{}\'.", check_id),
-                "info",
-            );
-        }
+#[cfg(all(test, feature = "gui"))]
+mod tests {
+    use crate::main_loop::testing::standalone_runtime;
+    use agent_gui::events::AgentEvent;
+
+    /// The request used to end without a word when the check has no
+    /// automatic remediation on this system.
+    #[tokio::test]
+    async fn a_check_without_automatic_remediation_says_so() {
+        let test = standalone_runtime();
+
+        assert!(!test.runtime.remediate("no-such-check").await);
+
+        let told = std::iter::from_fn(|| test.events.try_recv().ok()).any(|event| {
+            matches!(
+                event,
+                AgentEvent::Notification { notification }
+                    if notification.title == "Remédiation indisponible"
+                        && notification.body.contains("no-such-check")
+            )
+        });
+        assert!(told, "the operator is told that nothing was run");
+        // Nothing changed: no check is forced.
+        assert!(
+            !test
+                .runtime
+                .state
+                .force_check
+                .load(std::sync::atomic::Ordering::Acquire)
+        );
+    }
+
+    /// The interface waits for the preview before it lets the operator
+    /// confirm: it is answered even when there is nothing to run.
+    #[tokio::test]
+    async fn a_preview_is_answered_even_without_remediation() {
+        let test = standalone_runtime();
+
+        test.runtime.remediate_preview("no-such-check");
+
+        let answered = std::iter::from_fn(|| test.events.try_recv().ok()).any(|event| {
+            matches!(
+                event,
+                AgentEvent::RemediationPreview { check_id, available: false, .. }
+                    if check_id == "no-such-check"
+            )
+        });
+        assert!(answered, "the preview says that nothing is available");
     }
 }

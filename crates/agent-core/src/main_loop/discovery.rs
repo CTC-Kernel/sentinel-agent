@@ -88,12 +88,12 @@ impl AgentRuntime {
 
                 match self.discovery_subnet().await {
                     Err(reason) => {
-                        if let Err(e) = tx.send(AgentEvent::DiscoveryProgress {
-                            phase: reason.to_string(),
-                            progress: 0.0,
-                            devices_found: 0,
+                        // A refusal ends the request: sent as progress, it
+                        // left the interface waiting on a scan that never ran.
+                        if let Err(e) = tx.send(AgentEvent::DiscoveryFailed {
+                            reason: reason.to_string(),
                         }) {
-                            warn!("Failed to send discovery progress: {}", e);
+                            warn!("Failed to send discovery refusal: {}", e);
                         }
                     }
                     Ok(subnet) => {
@@ -153,7 +153,7 @@ async fn run_discovery(
     let watcher = watch_cancellation(cancel, discovery.cancel_handle());
 
     if let Err(e) = tx.send(AgentEvent::DiscoveryProgress {
-        phase: "Scan ARP en cours...".to_string(),
+        phase: "Scan ARP en cours…".to_string(),
         progress: 0.1,
         devices_found: 0,
     }) {
@@ -165,12 +165,10 @@ async fn run_discovery(
         Ok(result) => publish_discovery(&result, &tx, db.as_ref(), sync_client.as_deref()).await,
         Err(e) => {
             warn!("Discovery scan failed: {}", e);
-            if let Err(e2) = tx.send(AgentEvent::DiscoveryProgress {
-                phase: format!("Erreur: {}", e),
-                progress: 0.0,
-                devices_found: 0,
+            if let Err(e2) = tx.send(AgentEvent::DiscoveryFailed {
+                reason: format!("La découverte a échoué : {e}"),
             }) {
-                warn!("Failed to send discovery error progress: {}", e2);
+                warn!("Failed to send discovery failure: {}", e2);
             }
         }
     }
@@ -332,14 +330,11 @@ mod tests {
         assert!(tasks.is_empty());
         assert!(!test.runtime.state.force_discovery.load(Ordering::Acquire));
         match test.events.try_recv() {
-            Ok(AgentEvent::DiscoveryProgress {
-                phase, progress, ..
-            }) => {
+            Ok(AgentEvent::DiscoveryFailed { reason }) => {
                 assert_eq!(
-                    phase,
+                    reason,
                     "Découverte réseau désactivée par la politique de la plateforme"
                 );
-                assert_eq!(progress, 0.0);
             }
             other => panic!("expected a refusal, got {:?}", other.map(|_| ())),
         }

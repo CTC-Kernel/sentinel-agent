@@ -77,6 +77,7 @@ pub fn run_gui(
             // that have to exist by then.
             theme::configure_fonts(&cc.egui_ctx);
             let mut app = sentinel_app;
+            app.restore_report_history();
             // Restore persisted GUI preferences (dark mode, SIEM config, etc.)
             if let Some(storage) = cc.storage {
                 if let Some(json) = storage.get_string("gui_preferences") {

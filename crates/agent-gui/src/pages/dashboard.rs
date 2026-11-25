@@ -310,21 +310,16 @@ impl DashboardPage {
             )
             .clicked()
             {
-                let success = Self::export_dashboard_csv(state);
-                let time = ui.input(|i| i.time);
-                if success {
-                    state.toasts.push(
-                        crate::widgets::toast::Toast::success(
-                            "Export CSV du tableau de bord r\u{00e9}ussi",
-                        )
-                        .with_time(time),
-                    );
-                } else {
-                    state.toasts.push(
-                        crate::widgets::toast::Toast::error("\u{00c9}chec de l'export CSV")
-                            .with_time(time),
-                    );
-                }
+                let toast = match Self::export_dashboard_csv(state) {
+                    Ok(path) => crate::widgets::toast::Toast::success(format!(
+                        "Export CSV enregistr\u{00e9} : {}",
+                        path.display()
+                    )),
+                    Err(error) => crate::widgets::toast::Toast::error(format!(
+                        "Export CSV impossible : {error}"
+                    )),
+                };
+                state.toasts.push(toast.with_time(ui.input(|i| i.time)));
             }
         });
 
@@ -507,31 +502,15 @@ impl DashboardPage {
                     let can_send = chat.send;
 
                     if can_send {
-                        let prompt = state.ai.input_text.trim().to_string();
-                        state.ai.chat_history.push(crate::dto::LlmChatMessage {
-                            role: crate::dto::ChatRole::User,
-                            content: prompt.clone(),
-                            timestamp: chrono::Utc::now(),
-                            processing_time_ms: None,
-                        });
-                        state.ai.input_text.clear();
-                        state.ai.is_processing = true;
-                        state.ai.active_tab = crate::dto::LlmTab::Assistant;
-
-                        // Force transition
-                        #[cfg(feature = "render")]
-                        {
+                        // Same path as the assistant page, so the question
+                        // carries the Sentinel context and the conversation.
+                        let prompt = state.ai.input_text.clone();
+                        let speak = state.ai.voice_conversation_enabled;
+                        if let Some(command) = LLMPanel::submit_prompt(state, &prompt, speak) {
+                            state.ai.active_tab = crate::dto::LlmTab::Assistant;
                             state.pending_navigation = Some(Page::AI);
+                            nav_action = Some(DashboardAction::Command(command));
                         }
-                        nav_action = Some(DashboardAction::Command(GuiCommand::LlmPrompt {
-                            prompt,
-                            context: None,
-                            speak_response: state.ai.voice_conversation_enabled,
-                        }));
-                        // Dashboard questions participate in the same hands-free
-                        // loop as the full assistant: reopen the mic only after
-                        // the spoken answer has actually completed.
-                        state.ai.voice_reply_pending = state.ai.voice_conversation_enabled;
                     }
                 });
                 ui.add_space(theme::SPACE_SM);
@@ -601,9 +580,9 @@ impl DashboardPage {
                         state.ai.selected_recommendation = Some(idx);
                         state.ai.detail_open = true;
                         state.ai.active_tab = crate::dto::LlmTab::Recommendations;
-                        ui.memory_mut(|m| {
-                            m.data.insert_temp(egui::Id::new("dashboard_nav_ai"), true)
-                        });
+                        // Not `NavigateTo`: that route closes every drawer,
+                        // the one this row opens included.
+                        state.pending_navigation = Some(Page::AI);
                     }
                     ui.add_space(theme::SPACE_XS);
                 }
@@ -1273,14 +1252,23 @@ impl DashboardPage {
                 let current_compliance = crate::format::pct(last.compliance_score, 0);
                 let current_incidents = crate::format::int(last.incident_count);
                 let current_vulns = crate::format::int(last.open_vulns);
-                let current_sla = last.remediation_sla_pct;
+                // Negative: no risk carried an SLA target at that snapshot.
+                let current_sla =
+                    (last.remediation_sla_pct >= 0.0).then_some(last.remediation_sla_pct);
 
                 // Compute trends (first half avg vs second half avg)
                 let mid = filtered.len() / 2;
                 let compliance_trend = Self::kpi_trend(&filtered, mid, |s| s.compliance_score);
                 let incident_trend = Self::kpi_trend(&filtered, mid, |s| s.incident_count as f32);
                 let vulns_trend = Self::kpi_trend(&filtered, mid, |s| s.open_vulns as f32);
-                let sla_trend = Self::kpi_trend(&filtered, mid, |s| s.remediation_sla_pct);
+                let measured_sla: Vec<&crate::dto::KpiSnapshot> = filtered
+                    .iter()
+                    .copied()
+                    .filter(|s| s.remediation_sla_pct >= 0.0)
+                    .collect();
+                let sla_trend = Self::kpi_trend(&measured_sla, measured_sla.len() / 2, |s| {
+                    s.remediation_sla_pct
+                });
 
                 // Render 4 KPI cards in a responsive grid
                 ui.push_id("kpi_trends_grid", |ui: &mut egui::Ui| {
@@ -1335,8 +1323,6 @@ impl DashboardPage {
                                 _ => {
                                     // SLA remediation (mini gauge)
                                     let (arrow, color) = Self::kpi_trend_arrow(sla_trend, true);
-                                    let sla_color =
-                                        theme::readable_color(theme::score_color(current_sla));
                                     egui::Frame::new()
                                         .fill(theme::bg_tertiary())
                                         .corner_radius(egui::CornerRadius::same(
@@ -1349,8 +1335,30 @@ impl DashboardPage {
                                                     .font(theme::font_label())
                                                     .color(theme::text_tertiary())
                                                     .strong(),
+                                            )
+                                            .on_hover_text(
+                                                "Part des risques assortis d'un délai de traitement qui le respectent.",
                                             );
                                             ui.add_space(theme::SPACE_XS);
+                                            let Some(current_sla) = current_sla else {
+                                                ui.label(
+                                                    egui::RichText::new("—")
+                                                        .font(theme::font_card_value())
+                                                        .color(theme::text_tertiary()),
+                                                );
+                                                ui.add_space(theme::SPACE_XS);
+                                                ui.label(
+                                                    egui::RichText::new(
+                                                        "Aucun risque assorti d'un délai de traitement.",
+                                                    )
+                                                    .font(theme::font_label())
+                                                    .color(theme::text_tertiary()),
+                                                );
+                                                return;
+                                            };
+                                            let sla_color = theme::readable_color(
+                                                theme::score_color(current_sla),
+                                            );
                                             ui.horizontal(|ui: &mut egui::Ui| {
                                                 ui.label(
                                                     egui::RichText::new(format!(
@@ -1523,7 +1531,7 @@ impl DashboardPage {
         });
     }
 
-    fn export_dashboard_csv(state: &AppState) -> bool {
+    fn export_dashboard_csv(state: &AppState) -> Result<std::path::PathBuf, String> {
         let timestamp = chrono::Utc::now().format("%Y-%m-%dT%H:%M:%SZ").to_string();
         let headers = &["metrique", "valeur", "unite", "horodatage"];
         let mut rows = vec![
@@ -1579,13 +1587,8 @@ impl DashboardPage {
         }
 
         let path = crate::export::default_export_path("dashboard_summary.csv");
-        match crate::export::export_csv(headers, &rows, &path) {
-            Ok(_) => true,
-            Err(e) => {
-                tracing::warn!("Export CSV failed: {}", e);
-                false
-            }
-        }
+        crate::export::export_csv(headers, &rows, &path)?;
+        Ok(path)
     }
 }
 

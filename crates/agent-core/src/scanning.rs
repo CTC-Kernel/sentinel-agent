@@ -463,8 +463,21 @@ impl AgentRuntime {
         };
         let dispatcher = Arc::clone(&self.alert_dispatcher);
         let event = crate::alerting::AlertEvent::from(incident);
+        #[cfg(feature = "gui")]
+        let gui_tx = self.gui_event_tx.clone();
         tokio::spawn(async move {
+            #[cfg(feature = "gui")]
+            let before = webhook_deliveries(&db).await;
             dispatcher.dispatch(&db, &event).await;
+            // A delivery was attempted: the interface shows its outcome
+            // (last alert sent, or why it was not) without waiting for a
+            // rule or a webhook to be edited.
+            #[cfg(feature = "gui")]
+            if let Some(tx) = gui_tx
+                && webhook_deliveries(&db).await != before
+            {
+                let _ = tx.send(crate::gui_bridge::alerting_loaded_event(&db).await);
+            }
         });
     }
 
@@ -612,6 +625,18 @@ fn incident_payload(incident: &agent_scanner::SecurityIncident) -> serde_json::V
         "confidence": incident.confidence,
         "detected_at": incident.detected_at.to_rfc3339(),
     })
+}
+
+/// The outcome of the last alert sent to each webhook, to tell whether a
+/// dispatch attempted a delivery.
+#[cfg(feature = "gui")]
+async fn webhook_deliveries(
+    db: &agent_storage::Database,
+) -> std::collections::HashMap<String, agent_storage::repositories::grc::WebhookDelivery> {
+    agent_storage::repositories::grc::WebhookRepository::new(db)
+        .delivery_status()
+        .await
+        .unwrap_or_default()
 }
 
 #[cfg(test)]

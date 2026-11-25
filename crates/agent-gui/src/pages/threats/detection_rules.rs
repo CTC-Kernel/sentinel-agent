@@ -28,6 +28,8 @@ struct RuleForm {
     severity_idx: usize,
     conditions: Vec<DetectionCondition>,
     actions: Vec<PlaybookActionType>,
+    /// Scroll the form into view on its next frame.
+    reveal: bool,
 }
 
 impl RuleForm {
@@ -39,6 +41,7 @@ impl RuleForm {
             severity_idx: 2, // Medium by default
             conditions: Vec::new(),
             actions: Vec::new(),
+            reveal: false,
         }
     }
 
@@ -63,6 +66,8 @@ impl RuleForm {
                 .copied()
                 .filter(|a| RULE_ACTIONS.contains(a))
                 .collect(),
+            // The list can be long: the form opens above it.
+            reveal: true,
         };
     }
 }
@@ -205,6 +210,24 @@ fn severity_rank(severity: Severity) -> u8 {
         Severity::Medium => 2,
         Severity::Low => 3,
         Severity::Info => 4,
+    }
+}
+
+/// Name under which the sort order of the rules list is kept.
+const RULES_TABLE: &str = "detection_rules";
+
+/// Ascending order of two rules on a sort key of the list.
+fn rule_order(key: &str, a: &DetectionRule, b: &DetectionRule) -> std::cmp::Ordering {
+    match key {
+        "name" => super::types::text_order(&a.name, &b.name),
+        // Least severe first: `severity_rank` counts from the most severe.
+        "severity" => severity_rank(b.severity).cmp(&severity_rank(a.severity)),
+        "matches" => a.match_count.cmp(&b.match_count),
+        // Never matched sorts before any date.
+        "last" => a.last_match.cmp(&b.last_match),
+        // Active first.
+        "state" => b.enabled.cmp(&a.enabled),
+        _ => std::cmp::Ordering::Equal,
     }
 }
 
@@ -365,11 +388,18 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                         .any(|c| c.value.to_lowercase().contains(&search))
             })
             .collect();
+        // Most severe first, then by name; a sort key chosen below
+        // reorders that, equal rows keeping this order.
         shown.sort_by(|a, b| {
             severity_rank(a.severity)
                 .cmp(&severity_rank(b.severity))
                 .then_with(|| a.name.to_lowercase().cmp(&b.name.to_lowercase()))
         });
+        super::types::sort_rows(
+            &mut shown,
+            &widgets::table::sort_of(ui.ctx(), RULES_TABLE),
+            |key, a, b| rule_order(key, a, b),
+        );
 
         if state.threats.detection_rules.is_empty() {
             widgets::empty_state(
@@ -391,6 +421,19 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
             );
             return;
         }
+
+        super::types::sort_bar(
+            ui,
+            RULES_TABLE,
+            &[
+                ("name", "Nom"),
+                ("severity", "S\u{00e9}v\u{00e9}rit\u{00e9}"),
+                ("matches", "Correspondances"),
+                ("last", "Derni\u{00e8}re correspondance"),
+                ("state", "\u{00c9}tat"),
+            ],
+        );
+        ui.add_space(theme::SPACE_SM);
 
         let mut toggle_commands: Vec<(String, bool)> = Vec::new();
         let mut delete_id: Option<String> = None;
@@ -596,7 +639,7 @@ fn show_rule_form(ui: &mut Ui, state: &mut AppState, command: &mut Option<GuiCom
         FORM.with(|form| {
             let mut f = form.borrow_mut();
 
-            ui.label(
+            let heading = ui.label(
                 egui::RichText::new(if f.editing.is_some() {
                     "MODIFIER LA R\u{00c8}GLE DE D\u{00c9}TECTION"
                 } else {
@@ -607,6 +650,9 @@ fn show_rule_form(ui: &mut Ui, state: &mut AppState, command: &mut Option<GuiCom
                 .extra_letter_spacing(theme::TRACKING_NORMAL)
                 .strong(),
             );
+            if std::mem::take(&mut f.reveal) {
+                heading.scroll_to_me(Some(egui::Align::TOP));
+            }
             ui.add_space(theme::SPACE_SM);
 
             // Name
@@ -956,6 +1002,28 @@ mod tests {
         assert!(condition_error(&condition(Kind::SeverityLevel, "High")).is_none());
         assert!(condition_error(&condition(Kind::SeverityLevel, "grave")).is_some());
         assert!(condition_error(&condition(Kind::ProcessNameContains, "  ")).is_some());
+    }
+
+    #[test]
+    fn rules_sort_by_rank_count_and_date() {
+        use std::cmp::Ordering;
+        let mut rules = detection_catalog::default_rules(Utc::now());
+        let mut critical = rules.remove(0);
+        let mut low = rules.remove(0);
+        critical.severity = Severity::Critical;
+        critical.match_count = 10;
+        critical.last_match = Some(Utc::now());
+        critical.name = "zeta".into();
+        low.severity = Severity::Low;
+        low.match_count = 9;
+        low.last_match = None;
+        low.name = "Alpha".into();
+        low.enabled = false;
+        assert_eq!(rule_order("severity", &low, &critical), Ordering::Less);
+        assert_eq!(rule_order("matches", &low, &critical), Ordering::Less);
+        assert_eq!(rule_order("last", &low, &critical), Ordering::Less);
+        assert_eq!(rule_order("name", &low, &critical), Ordering::Less);
+        assert_eq!(rule_order("state", &critical, &low), Ordering::Less);
     }
 
     #[test]

@@ -131,6 +131,51 @@ impl<'a> NotificationsRepository<'a> {
             .await
     }
 
+    /// Insert a notification unless one with the same identifier is
+    /// already stored. Returns whether it was inserted.
+    pub async fn insert_if_absent(&self, notification: &Notification) -> StorageResult<bool> {
+        let id = notification.id.clone();
+        let title = notification.title.clone();
+        let body = notification.body.clone();
+        let severity = notification.severity.as_str().to_string();
+        let read = if notification.read { 1 } else { 0 };
+        let action = notification.action.clone();
+        let created_at = notification.created_at.to_rfc3339();
+
+        self.db
+            .with_connection(move |conn| {
+                let count = conn
+                    .execute(
+                        r#"
+                        INSERT OR IGNORE INTO notifications
+                            (id, title, body, severity, read, action, created_at)
+                        VALUES (?, ?, ?, ?, ?, ?, ?)
+                        "#,
+                        rusqlite::params![id, title, body, severity, read, action, created_at],
+                    )
+                    .map_err(|e| {
+                        StorageError::Query(format!("Failed to insert notification: {}", e))
+                    })?;
+                Ok(count > 0)
+            })
+            .await
+    }
+
+    /// Delete a notification. Returns whether it existed.
+    pub async fn delete(&self, id: &str) -> StorageResult<bool> {
+        let id = id.to_string();
+        self.db
+            .with_connection(move |conn| {
+                let count = conn
+                    .execute("DELETE FROM notifications WHERE id = ?", [&id])
+                    .map_err(|e| {
+                        StorageError::Query(format!("Failed to delete notification: {}", e))
+                    })?;
+                Ok(count > 0)
+            })
+            .await
+    }
+
     /// Get a notification by ID.
     pub async fn get(&self, id: &str) -> StorageResult<Option<Notification>> {
         let id = id.to_string();
@@ -458,5 +503,22 @@ mod tests {
         let count = repo.mark_all_read().await.unwrap();
         assert_eq!(count, 2);
         assert_eq!(repo.count_unread().await.unwrap(), 0);
+    }
+
+    #[tokio::test]
+    async fn a_notification_is_stored_once_and_can_be_deleted() {
+        let (_temp_dir, db) = create_test_db().await;
+        let repo = NotificationsRepository::new(&db);
+        let notif = Notification::new("n-1", "Titre", "Corps", NotificationSeverity::Error);
+
+        assert!(repo.insert_if_absent(&notif).await.unwrap());
+        repo.mark_read("n-1").await.unwrap();
+        // Saved again (the interface repeats itself): the read mark stays.
+        assert!(!repo.insert_if_absent(&notif).await.unwrap());
+        assert!(repo.get("n-1").await.unwrap().unwrap().read);
+
+        assert!(repo.delete("n-1").await.unwrap());
+        assert!(!repo.delete("n-1").await.unwrap());
+        assert!(repo.get("n-1").await.unwrap().is_none());
     }
 }

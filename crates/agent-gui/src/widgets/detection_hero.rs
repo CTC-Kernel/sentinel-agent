@@ -149,9 +149,16 @@ fn verdict_panel(
     ui.add_space(12.0);
     ui.label(
         RichText::new(if critical > 0 {
-            format!("{critical} événements critiques nécessitent votre attention.")
+            if critical == 1 {
+                "1 événement critique nécessite votre attention.".to_owned()
+            } else {
+                format!("{critical} événements critiques nécessitent votre attention.")
+            }
         } else if pending > 0 {
-            format!("{pending} événements en attente de qualification.")
+            format!(
+                "{} en attente de qualification.",
+                crate::format::count(pending, "événement")
+            )
         } else {
             "Aucun signal en attente dans les données disponibles.".to_owned()
         })
@@ -246,7 +253,11 @@ fn response_panel(ui: &mut Ui, state: &AppState) -> Option<EdrTab> {
                 ui.add_space(6.0);
             }
             if failed > 0 {
-                widgets::status_badge(ui, &format!("{failed} réponses en échec"), theme::ERROR);
+                widgets::status_badge(
+                    ui,
+                    &format!("{} en échec", crate::format::count(failed, "réponse")),
+                    theme::ERROR,
+                );
             }
             ui.add_space(4.0);
             if widgets::ghost_button(ui, format!("Piloter la réponse  {}", icons::ARROW_RIGHT))
@@ -354,7 +365,10 @@ fn signal_orbit(ui: &mut Ui, sources: &[(&str, usize); 4], pending: usize, color
         egui::WidgetInfo::labeled(
             egui::WidgetType::Button,
             true,
-            format!("{pending} événements à qualifier. Ouvrir les détections"),
+            format!(
+                "{} à qualifier. Ouvrir les détections",
+                crate::format::count(pending, "événement")
+            ),
         )
     });
     if response.has_focus() {

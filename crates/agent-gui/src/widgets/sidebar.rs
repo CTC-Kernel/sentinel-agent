@@ -711,8 +711,8 @@ impl Sidebar {
                 "Mode autonome : protection locale, aucune donn\u{00e9}e envoy\u{00e9}e".to_string()
             }
             (Some(err), _) => err.clone(),
-            (None, Some(org)) => format!("Workspace : {org}"),
-            (None, None) => "Aucun workspace".to_string(),
+            (None, Some(org)) => format!("Espace de travail : {org}"),
+            (None, None) => "Aucun espace de travail".to_string(),
         };
         response.on_hover_text(tooltip);
         ui.add_space(theme::SPACE_XS);

@@ -41,18 +41,29 @@ const THIRD_PARTY_LICENSES: &[(&str, &str)] = &[
         include_str!("../../assets/fonts/LICENSE-FONTAWESOME.txt"),
     ),
 ];
+/// The build a support request should quote: the version and the target it
+/// was compiled for, in one string.
+fn build_label() -> String {
+    format!(
+        "{} ({}-{})",
+        agent_common::constants::AGENT_VERSION,
+        std::env::consts::OS,
+        std::env::consts::ARCH
+    )
+}
+
 pub struct AboutPage;
 
 impl AboutPage {
-    pub fn show(ui: &mut Ui) -> Option<GuiCommand> {
+    pub fn show(ui: &mut Ui, state: &crate::app::AppState) -> Option<GuiCommand> {
         ui.add_space(theme::SPACE_XS);
         widgets::page_header_nav(
             ui,
-            &["Configuration", "\u{00c0} propos"],
+            &["Syst\u{00e8}me", "\u{00c0} propos"],
             "\u{00c0} propos",
             Some("Informations produit et support technique."),
             Some(
-                "Informations de version et cr\u{00e9}dits de Sentinel GRC Nexus. Lors d\u{2019}un contact avec le support, veuillez mentionner le num\u{00e9}ro de build et l\u{2019}identifiant unique d\u{2019}installation.",
+                "Informations de version et cr\u{00e9}dits de Sentinel GRC Nexus. Lors d\u{2019}un contact avec le support, communiquez le build et l\u{2019}identifiant de l\u{2019}agent : ils se copient depuis la carte Syst\u{00e8}me.",
             ),
         );
         ui.add_space(theme::SPACE_LG);
@@ -102,7 +113,7 @@ impl AboutPage {
             ui.vertical(|ui: &mut egui::Ui| {
                 ui.set_width(width);
                 match idx {
-                    0 => Self::system_card(ui),
+                    0 => Self::system_card(ui, state),
                     _ => Self::resources_card(ui),
                 }
             });
@@ -172,7 +183,7 @@ impl AboutPage {
         None
     }
 
-    fn system_card(ui: &mut Ui) {
+    fn system_card(ui: &mut Ui, state: &crate::app::AppState) {
         widgets::data_card(ui, "Système", |ui: &mut egui::Ui| {
             ui.label(
                 egui::RichText::new("SYST\u{00c8}ME")
@@ -199,6 +210,21 @@ impl AboutPage {
             };
             Self::info_row(ui, "Syst\u{00e8}me", system, icons::DESKTOP);
             Self::info_row(ui, "Architecture", architecture, icons::MICROCHIP);
+            // What the support asks for, one click from the clipboard.
+            Self::copy_row(ui, "Build", &build_label(), icons::TAG);
+            match state.summary.agent_id.as_deref() {
+                Some(id) => Self::copy_row(ui, "Identifiant de l'agent", id, icons::FINGERPRINT),
+                None => Self::info_row(
+                    ui,
+                    "Identifiant de l'agent",
+                    if state.summary.standalone {
+                        "Aucun (mode autonome)"
+                    } else {
+                        "Non enr\u{00f4}l\u{00e9}"
+                    },
+                    icons::FINGERPRINT,
+                ),
+            }
             Self::info_row(
                 ui,
                 "\u{00c9}diteur",
@@ -253,6 +279,41 @@ impl AboutPage {
                             .color(theme::text_primary())
                             .strong(),
                     );
+                },
+            );
+        });
+    }
+
+    /// A value worth pasting into a support request: monospace, selectable,
+    /// with a copy button at the edge.
+    fn copy_row(ui: &mut Ui, label: &str, value: &str, icon: &str) {
+        ui.horizontal(|ui: &mut egui::Ui| {
+            ui.set_min_height(INFO_ROW_MIN_HEIGHT);
+            ui.label(
+                egui::RichText::new(icon)
+                    .color(theme::accent_text())
+                    .strong(),
+            );
+            ui.add_space(theme::SPACE_XS);
+            ui.label(
+                egui::RichText::new(label)
+                    .font(theme::font_body())
+                    .color(theme::text_secondary()),
+            );
+            ui.with_layout(
+                egui::Layout::right_to_left(egui::Align::Center),
+                |ui: &mut egui::Ui| {
+                    widgets::copy_button(ui, value, Some("Copier la valeur"));
+                    ui.add(
+                        egui::Label::new(
+                            egui::RichText::new(value)
+                                .font(theme::font_mono_sm())
+                                .color(theme::text_primary()),
+                        )
+                        .truncate()
+                        .selectable(true),
+                    )
+                    .on_hover_text(value);
                 },
             );
         });

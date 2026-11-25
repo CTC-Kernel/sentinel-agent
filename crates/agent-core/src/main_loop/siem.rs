@@ -65,6 +65,25 @@ fn correlation_incident_report(
     }
 }
 
+/// Whether two transports send to the same place the same way, as far as
+/// the interface can choose: syslog host and port, or the collector URL.
+#[cfg(feature = "gui")]
+fn same_destination(a: &agent_siem::SiemTransport, b: &agent_siem::SiemTransport) -> bool {
+    use agent_siem::SiemTransport::{Http, Syslog};
+    match (a, b) {
+        (
+            Syslog { host, port, .. },
+            Syslog {
+                host: other_host,
+                port: other_port,
+                ..
+            },
+        ) => host == other_host && port == other_port,
+        (Http { url, .. }, Http { url: other, .. }) => url == other,
+        _ => false,
+    }
+}
+
 /// Number of events per category, for the interface's SIEM statistics.
 #[cfg(feature = "gui")]
 fn category_counts(events: &[SiemEvent]) -> Vec<(String, u32)> {
@@ -73,6 +92,25 @@ fn category_counts(events: &[SiemEvent]) -> Vec<(String, u32)> {
         *cat_map.entry(format!("{:?}", ev.category)).or_insert(0) += 1;
     }
     cat_map.into_iter().collect()
+}
+
+/// The log sources behind the names the settings use. A name that is not
+/// one of the four is left out.
+fn log_sources_from_labels(labels: &[String]) -> Vec<agent_siem::LogSource> {
+    use agent_siem::LogSource;
+    [
+        LogSource::System,
+        LogSource::Auth,
+        LogSource::Application,
+        LogSource::Firewall,
+    ]
+    .into_iter()
+    .filter(|source| {
+        labels
+            .iter()
+            .any(|label| label.trim().eq_ignore_ascii_case(&source.to_string()))
+    })
+    .collect()
 }
 
 /// The output format behind the label shown in the interface (JSON unless
@@ -116,46 +154,18 @@ fn siem_transport_from_gui(transport: &str, destination: &str) -> agent_siem::Si
 }
 
 impl AgentRuntime {
-    /// Create the SIEM forwarder, disabled by default. Events always reach
+    /// Create the SIEM forwarder, disabled until the settings held by the
+    /// runtime state say otherwise (see `sync_gui_siem_config`). Events always reach
     /// the platform via `record_event()` and the heartbeat sync; the external
     /// transport (syslog/HTTP) is only for a third-party SIEM.
     pub(crate) async fn init_siem_forwarder(&self) {
-        let config = agent_siem::SiemConfig::default();
-
-        // Extract GUI-relevant fields before config is moved
-        #[cfg(feature = "gui")]
-        let siem_gui_info = {
-            let format_str = match config.format {
-                agent_siem::SiemFormat::Cef => "CEF",
-                agent_siem::SiemFormat::Leef => "LEEF",
-                agent_siem::SiemFormat::Json => "JSON",
-            };
-            let (transport_str, destination_str) = match &config.transport {
-                agent_siem::SiemTransport::Syslog { host, port, .. } => {
-                    ("Syslog".to_string(), format!("{}:{}", host, port))
-                }
-                agent_siem::SiemTransport::Http { url, .. } => ("HTTP".to_string(), url.clone()),
-            };
-            (
-                config.enabled,
-                format_str.to_string(),
-                transport_str,
-                destination_str,
-            )
-        };
-
-        match SiemForwarder::new(config) {
+        // Nothing is told to the interface here: the settings of the
+        // external SIEM are the operator's, kept by the interface and sent
+        // with `UpdateSiemConfig`. Announcing these defaults used to reach
+        // it after its own settings and replace them, on screen and in what
+        // it saved for the next start.
+        match SiemForwarder::new(agent_siem::SiemConfig::default()) {
             Ok(forwarder) => {
-                #[cfg(feature = "gui")]
-                {
-                    let (enabled, format, transport, destination) = siem_gui_info;
-                    self.emit_gui_event(agent_gui::events::AgentEvent::SiemConfigUpdate {
-                        enabled,
-                        format,
-                        transport,
-                        destination,
-                    });
-                }
                 let mut siem_guard = self.siem_forwarder.write().await;
                 *siem_guard = Some(forwarder);
                 info!("SIEM forwarder initialized (disabled by default)");
@@ -172,12 +182,7 @@ impl AgentRuntime {
                 .state
                 .log_collector_enabled
                 .load(std::sync::atomic::Ordering::Acquire),
-            sources: vec![
-                agent_siem::LogSource::System,
-                agent_siem::LogSource::Auth,
-                agent_siem::LogSource::Application,
-                agent_siem::LogSource::Firewall,
-            ],
+            sources: self.wanted_log_sources(),
             lookback_secs: 300,
             poll_interval_secs: self
                 .state
@@ -189,6 +194,37 @@ impl AgentRuntime {
         let mut guard = self.log_collector.write().await;
         *guard = Some(collector);
         info!("Log collector initialized");
+    }
+
+    /// The log sources chosen in the settings.
+    fn wanted_log_sources(&self) -> Vec<agent_siem::LogSource> {
+        let labels = match self.state.log_collector_sources.lock() {
+            Ok(labels) => labels.clone(),
+            Err(poisoned) => poisoned.into_inner().clone(),
+        };
+        log_sources_from_labels(&labels)
+    }
+
+    /// Bring the collector in line with the settings before it reads: the
+    /// sources chosen, and the collection itself when it was created
+    /// switched off. The collector is kept, with the point where its last
+    /// read stopped, so nothing is read twice.
+    async fn apply_log_collector_settings(&self) {
+        let wanted = self.wanted_log_sources();
+        let up_to_date = self
+            .log_collector
+            .read()
+            .await
+            .as_ref()
+            .is_none_or(|collector| collector.is_enabled() && collector.sources() == wanted);
+        if up_to_date {
+            return;
+        }
+        if let Some(collector) = self.log_collector.write().await.as_mut() {
+            info!("Log collector sources set to {:?}", wanted);
+            collector.set_sources(wanted);
+            collector.set_enabled(true);
+        }
     }
 
     /// Record events for the platform's SIEM tab and, when an external SIEM
@@ -239,6 +275,37 @@ impl AgentRuntime {
             .unwrap_or(false);
         // Don't activate external transport without a configured destination
         let effective_enabled = gui_enabled && has_destination;
+        let wanted_format = self
+            .state
+            .siem_format
+            .lock()
+            .map(|format| siem_format_from_label(format.as_str()))
+            .ok();
+        // The destination is only read when there is one: without it the
+        // forwarder keeps the transport it has, switched off.
+        let wanted_transport = if has_destination {
+            match (
+                self.state.siem_transport.lock(),
+                self.state.siem_destination.lock(),
+            ) {
+                (Ok(transport), Ok(destination)) => {
+                    Some(siem_transport_from_gui(transport.as_str(), &destination))
+                }
+                _ => None,
+            }
+        } else {
+            None
+        };
+        // A change of format or of destination while the forwarder is on
+        // counts as much as switching it: it used to wait for the next
+        // off/on, the events going on to the previous destination.
+        let differs = |config: &agent_siem::SiemConfig| {
+            config.enabled != effective_enabled
+                || wanted_format.is_some_and(|format| config.format != format)
+                || wanted_transport
+                    .as_ref()
+                    .is_some_and(|transport| !same_destination(&config.transport, transport))
+        };
         // The usual pass has nothing to change, and does not ask for the
         // forwarder exclusively: a background task may be delivering an
         // event with it.
@@ -247,7 +314,7 @@ impl AgentRuntime {
             .read()
             .await
             .as_ref()
-            .is_none_or(|siem| siem.is_enabled() == effective_enabled);
+            .is_none_or(|siem| !differs(siem.config()));
         if unchanged {
             return;
         }
@@ -256,23 +323,23 @@ impl AgentRuntime {
             return;
         };
         if let Some(ref mut siem) = *siem_guard
-            && siem.is_enabled() != effective_enabled
+            && differs(siem.config())
         {
             let mut new_config = siem.config().clone();
             new_config.enabled = effective_enabled;
-            if let Ok(fmt) = self.state.siem_format.lock() {
-                new_config.format = siem_format_from_label(fmt.as_str());
+            if let Some(format) = wanted_format {
+                new_config.format = format;
             }
-            if has_destination
-                && let Ok(dest) = self.state.siem_destination.lock()
-                && let Ok(tr) = self.state.siem_transport.lock()
-            {
-                new_config.transport = siem_transport_from_gui(tr.as_str(), &dest);
+            if let Some(transport) = wanted_transport {
+                new_config.transport = transport;
             }
             if let Err(e) = siem.update_config(new_config) {
                 warn!("Failed to apply GUI SIEM config: {}", e);
-            } else if effective_enabled {
-                info!("SIEM forwarder config synced from GUI (enabled=true)");
+            } else {
+                info!(
+                    "SIEM forwarder config synced from GUI (enabled={})",
+                    effective_enabled
+                );
             }
         }
     }
@@ -291,6 +358,7 @@ impl AgentRuntime {
             .load(std::sync::atomic::Ordering::Acquire);
 
         if collector_enabled && st.last_log_collection.elapsed().as_secs() >= poll_secs {
+            self.apply_log_collector_settings().await;
             let collector_guard = self.log_collector.read().await;
             if let Some(ref collector) = *collector_guard {
                 let siem_events = collector.collect().await;
@@ -313,24 +381,34 @@ impl AgentRuntime {
 
         // Push collected events to the desktop GUI
         #[cfg(feature = "gui")]
-        self.show_collected_logs(siem_events, poll_secs);
+        self.emit_siem_log_batch(siem_events.to_vec());
 
         self.record_log_events_in_siem(siem_events).await;
+
+        // Once forwarded: the figures shown are those of the forwarder.
+        #[cfg(feature = "gui")]
+        self.show_forwarder_stats(siem_events, poll_secs).await;
         self.correlate_log_events(siem_events).await;
     }
 
-    /// Show the collected events and their statistics in the interface.
+    /// Show in the interface what the forwarder did with the events so
+    /// far: sent, lost, waiting, and whether its last delivery went through.
+    /// These are its own counters; the rate and the categories are those of
+    /// the collection that just ended.
     #[cfg(feature = "gui")]
-    fn show_collected_logs(&self, siem_events: &[SiemEvent], poll_secs: u64) {
-        self.emit_siem_log_batch(siem_events.to_vec());
-
-        let siem_connected = self
-            .state
-            .siem_enabled
-            .load(std::sync::atomic::Ordering::Acquire);
+    async fn show_forwarder_stats(&self, siem_events: &[SiemEvent], poll_secs: u64) {
+        let (stats, buffered, enabled) = match self.siem_forwarder.read().await.as_ref() {
+            Some(siem) => (
+                siem.stats().await,
+                siem.buffered_events().await,
+                siem.is_enabled(),
+            ),
+            None => (agent_siem::SiemStats::default(), 0, false),
+        };
         self.emit_siem_stats(
-            siem_events.len() as u64,
-            siem_connected,
+            &stats,
+            buffered,
+            enabled,
             siem_events.len() as f32 / (poll_secs.max(1) as f32 / 60.0),
             category_counts(siem_events),
         );
@@ -711,21 +789,119 @@ mod tests {
         assert!(test.runtime.correlation_engine.read().await.is_some());
     }
 
+    /// The interface holds the operator's settings and sends them at its
+    /// start; the defaults announced here used to arrive after them and
+    /// replace them, on screen and in the saved preferences.
     #[cfg(feature = "gui")]
     #[tokio::test]
-    async fn the_forwarder_starts_disabled_and_tells_the_interface() {
+    async fn the_forwarder_starts_disabled_and_leaves_the_interface_settings_alone() {
         let test = standalone_runtime();
 
         test.runtime.init_siem_forwarder().await;
 
         let forwarder = test.runtime.siem_forwarder.read().await;
         assert!(forwarder.as_ref().is_some_and(|siem| !siem.is_enabled()));
-        match test.events.try_recv() {
-            Ok(AgentEvent::SiemConfigUpdate { enabled, .. }) => assert!(!enabled),
-            other => panic!(
-                "expected the SIEM configuration, got {:?}",
-                other.map(|_| ())
-            ),
+        while let Ok(event) = test.events.try_recv() {
+            assert!(
+                !matches!(event, AgentEvent::SiemConfigUpdate { .. }),
+                "the start-up must not announce a SIEM configuration"
+            );
         }
+    }
+
+    #[cfg(feature = "gui")]
+    #[tokio::test]
+    async fn a_new_destination_or_format_reaches_a_forwarder_already_on() {
+        let test = standalone_runtime();
+        test.runtime.init_siem_forwarder().await;
+        let state = &test.runtime.state;
+        state.siem_enabled.store(true, Ordering::Release);
+        *state.siem_destination.lock().unwrap() = "siem.example.org:6514".to_string();
+        *state.siem_transport.lock().unwrap() = "Syslog".to_string();
+        *state.siem_format.lock().unwrap() = "CEF".to_string();
+        test.runtime.sync_gui_siem_config().await;
+
+        // Still enabled: only the destination and the format change.
+        *state.siem_destination.lock().unwrap() = "other.example.org:514".to_string();
+        *state.siem_format.lock().unwrap() = "LEEF".to_string();
+        test.runtime.sync_gui_siem_config().await;
+        {
+            let forwarder = test.runtime.siem_forwarder.read().await;
+            let siem = forwarder.as_ref().unwrap();
+            assert!(siem.is_enabled());
+            assert_eq!(siem.config().format, agent_siem::SiemFormat::Leef);
+            assert_eq!(siem.config().destination_label(), "other.example.org:514");
+        }
+
+        // And the transport: an HTTP collector instead of syslog.
+        *state.siem_transport.lock().unwrap() = "HTTP".to_string();
+        *state.siem_destination.lock().unwrap() = "https://hec.example.org/collector".to_string();
+        test.runtime.sync_gui_siem_config().await;
+        let forwarder = test.runtime.siem_forwarder.read().await;
+        assert_eq!(
+            forwarder.as_ref().unwrap().config().destination_label(),
+            "https://hec.example.org/collector"
+        );
+    }
+
+    #[test]
+    fn log_sources_are_those_named_in_the_settings() {
+        use super::log_sources_from_labels;
+        use agent_siem::LogSource;
+
+        let labels = |names: &[&str]| names.iter().map(|n| n.to_string()).collect::<Vec<_>>();
+        assert_eq!(
+            log_sources_from_labels(&labels(&["firewall", "Auth", "unknown"])),
+            [LogSource::Auth, LogSource::Firewall]
+        );
+        assert!(log_sources_from_labels(&[]).is_empty());
+    }
+
+    #[tokio::test]
+    async fn the_collector_reads_the_sources_chosen_in_the_settings() {
+        let test = standalone_runtime();
+        *test.runtime.state.log_collector_sources.lock().unwrap() = vec!["auth".to_string()];
+        test.runtime.init_log_collector().await;
+        assert_eq!(
+            test.runtime
+                .log_collector
+                .read()
+                .await
+                .as_ref()
+                .unwrap()
+                .sources(),
+            [agent_siem::LogSource::Auth]
+        );
+
+        // Changed while the agent runs: applied before the next read.
+        *test.runtime.state.log_collector_sources.lock().unwrap() =
+            vec!["auth".to_string(), "system".to_string()];
+        test.runtime.apply_log_collector_settings().await;
+        assert_eq!(
+            test.runtime
+                .log_collector
+                .read()
+                .await
+                .as_ref()
+                .unwrap()
+                .sources(),
+            [agent_siem::LogSource::System, agent_siem::LogSource::Auth]
+        );
+    }
+
+    /// Created switched off (the setting restored by the interface), then
+    /// switched on: the collector used to stay off until the next start.
+    #[tokio::test]
+    async fn a_collector_created_off_reads_once_switched_on() {
+        let test = standalone_runtime();
+        let state = &test.runtime.state;
+        state.log_collector_enabled.store(false, Ordering::Release);
+        test.runtime.init_log_collector().await;
+
+        state.log_collector_enabled.store(true, Ordering::Release);
+        test.runtime.apply_log_collector_settings().await;
+
+        let collector = test.runtime.log_collector.read().await;
+        assert!(collector.as_ref().unwrap().is_enabled());
     }
 }

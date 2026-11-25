@@ -132,7 +132,7 @@ impl ThreatsPage {
         ui.add_space(theme::SPACE_LG);
 
         // ── Route to active tab ─────────────────────────────────────
-        match state.threats.active_tab {
+        let command = match state.threats.active_tab {
             EdrTab::Overview => overview::show(ui, state),
             EdrTab::Events => events::show(ui, state),
             EdrTab::Investigation => investigation::show(ui, state),
@@ -141,6 +141,9 @@ impl ThreatsPage {
             EdrTab::DetectionRules => detection_rules::show(ui, state),
             EdrTab::ForensicTimeline => forensic_timeline::show(ui, state),
             EdrTab::Authorizations => authorizations::show(ui, state),
-        }
+        };
+        // A response action is confirmed the same way wherever it was asked
+        // for: the response tab or the detail of an event.
+        response::resolve_confirmation(ui, state).or(command)
     }
 }

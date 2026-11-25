@@ -215,6 +215,14 @@ impl AgentRuntime {
         #[cfg(feature = "gui")]
         self.load_cached_discovery().await;
 
+        // Software deployments the platform ordered in earlier sessions.
+        #[cfg(feature = "gui")]
+        self.emit_mdm_history().await;
+
+        // KPI history of the previous sessions, for the dashboard trends.
+        #[cfg(feature = "gui")]
+        self.load_kpi_history().await;
+
         // Load persisted GRC data (playbooks, detection rules, assets, alert rules) into GUI
         #[cfg(feature = "gui")]
         self.sync_assets_to_gui().await;

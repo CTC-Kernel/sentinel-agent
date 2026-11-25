@@ -10,6 +10,49 @@ Tous les changements notables apportés au projet **Sentinel GRC Agent** sont co
 
 ## 🚀 [Non publié]
 
+### 🖥️ Interface : finition de bout en bout (audit du 25/11/2026)
+
+- **Canal service ↔ interface sous Windows** : quand le service tourne,
+  l'interface reçoit désormais l'état de l'agent et lui transmet ses commandes
+  par un tube nommé local (`gui_ipc`). Le service applique lui-même la règle
+  d'administration : une commande protégée est refusée tant que la connexion
+  n'a pas été déverrouillée par le mot de passe administrateur, vérifié côté
+  service. Bandeau « Service Sentinel injoignable » au lieu de pages vides.
+  Compilé pour Windows et testé hors Windows ; reste à valider sur une
+  machine Windows réelle.
+- **Mot de passe administrateur** : « Connecter à une plateforme » ne peut
+  plus le remplacer sans le connaître ; un enrôlement en échec ne l'écrit
+  plus ; l'enrôlement par QR en définit un.
+- **Réponse** : « Bloquer » ne vise plus l'adresse du poste ; les actions
+  (terminer, quarantaine, blocage) sont dans la fiche de l'événement avec la
+  cible exacte ; registre durable des adresses bloquées avec « Débloquer » ;
+  état d'isolement et résultat de chaque action affichés aussitôt.
+- **Playbooks et règles** : édition, logique « toutes / au moins une »,
+  modèles Ransomware et Crypto-miner corrigés (ils ne pouvaient pas se
+  déclencher), compteurs conservés, échecs d'enregistrement signalés.
+- **Logiciels & MDM** : onglet « Déploiements MDM » avec l'historique durable
+  des déploiements ordonnés par la plateforme.
+- **Conformité, risques, rapports** : « Remédier » montre la commande avant
+  de corriger ; formulaire de risque sur brouillon (Annuler annule) ; tous
+  les risques générés sont enregistrés ; rapport d'audit sur tous les
+  référentiels, avec écarts et chronologie ; historique des rapports conservé.
+- **Tableaux** : tri par colonne partout, recherche, filtres, retour à la
+  première page, exports CSV horodatés qui suivent le filtre et l'ordre
+  affichés, états vides distincts de « aucun résultat ».
+- **Notifications et alertes** : notifications conservées entre deux
+  lancements, les plus récentes d'abord ; règles et webhooks modifiables ;
+  échec d'envoi d'un webhook visible ; type « escalade » (jamais évalué) retiré.
+- **Tableau de bord** : « SLA remédiation » calculé, historique des
+  indicateurs conservé, question à l'assistant envoyée avec son contexte.
+- **SIEM** : réglages plus remis à zéro au lancement, changement de format ou
+  de destination appliqué à chaud, sources de journaux respectées,
+  statistiques réelles.
+- **Barre système et réglages** : dossier des journaux réel, état de pause
+  synchronisé, « Quitter » protégé comme dans les paramètres, découverte
+  réseau réellement périodique, blocage du stockage USB réglable
+  (administrateur, désactivé par défaut), page « À propos » avec identifiant
+  de l'agent.
+
 ### 🔒 Socket des actions privilégiées : un client non vérifié est refusé
 
 - **Refus par défaut** : le service d'assistance root n'exécute plus que les

@@ -361,6 +361,10 @@ pub struct DiscoveryState {
     pub search: String,
     pub selected_device: Option<usize>,
     pub detail_open: bool,
+    /// Why the last scan did not run or failed; cleared by the next one.
+    pub error: Option<String>,
+    /// `Some(true)`: unauthorised devices only; `Some(false)`: authorised.
+    pub shadow_filter: Option<bool>,
 }
 
 // ---------------------------------------------------------------------------
@@ -517,6 +521,8 @@ pub struct ThreatsState {
     // Response tab
     pub pending_actions: VecDeque<crate::dto::ResponseAction>,
     pub quarantine_queue: VecDeque<crate::dto::QuarantinedFile>,
+    /// Addresses blocked right now, as the agent's ledger lists them.
+    pub blocked_ips: Vec<crate::dto::BlockedIp>,
     /// When the quarantine store was last asked for (seconds of UI time).
     pub quarantine_requested_at: Option<f64>,
     pub response_log: VecDeque<crate::dto::ResponseLogEntry>,
@@ -672,6 +678,7 @@ impl Default for ThreatsState {
             ioc_results_count: 0,
             pending_actions: VecDeque::with_capacity(20),
             quarantine_queue: VecDeque::with_capacity(100),
+            blocked_ips: Vec::new(),
             quarantine_requested_at: None,
             response_log: VecDeque::with_capacity(500),
             response_page: 0,
@@ -784,6 +791,23 @@ pub struct ComplianceFilter {
     pub ai_analysis_result: Option<String>,
     /// Current page for paginated table view (0-indexed).
     pub current_page: usize,
+    /// Check whose automatic remediation the operator asked to review.
+    pub remediation_requested: Option<String>,
+    /// What that remediation would run, once the agent answered.
+    pub remediation_preview: Option<RemediationPreview>,
+}
+
+/// What the automatic remediation of a check would run. Shown for
+/// confirmation before anything is executed.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct RemediationPreview {
+    pub check_id: String,
+    /// Whether an automatic remediation exists on this system.
+    pub available: bool,
+    pub description: String,
+    pub command: String,
+    pub risk: String,
+    pub requires_reboot: bool,
 }
 
 // ---------------------------------------------------------------------------
@@ -935,10 +959,10 @@ pub struct ReportsState {
     pub reports: VecDeque<crate::dto::GeneratedReport>,
     pub selected_report: Option<usize>,
     pub detail_open: bool,
-    pub generating: bool,
-    pub selected_type: crate::dto::ReportType,
-    pub selected_framework: Option<String>,
     pub active_tab: usize,
+    /// Folder the report history is kept in. `None` (tests, previews, the
+    /// tray popup) keeps the reports in memory only.
+    pub history_dir: Option<std::path::PathBuf>,
 }
 
 impl Default for ReportsState {
@@ -947,10 +971,8 @@ impl Default for ReportsState {
             reports: VecDeque::with_capacity(50),
             selected_report: None,
             detail_open: false,
-            generating: false,
-            selected_type: crate::dto::ReportType::default(),
-            selected_framework: None,
             active_tab: 0,
+            history_dir: None,
         }
     }
 }
@@ -973,11 +995,18 @@ pub struct RisksState {
     pub selected_risk: Option<usize>,
     pub detail_open: bool,
     pub editing: bool,
-    /// Timestamp until the fake "saving" state ends (for double-click prevention UX)
-    pub saving_until: Option<chrono::DateTime<chrono::Utc>>,
+    /// The risk being created or edited. The register only changes when the
+    /// form is saved, so cancelling leaves it as it was.
+    pub draft: Option<crate::dto::RiskEntry>,
+    /// Whether `draft` is a risk that is not in the register yet.
+    pub draft_is_new: bool,
     /// Opaque ID of the risk currently being analyzed by AI (None = idle).
     pub ai_analyzing: Option<String>,
-    /// Last AI analysis result text for the selected risk.
+    /// ID of the risk the analysis below is about.
+    pub ai_analysis_for: Option<String>,
+    /// Probability and impact the analysis suggests, applied only on request.
+    pub ai_suggested_scores: Option<(u8, u8)>,
+    /// Last AI analysis result text, for the risk named by `ai_analysis_for`.
     pub ai_analysis_result: Option<String>,
     /// Mitigation suggestions from the last AI analysis.
     pub ai_mitigation_suggestions: Vec<String>,
@@ -998,6 +1027,8 @@ pub struct AssetsState {
     pub detail_open: bool,
     /// Whether the inline asset creation form is open.
     pub asset_editing: bool,
+    /// The asset the inline form edits; `None` when it creates one.
+    pub editing_id: Option<String>,
     /// Current page (0-indexed) of the paginated asset table.
     pub page: usize,
     /// Assets waiting to be persisted via `SaveAsset` commands.
@@ -1091,6 +1122,18 @@ pub struct SoftwareState {
     pub packages_page: usize,
     /// Current page (0-indexed) of the native-apps table.
     pub native_page: usize,
+    /// Packages tab: only the packages behind their latest version.
+    pub outdated_only: bool,
+    /// Software deployments ordered by the platform, newest first.
+    pub deployments: Vec<crate::dto::GuiMdmDeployment>,
+    /// What the local configuration lets the platform deploy.
+    pub mdm_policy: Option<crate::dto::GuiMdmPolicy>,
+    /// Deployments tab: the status shown alone, if any.
+    pub deployment_filter: Option<crate::dto::MdmStatus>,
+    /// Current page (0-indexed) of the deployments table.
+    pub deployments_page: usize,
+    /// Whether the history was asked for since the tab was opened.
+    pub deployments_requested: bool,
 }
 
 // ---------------------------------------------------------------------------
@@ -1199,6 +1242,26 @@ pub struct SecurityState {
     pub lockout: crate::admin_auth::Lockout,
     /// Fields of the administrator dialog, wiped when it closes.
     pub form: AdminForm,
+    /// Channel to the background service, when the agent runs there and
+    /// this interface is its companion (Windows); `None` when the agent
+    /// runs inside the interface, which then checks the password itself.
+    pub service: Option<ServiceLink>,
+    /// Administrator request for the service, taken and sent by the shell.
+    pub service_request: Option<crate::events::GuiCommand>,
+    /// Since when the dialog waits for the service's answer.
+    pub service_waiting: Option<std::time::Instant>,
+    /// The service's answer, taken by the dialog.
+    pub service_outcome: Option<crate::events::ServiceAdminOutcome>,
+}
+
+/// What the interface knows of the background service it is the companion
+/// of.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct ServiceLink {
+    /// The service answers on the channel.
+    pub connected: bool,
+    /// The service holds an administrator password.
+    pub admin_configured: bool,
 }
 
 /// Inputs of the administrator dialog. The secrets are zeroized on drop.
@@ -1248,6 +1311,20 @@ pub struct SyncHistoryEntry {
     pub message: String,
 }
 
+/// What the interface still has to exchange with the notification store of
+/// the agent, which keeps the notification centre from one session to the
+/// next.
+#[derive(Default)]
+pub struct NotificationStoreSync {
+    /// The stored notifications were asked for (once, at start).
+    load_requested: bool,
+    /// Notifications of this session not handed to the store yet.
+    pending_saves: Vec<crate::dto::GuiNotification>,
+}
+
+/// Notifications kept in the notification centre.
+const MAX_NOTIFICATIONS: usize = 100;
+
 /// Shared application state consumed by all pages.
 ///
 /// Fields are grouped into domain sub-structs to keep the struct manageable.
@@ -1293,6 +1370,8 @@ pub struct AppState {
     pub alerting: AlertingState,
 
     pub notifications: Vec<crate::dto::GuiNotification>,
+    /// What is still to be exchanged with the agent's notification store.
+    pub notification_store: NotificationStoreSync,
     pub notifications_active_tab: usize,
     pub selected_notification: Option<usize>,
     pub notification_detail_open: bool,
@@ -1363,6 +1442,7 @@ impl Default for AppState {
             alerting: AlertingState::default(),
 
             notifications: Vec::new(),
+            notification_store: NotificationStoreSync::default(),
             notifications_active_tab: 0,
             selected_notification: None,
             notification_detail_open: false,
@@ -1401,6 +1481,16 @@ impl AppState {
     pub fn end_pause(&mut self) {
         self.settings.is_paused = false;
         self.settings.pause_until = None;
+    }
+
+    /// Whether an administrator password exists: the service's when this
+    /// interface is its companion (or the local one, not handed over to
+    /// the service yet), the local one otherwise.
+    pub fn admin_password_configured(&self) -> bool {
+        self.security
+            .service
+            .is_some_and(|link| link.admin_configured)
+            || !self.settings.admin_password_hash.is_empty()
     }
 
     /// `true` when the administrator mode is open. Otherwise asks for the
@@ -1670,6 +1760,15 @@ impl AppState {
                 if let Some(connection) = &summary.connection {
                     self.settings.server_url.clone_from(&connection.server_url);
                     self.settings.heartbeat_interval_secs = connection.heartbeat_interval_secs;
+                    // The check interval and the log level are the agent's:
+                    // its configuration or the platform may have set them
+                    // since the interface last saved its own copy.
+                    if let Some(interval) = connection.check_interval_secs {
+                        self.settings.check_interval_secs = interval;
+                    }
+                    if let Some(level) = connection.log_level {
+                        self.settings.log_level = crate::dto::LogLevel::from_index(level as usize);
+                    }
                 }
                 self.summary = summary;
             }
@@ -1739,6 +1838,26 @@ impl AppState {
             AgentEvent::BrowserExtensions { extensions } => {
                 self.software.browser_extensions = extensions;
             }
+            AgentEvent::MdmDeployments {
+                deployments,
+                policy,
+            } => {
+                // The drawer follows its deployment through the refresh.
+                if self.software.active_tab == crate::dto::SoftwareTab::Deployments {
+                    let selected = self
+                        .software
+                        .selected_package
+                        .and_then(|i| self.software.deployments.get(i))
+                        .map(|d| d.id.clone());
+                    self.software.selected_package =
+                        selected.and_then(|id| deployments.iter().position(|d| d.id == id));
+                    if self.software.selected_package.is_none() {
+                        self.software.detail_open = false;
+                    }
+                }
+                self.software.deployments = deployments;
+                self.software.mdm_policy = policy;
+            }
             AgentEvent::SystemInventory { inventory } => {
                 self.system_inventory.inventory = Some(inventory);
             }
@@ -1762,6 +1881,7 @@ impl AppState {
                 self.discovery.in_progress = false;
                 self.discovery.progress = 1.0;
                 self.discovery.phase = "Terminée".to_string();
+                self.discovery.error = None;
                 self.discovery.selected_device = None;
                 self.discovery.detail_open = false;
                 self.cartography.layout = None;
@@ -1772,6 +1892,13 @@ impl AppState {
                 self.discovery.in_progress = true;
                 self.discovery.phase = phase;
                 self.discovery.progress = progress;
+                self.discovery.error = None;
+            }
+            AgentEvent::DiscoveryFailed { reason } => {
+                self.discovery.in_progress = false;
+                self.discovery.progress = 0.0;
+                self.discovery.phase.clear();
+                self.discovery.error = Some(reason);
             }
             AgentEvent::EnrollmentResult {
                 success,
@@ -1849,10 +1976,22 @@ impl AppState {
             }
             AgentEvent::SiemLogBatch { entries } => {
                 const MAX_SIEM_LOGS: usize = 1000;
+                // push_front shifts every index: keep the selection on its
+                // entry, and drop it once that entry leaves the buffer.
+                let added = entries.len();
                 for entry in entries {
                     self.siem.log_entries.push_front(entry);
                 }
                 self.siem.log_entries.truncate(MAX_SIEM_LOGS);
+                if let Some(selected) = self.siem.selected_log {
+                    let shifted = selected.saturating_add(added);
+                    if shifted < self.siem.log_entries.len() {
+                        self.siem.selected_log = Some(shifted);
+                    } else {
+                        self.siem.selected_log = None;
+                        self.siem.detail_open = false;
+                    }
+                }
             }
             AgentEvent::SiemStatsUpdate { stats } => {
                 self.siem.stats = stats;
@@ -1896,29 +2035,31 @@ impl AppState {
                         }
                     }
 
-                    // The outcome of a block is announced here, when it is
-                    // known, and not by the page that asked for it.
-                    block_outcome = matches!(
-                        action.action_type,
-                        crate::dto::ResponseActionType::BlockIp
-                    )
-                    .then(|| {
-                        if success {
-                            crate::dto::GuiNotification::info(
-                                "Adresse bloqu\u{00e9}e",
-                                format!("{} est bloqu\u{00e9}e sur ce poste.", action.target),
-                            )
-                        } else {
-                            crate::dto::GuiNotification::error(
-                                "Blocage impossible",
-                                format!(
-                                    "{} n'a pas \u{00e9}t\u{00e9} bloqu\u{00e9}e : {}",
-                                    action.target,
-                                    error.as_deref().unwrap_or("raison inconnue")
-                                ),
-                            )
+                    // The outcome of every response action is announced
+                    // here, when it is known, and not by the page that
+                    // asked for it: a failure used to be one row of the
+                    // response log, unseen from any other page.
+                    block_outcome = Some(response_outcome_notification(
+                        action,
+                        success,
+                        error.as_deref(),
+                    ));
+
+                    // The isolation banner and the Isoler / Lever button
+                    // follow the result at once; the agent's next status
+                    // confirms it (up to a check interval later when the
+                    // agent is standalone).
+                    if success {
+                        match action.action_type {
+                            crate::dto::ResponseActionType::IsolateHost => {
+                                self.summary.host_isolated = true;
+                            }
+                            crate::dto::ResponseActionType::ReleaseHost => {
+                                self.summary.host_isolated = false;
+                            }
+                            _ => {}
                         }
-                    });
+                    }
 
                     // Log the result
                     let log_entry = crate::dto::ResponseLogEntry {
@@ -1927,8 +2068,13 @@ impl AppState {
                         target: action.target.clone(),
                         status: action.status,
                         timestamp: chrono::Utc::now(),
-                        operator: "Agent".to_string(),
-                        details: error,
+                        // Only the interface submits these actions.
+                        operator: "Op\u{00e9}rateur local".to_string(),
+                        // The failure when there is one, else what the
+                        // action bore on (PID, duration of the block).
+                        details: error.or_else(|| {
+                            Some(action.target_detail.clone()).filter(|d| !d.is_empty())
+                        }),
                     };
                     self.threats.response_log.push_front(log_entry);
                     if self.threats.response_log.len() > 500 {
@@ -1938,16 +2084,6 @@ impl AppState {
                 if let Some(notification) = block_outcome {
                     self.add_notification(notification);
                 }
-            }
-            AgentEvent::ReportGenerated { report } => {
-                self.reports.reports.push_front(*report);
-                if self.reports.reports.len() > 50 {
-                    self.reports.reports.pop_back();
-                }
-                self.reports.generating = false;
-                // push_front shifts all indices — invalidate report selection
-                self.reports.selected_report = None;
-                self.reports.detail_open = false;
             }
             AgentEvent::PlaybookTriggered { log_entry } => {
                 // Update playbook last_triggered / trigger_count
@@ -2295,20 +2431,24 @@ impl AppState {
                 if self.risks.ai_analyzing.as_ref().cloned() == Some(risk_id.clone()) {
                     self.risks.ai_analyzing = None;
                 }
-                // Store the analysis result for display
+                // Store the analysis result for display, tied to its risk
                 self.risks.ai_analysis_result = Some(analysis.clone());
                 self.risks.ai_mitigation_suggestions = mitigation_suggestions;
-
-                // Optionally apply AI-suggested scores to the risk entry
-                if let Some(entry) = self.risks.entries.iter_mut().find(|r| r.id == risk_id) {
-                    if let Some(prob) = suggested_probability {
-                        entry.probability = prob.clamp(1, 5);
-                    }
-                    if let Some(impact) = suggested_impact {
-                        entry.impact = impact.clamp(1, 5);
-                    }
-                    entry.updated_at = chrono::Utc::now();
-                }
+                // The suggested scores are shown, not applied: the register
+                // changes only when the operator asks for it.
+                self.risks.ai_suggested_scores = self
+                    .risks
+                    .entries
+                    .iter()
+                    .find(|r| r.id == risk_id)
+                    .and_then(|entry| {
+                        let probability =
+                            suggested_probability.map_or(entry.probability, |p| p.clamp(1, 5));
+                        let impact = suggested_impact.map_or(entry.impact, |i| i.clamp(1, 5));
+                        ((probability, impact) != (entry.probability, entry.impact))
+                            .then_some((probability, impact))
+                    });
+                self.risks.ai_analysis_for = Some(risk_id);
 
                 // Also log in the AI chat for traceability
                 self.ai.chat_history.push(crate::dto::LlmChatMessage {
@@ -2385,6 +2525,26 @@ impl AppState {
                 self.threats.quarantine_queue.push_front(entry);
                 self.threats.quarantine_queue.truncate(200);
             }
+            AgentEvent::RemediationPreview {
+                check_id,
+                available,
+                description,
+                command,
+                risk,
+                requires_reboot,
+            } => {
+                // Kept only while the operator is still reviewing that check.
+                if self.compliance.remediation_requested.as_deref() == Some(check_id.as_str()) {
+                    self.compliance.remediation_preview = Some(RemediationPreview {
+                        check_id,
+                        available,
+                        description,
+                        command,
+                        risk,
+                        requires_reboot,
+                    });
+                }
+            }
             AgentEvent::AuditTrailLoaded { entries } => {
                 // Rows are selected by position: a list that changed
                 // invalidates the selection, one that did not keeps it.
@@ -2397,8 +2557,67 @@ impl AppState {
             AgentEvent::QuarantineLoaded { entries } => {
                 self.threats.quarantine_queue = entries.into_iter().take(200).collect();
             }
+            AgentEvent::BlockedIpsLoaded { entries } => {
+                self.threats.blocked_ips = entries;
+            }
+            AgentEvent::NotificationsLoaded { notifications } => {
+                // Those of the previous sessions, under those of this one.
+                // What is already shown keeps its state: it is newer than
+                // the store's.
+                let mut added = false;
+                for stored in notifications {
+                    if !self.notifications.iter().any(|n| n.id == stored.id) {
+                        self.notifications.push(stored);
+                        added = true;
+                    }
+                }
+                if added {
+                    // Oldest first, as `add_notification` keeps them.
+                    self.notifications.sort_by_key(|n| n.timestamp);
+                    let excess = self.notifications.len().saturating_sub(MAX_NOTIFICATIONS);
+                    self.notifications.drain(..excess);
+                    // Positions changed: a selection would name another row.
+                    self.selected_notification = None;
+                    self.notification_detail_open = false;
+                }
+            }
             AgentEvent::ToggleJarvisWidget { visible } => {
                 self.jarvis_visible = visible;
+            }
+            AgentEvent::ServiceLink {
+                connected,
+                admin_configured,
+            } => {
+                self.security.service = Some(ServiceLink {
+                    connected,
+                    admin_configured,
+                });
+            }
+            AgentEvent::ServiceAdmin { outcome } => {
+                use crate::events::ServiceAdminOutcome;
+                if let Some(link) = self.security.service.as_mut() {
+                    match outcome {
+                        ServiceAdminOutcome::PasswordSet { .. }
+                        | ServiceAdminOutcome::Unlocked { .. } => link.admin_configured = true,
+                        ServiceAdminOutcome::NotConfigured => link.admin_configured = false,
+                        _ => {}
+                    }
+                }
+                if self.security.service_waiting.is_some() {
+                    // The administrator dialog reads the answer.
+                    self.security.service_outcome = Some(outcome);
+                } else if outcome == ServiceAdminOutcome::Locked {
+                    // The service closed the session (connection lost).
+                    self.security.lock();
+                }
+            }
+            AgentEvent::ServiceCommandRefused { command, reason } => {
+                // The service decides who is an administrator: its session
+                // is over, or it guards more than the interface does. Ask
+                // for the password; the command leaves again once unlocked.
+                self.security.lock();
+                self.security.request_unlock(reason);
+                self.security.held_commands.push(*command);
             }
         }
 
@@ -2407,6 +2626,27 @@ impl AppState {
         }
         // Single recompute at end of every event
         self.recompute_summary_stats();
+    }
+
+    /// Commands for the notification store of the agent: the request for
+    /// what it kept (once, at start), then every notification of this
+    /// session it has not been given yet.
+    pub fn take_notification_sync(&mut self) -> Vec<crate::events::GuiCommand> {
+        let mut commands = Vec::new();
+        if !std::mem::replace(&mut self.notification_store.load_requested, true) {
+            commands.push(crate::events::GuiCommand::LoadNotifications {
+                limit: MAX_NOTIFICATIONS as u32,
+            });
+        }
+        commands.extend(
+            self.notification_store
+                .pending_saves
+                .drain(..)
+                .map(|notification| crate::events::GuiCommand::SaveNotification {
+                    notification: Box::new(notification),
+                }),
+        );
+        commands
     }
 
     /// The rows of the audit page: the persistent trail of the agent and
@@ -2502,8 +2742,12 @@ impl AppState {
         self.selected_audit_entry = None;
         self.audit_detail_open = false;
 
+        // Kept by the agent, so it is still there after a restart.
+        self.notification_store
+            .pending_saves
+            .push(notification.clone());
         self.notifications.push(notification);
-        if self.notifications.len() > 100 {
+        if self.notifications.len() > MAX_NOTIFICATIONS {
             // Evict oldest notification (FIFO), not newest
             self.notifications.remove(0);
             // remove(0) shifts all indices — invalidate selection
@@ -2563,9 +2807,16 @@ impl AppState {
         self.terminal.lines.push_back(entry);
         while self.terminal.lines.len() > 500 {
             self.terminal.lines.pop_front();
-            // pop_front shifts all indices — invalidate terminal selection
-            self.terminal.selected_log = None;
-            self.terminal.detail_open = false;
+            // pop_front shifts all indices: follow the selected line, and
+            // close its drawer only when that line itself is evicted.
+            match self.terminal.selected_log {
+                Some(0) => {
+                    self.terminal.selected_log = None;
+                    self.terminal.detail_open = false;
+                }
+                Some(selected) => self.terminal.selected_log = Some(selected - 1),
+                None => {}
+            }
         }
     }
 
@@ -2601,6 +2852,8 @@ impl AppState {
         self.risks.detail_open = false;
         self.risks.selected_risk = None;
         self.risks.editing = false;
+        self.risks.draft = None;
+        self.risks.draft_is_new = false;
         self.assets.detail_open = false;
         self.assets.selected_asset = None;
         self.alerting.detail_open = false;
@@ -2676,6 +2929,144 @@ impl AppState {
     }
 }
 
+/// What the operator is told when a response action ends: done, or not
+/// done and why. `error` is already in French.
+fn response_outcome_notification(
+    action: &crate::dto::ResponseAction,
+    success: bool,
+    error: Option<&str>,
+) -> crate::dto::GuiNotification {
+    use crate::dto::{GuiNotification, ResponseActionType};
+
+    let target = action.target.as_str();
+    // A file in quarantine is known by its handle: name where it goes back.
+    let restored = if action.target_detail.is_empty() {
+        target
+    } else {
+        action.target_detail.as_str()
+    };
+    if success {
+        let (title, body) = match action.action_type {
+            ResponseActionType::KillProcess => (
+                "Processus arr\u{00ea}t\u{00e9}",
+                format!("{target} a \u{00e9}t\u{00e9} arr\u{00ea}t\u{00e9}."),
+            ),
+            ResponseActionType::QuarantineFile => (
+                "Fichier mis en quarantaine",
+                format!("{target} a \u{00e9}t\u{00e9} plac\u{00e9} en quarantaine."),
+            ),
+            ResponseActionType::BlockIp => (
+                "Adresse bloqu\u{00e9}e",
+                format!("{target} est bloqu\u{00e9}e sur ce poste."),
+            ),
+            ResponseActionType::UnblockIp => (
+                "Adresse d\u{00e9}bloqu\u{00e9}e",
+                format!("{target} n'est plus bloqu\u{00e9}e sur ce poste."),
+            ),
+            ResponseActionType::RestoreFile => (
+                "Fichier restaur\u{00e9}",
+                format!("{restored} a \u{00e9}t\u{00e9} remis \u{00e0} son emplacement d'origine."),
+            ),
+            ResponseActionType::IsolateHost => (
+                "Poste isol\u{00e9}",
+                "Le trafic r\u{00e9}seau de ce poste est coup\u{00e9}.".to_string(),
+            ),
+            ResponseActionType::ReleaseHost => (
+                "Isolement lev\u{00e9}",
+                "Ce poste a retrouv\u{00e9} son acc\u{00e8}s au r\u{00e9}seau.".to_string(),
+            ),
+        };
+        return GuiNotification::info(title, body);
+    }
+    let reason = error.unwrap_or("raison inconnue");
+    let (title, body) = match action.action_type {
+        ResponseActionType::KillProcess => (
+            "Arr\u{00ea}t du processus impossible",
+            format!("{target} n'a pas \u{00e9}t\u{00e9} arr\u{00ea}t\u{00e9} : {reason}"),
+        ),
+        ResponseActionType::QuarantineFile => (
+            "Mise en quarantaine impossible",
+            format!("{target} n'a pas \u{00e9}t\u{00e9} plac\u{00e9} en quarantaine : {reason}"),
+        ),
+        ResponseActionType::BlockIp => (
+            "Blocage impossible",
+            format!("{target} n'a pas \u{00e9}t\u{00e9} bloqu\u{00e9}e : {reason}"),
+        ),
+        ResponseActionType::UnblockIp => (
+            "D\u{00e9}blocage impossible",
+            format!("{target} reste bloqu\u{00e9}e : {reason}"),
+        ),
+        ResponseActionType::RestoreFile => (
+            "Restauration impossible",
+            format!("{restored} n'a pas \u{00e9}t\u{00e9} restaur\u{00e9} : {reason}"),
+        ),
+        ResponseActionType::IsolateHost => (
+            "Isolement impossible",
+            format!("Ce poste n'a pas \u{00e9}t\u{00e9} isol\u{00e9} : {reason}"),
+        ),
+        ResponseActionType::ReleaseHost => (
+            "Lev\u{00e9}e de l'isolement impossible",
+            format!("Ce poste reste isol\u{00e9} : {reason}"),
+        ),
+    };
+    GuiNotification::error(title, body)
+}
+
+#[cfg(test)]
+mod notification_store_tests {
+    use crate::{app::AppState, dto::GuiNotification, events::AgentEvent, events::GuiCommand};
+
+    /// The notification centre was empty after every restart: nothing was
+    /// handed to the agent, and nothing asked back.
+    #[test]
+    fn notifications_are_handed_to_the_store_and_asked_back_once() {
+        let mut state = AppState::default();
+        state.apply_event(AgentEvent::Notification {
+            notification: GuiNotification::info("Analyse terminée", "12 contrôles"),
+        });
+
+        let commands = state.take_notification_sync();
+        assert!(matches!(
+            commands.as_slice(),
+            [
+                GuiCommand::LoadNotifications { limit: 100 },
+                GuiCommand::SaveNotification { notification },
+            ] if notification.title == "Analyse terminée"
+        ));
+        assert!(state.take_notification_sync().is_empty());
+    }
+
+    #[test]
+    fn stored_notifications_join_those_of_the_session_without_being_saved_again() {
+        let mut state = AppState::default();
+        let recent = GuiNotification::info("De cette session", "");
+        state.apply_event(AgentEvent::Notification {
+            notification: recent.clone(),
+        });
+        state.take_notification_sync();
+
+        let mut older = GuiNotification::error("D'hier", "");
+        older.timestamp = recent.timestamp - chrono::Duration::days(1);
+        older.read = true;
+        // The store also returns the one of this session, not read yet there.
+        state.apply_event(AgentEvent::NotificationsLoaded {
+            notifications: vec![recent.clone(), older.clone()],
+        });
+
+        let titles: Vec<&str> = state
+            .notifications
+            .iter()
+            .map(|n| n.title.as_str())
+            .collect();
+        assert_eq!(titles, ["D'hier", "De cette session"]);
+        assert_eq!(state.unread_notification_count, 1);
+        assert!(
+            state.take_notification_sync().is_empty(),
+            "what comes from the store is not sent back to it"
+        );
+    }
+}
+
 #[cfg(test)]
 mod block_outcome_tests {
     use crate::{app::AppState, dto, events::AgentEvent};
@@ -2722,6 +3113,77 @@ mod block_outcome_tests {
         });
         assert_eq!(state.notifications.len(), 2);
         assert_eq!(state.notifications[1].title, "Adresse bloqu\u{00e9}e");
+    }
+
+    fn submitted_as(id: uuid::Uuid, action_type: dto::ResponseActionType) -> AgentEvent {
+        let AgentEvent::ResponseActionSubmitted { mut action } = submitted(id) else {
+            unreachable!()
+        };
+        action.action_type = action_type;
+        action.target = "Ce poste".into();
+        action.target_detail = String::new();
+        AgentEvent::ResponseActionSubmitted { action }
+    }
+
+    /// Only a block announced its outcome: an isolation that failed, asked
+    /// for from the banner, was one row of a log on another page.
+    #[test]
+    fn every_response_action_announces_its_outcome() {
+        use dto::ResponseActionType::*;
+        for action_type in [
+            KillProcess,
+            QuarantineFile,
+            UnblockIp,
+            RestoreFile,
+            IsolateHost,
+            ReleaseHost,
+        ] {
+            let mut state = AppState::default();
+            let id = uuid::Uuid::new_v4();
+            state.apply_event(submitted_as(id, action_type.clone()));
+            state.apply_event(AgentEvent::ResponseActionResult {
+                action_id: id,
+                success: false,
+                error: Some("permission denied".into()),
+            });
+            assert_eq!(state.notifications.len(), 1, "{action_type:?}");
+            assert_eq!(state.notifications[0].severity, "error", "{action_type:?}");
+            assert!(state.notifications[0].title.contains("impossible"));
+        }
+    }
+
+    /// The banner and the button followed the agent's next status, an hour
+    /// later on a standalone agent.
+    #[test]
+    fn the_isolation_shown_follows_the_result_of_the_action() {
+        let mut state = AppState::default();
+        let id = uuid::Uuid::new_v4();
+        state.apply_event(submitted_as(id, dto::ResponseActionType::IsolateHost));
+        state.apply_event(AgentEvent::ResponseActionResult {
+            action_id: id,
+            success: true,
+            error: None,
+        });
+        assert!(state.summary.host_isolated);
+
+        // A release that fails leaves the endpoint isolated.
+        let id = uuid::Uuid::new_v4();
+        state.apply_event(submitted_as(id, dto::ResponseActionType::ReleaseHost));
+        state.apply_event(AgentEvent::ResponseActionResult {
+            action_id: id,
+            success: false,
+            error: Some("pfctl: permission denied".into()),
+        });
+        assert!(state.summary.host_isolated);
+
+        let id = uuid::Uuid::new_v4();
+        state.apply_event(submitted_as(id, dto::ResponseActionType::ReleaseHost));
+        state.apply_event(AgentEvent::ResponseActionResult {
+            action_id: id,
+            success: true,
+            error: None,
+        });
+        assert!(!state.summary.host_isolated);
     }
 
     fn quarantined(id: uuid::Uuid) -> crate::dto::QuarantinedFile {
@@ -2914,12 +3376,17 @@ mod connection_settings_tests {
                 connection: Some(dto::GuiConnectionSettings {
                     server_url: "https://grc.example.internal".into(),
                     heartbeat_interval_secs: 240,
+                    check_interval_secs: Some(900),
+                    log_level: Some(1),
                 }),
                 ..Default::default()
             },
         });
         assert_eq!(state.settings.server_url, "https://grc.example.internal");
         assert_eq!(state.settings.heartbeat_interval_secs, 240);
+        // Set by the platform or the configuration: shown as they are.
+        assert_eq!(state.settings.check_interval_secs, 900);
+        assert_eq!(state.settings.log_level, dto::LogLevel::Debug);
 
         // A summary that does not carry them leaves the known values alone.
         state.apply_event(AgentEvent::StatusChanged {
@@ -2927,6 +3394,7 @@ mod connection_settings_tests {
         });
         assert_eq!(state.settings.server_url, "https://grc.example.internal");
         assert_eq!(state.settings.heartbeat_interval_secs, 240);
+        assert_eq!(state.settings.check_interval_secs, 900);
     }
 }
 
@@ -3584,5 +4052,247 @@ mod opaque_grc_identity_tests {
         });
         assert!(state.alerting.rules.is_empty());
         assert!(state.alerting.webhooks.is_empty());
+    }
+
+    #[test]
+    fn a_selected_log_line_is_followed_while_the_buffers_move() {
+        let line = |message: &str| crate::events::TerminalLogEntry {
+            timestamp: chrono::Utc::now(),
+            level: "INFO".into(),
+            target: "agent".into(),
+            message: message.into(),
+        };
+        let mut state = AppState::default();
+        for index in 0..500 {
+            state.apply_event(AgentEvent::TerminalLog {
+                entry: line(&index.to_string()),
+            });
+        }
+        state.terminal.selected_log = Some(1);
+        state.terminal.detail_open = true;
+        // The buffer is full: one line leaves, the selection follows its line.
+        state.apply_event(AgentEvent::TerminalLog { entry: line("500") });
+        assert_eq!(state.terminal.selected_log, Some(0));
+        assert_eq!(state.terminal.lines[0].message, "1");
+        assert!(state.terminal.detail_open);
+        // The selected line itself leaves: its drawer closes.
+        state.apply_event(AgentEvent::TerminalLog { entry: line("501") });
+        assert_eq!(state.terminal.selected_log, None);
+        assert!(!state.terminal.detail_open);
+
+        let entry = |id: &str| crate::dto::GuiSiemLogEntry {
+            id: id.into(),
+            timestamp: chrono::Utc::now(),
+            severity: crate::dto::SiemLogSeverity::Info,
+            source: crate::dto::SiemLogSource::System,
+            category: String::new(),
+            message: String::new(),
+            hostname: None,
+            process: None,
+            pid: None,
+            user: None,
+        };
+        state.apply_event(AgentEvent::SiemLogBatch {
+            entries: vec![entry("a")],
+        });
+        state.siem.selected_log = Some(0);
+        state.siem.detail_open = true;
+        // Newer entries are pushed in front: the selection keeps its entry.
+        state.apply_event(AgentEvent::SiemLogBatch {
+            entries: vec![entry("b"), entry("c")],
+        });
+        assert_eq!(state.siem.selected_log, Some(2));
+        assert_eq!(state.siem.log_entries[2].id, "a");
+        // Pushed out of the 1000-entry buffer: the drawer closes.
+        state.apply_event(AgentEvent::SiemLogBatch {
+            entries: (0..1000).map(|i| entry(&i.to_string())).collect(),
+        });
+        assert_eq!(state.siem.selected_log, None);
+        assert!(!state.siem.detail_open);
+    }
+}
+
+#[cfg(test)]
+mod mdm_and_discovery_event_tests {
+    use super::*;
+    use crate::dto::{GuiMdmDeployment, GuiMdmPolicy, MdmStatus, SoftwareTab};
+    use crate::events::AgentEvent;
+
+    fn deployment(id: &str, status: MdmStatus) -> GuiMdmDeployment {
+        GuiMdmDeployment {
+            id: id.to_string(),
+            deployment_id: None,
+            software_id: None,
+            package_name: Some("7-Zip".to_string()),
+            version: None,
+            action: "install".to_string(),
+            method: None,
+            source: None,
+            status,
+            requested_at: chrono::Utc::now(),
+            finished_at: None,
+            message: None,
+            refused_by: None,
+        }
+    }
+
+    #[test]
+    fn the_deployment_history_replaces_the_list_and_keeps_the_open_row() {
+        let mut state = AppState::default();
+        state.apply_event(AgentEvent::MdmDeployments {
+            deployments: vec![
+                deployment("a", MdmStatus::Succeeded),
+                deployment("b", MdmStatus::Started),
+            ],
+            policy: Some(GuiMdmPolicy {
+                enabled: false,
+                allowed_hosts: vec!["grc.example".to_string()],
+            }),
+        });
+        assert_eq!(state.software.deployments.len(), 2);
+        assert_eq!(
+            state.software.mdm_policy.as_ref().map(|p| p.enabled),
+            Some(false)
+        );
+
+        // The drawer is open on "b"; a new command arrives in front of it.
+        state.software.active_tab = SoftwareTab::Deployments;
+        state.software.selected_package = Some(1);
+        state.software.detail_open = true;
+        state.apply_event(AgentEvent::MdmDeployments {
+            deployments: vec![
+                deployment("c", MdmStatus::Received),
+                deployment("a", MdmStatus::Succeeded),
+                deployment("b", MdmStatus::Failed),
+            ],
+            policy: None,
+        });
+        assert_eq!(state.software.selected_package, Some(2));
+        assert!(state.software.detail_open);
+        assert_eq!(state.software.deployments[2].status, MdmStatus::Failed);
+        assert_eq!(state.software.mdm_policy, None);
+
+        // Its row is gone: the drawer closes instead of showing another one.
+        state.apply_event(AgentEvent::MdmDeployments {
+            deployments: vec![deployment("c", MdmStatus::Received)],
+            policy: None,
+        });
+        assert_eq!(state.software.selected_package, None);
+        assert!(!state.software.detail_open);
+    }
+
+    #[test]
+    fn the_history_leaves_the_selection_of_the_other_tabs_alone() {
+        let mut state = AppState::default();
+        state.software.active_tab = SoftwareTab::Packages;
+        state.software.selected_package = Some(3);
+        state.software.detail_open = true;
+        state.apply_event(AgentEvent::MdmDeployments {
+            deployments: vec![deployment("a", MdmStatus::Succeeded)],
+            policy: None,
+        });
+        assert_eq!(state.software.selected_package, Some(3));
+        assert!(state.software.detail_open);
+    }
+
+    #[test]
+    fn a_refused_discovery_is_over_and_says_why() {
+        let mut state = AppState::default();
+        state.apply_event(AgentEvent::DiscoveryProgress {
+            phase: "Scan ARP en cours…".to_string(),
+            progress: 0.1,
+            devices_found: 0,
+        });
+        assert!(state.discovery.in_progress);
+        state.apply_event(AgentEvent::DiscoveryFailed {
+            reason: "Aucune adresse IPv4 principale : découverte annulée".to_string(),
+        });
+        assert!(!state.discovery.in_progress);
+        assert_eq!(
+            state.discovery.error.as_deref(),
+            Some("Aucune adresse IPv4 principale : découverte annulée")
+        );
+        // The next scan clears the reason.
+        state.apply_event(AgentEvent::DiscoveryProgress {
+            phase: "Scan ARP en cours…".to_string(),
+            progress: 0.1,
+            devices_found: 0,
+        });
+        assert_eq!(state.discovery.error, None);
+    }
+}
+
+#[cfg(test)]
+mod service_link_tests {
+    use super::*;
+    use crate::events::{AgentEvent, GuiCommand, ServiceAdminOutcome};
+
+    fn companion() -> AppState {
+        let mut state = AppState::default();
+        state.apply_event(AgentEvent::ServiceLink {
+            connected: true,
+            admin_configured: true,
+        });
+        state
+    }
+
+    #[test]
+    fn an_agent_inside_the_interface_has_no_service_link() {
+        let state = AppState::default();
+        assert!(state.security.service.is_none());
+        assert!(!state.admin_password_configured());
+    }
+
+    #[test]
+    fn the_service_says_whether_an_administrator_password_exists() {
+        let mut state = companion();
+        assert!(state.admin_password_configured());
+        state.apply_event(AgentEvent::ServiceAdmin {
+            outcome: ServiceAdminOutcome::NotConfigured,
+        });
+        assert!(!state.admin_password_configured());
+        state.apply_event(AgentEvent::ServiceAdmin {
+            outcome: ServiceAdminOutcome::PasswordSet { session_secs: 300 },
+        });
+        assert!(state.admin_password_configured());
+    }
+
+    #[test]
+    fn a_command_refused_by_the_service_asks_for_the_password_and_waits() {
+        let mut state = companion();
+        state.security.admin_unlocked = true;
+        state.apply_event(AgentEvent::ServiceCommandRefused {
+            command: Box::new(GuiCommand::Pause),
+            reason: "Mettre la protection de l'agent en pause".to_string(),
+        });
+        assert!(!state.security.admin_unlocked, "the service decides");
+        assert_eq!(
+            state.security.unlock_reason.as_deref(),
+            Some("Mettre la protection de l'agent en pause")
+        );
+        assert!(matches!(
+            state.security.held_commands.as_slice(),
+            [GuiCommand::Pause]
+        ));
+    }
+
+    #[test]
+    fn a_lost_service_closes_the_administrator_mode_unless_the_dialog_reads_it() {
+        let mut state = companion();
+        state.security.admin_unlocked = true;
+        state.apply_event(AgentEvent::ServiceAdmin {
+            outcome: ServiceAdminOutcome::Locked,
+        });
+        assert!(!state.security.admin_unlocked);
+
+        // While the dialog waits, the answer is kept for it.
+        state.security.service_waiting = Some(std::time::Instant::now());
+        state.apply_event(AgentEvent::ServiceAdmin {
+            outcome: ServiceAdminOutcome::Rejected { attempts_left: 4 },
+        });
+        assert_eq!(
+            state.security.service_outcome,
+            Some(ServiceAdminOutcome::Rejected { attempts_left: 4 })
+        );
     }
 }

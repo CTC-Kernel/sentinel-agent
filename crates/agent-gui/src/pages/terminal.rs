@@ -225,21 +225,21 @@ impl TerminalPage {
                 ui.with_layout(
                     egui::Layout::right_to_left(egui::Align::Center),
                     |ui: &mut egui::Ui| {
-                        if widgets::ghost_button(ui, format!("{}  CSV", icons::DOWNLOAD)).clicked()
+                        if widgets::ghost_button(ui, format!("{}  CSV", icons::DOWNLOAD))
+                            .on_hover_text("Exporter les lignes affichées au format CSV")
+                            .clicked()
                         {
-                            let success = Self::export_logs_csv(state);
-                            let time = ui.input(|i| i.time);
-                            state.toasts.push(if success {
-                                crate::widgets::toast::Toast::success(
-                                    "Export CSV du terminal réussi",
-                                )
-                                .with_time(time)
-                            } else {
-                                crate::widgets::toast::Toast::error(
-                                    "Échec de l'export CSV du terminal",
-                                )
-                                .with_time(time)
-                            });
+                            let sort = widgets::table::sort_of(ui.ctx(), TERMINAL_TABLE);
+                            let toast = match Self::export_logs_csv(state, &sort) {
+                                Ok(path) => crate::widgets::toast::Toast::success(format!(
+                                    "Export CSV enregistré : {}",
+                                    path.display()
+                                )),
+                                Err(error) => crate::widgets::toast::Toast::error(format!(
+                                    "Export CSV impossible : {error}"
+                                )),
+                            };
+                            state.toasts.push(toast.with_time(ui.input(|i| i.time)));
                         }
                     },
                 );
@@ -275,26 +275,14 @@ impl TerminalPage {
                 lower
             });
 
-        let filtered: Vec<(usize, &_)> = state
-            .terminal
-            .lines
-            .iter()
-            .enumerate()
-            .filter(|(_, e)| {
-                let entry_level = level_index(&e.level);
-                if entry_level < filter_level_index {
-                    return false;
-                }
-                if !search_lower.is_empty()
-                    && !e.level.to_lowercase().contains(&search_lower)
-                    && !e.target.to_lowercase().contains(&search_lower)
-                    && !e.message.to_lowercase().contains(&search_lower)
-                {
-                    return false;
-                }
-                true
-            })
-            .collect();
+        let sort = widgets::table::sort_of(ui.ctx(), TERMINAL_TABLE);
+        let filtered = displayed_lines(
+            &state.terminal.lines,
+            filter_level_index,
+            &search_lower,
+            &sort,
+        );
+        let buffer_empty = state.terminal.lines.is_empty();
 
         egui::Frame::new()
             .fill(terminal_bg)
@@ -304,12 +292,22 @@ impl TerminalPage {
                 ui.set_min_height(theme::VIEWPORT_MIN_HEIGHT);
 
                 if filtered.is_empty() {
-                    crate::widgets::empty_state(
-                        ui,
-                        icons::TERMINAL,
-                        "Aucun événement détecté",
-                        Some("Les événements système apparaîtront ici."),
-                    );
+                    if buffer_empty {
+                        crate::widgets::empty_state(
+                            ui,
+                            icons::TERMINAL,
+                            "Aucun événement détecté",
+                            Some("Les événements système apparaîtront ici."),
+                        );
+                    } else {
+                        // Lines exist: the level or the search hides them.
+                        crate::widgets::empty_state(
+                            ui,
+                            icons::SEARCH,
+                            "Aucun résultat",
+                            Some("Aucune ligne ne correspond au niveau ou à la recherche."),
+                        );
+                    }
                     return;
                 }
 
@@ -326,7 +324,7 @@ impl TerminalPage {
                     &[
                         table::Col::fixed(100.0),      // Heure
                         table::Col::fixed(64.0),       // Niveau
-                        table::Col::fluid(120.0, 1.0), // Cible
+                        table::Col::fluid(120.0, 1.0), // Source
                         table::Col::fluid(200.0, 4.0), // Message
                     ],
                 )
@@ -334,18 +332,16 @@ impl TerminalPage {
                 .max_scroll_height(theme::VIEWPORT_MIN_HEIGHT)
                 .stick_to_bottom(true)
                 .header(theme::TABLE_HEADER_HEIGHT, |mut header| {
-                    header.col(|ui: &mut egui::Ui| {
-                        table::header_cell(ui, "HEURE");
-                    });
-                    header.col(|ui: &mut egui::Ui| {
-                        table::header_cell(ui, "NIVEAU");
-                    });
-                    header.col(|ui: &mut egui::Ui| {
-                        table::header_cell(ui, "CIBLE");
-                    });
-                    header.col(|ui: &mut egui::Ui| {
-                        table::header_cell(ui, "MESSAGE D'ACTIVITÉ");
-                    });
+                    for (label, key) in [
+                        ("HEURE", "time"),
+                        ("NIVEAU", "level"),
+                        ("SOURCE", "source"),
+                        ("MESSAGE D'ACTIVITÉ", "message"),
+                    ] {
+                        header.col(|ui: &mut egui::Ui| {
+                            table::header_cell_sortable(ui, label, TERMINAL_TABLE, key);
+                        });
+                    }
                 })
                 .body(|body| {
                     body.rows(theme::TABLE_ROW_HEIGHT, filtered.len(), |mut row| {
@@ -404,14 +400,14 @@ impl TerminalPage {
         ];
 
         let action =
-            widgets::DetailDrawer::new("terminal_detail", "Entrée de log", icons::TERMINAL)
+            widgets::DetailDrawer::new("terminal_detail", "Entrée du journal", icons::TERMINAL)
                 .accent(level_clr)
                 .subtitle(&level)
                 .show(
                     ui.ctx(),
                     &mut state.terminal.detail_open,
                     |ui| {
-                        widgets::detail_section(ui, "ENTRÉE DE LOG");
+                        widgets::detail_section(ui, "ENTRÉE DU JOURNAL");
                         widgets::detail_field(ui, "Horodatage", &ts);
                         widgets::detail_field_badge(ui, "Niveau", &level, level_clr);
                         widgets::detail_mono(ui, "Source", &target);
@@ -434,13 +430,18 @@ impl TerminalPage {
         }
     }
 
-    fn export_logs_csv(state: &AppState) -> bool {
-        let headers = &["timestamp", "level", "target", "message"];
-        let rows: Vec<Vec<String>> = state
-            .terminal
-            .lines
-            .iter()
-            .map(|l| {
+    /// Export the lines the level filter and the search leave on screen, in
+    /// the displayed order.
+    fn export_logs_csv(
+        state: &AppState,
+        sort: &widgets::TableSort,
+    ) -> Result<std::path::PathBuf, String> {
+        let headers = &["horodatage", "niveau", "source", "message"];
+        let level = state.terminal.filter_level.index();
+        let search = state.terminal.search.to_lowercase();
+        let rows: Vec<Vec<String>> = displayed_lines(&state.terminal.lines, level, &search, sort)
+            .into_iter()
+            .map(|(_, l)| {
                 vec![
                     l.timestamp.to_rfc3339(),
                     l.level.clone(),
@@ -450,18 +451,132 @@ impl TerminalPage {
             })
             .collect();
         let path = crate::export::default_export_path("agent_terminal_logs.csv");
-        match crate::export::export_csv(headers, &rows, &path) {
-            Ok(_) => true,
-            Err(e) => {
-                tracing::warn!("Export CSV failed: {}", e);
-                false
-            }
-        }
+        crate::export::export_csv(headers, &rows, &path)?;
+        Ok(path)
     }
+}
+
+/// Name of the console table, for its sort state.
+const TERMINAL_TABLE: &str = "terminal_journal";
+
+/// The lines on screen with their index in the buffer: filtered, then in the
+/// order `sort` asks for (stable; the stream's own order without a sort).
+fn displayed_lines<'a>(
+    lines: &'a std::collections::VecDeque<crate::events::TerminalLogEntry>,
+    min_level: usize,
+    search_lower: &str,
+    sort: &widgets::TableSort,
+) -> Vec<(usize, &'a crate::events::TerminalLogEntry)> {
+    let mut lines: Vec<_> = lines
+        .iter()
+        .enumerate()
+        .filter(|(_, e)| line_matches(e, min_level, search_lower))
+        .collect();
+    if let Some(key) = widgets::table::sort_key(sort) {
+        lines.sort_by(|(_, a), (_, b)| widgets::table::directed(sort, compare_lines(a, b, key)));
+    }
+    lines
+}
+
+/// Natural (ascending) order of two lines on a column.
+fn compare_lines(
+    a: &crate::events::TerminalLogEntry,
+    b: &crate::events::TerminalLogEntry,
+    key: &str,
+) -> std::cmp::Ordering {
+    match key {
+        "time" => a.timestamp.cmp(&b.timestamp),
+        // TRACE to ERROR, not alphabetical.
+        "level" => level_index(&a.level).cmp(&level_index(&b.level)),
+        "source" => shorten_target(&a.target)
+            .to_lowercase()
+            .cmp(&shorten_target(&b.target).to_lowercase()),
+        "message" => a.message.to_lowercase().cmp(&b.message.to_lowercase()),
+        _ => std::cmp::Ordering::Equal,
+    }
+}
+
+/// Whether a line passes the minimum level and the lower-cased search text.
+fn line_matches(
+    entry: &crate::events::TerminalLogEntry,
+    min_level: usize,
+    search_lower: &str,
+) -> bool {
+    level_index(&entry.level) >= min_level
+        && (search_lower.is_empty()
+            || entry.level.to_lowercase().contains(search_lower)
+            || entry.target.to_lowercase().contains(search_lower)
+            || entry.message.to_lowercase().contains(search_lower))
 }
 
 /// Shorten a module target path for display.
 /// e.g. "agent_core::api_client" -> "api_client"
 fn shorten_target(target: &str) -> &str {
     target.rsplit("::").next().unwrap_or(target)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::widgets::{SortDirection, TableSort};
+
+    fn state_with(lines: &[(&str, &str, &str)]) -> AppState {
+        let mut state = AppState::default();
+        for (second, (level, target, message)) in lines.iter().enumerate() {
+            state
+                .terminal
+                .lines
+                .push_back(crate::events::TerminalLogEntry {
+                    timestamp: chrono::DateTime::parse_from_rfc3339(&format!(
+                        "2026-06-30T12:00:{second:02}Z"
+                    ))
+                    .unwrap()
+                    .with_timezone(&chrono::Utc),
+                    level: (*level).into(),
+                    target: (*target).into(),
+                    message: (*message).into(),
+                });
+        }
+        state
+    }
+
+    #[test]
+    fn displayed_lines_are_filtered_then_sorted_by_meaning() {
+        let state = state_with(&[
+            ("WARN", "agent_core::sync", "b"),
+            ("DEBUG", "agent_core::Api", "a"),
+            ("ERROR", "agent_core::fim", "C"),
+            ("INFO", "agent_core::api", "d"),
+        ]);
+        let messages = |min_level: usize, search: &str, sort: &TableSort| -> Vec<&str> {
+            displayed_lines(&state.terminal.lines, min_level, search, sort)
+                .into_iter()
+                .map(|(_, line)| line.message.as_str())
+                .collect()
+        };
+        assert_eq!(messages(0, "", &TableSort::default()), ["b", "a", "C", "d"]);
+        // By level rank: DEBUG, INFO, WARN, ERROR.
+        assert_eq!(
+            messages(0, "", &TableSort::by("level", SortDirection::Ascending)),
+            ["a", "d", "b", "C"]
+        );
+        assert_eq!(
+            messages(0, "", &TableSort::by("message", SortDirection::Descending)),
+            ["d", "C", "b", "a"]
+        );
+        // Stable on the shortened, case-folded source: api, api, fim, sync.
+        assert_eq!(
+            messages(0, "", &TableSort::by("source", SortDirection::Ascending)),
+            ["a", "d", "C", "b"]
+        );
+        // The filters apply first; the buffer index is kept.
+        let filtered = displayed_lines(
+            &state.terminal.lines,
+            3,
+            "",
+            &TableSort::by("time", SortDirection::Descending),
+        );
+        let indices: Vec<usize> = filtered.iter().map(|(idx, _)| *idx).collect();
+        assert_eq!(indices, [2, 0]);
+    }
 }

@@ -147,6 +147,8 @@ pub enum SoftwareTab {
     Applications,
     /// Browser extensions of every user.
     Extensions,
+    /// Software deployments ordered by the platform (MDM).
+    Deployments,
 }
 
 impl SoftwareTab {
@@ -155,6 +157,7 @@ impl SoftwareTab {
             SoftwareTab::Packages => 0,
             SoftwareTab::Applications => 1,
             SoftwareTab::Extensions => 2,
+            SoftwareTab::Deployments => 3,
         }
     }
 
@@ -162,9 +165,61 @@ impl SoftwareTab {
         match idx {
             1 => SoftwareTab::Applications,
             2 => SoftwareTab::Extensions,
+            3 => SoftwareTab::Deployments,
             _ => SoftwareTab::Packages,
         }
     }
+}
+
+/// Where a software deployment ordered by the platform stands.
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum MdmStatus {
+    /// Received, not yet examined.
+    Received,
+    /// Admitted and running.
+    Started,
+    Succeeded,
+    Failed,
+    /// Refused by this machine before anything ran.
+    Refused,
+}
+
+/// One software deployment command, as the machine kept it.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[serde(rename_all = "snake_case")]
+pub struct GuiMdmDeployment {
+    /// Identifier of the platform command.
+    pub id: String,
+    /// Deployment it belongs to on the platform, when it names one.
+    pub deployment_id: Option<String>,
+    pub software_id: Option<String>,
+    pub package_name: Option<String>,
+    pub version: Option<String>,
+    /// `install`, `update` or `uninstall`.
+    pub action: String,
+    /// Installer format (`msi`, `pkg`, `deb`…).
+    pub method: Option<String>,
+    /// Where the package comes from.
+    pub source: Option<String>,
+    pub status: MdmStatus,
+    pub requested_at: DateTime<Utc>,
+    pub finished_at: Option<DateTime<Utc>>,
+    /// Outcome in words: the installer's last lines or the error.
+    pub message: Option<String>,
+    /// What refused the command on this machine.
+    pub refused_by: Option<String>,
+}
+
+/// What this machine's configuration lets the platform deploy.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub struct GuiMdmPolicy {
+    /// `false`: every deployment command is refused (`mdm_enabled`).
+    pub enabled: bool,
+    /// Hosts packages may come from: the platform's, then
+    /// `mdm_allowed_hosts`.
+    pub allowed_hosts: Vec<String>,
 }
 
 /// FIM change type.
@@ -326,6 +381,14 @@ pub struct GuiConnectionSettings {
     pub server_url: String,
     /// Heartbeat interval in effect, in seconds.
     pub heartbeat_interval_secs: u64,
+    /// Interval between two compliance checks in effect, in seconds: the
+    /// one of the configuration, of the platform or of the settings page,
+    /// whichever came last. `None`: not reported.
+    #[serde(default)]
+    pub check_interval_secs: Option<u64>,
+    /// Log level in effect (0 = trace … 4 = error). `None`: not reported.
+    #[serde(default)]
+    pub log_level: Option<u8>,
 }
 
 /// A detection engine that the configuration turns on or off.
@@ -346,11 +409,14 @@ pub enum DetectionOption {
     FimWhodata,
     /// Every process evaluated as it starts, not only at the periodic scan.
     ProcessEvents,
+    /// USB mass storage refused on this endpoint, until the platform sends
+    /// its own USB policy.
+    UsbStorageBlocking,
 }
 
 impl DetectionOption {
     /// Every option, in the order the settings show them.
-    pub const ALL: [Self; 7] = [
+    pub const ALL: [Self; 8] = [
         Self::ProcessEvents,
         Self::LogAnalysis,
         Self::RootkitDetection,
@@ -358,6 +424,7 @@ impl DetectionOption {
         Self::HardeningBenchmark,
         Self::FimReportChanges,
         Self::FimWhodata,
+        Self::UsbStorageBlocking,
     ];
 
     /// The key of the option in the agent's configuration file.
@@ -370,6 +437,7 @@ impl DetectionOption {
             Self::FimReportChanges => "fim_report_changes",
             Self::FimWhodata => "fim_whodata",
             Self::ProcessEvents => "process_event_telemetry",
+            Self::UsbStorageBlocking => "usb_block_mass_storage",
         }
     }
 
@@ -382,6 +450,7 @@ impl DetectionOption {
             Self::FimReportChanges => "Lignes modifi\u{00e9}es (int\u{00e9}grit\u{00e9})",
             Self::FimWhodata => "Auteur exact des changements (audit)",
             Self::ProcessEvents => "Processus \u{00e9}valu\u{00e9}s \u{00e0} leur lancement",
+            Self::UsbStorageBlocking => "Blocage du stockage USB",
         }
     }
 
@@ -419,6 +488,22 @@ impl DetectionOption {
                  connecteur du noyau sous Linux, Endpoint Security sous macOS (acc\u{00e8}s complet au \
                  disque), trace du noyau sous Windows."
             }
+            Self::UsbStorageBlocking => {
+                "Refuse les cl\u{00e9}s et disques USB branch\u{00e9}s sur ce poste ; claviers, souris et \
+                 autres p\u{00e9}riph\u{00e9}riques restent utilisables. Selon le syst\u{00e8}me, le support est \
+                 bloqu\u{00e9} ou \u{00e9}ject\u{00e9} (l'\u{00e9}tat r\u{00e9}el s'affiche dans Menaces). Une politique USB \
+                 envoy\u{00e9}e par la plateforme remplace ce r\u{00e9}glage."
+            }
+        }
+    }
+
+    /// Whether setting the option to `enabled` needs the administrator
+    /// mode: turning a detection off, and USB blocking in both directions
+    /// (on, it takes removable storage away from the people at this desk).
+    pub fn needs_admin(self, enabled: bool) -> bool {
+        match self {
+            Self::UsbStorageBlocking => true,
+            _ => !enabled && self.lowers_protection_when_off(),
         }
     }
 
@@ -442,6 +527,8 @@ pub struct GuiDetectionOptions {
     pub fim_whodata: bool,
     #[serde(default)]
     pub process_events: bool,
+    #[serde(default)]
+    pub usb_storage_blocking: bool,
     /// What the log analysis loaded, in one line (`None`: off).
     #[serde(default)]
     pub log_rules: Option<String>,
@@ -457,6 +544,7 @@ impl GuiDetectionOptions {
             DetectionOption::FimReportChanges => self.fim_report_changes,
             DetectionOption::FimWhodata => self.fim_whodata,
             DetectionOption::ProcessEvents => self.process_events,
+            DetectionOption::UsbStorageBlocking => self.usb_storage_blocking,
         }
     }
 }
@@ -1649,7 +1737,7 @@ impl ResponseActionType {
             ResponseActionType::UnblockIp => "Débloquer IP",
             ResponseActionType::RestoreFile => "Restaurer fichier",
             ResponseActionType::IsolateHost => "Isoler le poste",
-            ResponseActionType::ReleaseHost => "Lever l'isolation",
+            ResponseActionType::ReleaseHost => "Lever l'isolement",
         }
     }
 }
@@ -1700,6 +1788,15 @@ pub struct QuarantinedFile {
     pub restored: bool,
 }
 
+/// An address the agent blocked and has not unblocked yet.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct BlockedIp {
+    pub ip: String,
+    pub blocked_at: DateTime<Utc>,
+    /// When the block lifts on its own; `None`: until unblocked by hand.
+    pub expires_at: Option<DateTime<Utc>>,
+}
+
 /// An entry in the response action log.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ResponseLogEntry {
@@ -1718,6 +1815,9 @@ pub struct PendingConfirmation {
     pub action_type: ResponseActionType,
     pub target: String,
     pub detail: String,
+    /// The process to terminate, when the action is a kill: the one the
+    /// operator was looking at, not the first of that name.
+    pub pid: Option<u32>,
 }
 
 // ============================================================================
@@ -2270,6 +2370,8 @@ pub struct KpiSnapshot {
     pub incident_count: u32,
     pub open_vulns: u32,
     pub closed_vulns: u32,
+    /// Share of the risks carrying an SLA target that respect it, 0–100;
+    /// negative when no risk carries one (nothing to measure).
     pub remediation_sla_pct: f32,
 }
 

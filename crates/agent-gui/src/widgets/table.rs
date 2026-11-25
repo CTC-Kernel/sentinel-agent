@@ -21,6 +21,7 @@
 use egui::{Color32, FontId, Response, RichText, Ui};
 use egui_extras::{Column, TableBuilder};
 
+use super::data_table::{SortDirection, TableSort};
 use crate::theme;
 
 /// The table every list page starts from.
@@ -175,6 +176,138 @@ pub fn header_cell(ui: &mut Ui, label: &str) -> Response {
 }
 
 /// Header label aligned to the trailing edge, for numeric columns.
+/// Sort state of a `TableBuilder` table, kept in egui memory under the
+/// table's name so a page needs no field of its own to offer sorting.
+pub fn sort_of(ctx: &egui::Context, table: &'static str) -> TableSort {
+    ctx.data(|d| d.get_temp::<TableSort>(egui::Id::new(("table_sort", table))))
+        .unwrap_or_default()
+}
+
+/// Order two rows under `sort`: `ascending` is the natural order of the
+/// column, reversed when the header asks for descending.
+pub fn directed(sort: &TableSort, ascending: std::cmp::Ordering) -> std::cmp::Ordering {
+    match sort.direction {
+        SortDirection::Descending => ascending.reverse(),
+        _ => ascending,
+    }
+}
+
+/// The column key `sort` is active on, if any.
+pub fn sort_key(sort: &TableSort) -> Option<&str> {
+    match sort.direction {
+        SortDirection::None => None,
+        _ => sort.column.as_deref(),
+    }
+}
+
+/// A header cell that sorts its table: a click cycles ascending, descending,
+/// then back to the page's own order. Returns true when the sort changed, so
+/// the caller can go back to the first page.
+pub fn header_cell_sortable(ui: &mut Ui, label: &str, table: &'static str, key: &str) -> bool {
+    let id = egui::Id::new(("table_sort", table));
+    let mut sort = sort_of(ui.ctx(), table);
+    let active = sort_key(&sort) == Some(key);
+    let rect = ui.max_rect();
+    let response = ui.interact(rect, id.with(key), egui::Sense::click());
+    let direction = if active {
+        sort.direction
+    } else {
+        SortDirection::None
+    };
+    response.widget_info(|| {
+        egui::WidgetInfo::labeled(
+            egui::WidgetType::Button,
+            true,
+            format!(
+                "Trier par {label} — {}",
+                match direction {
+                    SortDirection::Ascending => "croissant",
+                    SortDirection::Descending => "décroissant",
+                    SortDirection::None => "sans tri",
+                }
+            ),
+        )
+    });
+
+    ui.painter().rect_filled(rect, 0, theme::bg_tertiary());
+    if response.hovered() || response.has_focus() {
+        ui.painter().rect_filled(
+            rect.shrink(1.0),
+            theme::ROUNDING_XS,
+            theme::hover_bg_neutral(),
+        );
+    }
+    if response.has_focus() {
+        ui.painter().rect_stroke(
+            rect.shrink(1.0),
+            egui::CornerRadius::same(theme::ROUNDING_XS),
+            theme::focus_ring(),
+            egui::StrokeKind::Inside,
+        );
+    }
+    ui.painter().hline(
+        rect.x_range(),
+        rect.bottom() - 0.5,
+        egui::Stroke::new(0.6_f32, theme::border_subtle()),
+    );
+
+    let color = if active {
+        theme::accent_text()
+    } else {
+        theme::text_tertiary()
+    };
+    let icon = match direction {
+        SortDirection::Ascending => crate::icons::SORT_UP,
+        SortDirection::Descending => crate::icons::SORT_DOWN,
+        SortDirection::None => crate::icons::SORT,
+    };
+    let font = theme::font_label();
+    ui.horizontal(|ui| {
+        ui.spacing_mut().item_spacing.x = theme::SPACE_XS;
+        // Leave the indicator its room: the label is what gets truncated.
+        let room = (ui.available_width() - theme::ICON_XS - theme::SPACE_XS).max(0.0);
+        ui.allocate_ui(egui::vec2(room, ui.available_height()), |ui| {
+            truncated(
+                ui,
+                RichText::new(label)
+                    .font(font.clone())
+                    .color(color)
+                    .strong()
+                    .extra_letter_spacing(theme::TRACKING_NORMAL),
+                label,
+                &font,
+            );
+        });
+        ui.add(
+            egui::Label::new(
+                RichText::new(icon)
+                    .font(theme::font_icon(theme::ICON_XS))
+                    .color(if active {
+                        theme::accent_text()
+                    } else {
+                        theme::text_tertiary()
+                    }),
+            )
+            .selectable(false),
+        );
+    });
+
+    let clicked = response
+        .on_hover_cursor(egui::CursorIcon::PointingHand)
+        .on_hover_text(format!("Trier par {label}"))
+        .clicked();
+    if clicked {
+        sort = match direction {
+            SortDirection::None => TableSort::by(key, SortDirection::Ascending),
+            SortDirection::Ascending => TableSort::by(key, SortDirection::Descending),
+            SortDirection::Descending => TableSort::default(),
+        };
+        ui.ctx().data_mut(|d| d.insert_temp(id, sort));
+        ui.ctx().request_repaint();
+    }
+    clicked
+}
+
 pub fn header_cell_right(ui: &mut Ui, label: &str) -> Response {
     ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
         header_cell(ui, label)

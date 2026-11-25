@@ -571,6 +571,11 @@ impl SiemForwarder {
         self.stats.read().await.clone()
     }
 
+    /// Number of events waiting to be sent to the external SIEM.
+    pub async fn buffered_events(&self) -> usize {
+        self.buffer.read().await.len()
+    }
+
     /// Record an event for platform reporting without sending to external SIEM.
     ///
     /// Use this to ensure events collected by the log collector are available

@@ -843,6 +843,23 @@ impl LogCollector {
     pub fn is_enabled(&self) -> bool {
         self.config.enabled
     }
+
+    /// Turn the collection on or off. What was already read stays read:
+    /// the next collection goes on from the last one.
+    pub fn set_enabled(&mut self, enabled: bool) {
+        self.config.enabled = enabled;
+    }
+
+    /// The log sources read at each collection.
+    pub fn sources(&self) -> &[LogSource] {
+        &self.config.sources
+    }
+
+    /// Replace the log sources read at each collection. A source added
+    /// is read from the last collection on, like the others.
+    pub fn set_sources(&mut self, sources: Vec<LogSource>) {
+        self.config.sources = sources;
+    }
 }
 
 /// Produce a human-readable event name and description from raw log data.

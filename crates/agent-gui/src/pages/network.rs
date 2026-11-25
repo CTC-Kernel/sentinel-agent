@@ -9,6 +9,7 @@ use crate::app::AppState;
 use crate::dto::GuiAgentStatus;
 use crate::events::GuiCommand;
 use crate::icons;
+use crate::pages::assets::order;
 use crate::theme;
 use crate::theme::LinearFade as _;
 use crate::widgets;
@@ -92,6 +93,14 @@ impl NetworkPage {
             state.network.connections.len().min(u32::MAX as usize) as u32
         };
 
+        // The list is what the tab shows: the card counts it when it is
+        // there, and falls back on the agent's summary before it arrives.
+        let alert_count = if state.network.alerts.is_empty() {
+            state.network.alert_count as usize
+        } else {
+            state.network.alerts.len()
+        };
+
         let card_grid = widgets::ResponsiveGrid::new(280.0, theme::SPACE_SM);
         let items = vec![
             (
@@ -108,13 +117,13 @@ impl NetworkPage {
             ),
             (
                 "ALERTES FLUX",
-                state.network.alert_count.to_string(),
-                if state.network.alert_count > 0 {
+                alert_count.to_string(),
+                if alert_count > 0 {
                     theme::ERROR
                 } else {
                     theme::SUCCESS
                 },
-                if state.network.alert_count > 0 {
+                if alert_count > 0 {
                     icons::WARNING
                 } else {
                     icons::CIRCLE_CHECK
@@ -171,12 +180,7 @@ impl NetworkPage {
             if let Some(sel) = state.network.selected_connection {
                 if sel < state.network.connections.len() {
                     let conn = state.network.connections[sel].clone();
-                    let (state_label, state_color) = match conn.state.as_str() {
-                        "ESTABLISHED" => ("ÉTABLIE", theme::SUCCESS),
-                        "LISTEN" => ("EN ÉCOUTE", theme::INFO),
-                        "CLOSE_WAIT" | "TIME_WAIT" => ("EN FERMETURE", theme::WARNING),
-                        _ => (conn.state.as_str(), theme::WARNING),
-                    };
+                    let (state_label, state_color) = connection_state_display(&conn.state);
                     let title = format!("{}:{}", conn.local_address, conn.local_port);
                     let actions = [
                         widgets::DetailAction::secondary("Copier", icons::COPY),
@@ -207,7 +211,7 @@ impl NetworkPage {
                                     widgets::detail_mono(
                                         ui,
                                         "Adresse distante",
-                                        conn.remote_address.as_deref().unwrap_or("--"),
+                                        conn.remote_address.as_deref().unwrap_or("—"),
                                     );
                                     widgets::detail_field(
                                         ui,
@@ -215,7 +219,7 @@ impl NetworkPage {
                                         &conn
                                             .remote_port
                                             .map(|p| p.to_string())
-                                            .unwrap_or_else(|| "--".to_string()),
+                                            .unwrap_or_else(|| "—".to_string()),
                                     );
                                     widgets::detail_field_badge(
                                         ui,
@@ -226,7 +230,7 @@ impl NetworkPage {
                                     widgets::detail_field(
                                         ui,
                                         "Processus",
-                                        conn.process_name.as_deref().unwrap_or("--"),
+                                        conn.process_name.as_deref().unwrap_or("—"),
                                     );
                                 },
                                 &actions,
@@ -238,7 +242,7 @@ impl NetworkPage {
                                 "{}:{} \u{2192} {}",
                                 conn.local_address,
                                 conn.local_port,
-                                conn.remote_address.as_deref().unwrap_or("--"),
+                                conn.remote_address.as_deref().unwrap_or("—"),
                             );
                             ctx.copy_text(conn_str);
                             state.toasts.push(
@@ -302,11 +306,12 @@ impl NetworkPage {
                     )
                     .enabled(!alert.acknowledged),
                 );
+                // It copies the alert for a ticket or a report: named for
+                // what it does.
                 actions.push(widgets::DetailAction::secondary(
-                    "Investiguer",
-                    icons::SEARCH,
+                    "Copier les détails",
+                    icons::COPY,
                 ));
-                actions.push(widgets::DetailAction::danger("Ignorer", icons::EYE_SLASH));
                 let drawer_action =
                     widgets::DetailDrawer::new("net_alert_detail", &type_label, icons::WARNING)
                         .accent(type_color)
@@ -336,7 +341,7 @@ impl NetworkPage {
                                     &alert
                                         .destination_port
                                         .map(|p| p.to_string())
-                                        .unwrap_or_else(|| "--".to_string()),
+                                        .unwrap_or_else(|| "—".to_string()),
                                 );
                                 widgets::detail_field_colored(
                                     ui,
@@ -393,14 +398,13 @@ impl NetworkPage {
                     };
                     let ack_idx = next;
                     let inv_idx = next + 1;
-                    let ign_idx = next + 2;
                     if ai_idx == Some(action_idx) {
                         let desc = format!(
                             "Alerte réseau: {} — {} — Source: {} — Destination: {}",
                             type_label,
                             alert.description,
-                            alert.source_ip.as_deref().unwrap_or("--"),
-                            alert.destination_ip.as_deref().unwrap_or("--"),
+                            alert.source_ip.as_deref().unwrap_or("—"),
+                            alert.destination_ip.as_deref().unwrap_or("—"),
                         );
                         command = Some(GuiCommand::LlmClassifyThreat {
                             event_description: desc,
@@ -423,8 +427,8 @@ impl NetworkPage {
                             "Type: {}\nDescription: {}\nSource: {}\nDestination: {}",
                             type_label,
                             alert.description,
-                            alert.source_ip.as_deref().unwrap_or("--"),
-                            alert.destination_ip.as_deref().unwrap_or("--"),
+                            alert.source_ip.as_deref().unwrap_or("—"),
+                            alert.destination_ip.as_deref().unwrap_or("—"),
                         );
                         ctx.copy_text(details);
                         state.toasts.push(
@@ -433,9 +437,6 @@ impl NetworkPage {
                             )
                             .with_time(time),
                         );
-                    } else if action_idx == ign_idx {
-                        state.network.detail_open = false;
-                        state.network.selected_alert = None;
                     }
                 }
             } else {
@@ -469,7 +470,7 @@ impl NetworkPage {
                         if widgets::ghost_button(ui, format!("{}  Export CSV", icons::DOWNLOAD))
                             .clicked()
                         {
-                            let toast = match Self::export_interfaces_csv(state) {
+                            let toast = match Self::export_interfaces_csv(ui.ctx(), state) {
                                 Ok(path) => crate::widgets::toast::Toast::success(format!(
                                     "Export CSV enregistré : {}",
                                     path.display()
@@ -511,6 +512,8 @@ impl NetworkPage {
             } else {
                 use widgets::table;
 
+                let shown = displayed_interfaces(ui.ctx(), &state.network.interfaces);
+
                 table::fluid(
                     ui,
                     &[
@@ -522,62 +525,57 @@ impl NetworkPage {
                     ],
                 )
                 .header(theme::TABLE_HEADER_HEIGHT, |mut header| {
-                    header.col(|ui| {
-                        table::header_cell(ui, "NOM");
-                    });
-                    header.col(|ui| {
-                        table::header_cell(ui, "TYPE");
-                    });
-                    header.col(|ui| {
-                        table::header_cell(ui, "STATUT");
-                    });
-                    header.col(|ui| {
-                        table::header_cell(ui, "IPV4");
-                    });
-                    header.col(|ui| {
-                        table::header_cell(ui, "MAC");
-                    });
+                    order::headers(
+                        &mut header,
+                        "network_interfaces",
+                        &[
+                            ("NOM", Some("name")),
+                            ("TYPE", Some("type")),
+                            ("STATUT", Some("status")),
+                            ("IPV4", Some("ip")),
+                            ("MAC", Some("mac")),
+                        ],
+                    );
                 })
                 .body(|body| {
-                    body.rows(
-                        theme::TABLE_ROW_HEIGHT,
-                        state.network.interfaces.len(),
-                        |mut row| {
-                            let Some(iface) = state.network.interfaces.get(row.index()) else {
-                                return;
+                    body.rows(theme::TABLE_ROW_HEIGHT, shown.len(), |mut row| {
+                        let Some(iface) = shown
+                            .get(row.index())
+                            .and_then(|&i| state.network.interfaces.get(i))
+                        else {
+                            return;
+                        };
+                        row.col(|ui| {
+                            table::cell_strong(ui, &iface.name);
+                        });
+                        row.col(|ui| {
+                            widgets::status_badge(
+                                ui,
+                                interface_type_label(&iface.interface_type),
+                                theme::INFO,
+                            );
+                        });
+                        row.col(|ui| {
+                            let (label, color) = if iface.status == "up" {
+                                ("OPÉRATIONNEL", theme::SUCCESS)
+                            } else {
+                                ("HORS-LIGNE", theme::WARNING)
                             };
-                            row.col(|ui| {
-                                table::cell_strong(ui, &iface.name);
-                            });
-                            row.col(|ui| {
-                                widgets::status_badge(
-                                    ui,
-                                    interface_type_label(&iface.interface_type),
-                                    theme::INFO,
-                                );
-                            });
-                            row.col(|ui| {
-                                let (label, color) = if iface.status == "up" {
-                                    ("OPÉRATIONNEL", theme::SUCCESS)
-                                } else {
-                                    ("HORS-LIGNE", theme::WARNING)
-                                };
-                                widgets::status_badge(ui, label, color);
-                            });
-                            row.col(|ui| {
-                                match iface.ipv4_addresses.first() {
-                                    Some(addr) => table::cell_mono(ui, addr),
-                                    None => table::cell_empty(ui),
-                                };
-                            });
-                            row.col(|ui| {
-                                match iface.mac_address.as_deref() {
-                                    Some(mac) => table::cell_mono_muted(ui, mac),
-                                    None => table::cell_empty(ui),
-                                };
-                            });
-                        },
-                    );
+                            widgets::status_badge(ui, label, color);
+                        });
+                        row.col(|ui| {
+                            match iface.ipv4_addresses.first() {
+                                Some(addr) => table::cell_mono(ui, addr),
+                                None => table::cell_empty(ui),
+                            };
+                        });
+                        row.col(|ui| {
+                            match iface.mac_address.as_deref() {
+                                Some(mac) => table::cell_mono_muted(ui, mac),
+                                None => table::cell_empty(ui),
+                            };
+                        });
+                    });
                 });
             }
         });
@@ -599,7 +597,7 @@ impl NetworkPage {
                         if widgets::ghost_button(ui, format!("{}  Export CSV", icons::DOWNLOAD))
                             .clicked()
                         {
-                            let toast = match Self::export_connections_csv(state) {
+                            let toast = match Self::export_connections_csv(ui.ctx(), state) {
                                 Ok(path) => crate::widgets::toast::Toast::success(format!(
                                     "Export CSV enregistré : {}",
                                     path.display()
@@ -631,31 +629,8 @@ impl NetworkPage {
                     });
                     lower
                 });
-            let filtered: Vec<usize> = state
-                .network
-                .connections
-                .iter()
-                .enumerate()
-                .filter(|(_, c)| {
-                    if search_lower.is_empty() {
-                        return true;
-                    }
-                    c.protocol.to_lowercase().contains(&search_lower)
-                        || c.local_address.to_lowercase().contains(&search_lower)
-                        || c.remote_address
-                            .as_deref()
-                            .unwrap_or("")
-                            .to_lowercase()
-                            .contains(&search_lower)
-                        || c.state.to_lowercase().contains(&search_lower)
-                        || c.process_name
-                            .as_deref()
-                            .unwrap_or("")
-                            .to_lowercase()
-                            .contains(&search_lower)
-                })
-                .map(|(i, _)| i)
-                .collect();
+            let filtered =
+                displayed_connections(ui.ctx(), &state.network.connections, &search_lower);
 
             let previous_search = state.network.search.clone();
             widgets::SearchFilterBar::new(&mut state.network.search, "Adresse ou processus…")
@@ -708,6 +683,7 @@ impl NetworkPage {
                 use widgets::table;
 
                 let mut clicked_conn: Option<usize> = None;
+                let mut resorted = false;
                 let selected = state.network.selected_connection;
 
                 table::fluid_clickable(
@@ -721,21 +697,19 @@ impl NetworkPage {
                     ],
                 )
                 .header(theme::TABLE_HEADER_HEIGHT, |mut header| {
-                    header.col(|ui| {
-                        table::header_cell(ui, "PROTO");
-                    });
-                    header.col(|ui| {
-                        table::header_cell(ui, "LOCAL");
-                    });
-                    header.col(|ui| {
-                        table::header_cell(ui, "DISTANT");
-                    });
-                    header.col(|ui| {
-                        table::header_cell(ui, "\u{00c9}TAT");
-                    });
-                    header.col(|ui| {
-                        table::header_cell(ui, "PROCESSUS");
-                    });
+                    if order::headers(
+                        &mut header,
+                        "network_connections",
+                        &[
+                            ("PROTO", Some("protocol")),
+                            ("LOCAL", Some("local")),
+                            ("DISTANT", Some("remote")),
+                            ("\u{00c9}TAT", Some("state")),
+                            ("PROCESSUS", Some("process")),
+                        ],
+                    ) {
+                        resorted = true;
+                    }
                 })
                 .body(|body| {
                     body.rows(theme::TABLE_ROW_HEIGHT, nc_len, |mut row| {
@@ -771,12 +745,7 @@ impl NetworkPage {
                                 table::cell_empty(ui);
                                 return;
                             }
-                            let (label, color) = match conn.state.as_str() {
-                                "ESTABLISHED" => ("ÉTABLIE", theme::SUCCESS),
-                                "LISTEN" => ("EN ÉCOUTE", theme::INFO),
-                                "CLOSE_WAIT" | "TIME_WAIT" => ("EN FERMETURE", theme::WARNING),
-                                _ => (conn.state.as_str(), theme::WARNING),
-                            };
+                            let (label, color) = connection_state_display(&conn.state);
                             widgets::status_badge(ui, label, color);
                         });
                         row.col(|ui| {
@@ -797,6 +766,9 @@ impl NetworkPage {
                     });
                 });
 
+                if resorted {
+                    state.network.connections_page = 0;
+                }
                 if let Some(idx) = clicked_conn {
                     state.network.selected_connection = Some(idx);
                     state.network.selected_alert = None;
@@ -878,10 +850,12 @@ impl NetworkPage {
                             .strong(),
                     );
                     ui.label(
-                        egui::RichText::new("Actions de mitigation requises immédiatement")
-                            .font(theme::font_label())
-                            .color(theme::text_tertiary())
-                            .extra_letter_spacing(theme::TRACKING_NORMAL),
+                        egui::RichText::new(
+                            "Le détail arrive avec la prochaine analyse du trafic.",
+                        )
+                        .font(theme::font_label())
+                        .color(theme::text_tertiary())
+                        .extra_letter_spacing(theme::TRACKING_NORMAL),
                     );
                 });
             } else {
@@ -1001,8 +975,8 @@ impl NetworkPage {
 
     fn alert_type_label_color(alert_type: &str) -> (String, egui::Color32) {
         match alert_type {
-            "c2" => ("C2 COMMAND".to_string(), theme::ERROR),
-            "mining" => ("CRYPTO MINING".to_string(), theme::ERROR),
+            "c2" => ("COMMANDE ET CONTRÔLE".to_string(), theme::ERROR),
+            "mining" => ("MINAGE DE CRYPTOMONNAIE".to_string(), theme::ERROR),
             "exfiltration" => ("EXFILTRATION".to_string(), theme::ERROR),
             "dga" => ("DGA DÉTECTÉ".to_string(), theme::SEVERITY_HIGH),
             "beaconing" => ("BALISE C2".to_string(), theme::SEVERITY_HIGH),
@@ -1103,49 +1077,164 @@ impl NetworkPage {
         resp.clicked()
     }
 
-    fn export_interfaces_csv(state: &AppState) -> Result<std::path::PathBuf, String> {
+    fn export_interfaces_csv(
+        ctx: &egui::Context,
+        state: &AppState,
+    ) -> Result<std::path::PathBuf, String> {
         let headers = &["interface", "type", "statut", "mac", "ipv4"];
-        let rows: Vec<Vec<String>> = state
-            .network
-            .interfaces
-            .iter()
+        // In the order the table shows.
+        let rows: Vec<Vec<String>> = displayed_interfaces(ctx, &state.network.interfaces)
+            .into_iter()
+            .filter_map(|i| state.network.interfaces.get(i))
             .map(|iface| {
                 vec![
                     iface.name.clone(),
                     iface.interface_type.clone(),
                     iface.status.clone(),
-                    iface.mac_address.as_deref().unwrap_or("--").to_string(),
+                    iface.mac_address.clone().unwrap_or_default(),
                     iface.ipv4_addresses.join(", "),
                 ]
             })
             .collect();
-        let path = crate::export::default_export_path("network_interfaces.csv");
+        let path = crate::export::default_export_path("reseau_interfaces.csv");
         crate::export::export_csv(headers, &rows, &path)?;
         Ok(path)
     }
 
-    fn export_connections_csv(state: &AppState) -> Result<std::path::PathBuf, String> {
+    fn export_connections_csv(
+        ctx: &egui::Context,
+        state: &AppState,
+    ) -> Result<std::path::PathBuf, String> {
         let headers = &["protocole", "local", "distant", "statut", "processus"];
-        let rows: Vec<Vec<String>> = state
-            .network
-            .connections
-            .iter()
-            .map(|conn| {
-                vec![
-                    conn.protocol.clone(),
-                    format!("{}:{}", conn.local_address, conn.local_port),
-                    conn.remote_address
-                        .clone()
-                        .map(|a| format!("{}:{}", a, conn.remote_port.unwrap_or(0)))
-                        .unwrap_or_else(|| "--".to_string()),
-                    conn.state.clone(),
-                    conn.process_name.as_deref().unwrap_or("--").to_string(),
-                ]
-            })
-            .collect();
-        let path = crate::export::default_export_path("network_connections.csv");
+        // The export follows the search, like every other table export.
+        let search_lower = state.network.search.to_lowercase();
+        let rows: Vec<Vec<String>> =
+            displayed_connections(ctx, &state.network.connections, &search_lower)
+                .into_iter()
+                .filter_map(|i| state.network.connections.get(i))
+                .map(|conn| {
+                    vec![
+                        conn.protocol.clone(),
+                        format!("{}:{}", conn.local_address, conn.local_port),
+                        conn.remote_address
+                            .clone()
+                            .map(|a| format!("{}:{}", a, conn.remote_port.unwrap_or(0)))
+                            .unwrap_or_default(),
+                        conn.state.clone(),
+                        conn.process_name.clone().unwrap_or_default(),
+                    ]
+                })
+                .collect();
+        let path = crate::export::default_export_path("reseau_connexions.csv");
         crate::export::export_csv(headers, &rows, &path)?;
         Ok(path)
+    }
+}
+
+/// Indices of the connections matching `search_lower` (protocol, addresses,
+/// state or process), in the order received.
+fn filtered_connections(
+    connections: &[crate::dto::GuiNetworkConnection],
+    search_lower: &str,
+) -> Vec<usize> {
+    connections
+        .iter()
+        .enumerate()
+        .filter(|(_, c)| {
+            search_lower.is_empty()
+                || c.protocol.to_lowercase().contains(search_lower)
+                || c.local_address.to_lowercase().contains(search_lower)
+                || c.remote_address
+                    .as_deref()
+                    .unwrap_or("")
+                    .to_lowercase()
+                    .contains(search_lower)
+                || c.state.to_lowercase().contains(search_lower)
+                || c.process_name
+                    .as_deref()
+                    .unwrap_or("")
+                    .to_lowercase()
+                    .contains(search_lower)
+        })
+        .map(|(i, _)| i)
+        .collect()
+}
+
+/// The connections matching the search, in the order the table shows
+/// them: the CSV export and the keyboard follow it.
+fn displayed_connections(
+    ctx: &egui::Context,
+    connections: &[crate::dto::GuiNetworkConnection],
+    search_lower: &str,
+) -> Vec<usize> {
+    let mut indices = filtered_connections(connections, search_lower);
+    order::sort(ctx, "network_connections", &mut indices, |key, a, b| {
+        compare_connections(key, &connections[a], &connections[b])
+    });
+    indices
+}
+
+/// Order two connections under a column key, ascending.
+fn compare_connections(
+    key: &str,
+    a: &crate::dto::GuiNetworkConnection,
+    b: &crate::dto::GuiNetworkConnection,
+) -> std::cmp::Ordering {
+    match key {
+        "protocol" => order::text(&a.protocol, &b.protocol),
+        "local" => order::ip(&a.local_address, &b.local_address)
+            .then_with(|| a.local_port.cmp(&b.local_port)),
+        // Connections without a peer (listening sockets) last.
+        "remote" => match (&a.remote_address, &b.remote_address) {
+            (Some(x), Some(y)) => order::ip(x, y).then_with(|| a.remote_port.cmp(&b.remote_port)),
+            (x, y) => order::opt_text(x.as_deref(), y.as_deref()),
+        },
+        "state" => order::opt_text(
+            Some(connection_state_display(&a.state).0),
+            Some(connection_state_display(&b.state).0),
+        ),
+        "process" => order::opt_text(a.process_name.as_deref(), b.process_name.as_deref()),
+        _ => std::cmp::Ordering::Equal,
+    }
+}
+
+/// The interfaces in the order the table shows them.
+fn displayed_interfaces(
+    ctx: &egui::Context,
+    interfaces: &[crate::dto::GuiNetworkInterface],
+) -> Vec<usize> {
+    let mut indices: Vec<usize> = (0..interfaces.len()).collect();
+    order::sort(ctx, "network_interfaces", &mut indices, |key, a, b| {
+        let (a, b) = (&interfaces[a], &interfaces[b]);
+        match key {
+            "name" => order::version(&a.name, &b.name),
+            "type" => order::text(
+                interface_type_label(&a.interface_type),
+                interface_type_label(&b.interface_type),
+            ),
+            // Up first.
+            "status" => (a.status != "up").cmp(&(b.status != "up")),
+            "ip" => match (a.ipv4_addresses.first(), b.ipv4_addresses.first()) {
+                (Some(x), Some(y)) => order::ip(x, y),
+                (x, y) => order::opt_text(x.map(String::as_str), y.map(String::as_str)),
+            },
+            "mac" => order::opt_text(a.mac_address.as_deref(), b.mac_address.as_deref()),
+            _ => std::cmp::Ordering::Equal,
+        }
+    });
+    indices
+}
+
+/// French label and colour of a connection state as the system reports it.
+fn connection_state_display(state: &str) -> (&str, egui::Color32) {
+    match state {
+        "ESTABLISHED" => ("ÉTABLIE", theme::SUCCESS),
+        "LISTEN" => ("EN ÉCOUTE", theme::INFO),
+        "SYN_SENT" | "SYN_RECV" | "SYN_RECEIVED" => ("EN OUVERTURE", theme::INFO),
+        "CLOSE_WAIT" | "TIME_WAIT" | "FIN_WAIT1" | "FIN_WAIT2" | "FIN_WAIT_1" | "FIN_WAIT_2"
+        | "LAST_ACK" | "CLOSING" => ("EN FERMETURE", theme::WARNING),
+        "CLOSED" | "CLOSE" => ("FERMÉE", theme::text_tertiary()),
+        other => (other, theme::WARNING),
     }
 }
 
