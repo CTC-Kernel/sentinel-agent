@@ -323,3 +323,129 @@ impl SecureStore for RegistryStore {
         Ok(())
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use tokio::io::{AsyncReadExt, AsyncWriteExt};
+
+    #[test]
+    fn the_access_lists_are_accepted_by_the_system() {
+        Descriptor::from_sddl(PIPE_SDDL).expect("pipe access list");
+        Descriptor::from_sddl(STORE_SDDL).expect("store access list");
+        assert!(Descriptor::from_sddl("not an access list").is_err());
+    }
+
+    /// One test for everything that needs the pipe's name: two tests would
+    /// claim it at the same time.
+    #[tokio::test]
+    async fn the_pipe_is_claimed_once_and_carries_both_directions() {
+        let descriptor = Descriptor::from_sddl(PIPE_SDDL).unwrap();
+        let server = create_instance(&descriptor, true).expect("first instance");
+        // The name is taken: a second process asking to be the first
+        // instance is refused, which is what keeps a squatter out. Wine
+        // does not enforce FILE_FLAG_FIRST_PIPE_INSTANCE (SENTINEL_TEST_WINE
+        // skips this one check there); Windows does.
+        if std::env::var_os("SENTINEL_TEST_WINE").is_none() {
+            assert!(create_instance(&descriptor, true).is_err());
+        }
+
+        let mut client = ClientOptions::new()
+            .security_qos_flags(SECURITY_IDENTIFICATION)
+            .open(PIPE_NAME)
+            .expect("an interface opens the pipe");
+        server.connect().await.expect("the service accepts it");
+        // The next instance is created while the first is served.
+        let next = create_instance(&descriptor, false).expect("next instance");
+
+        // What `connect` checks against the service manager: the process
+        // behind the pipe, here this very process.
+        let mut server_pid = 0u32;
+        unsafe {
+            GetNamedPipeServerProcessId(HANDLE(client.as_raw_handle() as _), &mut server_pid)
+        }
+        .expect("the server's process is known");
+        assert_eq!(server_pid, std::process::id());
+
+        let mut server = server;
+        client.write_all(b"{\"type\":\"ping\"}\n").await.unwrap();
+        let mut line = [0u8; 16];
+        server.read_exact(&mut line).await.unwrap();
+        assert_eq!(&line, b"{\"type\":\"ping\"}\n");
+        server.write_all(b"pong\n").await.unwrap();
+        let mut answer = [0u8; 5];
+        client.read_exact(&mut answer).await.unwrap();
+        assert_eq!(&answer, b"pong\n");
+        drop(next);
+    }
+
+    #[test]
+    #[ignore = "writes under HKEY_LOCAL_MACHINE: run elevated"]
+    fn the_store_gives_back_what_it_was_given() {
+        let store = RegistryStore;
+        let name = "test-value";
+        store
+            .write(name, "$argon2id$v=19$été")
+            .expect("the key is writable");
+        assert_eq!(store.read(name).as_deref(), Some("$argon2id$v=19$été"));
+        store.write(name, "").unwrap();
+        assert_eq!(store.read("never-written"), None);
+    }
+
+    /// The whole path, against an installed agent: the interface finds the
+    /// pipe, recognises the service behind it, is greeted, and is refused a
+    /// protected command while it has not given the administrator password.
+    #[tokio::test]
+    #[ignore = "needs the SentinelGRCAgent service running on this machine"]
+    async fn the_installed_service_greets_an_interface_and_keeps_its_gate() {
+        use crate::gui_ipc::frame::{ClientFrame, CommandResult, PROTOCOL_VERSION, ServerFrame};
+        use agent_gui::events::GuiCommand;
+        use tokio::io::AsyncBufReadExt;
+
+        let client = connect()
+            .await
+            .expect("the pipe is there and the service is the process behind it");
+        let (read, mut write) = tokio::io::split(client);
+        let mut lines = tokio::io::BufReader::new(read).lines();
+        let mut send = async |frame: ClientFrame| {
+            let mut line = serde_json::to_string(&frame).unwrap();
+            line.push('\n');
+            write.write_all(line.as_bytes()).await.unwrap();
+        };
+        send(ClientFrame::Hello {
+            version: PROTOCOL_VERSION,
+            resume: None,
+        })
+        .await;
+        send(ClientFrame::Command {
+            id: 7,
+            command: Box::new(GuiCommand::Pause),
+        })
+        .await;
+
+        let mut greeted = false;
+        let mut events = 0usize;
+        let refused = loop {
+            let line = tokio::time::timeout(Duration::from_secs(30), lines.next_line())
+                .await
+                .expect("the service answers in time")
+                .unwrap()
+                .expect("the service keeps the connection open");
+            match serde_json::from_str::<ServerFrame>(&line).expect("a frame of this protocol") {
+                ServerFrame::Hello { version, .. } => {
+                    assert_eq!(version, PROTOCOL_VERSION);
+                    greeted = true;
+                }
+                ServerFrame::Event { .. } => events += 1,
+                ServerFrame::CommandResult { id: 7, result } => break result,
+                _ => {}
+            }
+        };
+        assert!(greeted, "hello comes before anything else");
+        assert!(
+            matches!(refused, CommandResult::AdminRequired { .. }),
+            "a protected command is refused without the password: {refused:?}"
+        );
+        println!("greeted, {events} state events replayed, protected command refused");
+    }
+}
