@@ -579,7 +579,7 @@ pub async fn run_threat_pipeline(
                 actions_executed: results.iter().map(|r| r.action.clone()).collect(),
                 success: total > 0 && success_count == total,
                 error: if total == 0 {
-                    Some("No executable action resolved for the configured playbook".into())
+                    Some(crate::playbook_engine::NO_ACTION_RESOLVED.into())
                 } else if success_count < total {
                     Some(
                         results
@@ -857,6 +857,48 @@ pub fn stored_rules_to_dto(
     stored: &[agent_storage::repositories::grc::StoredDetectionRule],
 ) -> Vec<agent_gui::dto::DetectionRule> {
     stored.iter().map(stored_rule_to_single_dto).collect()
+}
+
+/// Count the runs of the playbooks in the local database: one more for
+/// each entry, with its date as the last run.
+pub async fn record_playbook_triggers(
+    db: &agent_storage::Database,
+    logs: &[agent_gui::dto::PlaybookLogEntry],
+) {
+    let repo = agent_storage::repositories::grc::PlaybookRepository::new(db);
+    for entry in logs {
+        if let Err(e) = repo
+            .record_trigger(&entry.playbook_id, entry.triggered_at)
+            .await
+        {
+            warn!(
+                "Run of playbook '{}' not counted: {}",
+                entry.playbook_name, e
+            );
+        }
+    }
+}
+
+/// Give the playbooks the count and the date of their runs kept in the
+/// local database: without them every start showed "never triggered".
+pub async fn with_trigger_status(
+    db: &agent_storage::Database,
+    mut playbooks: Vec<agent_gui::dto::Playbook>,
+) -> Vec<agent_gui::dto::Playbook> {
+    let status = agent_storage::repositories::grc::PlaybookRepository::new(db)
+        .trigger_status()
+        .await
+        .unwrap_or_default();
+    for playbook in &mut playbooks {
+        if let Some(triggers) = status.get(&playbook.id) {
+            playbook.trigger_count = triggers.trigger_count;
+            playbook.last_triggered =
+                chrono::DateTime::parse_from_rfc3339(&triggers.last_triggered)
+                    .ok()
+                    .map(|at| at.with_timezone(&chrono::Utc));
+        }
+    }
+    playbooks
 }
 
 /// Convert a single stored playbook to GUI DTO.
@@ -1165,7 +1207,10 @@ mod tests {
                 crate::playbook_engine::ResolvedAction::Notify { message },
             ] => {
                 assert_eq!((ip.as_str(), *duration_secs), ("203.0.113.9", 600));
-                assert_eq!(message, "Déclenché : Network alert matches 'brute_force'");
+                assert_eq!(
+                    message,
+                    "Déclenché : Alerte réseau correspondant à « brute_force »"
+                );
             }
             other => panic!("expected a block then a notification, got {other:?}"),
         }

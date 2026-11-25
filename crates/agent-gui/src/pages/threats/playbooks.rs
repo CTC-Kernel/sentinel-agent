@@ -18,7 +18,7 @@ use crate::theme;
 /// Inner height of a template card: icon row, three lines of copy, button.
 const TEMPLATE_CARD_MIN_HEIGHT: f32 = 118.0;
 use crate::widgets;
-use crate::widgets::data_table::{ColumnAlign, ColumnWidth, DataTable, TableColumn, TableSort};
+use crate::widgets::data_table::{ColumnAlign, ColumnWidth, DataTable, TableColumn};
 use crate::widgets::modal;
 use crate::widgets::pagination::PaginationState;
 
@@ -42,17 +42,27 @@ fn is_template_installed(playbooks: &[Playbook], template_name: &str) -> bool {
         .any(|playbook| playbook.name.trim().eq_ignore_ascii_case(template_name))
 }
 
+/// One "process name contains" condition per name, any of which triggers.
+/// The agent compares each value as written: a list in a single value
+/// ("xmrig|minerd") would match no process.
+fn process_names(names: &[&str]) -> Vec<PlaybookCondition> {
+    names
+        .iter()
+        .map(|name| PlaybookCondition {
+            condition_type: PlaybookConditionType::ProcessNameMatch,
+            operator: "any".to_string(),
+            value: (*name).to_string(),
+        })
+        .collect()
+}
+
 fn templates() -> Vec<PlaybookTemplate> {
     vec![
         PlaybookTemplate {
             icon: icons::SKULL,
             name: "Ransomware",
             description: "D\u{00e9}tecte les processus li\u{00e9}s au chiffrement malveillant et les termine imm\u{00e9}diatement.",
-            conditions: vec![PlaybookCondition {
-                condition_type: PlaybookConditionType::ProcessNameMatch,
-                operator: "contient".to_string(),
-                value: "encrypt|ransom".to_string(),
-            }],
+            conditions: process_names(&["encrypt", "ransom"]),
             actions: vec![
                 PlaybookAction {
                     action_type: PlaybookActionType::KillProcess,
@@ -68,11 +78,7 @@ fn templates() -> Vec<PlaybookTemplate> {
             icon: icons::MICROCHIP,
             name: "Crypto-miner",
             description: "D\u{00e9}tecte les processus de minage de cryptomonnaie et les arr\u{00ea}te.",
-            conditions: vec![PlaybookCondition {
-                condition_type: PlaybookConditionType::ProcessNameMatch,
-                operator: "contient".to_string(),
-                value: "xmrig|minerd|cgminer".to_string(),
-            }],
+            conditions: process_names(&["xmrig", "minerd", "cgminer"]),
             actions: vec![PlaybookAction {
                 action_type: PlaybookActionType::KillProcess,
                 parameters: String::new(),
@@ -264,12 +270,53 @@ fn action_parameter(action_type: PlaybookActionType) -> Option<(&'static str, &'
     }
 }
 
-/// Inline editing state for the new-playbook form.
+/// Editing state of the playbook form, new or existing playbook.
 struct InlinePlaybookForm {
+    /// The playbook being edited; `None` for a new one.
+    editing: Option<Playbook>,
     name: String,
     description: String,
+    /// Whether every condition must match (else one is enough).
+    match_all: bool,
     conditions: Vec<PlaybookCondition>,
     actions: Vec<PlaybookAction>,
+    /// Scroll the form into view on its next frame.
+    reveal: bool,
+}
+
+impl InlinePlaybookForm {
+    const fn empty() -> Self {
+        Self {
+            editing: None,
+            name: String::new(),
+            description: String::new(),
+            match_all: false,
+            conditions: Vec::new(),
+            actions: Vec::new(),
+            reveal: false,
+        }
+    }
+
+    fn reset(&mut self) {
+        *self = Self::empty();
+    }
+
+    fn load(&mut self, playbook: &Playbook) {
+        *self = Self {
+            editing: Some(playbook.clone()),
+            name: playbook.name.clone(),
+            description: playbook.description.clone(),
+            match_all: requires_all(&playbook.conditions),
+            conditions: playbook.conditions.clone(),
+            actions: playbook.actions.clone(),
+            reveal: true,
+        };
+    }
+}
+
+thread_local! {
+    static FORM: std::cell::RefCell<InlinePlaybookForm> =
+        const { std::cell::RefCell::new(InlinePlaybookForm::empty()) };
 }
 
 /// Render the playbooks tab.
@@ -301,6 +348,15 @@ fn friendly_error(raw: &str) -> String {
         } else if part.contains("SIEM destination is not enabled") {
             "Aucune destination SIEM n'est activée : configurez-la dans \
              Paramètres › Intégration SIEM."
+        } else if part.contains("No executable action resolved") {
+            // Entries logged by an agent older than the French labels.
+            "Aucune action exécutable : les actions de ce playbook n'ont pas de cible."
+        } else if part.contains("Rejected by target validation") {
+            "Action refusée : sa cible n'est pas valide (PID réservé, chemin relatif \
+             ou vide, adresse ou compte mal formé)."
+        } else if part.contains("destructive-action limit") {
+            "Action refusée : le playbook a dépassé le nombre d'actions destructrices \
+             permis en une exécution."
         } else {
             part
         };
@@ -327,7 +383,7 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
     let mut installed_template: Option<Playbook> = None;
     widgets::data_card(ui, "Modèles de réponse", |ui: &mut egui::Ui| {
         ui.label(
-            egui::RichText::new("TEMPLATES PR\u{00c9}-CONFIGUR\u{00c9}S")
+            egui::RichText::new("MOD\u{00c8}LES PR\u{00c9}CONFIGUR\u{00c9}S")
                 .font(theme::font_label())
                 .color(theme::text_tertiary())
                 .extra_letter_spacing(theme::TRACKING_NORMAL)
@@ -442,7 +498,11 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
         ui.horizontal(|ui: &mut egui::Ui| {
             ui.label(
                 egui::RichText::new(format!(
-                    "PLAYBOOKS ACTIFS ({})",
+                    "PLAYBOOKS ({} actif{} sur {})",
+                    state.threats.playbooks.iter().filter(|p| p.enabled).count(),
+                    crate::format::plural_suffix(
+                        state.threats.playbooks.iter().filter(|p| p.enabled).count()
+                    ),
                     state.threats.playbooks.len()
                 ))
                 .font(theme::font_label())
@@ -461,6 +521,11 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                     )
                     .clicked()
                     {
+                        FORM.with(|form| {
+                            let mut form = form.borrow_mut();
+                            form.reset();
+                            form.reveal = true;
+                        });
                         state.threats.playbook_editing = true;
                     }
                 },
@@ -473,15 +538,34 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                 ui,
                 icons::CLIPBOARD_LIST,
                 "Aucun playbook",
-                Some("Installez un template ou cr\u{00e9}ez un playbook personnalis\u{00e9}."),
+                Some("Installez un mod\u{00e8}le ou cr\u{00e9}ez un playbook personnalis\u{00e9}."),
             );
         } else {
             // Collect IDs and toggle state changes to apply after iteration
+            super::types::sort_bar(
+                ui,
+                LIST_TABLE,
+                &[
+                    ("name", "Nom"),
+                    ("state", "\u{00c9}tat"),
+                    ("last", "Dernier d\u{00e9}clenchement"),
+                    ("count", "D\u{00e9}clenchements"),
+                ],
+            );
+            ui.add_space(theme::SPACE_SM);
+            let mut ordered: Vec<&Playbook> = state.threats.playbooks.iter().collect();
+            super::types::sort_rows(
+                &mut ordered,
+                &widgets::table::sort_of(ui.ctx(), LIST_TABLE),
+                |key, a, b| playbook_order(key, a, b),
+            );
+
             let mut toggle_commands: Vec<(String, bool)> = Vec::new();
             let mut delete_id: Option<String> = None;
             let mut execute_id: Option<String> = None;
+            let mut edit_playbook: Option<Playbook> = None;
 
-            for (row_idx, pb) in state.threats.playbooks.iter().enumerate() {
+            for (row_idx, pb) in ordered.into_iter().enumerate() {
                 let conds = pb
                     .conditions
                     .iter()
@@ -561,14 +645,40 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                                             delete_id = Some(pb.id.to_string());
                                         }
                                         ui.add_space(theme::SPACE_XS);
-                                        if pb.enabled
-                                            && widgets::ghost_button(
-                                                ui,
-                                                format!("{}  Ex\u{00e9}cuter", icons::BOLT),
-                                            )
-                                            .clicked()
+                                        if widgets::icon_button(
+                                            ui,
+                                            icons::PENCIL,
+                                            Some("Modifier le playbook"),
+                                        )
+                                        .clicked()
                                         {
-                                            execute_id = Some(pb.id.to_string());
+                                            edit_playbook = Some(pb.clone());
+                                        }
+                                        ui.add_space(theme::SPACE_XS);
+                                        if pb.enabled {
+                                            // A run by hand needs a target in
+                                            // the actions' parameters.
+                                            let runnable = manual_run_resolves(pb);
+                                            let run = ui
+                                                .add_enabled_ui(runnable, |ui| {
+                                                    widgets::ghost_button(
+                                                        ui,
+                                                        format!(
+                                                            "{}  Ex\u{00e9}cuter",
+                                                            icons::BOLT
+                                                        ),
+                                                    )
+                                                })
+                                                .inner
+                                                .on_disabled_hover_text(
+                                                    "Rien \u{00e0} ex\u{00e9}cuter \u{00e0} la main : les actions de ce \
+                                                     playbook prennent leur cible dans la d\u{00e9}tection. \
+                                                     Modifiez-le pour indiquer une cible (nom:pid, chemin, \
+                                                     adresse) dans le param\u{00e8}tre d'une action.",
+                                                );
+                                            if runnable && run.clicked() {
+                                                execute_id = Some(pb.id.to_string());
+                                            }
                                         }
                                         ui.add_space(theme::SPACE_XS);
                                         let mut enabled = pb.enabled;
@@ -614,6 +724,13 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
             if let Some(id) = execute_id {
                 modal::ask_confirmation(ui.ctx(), EXECUTE_CONFIRM, id);
             }
+            // Editing can take a response away as surely as deleting it.
+            if let Some(playbook) = edit_playbook
+                && state.require_admin("Modifier un playbook")
+            {
+                FORM.with(|form| form.borrow_mut().load(&playbook));
+                state.threats.playbook_editing = true;
+            }
         }
     });
 
@@ -630,6 +747,14 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
             "Supprimer",
         ) {
             state.threats.playbooks.retain(|p| p.id != id);
+            // The form must not save back a playbook that was just deleted.
+            FORM.with(|form| {
+                let mut form = form.borrow_mut();
+                if form.editing.as_ref().is_some_and(|p| p.id == id) {
+                    form.reset();
+                    state.threats.playbook_editing = false;
+                }
+            });
             command = Some(GuiCommand::DeletePlaybook { playbook_id: id });
         }
     }
@@ -654,8 +779,8 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
             EXECUTE_CONFIRM,
             "Exécuter le playbook maintenant ?",
             &format!(
-                "« {name} » va exécuter ses actions sur ce poste : {}.\n\nL'exécution est \
-                 enregistrée dans le journal d'audit.",
+                "« {name} » va exécuter sur ce poste celles de ses actions qui nomment leur \
+                 cible : {}.\n\nL'exécution est enregistrée dans le journal d'audit.",
                 if actions.is_empty() {
                     "aucune action définie"
                 } else {
@@ -670,7 +795,7 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
 
     ui.add_space(theme::SPACE_MD);
 
-    // ── Inline new playbook form ────────────────────────────────────
+    // ── Inline playbook form, new or edited ─────────────────────────
     if state.threats.playbook_editing {
         show_playbook_form(ui, state, &mut command);
         ui.add_space(theme::SPACE_MD);
@@ -703,28 +828,28 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                     key: "playbook",
                     label: "PLAYBOOK",
                     width: ColumnWidth::Fixed(180.0),
-                    sortable: false,
+                    sortable: true,
                     align: ColumnAlign::Left,
                 },
                 TableColumn {
                     key: "event",
                     label: "\u{00c9}V\u{00c9}NEMENT",
                     width: ColumnWidth::Fill,
-                    sortable: false,
+                    sortable: true,
                     align: ColumnAlign::Left,
                 },
                 TableColumn {
                     key: "actions",
                     label: "ACTIONS",
                     width: ColumnWidth::Fixed(180.0),
-                    sortable: false,
+                    sortable: true,
                     align: ColumnAlign::Left,
                 },
                 TableColumn {
                     key: "result",
                     label: "R\u{00c9}SULTAT",
                     width: ColumnWidth::Fixed(100.0),
-                    sortable: false,
+                    sortable: true,
                     align: ColumnAlign::Center,
                 },
                 TableColumn {
@@ -732,14 +857,21 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                     label: "DATE",
                     // "05/10/2026 11:48" at the 14px body size, plus the sort mark.
                     width: ColumnWidth::Fixed(176.0),
-                    sortable: false,
+                    sortable: true,
                     align: ColumnAlign::Right,
                 },
             ];
 
             let table = DataTable::new("playbook_log_table", columns).no_hover();
-            let mut sort = TableSort::default();
-            table.show_header(ui, &mut sort);
+            let sort = widgets::table::sort_of(ui.ctx(), LOG_TABLE);
+            let mut header_sort = sort.clone();
+            if table.show_header(ui, &mut header_sort) {
+                ui.data_mut(|d| {
+                    d.insert_temp(egui::Id::new(("table_sort", LOG_TABLE)), header_sort)
+                });
+                state.threats.playbook_log_page = 0;
+                ui.ctx().request_repaint();
+            }
 
             let page_size = 15;
             let log_total = state.threats.playbook_log.len();
@@ -749,10 +881,11 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
             }
             let log_start = state.threats.playbook_log_page.saturating_mul(page_size);
             let log_end = log_total.min(log_start.saturating_add(page_size));
-            let entries: Vec<_> = state
-                .threats
-                .playbook_log
-                .iter()
+            // Most recent first, then the column the header asks for.
+            let mut ordered: Vec<_> = state.threats.playbook_log.iter().collect();
+            super::types::sort_rows(&mut ordered, &sort, |key, a, b| log_order(key, a, b));
+            let entries: Vec<_> = ordered
+                .into_iter()
                 .skip(log_start)
                 .take(log_end.saturating_sub(log_start))
                 .collect();
@@ -828,30 +961,121 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
     command
 }
 
-/// Inline form to create a new playbook.
-fn show_playbook_form(ui: &mut Ui, state: &mut AppState, command: &mut Option<GuiCommand>) {
-    // Use a thread-local for form state so it persists across frames
-    thread_local! {
-        static FORM: std::cell::RefCell<InlinePlaybookForm> = const { std::cell::RefCell::new(InlinePlaybookForm {
-            name: String::new(),
-            description: String::new(),
-            conditions: Vec::new(),
-            actions: Vec::new(),
-        }) };
-    }
+/// Names under which the sort orders of the list and of the log are kept.
+const LIST_TABLE: &str = "playbook_list";
+const LOG_TABLE: &str = "playbook_log";
 
+/// Ascending order of two playbooks on a sort key of the list.
+fn playbook_order(key: &str, a: &Playbook, b: &Playbook) -> std::cmp::Ordering {
+    match key {
+        "name" => super::types::text_order(&a.name, &b.name),
+        // Active first.
+        "state" => b.enabled.cmp(&a.enabled),
+        // Never triggered sorts before any date.
+        "last" => a.last_triggered.cmp(&b.last_triggered),
+        "count" => a.trigger_count.cmp(&b.trigger_count),
+        _ => std::cmp::Ordering::Equal,
+    }
+}
+
+/// Ascending order of two executions on a column of the log.
+fn log_order(
+    key: &str,
+    a: &crate::dto::PlaybookLogEntry,
+    b: &crate::dto::PlaybookLogEntry,
+) -> std::cmp::Ordering {
+    use super::types::text_order;
+    match key {
+        "playbook" => text_order(&a.playbook_name, &b.playbook_name),
+        "event" => text_order(&a.trigger_event, &b.trigger_event),
+        "actions" => a.actions_executed.len().cmp(&b.actions_executed.len()),
+        // Failures first: they are what an operator looks for.
+        "result" => a.success.cmp(&b.success),
+        "date" => a.triggered_at.cmp(&b.triggered_at),
+        _ => std::cmp::Ordering::Equal,
+    }
+}
+
+/// Why a condition cannot be saved, if it cannot. The engine skips a blank
+/// value and cannot rank a severity it does not know.
+fn condition_error(condition: &PlaybookCondition) -> Option<&'static str> {
+    let value = condition.value.trim();
+    match condition.condition_type {
+        // Kept on a playbook that already has one; never evaluated.
+        PlaybookConditionType::CvssScore => None,
+        _ if value.is_empty() => Some("Valeur vide"),
+        PlaybookConditionType::SeverityThreshold
+            if !matches!(
+                value.to_lowercase().as_str(),
+                "low" | "medium" | "high" | "critical"
+            ) =>
+        {
+            Some("low, medium, high ou critical")
+        }
+        _ => None,
+    }
+}
+
+/// Whether a playbook's conditions must all match. The engine reads it on
+/// the first condition; anything but "all" means one is enough.
+fn requires_all(conditions: &[PlaybookCondition]) -> bool {
+    conditions
+        .first()
+        .is_some_and(|c| matches!(c.operator.as_str(), "all" | "and" | "AND"))
+}
+
+/// Whether running the playbook by hand would do anything: at least one
+/// action names its target in its parameter (a playbook made for automatic
+/// runs takes it from the detection, and only keeps a duration there).
+/// Mirrors what the agent resolves for a manual run.
+fn manual_run_resolves(playbook: &Playbook) -> bool {
+    playbook.actions.iter().any(|action| {
+        let parameters = action.parameters.trim();
+        match action.action_type {
+            PlaybookActionType::KillProcess => parameters
+                .split_once(':')
+                .is_some_and(|(name, pid)| !name.is_empty() && pid.parse::<u32>().is_ok()),
+            PlaybookActionType::QuarantineFile => std::path::Path::new(parameters).is_absolute(),
+            PlaybookActionType::BlockIp => {
+                parameters.parse::<std::net::IpAddr>().is_ok()
+                    || parameters
+                        .rsplit_once(':')
+                        .is_some_and(|(ip, _)| ip.parse::<std::net::IpAddr>().is_ok())
+            }
+            PlaybookActionType::DisableAccount => {
+                let user = parameters.split(':').next().unwrap_or("").trim();
+                !user.is_empty() && !user.chars().all(|c| c.is_ascii_digit())
+            }
+            PlaybookActionType::RunCommand => !parameters.is_empty(),
+            PlaybookActionType::IsolateHost
+            | PlaybookActionType::SendSiemAlert
+            | PlaybookActionType::CreateNotification => true,
+        }
+    })
+}
+
+/// Inline form to create a playbook or edit one.
+fn show_playbook_form(ui: &mut Ui, state: &mut AppState, command: &mut Option<GuiCommand>) {
     widgets::card(ui, |ui: &mut egui::Ui| {
-        ui.label(
-            egui::RichText::new("NOUVEAU PLAYBOOK")
+        FORM.with(|form| {
+            let mut f = form.borrow_mut();
+
+            let heading = ui.label(
+                egui::RichText::new(if f.editing.is_some() {
+                    "MODIFIER LE PLAYBOOK"
+                } else {
+                    "NOUVEAU PLAYBOOK"
+                })
                 .font(theme::font_label())
                 .color(theme::accent_text())
                 .extra_letter_spacing(theme::TRACKING_NORMAL)
                 .strong(),
-        );
-        ui.add_space(theme::SPACE_SM);
-
-        FORM.with(|form| {
-            let mut f = form.borrow_mut();
+            );
+            // Opened from a row further down: bring the form into view.
+            if std::mem::take(&mut f.reveal) {
+                heading.scroll_to_me(Some(egui::Align::TOP));
+            }
+            ui.add_space(theme::SPACE_SM);
 
             // Name
             widgets::form::row(ui, "Nom", |ui: &mut egui::Ui| {
@@ -871,12 +1095,40 @@ fn show_playbook_form(ui: &mut Ui, state: &mut AppState, command: &mut Option<Gu
                     .extra_letter_spacing(theme::TRACKING_NORMAL),
             );
             ui.add_space(theme::SPACE_XS);
-
-            let condition_types = PlaybookConditionType::all();
-            let cond_labels: Vec<&str> = condition_types.iter().map(|c| c.label_fr()).collect();
+            ui.horizontal_wrapped(|ui: &mut egui::Ui| {
+                ui.label(
+                    egui::RichText::new("Le playbook se d\u{00e9}clenche quand")
+                        .font(theme::font_min())
+                        .color(theme::text_secondary()),
+                );
+                if widgets::chip_button(ui, "au moins une condition", !f.match_all, theme::ACCENT)
+                    .clicked()
+                {
+                    f.match_all = false;
+                }
+                if widgets::chip_button(ui, "toutes les conditions", f.match_all, theme::ACCENT)
+                    .clicked()
+                {
+                    f.match_all = true;
+                }
+                ui.label(
+                    egui::RichText::new("est remplie.")
+                        .font(theme::font_min())
+                        .color(theme::text_secondary()),
+                );
+            });
+            ui.add_space(theme::SPACE_XS);
 
             let mut remove_cond_idx: Option<usize> = None;
             for (i, cond) in f.conditions.iter_mut().enumerate() {
+                // The CVSS score cannot be evaluated by the agent: offered
+                // only on a condition that already carries it.
+                let condition_types: Vec<PlaybookConditionType> = PlaybookConditionType::all()
+                    .iter()
+                    .copied()
+                    .filter(|c| *c != PlaybookConditionType::CvssScore || *c == cond.condition_type)
+                    .collect();
+                let cond_labels: Vec<&str> = condition_types.iter().map(|c| c.label_fr()).collect();
                 ui.push_id(("cond", i), |ui: &mut egui::Ui| {
                     ui.horizontal(|ui: &mut egui::Ui| {
                         let mut idx = condition_types
@@ -900,6 +1152,21 @@ fn show_playbook_form(ui: &mut Ui, state: &mut AppState, command: &mut Option<Gu
                         {
                             remove_cond_idx = Some(i);
                         }
+                        if cond.condition_type == PlaybookConditionType::CvssScore {
+                            ui.label(
+                                egui::RichText::new("Non \u{00e9}valu\u{00e9}e par l'agent")
+                                    .font(theme::font_min())
+                                    .color(theme::readable_color(theme::WARNING)),
+                            );
+                        } else if !cond.value.is_empty()
+                            && let Some(error) = condition_error(cond)
+                        {
+                            ui.label(
+                                egui::RichText::new(error)
+                                    .font(theme::font_min())
+                                    .color(theme::ERROR),
+                            );
+                        }
                     });
                 });
             }
@@ -914,7 +1181,7 @@ fn show_playbook_form(ui: &mut Ui, state: &mut AppState, command: &mut Option<Gu
             {
                 f.conditions.push(PlaybookCondition {
                     condition_type: PlaybookConditionType::ProcessNameMatch,
-                    operator: "contient".to_string(),
+                    operator: "any".to_string(),
                     value: String::new(),
                 });
             }
@@ -983,47 +1250,74 @@ fn show_playbook_form(ui: &mut Ui, state: &mut AppState, command: &mut Option<Gu
 
             // Save / Cancel
             ui.horizontal(|ui: &mut egui::Ui| {
-                let can_save =
-                    !f.name.trim().is_empty() && !f.conditions.is_empty() && !f.actions.is_empty();
+                let can_save = !f.name.trim().is_empty()
+                    && !f.conditions.is_empty()
+                    && f.conditions.iter().all(|c| condition_error(c).is_none())
+                    && !f.actions.is_empty();
 
                 if widgets::primary_button(ui, format!("{}  Enregistrer", icons::SAVE), can_save)
+                    .on_disabled_hover_text(
+                        "Un nom, au moins une condition avec sa valeur et au moins une action.",
+                    )
                     .clicked()
                     && can_save
                 {
-                    let playbook = Playbook {
-                        id: Uuid::new_v4().to_string(),
-                        name: f.name.trim().to_string(),
-                        description: f.description.trim().to_string(),
-                        enabled: true,
-                        conditions: f.conditions.clone(),
-                        actions: f.actions.clone(),
-                        created_at: Utc::now(),
-                        last_triggered: None,
-                        trigger_count: 0,
-                        is_template: false,
+                    // The engine reads the logic on the first condition:
+                    // every condition carries it.
+                    let operator = if f.match_all { "all" } else { "any" };
+                    let conditions: Vec<PlaybookCondition> = f
+                        .conditions
+                        .iter()
+                        .map(|c| PlaybookCondition {
+                            condition_type: c.condition_type,
+                            operator: operator.to_string(),
+                            value: c.value.trim().to_string(),
+                        })
+                        .collect();
+                    let playbook = match &f.editing {
+                        // An edit keeps the playbook's identity, state and history.
+                        Some(previous) => Playbook {
+                            name: f.name.trim().to_string(),
+                            description: f.description.trim().to_string(),
+                            conditions,
+                            actions: f.actions.clone(),
+                            ..previous.clone()
+                        },
+                        None => Playbook {
+                            id: Uuid::new_v4().to_string(),
+                            name: f.name.trim().to_string(),
+                            description: f.description.trim().to_string(),
+                            enabled: true,
+                            conditions,
+                            actions: f.actions.clone(),
+                            created_at: Utc::now(),
+                            last_triggered: None,
+                            trigger_count: 0,
+                            is_template: false,
+                        },
                     };
 
                     *command = Some(GuiCommand::SavePlaybook {
                         playbook: Box::new(playbook.clone()),
                     });
-                    state.threats.playbooks.push(playbook);
+                    match state
+                        .threats
+                        .playbooks
+                        .iter_mut()
+                        .find(|p| p.id == playbook.id)
+                    {
+                        Some(existing) => *existing = playbook,
+                        None => state.threats.playbooks.push(playbook),
+                    }
                     state.threats.playbook_editing = false;
-
-                    // Reset form
-                    f.name.clear();
-                    f.description.clear();
-                    f.conditions.clear();
-                    f.actions.clear();
+                    f.reset();
                 }
 
                 ui.add_space(theme::SPACE_SM);
 
                 if widgets::ghost_button(ui, format!("{}  Annuler", icons::XMARK)).clicked() {
                     state.threats.playbook_editing = false;
-                    f.name.clear();
-                    f.description.clear();
-                    f.conditions.clear();
-                    f.actions.clear();
+                    f.reset();
                 }
             });
         });
@@ -1123,6 +1417,139 @@ mod tests {
             }
         }
         assert!(action_parameter(PlaybookActionType::RunCommand).is_some());
+    }
+
+    /// The agent compares a condition value as written: a template that
+    /// packs several names in one value ("a|b") never triggers.
+    #[test]
+    fn templates_give_one_process_name_per_condition() {
+        for template in templates() {
+            for condition in &template.conditions {
+                assert!(
+                    !condition.value.contains('|') && !condition.value.trim().is_empty(),
+                    "{}: {:?}",
+                    template.name,
+                    condition.value
+                );
+            }
+        }
+        let miner = templates()
+            .into_iter()
+            .find(|t| t.name == "Crypto-miner")
+            .unwrap();
+        let names: Vec<&str> = miner.conditions.iter().map(|c| c.value.as_str()).collect();
+        assert_eq!(names, ["xmrig", "minerd", "cgminer"]);
+        // One name is enough.
+        assert!(!requires_all(&miner.conditions));
+    }
+
+    fn with_actions(actions: &[(PlaybookActionType, &str)]) -> Playbook {
+        let mut pb = playbook("p", false);
+        pb.actions = actions
+            .iter()
+            .map(|(action_type, parameters)| PlaybookAction {
+                action_type: *action_type,
+                parameters: (*parameters).to_string(),
+            })
+            .collect();
+        pb
+    }
+
+    #[test]
+    fn a_manual_run_needs_an_action_that_names_its_target() {
+        // Made for automatic runs: the target comes from the detection.
+        assert!(!manual_run_resolves(&with_actions(&[(
+            PlaybookActionType::KillProcess,
+            ""
+        )])));
+        assert!(!manual_run_resolves(&with_actions(&[
+            (PlaybookActionType::BlockIp, "3600"),
+            (PlaybookActionType::DisableAccount, "3600"),
+            (PlaybookActionType::QuarantineFile, ""),
+        ])));
+        assert!(!manual_run_resolves(&with_actions(&[])));
+
+        assert!(manual_run_resolves(&with_actions(&[(
+            PlaybookActionType::KillProcess,
+            "xmrig:4242"
+        )])));
+        assert!(manual_run_resolves(&with_actions(&[(
+            PlaybookActionType::BlockIp,
+            "203.0.113.7:600"
+        )])));
+        assert!(manual_run_resolves(&with_actions(&[(
+            PlaybookActionType::BlockIp,
+            "2001:db8::1"
+        )])));
+        assert!(manual_run_resolves(&with_actions(&[(
+            PlaybookActionType::QuarantineFile,
+            "/tmp/dropper"
+        )])));
+        // A notification always has something to say.
+        assert!(manual_run_resolves(&with_actions(&[
+            (PlaybookActionType::KillProcess, ""),
+            (PlaybookActionType::CreateNotification, ""),
+        ])));
+    }
+
+    #[test]
+    fn a_condition_the_engine_would_skip_cannot_be_saved() {
+        let condition = |condition_type, value: &str| PlaybookCondition {
+            condition_type,
+            operator: "any".to_string(),
+            value: value.to_string(),
+        };
+        use PlaybookConditionType as Kind;
+        assert!(condition_error(&condition(Kind::ProcessNameMatch, "xmrig")).is_none());
+        assert!(condition_error(&condition(Kind::ProcessNameMatch, "  ")).is_some());
+        assert!(condition_error(&condition(Kind::SeverityThreshold, "High")).is_none());
+        assert!(condition_error(&condition(Kind::SeverityThreshold, "grave")).is_some());
+    }
+
+    #[test]
+    fn the_form_reads_the_logic_the_engine_applies() {
+        let condition = |operator: &str| PlaybookCondition {
+            condition_type: PlaybookConditionType::ProcessNameMatch,
+            operator: operator.to_string(),
+            value: "x".to_string(),
+        };
+        assert!(requires_all(&[condition("all"), condition("any")]));
+        // Operators written by older versions mean "one is enough".
+        assert!(!requires_all(&[condition("contient")]));
+        assert!(!requires_all(&[]));
+
+        let mut form = InlinePlaybookForm::empty();
+        let mut pb = playbook("Mine", false);
+        pb.conditions = vec![condition("all")];
+        form.load(&pb);
+        assert!(form.match_all);
+        assert_eq!(form.editing.as_ref().map(|p| p.name.as_str()), Some("Mine"));
+    }
+
+    #[test]
+    fn playbooks_sort_by_meaning() {
+        use crate::widgets::data_table::{SortDirection, TableSort};
+        let mut zeta = playbook("zeta", false);
+        zeta.trigger_count = 10;
+        zeta.last_triggered = Some(Utc::now());
+        let mut alpha = playbook("Alpha", false);
+        alpha.trigger_count = 9;
+        alpha.enabled = false;
+        let all = [zeta, alpha];
+        let order = |key: &str, direction| {
+            let mut rows: Vec<&Playbook> = all.iter().collect();
+            crate::pages::threats::types::sort_rows(
+                &mut rows,
+                &TableSort::by(key, direction),
+                |key, a, b| playbook_order(key, a, b),
+            );
+            rows.iter().map(|p| p.name.clone()).collect::<Vec<_>>()
+        };
+        // Case-insensitive text, numeric counts, active first, undated first.
+        assert_eq!(order("name", SortDirection::Ascending), ["Alpha", "zeta"]);
+        assert_eq!(order("count", SortDirection::Descending), ["zeta", "Alpha"]);
+        assert_eq!(order("state", SortDirection::Ascending), ["zeta", "Alpha"]);
+        assert_eq!(order("last", SortDirection::Ascending), ["Alpha", "zeta"]);
     }
 
     #[test]

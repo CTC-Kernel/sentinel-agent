@@ -10,8 +10,20 @@ use super::{CommandContext, expected};
 
 /// Run one command of this group.
 pub(crate) async fn handle(ctx: &mut CommandContext, command: GuiCommand) {
+    // Every command of this group but the webhook test writes to the local
+    // database. Without it the handlers did nothing and said nothing, while
+    // the page had already shown the change as made.
+    if ctx.db.is_none() && !matches!(command, GuiCommand::TestWebhook { .. }) {
+        report_no_database(&ctx.events);
+        return;
+    }
     match command {
         GuiCommand::SaveRisk { risk } => save_risk(ctx, risk).await,
+        GuiCommand::SaveRisks { risks } => {
+            for risk in risks {
+                save_risk(ctx, Box::new(risk)).await;
+            }
+        }
         GuiCommand::DeleteRisk { risk_id } => delete_risk(ctx, risk_id).await,
         GuiCommand::SaveAsset { asset } => save_asset(ctx, asset).await,
         GuiCommand::UpdateAssetLifecycle {
@@ -28,14 +40,35 @@ pub(crate) async fn handle(ctx: &mut CommandContext, command: GuiCommand) {
 }
 
 /// The entry could not be written to the local database.
-const NOT_STORED: &str = "non enregistr\u{00e9} sur ce poste";
+pub(super) const NOT_STORED: &str = "non enregistr\u{00e9} sur ce poste";
 /// The entry is stored here but could not be queued for the platform.
-const NOT_QUEUED: &str = "non transmis \u{00e0} la plateforme";
+pub(super) const NOT_QUEUED: &str = "non transmis \u{00e0} la plateforme";
+
+/// Tell the operator that nothing can be kept: the local database of the
+/// agent could not be opened when it started.
+pub(super) fn report_no_database(events: &std::sync::mpsc::Sender<AgentEvent>) {
+    let _ = events.send(AgentEvent::Notification {
+        notification: agent_gui::dto::GuiNotification::error(
+            "Base locale indisponible",
+            "La modification n'a pas \u{00e9}t\u{00e9} enregistr\u{00e9}e : la base de donn\u{00e9}es locale \
+             de l'agent n'a pas pu \u{00ea}tre ouverte. Red\u{00e9}marrez l'agent ; si le probl\u{00e8}me \
+             persiste, consultez ses journaux.",
+        ),
+    });
+}
+
+/// Send the risk register back as the database holds it: after a change
+/// that could not be written, the page shows what is really kept.
+async fn resend_risks(db: &agent_storage::Database, events: &std::sync::mpsc::Sender<AgentEvent>) {
+    if let Some(risks) = agent_core::gui_bridge::risks_snapshot_event(db).await {
+        let _ = events.send(risks);
+    }
+}
 
 /// Tell the operator that an entry the interface announced as saved was
 /// not: the page shows its success toast when the command leaves, before
 /// anything is written.
-fn report_not_saved(
+pub(super) fn report_not_saved(
     events: &std::sync::mpsc::Sender<AgentEvent>,
     what: &str,
     stage: &str,
@@ -109,6 +142,7 @@ async fn save_risk(ctx: &mut CommandContext, risk: Box<agent_gui::dto::RiskEntry
                 if let Err(e) = repo.upsert(&stored).await {
                     warn!("Failed to persist risk to SQLite: {}", e);
                     report_not_saved(&tx, "Le risque", NOT_STORED, &e);
+                    resend_risks(&db_clone, &tx).await;
                 }
                 // Also queue for remote sync
                 queue_for_sync(
@@ -130,6 +164,7 @@ async fn delete_risk(ctx: &mut CommandContext, risk_id: String) {
     if let Some(ref db_arc) = ctx.db {
         let db_clone = std::sync::Arc::clone(db_arc);
         let rid = risk_id.clone();
+        let tx = ctx.events.clone();
         ctx.tasks
             .spawn_expected("delete risk", expected::SHORT, async move {
                 let repo = agent_storage::SyncQueueRepository::new(&db_clone);
@@ -138,6 +173,10 @@ async fn delete_risk(ctx: &mut CommandContext, risk_id: String) {
                     .await
                 {
                     warn!("Failed to durably delete risk: {}", e);
+                    // The page already removed it: say it is still there,
+                    // and show it again.
+                    report_not_saved(&tx, "La suppression du risque", NOT_STORED, &e);
+                    resend_risks(&db_clone, &tx).await;
                 }
             });
     }
@@ -261,6 +300,7 @@ async fn update_asset_lifecycle(
                     }
                     Err(e) => {
                         tracing::warn!("Failed to load assets for lifecycle update: {}", e);
+                        report_not_saved(&tx, "L'actif", NOT_STORED, &e);
                     }
                 }
             });
@@ -327,6 +367,12 @@ async fn delete_alert_rule(ctx: &mut CommandContext, rule_id: String) {
                     .await
                 {
                     warn!("Failed to durably delete alert rule: {}", e);
+                    report_not_saved(
+                        &tx,
+                        "La suppression de la r\u{00e8}gle d'alerte",
+                        NOT_STORED,
+                        &e,
+                    );
                 }
                 // Reload and emit AlertingLoaded
                 crate::emit_alerting_loaded_from_db(&db_clone, &tx).await;
@@ -407,6 +453,7 @@ async fn delete_webhook(ctx: &mut CommandContext, webhook_id: String) {
                     .await
                 {
                     warn!("Failed to durably delete webhook: {}", e);
+                    report_not_saved(&tx, "La suppression du webhook", NOT_STORED, &e);
                 }
                 // Reload and emit AlertingLoaded
                 crate::emit_alerting_loaded_from_db(&db_clone, &tx).await;
@@ -562,5 +609,88 @@ mod tests {
             }
             other => panic!("expected an error notification, got {other:?}"),
         }
+    }
+
+    /// Without a database the handlers returned without a word, the page
+    /// having already announced the save.
+    #[tokio::test]
+    async fn without_a_database_the_operator_is_told_nothing_was_saved() {
+        let (mut ctx, events) = crate::gui_commands::testing::context();
+
+        handle(
+            &mut ctx,
+            GuiCommand::DeleteRisk {
+                risk_id: "r-1".to_string(),
+            },
+        )
+        .await;
+
+        match events.try_recv() {
+            Ok(AgentEvent::Notification { notification }) => {
+                assert_eq!(notification.severity, "error");
+                assert_eq!(notification.title, "Base locale indisponible");
+            }
+            other => panic!("expected an error notification, got {other:?}"),
+        }
+    }
+
+    #[tokio::test]
+    async fn a_risk_deletion_that_fails_is_reported_and_the_risk_is_shown_again() {
+        let dir = tempfile::tempdir().unwrap();
+        let db = std::sync::Arc::new(open_db(&dir));
+        let now = chrono::Utc::now().to_rfc3339();
+        agent_storage::repositories::grc::RiskRepository::new(&db)
+            .upsert(&agent_storage::repositories::grc::StoredRisk {
+                id: "r-1".to_string(),
+                title: "Rançongiciel".to_string(),
+                description: String::new(),
+                probability: 3,
+                impact: 4,
+                owner: String::new(),
+                status: "open".to_string(),
+                mitigation: String::new(),
+                source: "manual".to_string(),
+                created_at: now.clone(),
+                updated_at: now,
+                sla_target_days: None,
+                synced: false,
+            })
+            .await
+            .unwrap();
+        // Make the deletion impossible.
+        db.with_connection(|conn| {
+            conn.execute_batch("DROP TABLE sync_queue;")
+                .map_err(|e| agent_storage::StorageError::Query(e.to_string()))
+        })
+        .await
+        .unwrap();
+        let (mut ctx, events) = crate::gui_commands::testing::context();
+        ctx.db = Some(std::sync::Arc::clone(&db));
+
+        handle(
+            &mut ctx,
+            GuiCommand::DeleteRisk {
+                risk_id: "r-1".to_string(),
+            },
+        )
+        .await;
+
+        let mut received = Vec::new();
+        for _ in 0..500 {
+            received.extend(events.try_iter());
+            if received.len() >= 2 {
+                break;
+            }
+            tokio::time::sleep(std::time::Duration::from_millis(10)).await;
+        }
+        assert!(received.iter().any(|event| matches!(
+            event,
+            AgentEvent::Notification { notification }
+                if notification.title == "La suppression du risque : enregistrement incomplet"
+        )));
+        assert!(received.iter().any(|event| matches!(
+            event,
+            AgentEvent::RisksSnapshot { risks } if risks.iter().any(|risk| risk.id == "r-1")
+        )));
     }
 }

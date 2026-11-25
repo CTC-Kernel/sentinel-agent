@@ -687,6 +687,200 @@ pub fn audit_details(action: &str, payload: &Value, result: &MdmCommandResult) -
     .to_string()
 }
 
+/// Why this machine refuses a deployment command before running anything.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Refusal {
+    /// What refused, as the history shows it to the operator.
+    pub by: &'static str,
+    /// The reason, as reported to the platform.
+    pub reason: String,
+}
+
+/// The local switch `mdm_enabled = false`.
+pub const REFUSED_BY_SWITCH: &str = "Configuration de l'agent (mdm_enabled = false)";
+/// A package host that is neither the platform's nor in `mdm_allowed_hosts`.
+pub const REFUSED_BY_SOURCE: &str = "Sources autorisées de l'agent (mdm_allowed_hosts)";
+/// A command the agent's own checks reject: format, checksum, arguments.
+pub const REFUSED_BY_VALIDATION: &str = "Contrôle de la commande par l'agent";
+/// An agent that does not run as administrator.
+pub const REFUSED_BY_PRIVILEGES: &str = "Privilèges de l'agent (administrateur requis)";
+
+/// Whether this machine refuses `action` before anything runs, and what
+/// refuses it. The checks are the ones the executors make first, in the
+/// same order: a command refused here is refused there with the same
+/// reason, and nothing is downloaded or launched.
+pub fn refusal(policy: &MdmPolicy, action: &str, payload: &Value) -> Option<Refusal> {
+    let refused = |by: &'static str, reason: String| Some(Refusal { by, reason });
+    if let Err(e) = policy.check_enabled() {
+        return refused(REFUSED_BY_SWITCH, e.to_string());
+    }
+    match action {
+        "install" | "update" => {
+            if action == "update" && payload.get("deploymentConfig").is_none() {
+                return refused(
+                    REFUSED_BY_VALIDATION,
+                    "update requires a deploymentConfig with a package source".to_string(),
+                );
+            }
+            let request = match parse_install_request(payload) {
+                Ok(request) => request,
+                Err(e) => return refused(REFUSED_BY_VALIDATION, e.to_string()),
+            };
+            if let Err(e) = policy.check_source(&request.url) {
+                return refused(REFUSED_BY_SOURCE, e.to_string());
+            }
+        }
+        "uninstall" => {
+            let Some(name) = payload.get("softwareName").and_then(|v| v.as_str()) else {
+                return refused(
+                    REFUSED_BY_VALIDATION,
+                    "uninstall requires a softwareName".to_string(),
+                );
+            };
+            if let Err(e) = validate_arg("softwareName", name) {
+                return refused(REFUSED_BY_VALIDATION, e.to_string());
+            }
+        }
+        other => {
+            return refused(
+                REFUSED_BY_VALIDATION,
+                format!("unsupported MDM action: {other}"),
+            );
+        }
+    }
+    if !crate::service::is_admin() {
+        return refused(
+            REFUSED_BY_PRIVILEGES,
+            "administrator/root privileges are required".to_string(),
+        );
+    }
+    None
+}
+
+/// The history row of a command that was just received: what was asked and
+/// from where. Never the install arguments, which may carry a licence key.
+pub fn received_deployment(
+    command_id: &str,
+    action: &str,
+    payload: &Value,
+    now: chrono::DateTime<chrono::Utc>,
+) -> agent_storage::repositories::StoredMdmDeployment {
+    let text = |pointer: &str| {
+        payload
+            .pointer(pointer)
+            .and_then(|v| v.as_str())
+            .filter(|v| !v.is_empty())
+            .map(str::to_string)
+    };
+    agent_storage::repositories::StoredMdmDeployment {
+        id: command_id.to_string(),
+        deployment_id: text("/deploymentId"),
+        software_id: text("/softwareId"),
+        package_name: text("/softwareName").or_else(|| text("/name")),
+        version: text("/targetVersion").or_else(|| text("/version")),
+        action: action.to_string(),
+        method: text("/deploymentConfig/deploymentMethod"),
+        source: text("/deploymentConfig/source/location"),
+        status: agent_storage::repositories::MdmDeploymentStatus::Received,
+        requested_at: now,
+        finished_at: None,
+        message: None,
+        refused_by: None,
+    }
+}
+
+/// `received` once the command is over: succeeded, refused by this machine
+/// (`refusal`), or failed.
+pub fn finished_deployment(
+    received: &agent_storage::repositories::StoredMdmDeployment,
+    result: &MdmCommandResult,
+    refusal: Option<&Refusal>,
+    now: chrono::DateTime<chrono::Utc>,
+) -> agent_storage::repositories::StoredMdmDeployment {
+    use agent_storage::repositories::MdmDeploymentStatus;
+    let status = match (result.success, refusal) {
+        (true, _) => MdmDeploymentStatus::Succeeded,
+        (false, Some(_)) => MdmDeploymentStatus::Refused,
+        (false, None) => MdmDeploymentStatus::Failed,
+    };
+    agent_storage::repositories::StoredMdmDeployment {
+        status,
+        finished_at: Some(now),
+        // The version the installer resolved, when it says one.
+        version: result
+            .new_version
+            .clone()
+            .or_else(|| result.version.clone())
+            .or_else(|| received.version.clone()),
+        message: Some(result.message.clone()).filter(|m| !m.is_empty()),
+        refused_by: if result.success {
+            None
+        } else {
+            refusal.map(|r| r.by.to_string())
+        },
+        ..received.clone()
+    }
+}
+
+/// The deployment history and the local policy, as the interface shows
+/// them. Read from the database, so it is the same whichever process ran
+/// the deployments.
+#[cfg(feature = "gui")]
+pub async fn gui_history(
+    db: &agent_storage::Database,
+    config: Option<&agent_common::config::AgentConfig>,
+) -> agent_gui::events::AgentEvent {
+    use agent_gui::dto::{GuiMdmDeployment, GuiMdmPolicy, MdmStatus};
+    use agent_storage::repositories::{
+        MAX_DEPLOYMENTS, MdmDeploymentStatus, MdmDeploymentsRepository,
+    };
+    let stored = match MdmDeploymentsRepository::new(db)
+        .recent(MAX_DEPLOYMENTS)
+        .await
+    {
+        Ok(stored) => stored,
+        Err(e) => {
+            warn!("Failed to read the MDM deployment history: {}", e);
+            Vec::new()
+        }
+    };
+    let deployments = stored
+        .into_iter()
+        .map(|d| GuiMdmDeployment {
+            id: d.id,
+            deployment_id: d.deployment_id,
+            software_id: d.software_id,
+            package_name: d.package_name,
+            version: d.version,
+            action: d.action,
+            method: d.method,
+            source: d.source,
+            status: match d.status {
+                MdmDeploymentStatus::Received => MdmStatus::Received,
+                MdmDeploymentStatus::Started => MdmStatus::Started,
+                MdmDeploymentStatus::Succeeded => MdmStatus::Succeeded,
+                MdmDeploymentStatus::Failed => MdmStatus::Failed,
+                MdmDeploymentStatus::Refused => MdmStatus::Refused,
+            },
+            requested_at: d.requested_at,
+            finished_at: d.finished_at,
+            message: d.message,
+            refused_by: d.refused_by,
+        })
+        .collect();
+    let policy = config.map(|config| {
+        let policy = MdmPolicy::from_config(config);
+        GuiMdmPolicy {
+            enabled: policy.enabled,
+            allowed_hosts: policy.allowed_hosts,
+        }
+    });
+    agent_gui::events::AgentEvent::MdmDeployments {
+        deployments,
+        policy,
+    }
+}
+
 fn software_id_of(payload: &Value) -> Option<String> {
     payload
         .get("softwareId")
@@ -915,5 +1109,111 @@ mod tests {
         // parse should reject an update payload lacking deploymentConfig
         let p = json!({ "softwareId": "sw-1", "targetVersion": "3.0" });
         assert!(parse_install_request(&p).is_err());
+    }
+
+    fn local_policy(enabled: bool) -> MdmPolicy {
+        MdmPolicy {
+            enabled,
+            allowed_hosts: vec!["cdn.example.com".to_string()],
+        }
+    }
+
+    #[test]
+    fn the_local_switch_refuses_before_anything_else() {
+        let refused = refusal(&local_policy(false), "install", &valid_install_payload()).unwrap();
+        assert_eq!(refused.by, REFUSED_BY_SWITCH);
+        assert!(refused.reason.contains("mdm_enabled"));
+    }
+
+    #[test]
+    fn an_unlisted_host_and_a_malformed_command_are_refusals() {
+        let mut elsewhere = valid_install_payload();
+        elsewhere["deploymentConfig"]["source"]["location"] =
+            json!("https://downloads.other.test/app.msi");
+        assert_eq!(
+            refusal(&local_policy(true), "install", &elsewhere)
+                .unwrap()
+                .by,
+            REFUSED_BY_SOURCE
+        );
+
+        let mut unsigned = valid_install_payload();
+        unsigned["deploymentConfig"]["source"]["checksum"] = json!("abc");
+        assert_eq!(
+            refusal(&local_policy(true), "install", &unsigned)
+                .unwrap()
+                .by,
+            REFUSED_BY_VALIDATION
+        );
+        assert_eq!(
+            refusal(
+                &local_policy(true),
+                "update",
+                &json!({ "softwareId": "sw-1" })
+            )
+            .unwrap()
+            .by,
+            REFUSED_BY_VALIDATION
+        );
+        assert_eq!(
+            refusal(&local_policy(true), "uninstall", &json!({}))
+                .unwrap()
+                .by,
+            REFUSED_BY_VALIDATION
+        );
+        assert_eq!(
+            refusal(&local_policy(true), "reboot", &json!({}))
+                .unwrap()
+                .by,
+            REFUSED_BY_VALIDATION
+        );
+        // An admitted command is only held back by the agent's privileges.
+        if let Some(refused) = refusal(&local_policy(true), "install", &valid_install_payload()) {
+            assert_eq!(refused.by, REFUSED_BY_PRIVILEGES);
+        }
+    }
+
+    #[test]
+    fn the_history_row_follows_the_command_to_its_outcome() {
+        use agent_storage::repositories::MdmDeploymentStatus;
+        let now = chrono::Utc::now();
+        let mut payload = valid_install_payload();
+        payload["softwareName"] = json!("7-Zip");
+        payload["deploymentConfig"]["parameters"]["installArgs"] = json!(["LICENCE=secret"]);
+        let received = received_deployment("cmd-1", "install", &payload, now);
+        assert_eq!(received.id, "cmd-1");
+        assert_eq!(received.status, MdmDeploymentStatus::Received);
+        assert_eq!(received.deployment_id.as_deref(), Some("dep-9"));
+        assert_eq!(received.package_name.as_deref(), Some("7-Zip"));
+        assert_eq!(received.version.as_deref(), Some("1.2.3"));
+        assert_eq!(received.method.as_deref(), Some("msi"));
+        assert_eq!(
+            received.source.as_deref(),
+            Some("https://cdn.example.com/app.msi")
+        );
+        // The install arguments never reach the history.
+        assert!(!format!("{received:?}").contains("secret"));
+
+        let failure = MdmCommandResult::failure("install", None, "checksum mismatch");
+        let failed = finished_deployment(&received, &failure, None, now);
+        assert_eq!(failed.status, MdmDeploymentStatus::Failed);
+        assert_eq!(failed.message.as_deref(), Some("checksum mismatch"));
+        assert_eq!(failed.refused_by, None);
+        assert_eq!(failed.finished_at, Some(now));
+
+        let refused = Refusal {
+            by: REFUSED_BY_SWITCH,
+            reason: "disabled".to_string(),
+        };
+        let refused = finished_deployment(&received, &failure, Some(&refused), now);
+        assert_eq!(refused.status, MdmDeploymentStatus::Refused);
+        assert_eq!(refused.refused_by.as_deref(), Some(REFUSED_BY_SWITCH));
+
+        let mut success = MdmCommandResult::failure("install", None, "installed");
+        success.success = true;
+        success.version = Some("1.2.4".to_string());
+        let succeeded = finished_deployment(&received, &success, None, now);
+        assert_eq!(succeeded.status, MdmDeploymentStatus::Succeeded);
+        assert_eq!(succeeded.version.as_deref(), Some("1.2.4"));
     }
 }

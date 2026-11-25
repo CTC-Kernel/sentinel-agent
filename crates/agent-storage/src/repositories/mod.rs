@@ -12,6 +12,7 @@ pub mod command_results;
 pub mod config;
 pub mod discovered_devices;
 pub mod grc;
+pub mod mdm_deployments;
 pub mod proofs;
 pub mod sync_queue;
 
@@ -25,6 +26,9 @@ pub use grc::{
     PlaybookRepository, RiskRepository, SoftwareInventoryRepository, StoredAlertRule,
     StoredDetectionRule, StoredKpiSnapshot, StoredManagedAsset, StoredPlaybook, StoredRisk,
     StoredSoftwareInventory, StoredWebhook, WebhookRepository,
+};
+pub use mdm_deployments::{
+    MAX_DEPLOYMENTS, MdmDeploymentStatus, MdmDeploymentsRepository, StoredMdmDeployment,
 };
 pub use proofs::ProofsRepository;
 pub use sync_queue::SyncQueueRepository;

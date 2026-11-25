@@ -45,6 +45,27 @@ async fn update_check_interval(ctx: &mut CommandContext, interval_secs: u64) {
         interval_secs
     );
     ctx.handle.set_check_interval(interval_secs);
+    // Kept in the configuration: the interface no longer sends its own
+    // copy at every start (it replaced what the configuration or the
+    // platform had set), so the choice has to survive a restart here.
+    if let Err(e) = AgentConfig::persist_value_to(
+        &AgentConfig::platform_config_path(),
+        "check_interval_secs",
+        serde_json::Value::from(interval_secs),
+    ) {
+        warn!(
+            "Check interval applied but not saved to the config file: {}",
+            e
+        );
+        let _ = ctx.events.send(AgentEvent::Notification {
+            notification: agent_gui::dto::GuiNotification::error(
+                "Intervalle de vérification",
+                format!(
+                    "Appliqué jusqu'au prochain démarrage de l'agent, mais non enregistré : {e}"
+                ),
+            ),
+        });
+    }
 }
 
 /// Replace the local triage authorizations applied by the agent core

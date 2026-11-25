@@ -22,6 +22,9 @@ enum VulnAction {
     Export,
 }
 
+/// Name the sort of the findings table is kept under.
+const FINDINGS_TABLE: &str = "vulnerability_findings";
+
 /// Confirmation dialog shown before running an AI-generated script.
 const AI_FIX_CONFIRM: &str = "vulnerability_ai_fix_confirm";
 
@@ -147,6 +150,14 @@ impl VulnerabilitiesPage {
                 lower
             });
 
+        let result_count = displayed_indices(
+            &state.vulnerability_findings,
+            &search_lower,
+            state.vulnerability.severity_filter,
+            state.vulnerability.pressing_only,
+        )
+        .len();
+        let search_before = state.vulnerability.search.clone();
         let (toggled, export_clicked) = widgets::SearchFilterBar::new(
             &mut state.vulnerability.search,
             "Rechercher une CVE, un logiciel ou une description…",
@@ -156,10 +167,14 @@ impl VulnerabilitiesPage {
         .chip("Moyenne", med_active, theme::SEVERITY_MEDIUM)
         .chip("Faible", low_active, theme::INFO)
         .chip("À corriger d'abord", pressing_active, theme::ERROR)
+        .result_count(result_count)
         .action(format!("{}  CSV", icons::DOWNLOAD))
         .show_with_action(ui);
         if export_clicked {
             Self::export_filtered(ui, state);
+        }
+        if toggled.is_some() || state.vulnerability.search != search_before {
+            state.vulnerability.page = 0;
         }
 
         if toggled == Some(4) {
@@ -457,20 +472,7 @@ impl VulnerabilitiesPage {
                             .with_time(time),
                     );
                 }
-                Some(VulnAction::Export) => {
-                    let success = Self::export_csv(state, &[sel_idx]);
-                    let time = ui.input(|i| i.time);
-                    state.toasts.push(
-                        if success {
-                            crate::widgets::toast::Toast::success("Export CSV r\u{00e9}ussi")
-                        } else {
-                            crate::widgets::toast::Toast::error(
-                                "Export CSV impossible : v\u{00e9}rifiez les droits d'\u{00e9}criture",
-                            )
-                        }
-                        .with_time(time),
-                    );
-                }
+                Some(VulnAction::Export) => Self::export_with_toast(ui, state, &[sel_idx]),
                 None => {}
             }
         }
@@ -537,22 +539,38 @@ impl VulnerabilitiesPage {
     /// Export what the search and severity chip currently show.
     fn export_filtered(ui: &Ui, state: &mut AppState) {
         let search_lower = state.vulnerability.search.to_lowercase();
-        let filtered_indices = displayed_indices(
+        let mut filtered_indices = displayed_indices(
             &state.vulnerability_findings,
             &search_lower,
             state.vulnerability.severity_filter,
             state.vulnerability.pressing_only,
         );
-        let success = Self::export_csv(state, &filtered_indices);
-        let time = ui.input(|i| i.time);
-        state.toasts.push(
-            if success {
-                crate::widgets::toast::Toast::success("Export CSV réussi")
-            } else {
-                crate::widgets::toast::Toast::error("Échec de l'export CSV")
-            }
-            .with_time(time),
+        // The export follows the order on screen.
+        sort_displayed(
+            &mut filtered_indices,
+            &state.vulnerability_findings,
+            &widgets::table::sort_of(ui.ctx(), FINDINGS_TABLE),
         );
+        Self::export_with_toast(ui, state, &filtered_indices);
+    }
+
+    /// Export the findings at `indices` and say where the file is.
+    fn export_with_toast(ui: &Ui, state: &mut AppState, indices: &[usize]) {
+        let toast = match Self::export_csv(state, indices) {
+            Ok(path) => crate::widgets::toast::Toast::success(format!(
+                "{} export\u{00e9}e{} : {}",
+                crate::format::count(indices.len(), "vuln\u{00e9}rabilit\u{00e9}"),
+                crate::format::plural_suffix(indices.len()),
+                path.display()
+            )),
+            Err(e) => {
+                tracing::warn!("Export CSV failed: {}", e);
+                crate::widgets::toast::Toast::error(format!(
+                    "\u{00c9}chec de l\u{2019}export : {e}"
+                ))
+            }
+        };
+        state.push_toast(toast, ui.ctx());
     }
 
     /// Remediation progress beside the CVSS distribution.
@@ -616,11 +634,16 @@ impl VulnerabilitiesPage {
         search_lower: &str,
         _command: &mut Option<GuiCommand>,
     ) {
-        let filtered = displayed_indices(
+        let mut filtered = displayed_indices(
             &state.vulnerability_findings,
             search_lower,
             state.vulnerability.severity_filter,
             state.vulnerability.pressing_only,
+        );
+        sort_displayed(
+            &mut filtered,
+            &state.vulnerability_findings,
+            &widgets::table::sort_of(ui.ctx(), FINDINGS_TABLE),
         );
 
         // Pagination window over the filtered results.
@@ -675,6 +698,7 @@ impl VulnerabilitiesPage {
             use widgets::table;
 
             let mut clicked_idx: Option<usize> = None;
+            let mut sort_changed = false;
             let selected = state.vulnerability.selected_vuln;
 
             table::fluid_clickable(
@@ -692,30 +716,20 @@ impl VulnerabilitiesPage {
                 ],
             )
             .header(theme::TABLE_HEADER_HEIGHT, |mut header| {
-                header.col(|ui| {
-                    table::header_cell(ui, "IDENTIFIANT");
-                });
-                header.col(|ui| {
-                    table::header_cell(ui, "LOGICIEL");
-                });
-                header.col(|ui| {
-                    table::header_cell(ui, "PRIORIT\u{00c9}");
-                });
-                header.col(|ui| {
-                    table::header_cell(ui, "S\u{00c9}V\u{00c9}RIT\u{00c9}");
-                });
-                header.col(|ui| {
-                    table::header_cell_right(ui, "CVSS");
-                });
-                header.col(|ui| {
-                    table::header_cell(ui, "SOURCE");
-                });
-                header.col(|ui| {
-                    table::header_cell(ui, "CORRECTIF");
-                });
-                header.col(|ui| {
-                    table::header_cell(ui, "DESCRIPTION");
-                });
+                for (label, key) in [
+                    ("IDENTIFIANT", "cve"),
+                    ("LOGICIEL", "software"),
+                    ("PRIORIT\u{00c9}", "priority"),
+                    ("S\u{00c9}V\u{00c9}RIT\u{00c9}", "severity"),
+                    ("CVSS", "cvss"),
+                    ("SOURCE", "source"),
+                    ("CORRECTIF", "fix"),
+                    ("DESCRIPTION", "description"),
+                ] {
+                    header.col(|ui| {
+                        sort_changed |= table::header_cell_sortable(ui, label, FINDINGS_TABLE, key);
+                    });
+                }
                 header.col(|_| {});
             })
             .body(|body| {
@@ -819,6 +833,9 @@ impl VulnerabilitiesPage {
                 });
             });
 
+            if sort_changed {
+                state.vulnerability.page = 0;
+            }
             if let Some(idx) = clicked_idx {
                 state.vulnerability.selected_vuln = Some(idx);
                 state.vulnerability.detail_open = true;
@@ -872,9 +889,9 @@ impl VulnerabilitiesPage {
         }
     }
 
-    fn export_csv(state: &AppState, indices: &[usize]) -> bool {
+    fn export_csv(state: &AppState, indices: &[usize]) -> Result<std::path::PathBuf, String> {
         let headers = &[
-            "cve_id",
+            "cve",
             "logiciel",
             "version",
             "priorite",
@@ -885,45 +902,44 @@ impl VulnerabilitiesPage {
             "cvss",
             "source",
             "description",
-            "fix_disponible",
+            "correctif_disponible",
             "version_corrigee",
             "faux_positif",
             "confiance_ia",
         ];
         let rows: Vec<Vec<String>> = indices
             .iter()
-            .filter_map(|&i| {
-                let f = state.vulnerability_findings.get(i)?;
-                Some(vec![
-                    f.cve_id.clone(),
-                    f.affected_software.clone(),
-                    f.affected_version.clone(),
-                    priority_display(f.priority).0.to_lowercase(),
-                    if f.known_exploited { "Oui" } else { "Non" }.to_string(),
-                    if f.ransomware_use { "Oui" } else { "Non" }.to_string(),
-                    f.epss_probability
-                        .map_or("--".into(), |p| format!("{:.4}", p)),
-                    f.severity.to_string(),
-                    f.cvss_score.map_or("--".into(), |s| format!("{:.1}", s)),
-                    f.source.clone(),
-                    f.description.clone(),
-                    if f.fix_available { "Oui" } else { "Non" }.to_string(),
-                    f.fixed_version.clone().unwrap_or_default(),
-                    f.is_false_positive
-                        .map_or("--".into(), |fp| if fp { "Oui" } else { "Non" }.to_string()),
-                    f.ai_confidence.map_or("--".into(), |c| format!("{}", c)),
-                ])
-            })
+            .filter_map(|&i| state.vulnerability_findings.get(i))
+            .map(csv_row)
             .collect();
-        let path = crate::export::default_export_path("vulnerabilites.csv");
-        match crate::export::export_csv(headers, &rows, &path) {
-            Ok(_) => true,
-            Err(e) => {
-                tracing::warn!("Export CSV failed: {}", e);
-                false
-            }
-        }
+        crate::export::export_csv_timestamped("vulnerabilites", headers, &rows)
     }
+}
+
+/// One finding as a CSV row. A value the sources did not give is left empty.
+fn csv_row(f: &GuiVulnerabilityFinding) -> Vec<String> {
+    let yes_no = |value: bool| if value { "Oui" } else { "Non" }.to_string();
+    vec![
+        f.cve_id.clone(),
+        f.affected_software.clone(),
+        f.affected_version.clone(),
+        priority_display(f.priority).0.to_lowercase(),
+        yes_no(f.known_exploited),
+        yes_no(f.ransomware_use),
+        f.epss_probability
+            .map(|p| format!("{p:.4}"))
+            .unwrap_or_default(),
+        VulnerabilitiesPage::severity_display(&f.severity)
+            .0
+            .to_lowercase(),
+        f.cvss_score.map(|s| format!("{s:.1}")).unwrap_or_default(),
+        f.source.clone(),
+        f.description.clone(),
+        yes_no(f.fix_available),
+        f.fixed_version.clone().unwrap_or_default(),
+        f.is_false_positive.map(yes_no).unwrap_or_default(),
+        f.ai_confidence.map(|c| c.to_string()).unwrap_or_default(),
+    ]
 }
 
 /// Findings shown by the table and the export: those matching the search,
@@ -955,6 +971,55 @@ fn displayed_indices(
         .collect();
     indices.sort_by_key(|&i| findings[i].priority);
     indices
+}
+
+/// Reorder the displayed findings on the sorted column. Without a sort the
+/// list keeps its own order, most pressing first. Stable.
+fn sort_displayed(
+    indices: &mut [usize],
+    findings: &[GuiVulnerabilityFinding],
+    sort: &widgets::data_table::TableSort,
+) {
+    if let Some(key) = widgets::table::sort_key(sort) {
+        indices.sort_by(|&a, &b| match (findings.get(a), findings.get(b)) {
+            (Some(a), Some(b)) => widgets::table::directed(sort, compare_findings(key, a, b)),
+            _ => std::cmp::Ordering::Equal,
+        });
+    }
+}
+
+/// Natural (ascending) order of two findings on the column `key`: text
+/// without case, CVSS as a number, severity and priority from the least to
+/// the most pressing.
+fn compare_findings(
+    key: &str,
+    a: &GuiVulnerabilityFinding,
+    b: &GuiVulnerabilityFinding,
+) -> std::cmp::Ordering {
+    let text = |a: &str, b: &str| a.to_lowercase().cmp(&b.to_lowercase());
+    // A finding without score or fix sorts before those that have one.
+    let cvss = |f: &GuiVulnerabilityFinding| f.cvss_score.filter(|s| s.is_finite());
+    match key {
+        "cve" => text(&a.cve_id, &b.cve_id),
+        "software" => text(&a.affected_software, &b.affected_software)
+            .then_with(|| text(&a.affected_version, &b.affected_version)),
+        // `PatchPriority` is declared most pressing first.
+        "priority" => b.priority.cmp(&a.priority),
+        "severity" => severity_rank(&a.severity).cmp(&severity_rank(&b.severity)),
+        "cvss" => match (cvss(a), cvss(b)) {
+            (Some(a), Some(b)) => a.total_cmp(&b),
+            (a, b) => a.is_some().cmp(&b.is_some()),
+        },
+        "source" => text(&a.source, &b.source),
+        "fix" => a.fix_available.cmp(&b.fix_available).then_with(|| {
+            text(
+                a.fixed_version.as_deref().unwrap_or(""),
+                b.fixed_version.as_deref().unwrap_or(""),
+            )
+        }),
+        "description" => text(&a.description, &b.description),
+        _ => std::cmp::Ordering::Equal,
+    }
 }
 
 /// One sentence naming what to fix before anything else, or `None` when no
@@ -1381,7 +1446,7 @@ fn platform_upgrade_command(safe_name: &str) -> String {
     } else if cfg!(target_os = "windows") {
         format!("# Vérifier l'ID Winget :\nwinget upgrade '{}'", safe_name)
     } else {
-        format!("# Mettez a jour '{}' manuellement", safe_name)
+        format!("# Mettez à jour '{}' manuellement", safe_name)
     }
 }
 
@@ -1455,6 +1520,46 @@ mod tests {
                  1 faille dont l'exploitation est probable (EPSS)."
             )
         );
+    }
+
+    #[test]
+    fn findings_sort_on_what_the_column_means() {
+        use widgets::data_table::{SortDirection, TableSort};
+        let mut a = finding("CVE-2024-10", "low", PatchPriority::Immediate);
+        a.cvss_score = Some(9.8);
+        let mut b = finding("cve-2024-9", "critical", PatchPriority::Routine);
+        b.cvss_score = Some(10.0);
+        let c = finding("CVE-2023-1", "medium", PatchPriority::Urgent);
+        let findings = vec![a, b, c];
+        let order = |key: &str, direction| {
+            let mut indices = vec![0, 1, 2];
+            sort_displayed(&mut indices, &findings, &TableSort::by(key, direction));
+            indices
+        };
+        // Severity by rank: low, medium, critical.
+        assert_eq!(order("severity", SortDirection::Ascending), [0, 2, 1]);
+        // CVSS as a number (9.8 < 10.0), unscored first.
+        assert_eq!(order("cvss", SortDirection::Ascending), [2, 0, 1]);
+        assert_eq!(order("cvss", SortDirection::Descending), [1, 0, 2]);
+        // Priority from routine to immediate.
+        assert_eq!(order("priority", SortDirection::Ascending), [1, 2, 0]);
+        // Text without case.
+        assert_eq!(order("cve", SortDirection::Ascending), [2, 0, 1]);
+        // No sort: the order given.
+        assert_eq!(order("cve", SortDirection::None), [0, 1, 2]);
+    }
+
+    #[test]
+    fn csv_rows_leave_unknown_values_empty() {
+        let row = csv_row(&finding("CVE-1", "high", PatchPriority::Urgent));
+        assert_eq!(row.len(), 15);
+        assert_eq!(&row[..4], ["CVE-1", "pkg", "1", "urgente"]);
+        assert_eq!(row[7], "élevée");
+        // EPSS, CVSS, false positive and AI confidence are unknown here: an
+        // empty cell, not "--", which the formula guard turned into "'--".
+        for index in [6, 8, 13, 14] {
+            assert_eq!(row[index], "", "column {index}");
+        }
     }
 
     #[test]

@@ -126,7 +126,7 @@ impl AssistantAction {
             Self::DiscoverNetwork => "Lancer la découverte du réseau".to_string(),
             Self::ExportSbom => "Exporter le SBOM".to_string(),
             Self::IsolateHost => "Isoler le poste du réseau".to_string(),
-            Self::ReleaseHost => "Lever l'isolation".to_string(),
+            Self::ReleaseHost => "Lever l'isolement".to_string(),
             Self::Remediate { check_id } => {
                 let name = checks
                     .iter()

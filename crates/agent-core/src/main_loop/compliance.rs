@@ -12,6 +12,8 @@ use agent_scanner::{CheckExecutionResult, ComplianceScore};
 use std::future::Future;
 use std::sync::Arc;
 use std::sync::atomic::Ordering;
+#[cfg(feature = "gui")]
+use tracing::warn;
 use tracing::{error, info};
 
 use super::job::Job;
@@ -180,7 +182,12 @@ impl AgentRuntime {
                 }
 
                 #[cfg(feature = "gui")]
-                self.publish_compliance(st, pass, &check_results, &score, still_scanning);
+                {
+                    self.publish_compliance(st, &check_results, &score, still_scanning);
+                    let (incidents, open_vulns) = (pass.kpi_incident_count, st.gui.kpi_open_vulns);
+                    self.record_kpi_snapshot(st.compliance_score, incidents, open_vulns)
+                        .await;
+                }
             }
             // The panic itself is logged by the task set, under the task's
             // name.
@@ -205,14 +212,13 @@ impl AgentRuntime {
         st.last_compliance_check = std::time::Instant::now();
     }
 
-    /// Show the results of a compliance run: each check, the notification,
-    /// the status and the KPI snapshot. `still_scanning` keeps the agent
+    /// Show the results of a compliance run: each check, the notification
+    /// and the status. `still_scanning` keeps the agent
     /// shown as scanning when another scan is running.
     #[cfg(feature = "gui")]
     fn publish_compliance(
         &self,
         st: &mut LoopState,
-        pass: &LoopPass,
         check_results: &[CheckExecutionResult],
         score: &ComplianceScore,
         still_scanning: bool,
@@ -226,20 +232,241 @@ impl AgentRuntime {
         st.gui.last_check_at = Some(chrono::Utc::now());
         self.state.scanning.store(still_scanning, Ordering::Release);
         let (message, severity) = compliance_notification(score);
-        self.emit_notification("Compliance vérifiée", &message, severity);
+        self.emit_notification("Conformité vérifiée", &message, severity);
         self.emit_status_update(
             st.gui.last_check_at,
             st.compliance_score,
             st.gui.cached_pending_sync,
             st.gui.cached_policy_summary,
         );
-        self.emit_kpi_snapshot(
-            st.compliance_score,
-            pass.kpi_incident_count,
-            st.gui.kpi_open_vulns,
-            0,
-        );
     }
+
+    /// Take the KPI snapshot of a compliance run: shown on the dashboard and
+    /// stored, so the trends survive a restart.
+    #[cfg(feature = "gui")]
+    ///
+    /// Takes the figures by value: the loop state is not shared across an
+    /// await.
+    pub(crate) async fn record_kpi_snapshot(
+        &self,
+        compliance_score: Option<f64>,
+        incident_count: u32,
+        open_vulns: u32,
+    ) {
+        let sla = match self.db.as_ref() {
+            Some(db) => match agent_storage::repositories::grc::RiskRepository::new(db)
+                .get_all()
+                .await
+            {
+                Ok(risks) => remediation_sla_pct(&risks, chrono::Utc::now()),
+                Err(e) => {
+                    warn!("Risks not read for the remediation SLA: {}", e);
+                    None
+                }
+            },
+            None => None,
+        };
+        let snapshot = self.emit_kpi_snapshot(compliance_score, incident_count, open_vulns, 0, sla);
+        let Some(db) = self.db.as_ref() else {
+            return;
+        };
+        let stored = agent_storage::repositories::grc::StoredKpiSnapshot {
+            id: 0,
+            timestamp: snapshot.timestamp.to_rfc3339(),
+            compliance_score: f64::from(snapshot.compliance_score),
+            incident_count: i32::try_from(snapshot.incident_count).unwrap_or(i32::MAX),
+            open_vulns: i32::try_from(snapshot.open_vulns).unwrap_or(i32::MAX),
+            closed_vulns: i32::try_from(snapshot.closed_vulns).unwrap_or(i32::MAX),
+            remediation_sla_pct: f64::from(snapshot.remediation_sla_pct),
+            synced: false,
+        };
+        if let Err(e) = agent_storage::repositories::grc::KpiSnapshotRepository::new(db)
+            .insert(&stored)
+            .await
+        {
+            warn!("KPI snapshot not stored: {}", e);
+        }
+        self.prune_kpi_snapshots(db).await;
+    }
+
+    /// Keep the KPI table bounded: see [`kpi_rows_to_prune`].
+    #[cfg(feature = "gui")]
+    async fn prune_kpi_snapshots(&self, db: &agent_storage::Database) {
+        let repo = agent_storage::repositories::grc::KpiSnapshotRepository::new(db);
+        let stored = match repo.get_all().await {
+            Ok(stored) => stored,
+            Err(e) => {
+                warn!("KPI snapshots not read for pruning: {}", e);
+                return;
+            }
+        };
+        for id in kpi_rows_to_prune(&stored, chrono::Utc::now()) {
+            if let Err(e) = repo.delete(id).await {
+                warn!("KPI snapshot {} not pruned: {}", id, e);
+                return;
+            }
+        }
+    }
+
+    /// Show the KPI snapshots of the previous sessions: the last one of each
+    /// day over [`KPI_HISTORY_DAYS`], oldest first.
+    #[cfg(feature = "gui")]
+    pub(crate) async fn load_kpi_history(&self) {
+        let Some(db) = self.db.as_ref() else {
+            return;
+        };
+        let stored = match agent_storage::repositories::grc::KpiSnapshotRepository::new(db)
+            .get_all()
+            .await
+        {
+            Ok(stored) => stored,
+            Err(e) => {
+                warn!("KPI history not loaded: {}", e);
+                return;
+            }
+        };
+        let history = kpi_history(&stored, chrono::Utc::now());
+        info!("Loaded {} KPI snapshots from database", history.len());
+        for snapshot in history {
+            self.emit_gui_event(AgentEvent::KpiSnapshot {
+                snapshot: Box::new(snapshot),
+            });
+        }
+    }
+}
+
+/// Days of KPI history shown again at startup: the dashboard's longest period.
+#[cfg(feature = "gui")]
+const KPI_HISTORY_DAYS: i64 = 90;
+
+/// Days during which every KPI snapshot is kept; beyond, one per day.
+#[cfg(feature = "gui")]
+const KPI_FULL_DETAIL_DAYS: i64 = 7;
+
+/// Days after which a KPI snapshot is dropped.
+#[cfg(feature = "gui")]
+const KPI_RETENTION_DAYS: i64 = 400;
+
+/// Identifiers of the stored snapshots to delete so the table stays bounded:
+/// those older than [`KPI_RETENTION_DAYS`], those whose date cannot be read,
+/// and, beyond [`KPI_FULL_DETAIL_DAYS`], all but the last one of each day.
+#[cfg(feature = "gui")]
+fn kpi_rows_to_prune(
+    stored: &[agent_storage::repositories::grc::StoredKpiSnapshot],
+    now: chrono::DateTime<chrono::Utc>,
+) -> Vec<i64> {
+    let detail_cutoff = now - chrono::Duration::days(KPI_FULL_DETAIL_DAYS);
+    let retention_cutoff = now - chrono::Duration::days(KPI_RETENTION_DAYS);
+    let mut prune = Vec::new();
+    // Last snapshot of each day older than the detail window: (date, id).
+    let mut kept_per_day: std::collections::BTreeMap<
+        chrono::NaiveDate,
+        (chrono::DateTime<chrono::Utc>, i64),
+    > = std::collections::BTreeMap::new();
+    for row in stored {
+        let Ok(at) = chrono::DateTime::parse_from_rfc3339(&row.timestamp) else {
+            prune.push(row.id);
+            continue;
+        };
+        let at = at.with_timezone(&chrono::Utc);
+        if at < retention_cutoff {
+            prune.push(row.id);
+        } else if at < detail_cutoff {
+            match kept_per_day.get_mut(&at.date_naive()) {
+                // Later the same day (or the same instant, stored later):
+                // this row replaces the one kept so far.
+                Some(kept) if (at, row.id) >= *kept => {
+                    prune.push(kept.1);
+                    *kept = (at, row.id);
+                }
+                Some(_) => prune.push(row.id),
+                None => {
+                    kept_per_day.insert(at.date_naive(), (at, row.id));
+                }
+            }
+        }
+    }
+    prune.sort_unstable();
+    prune
+}
+
+/// The stored snapshots to show at startup: the last one of each day over
+/// the last [`KPI_HISTORY_DAYS`], oldest first. A row whose date cannot be
+/// read is left out.
+#[cfg(feature = "gui")]
+fn kpi_history(
+    stored: &[agent_storage::repositories::grc::StoredKpiSnapshot],
+    now: chrono::DateTime<chrono::Utc>,
+) -> Vec<agent_gui::dto::KpiSnapshot> {
+    let cutoff = now - chrono::Duration::days(KPI_HISTORY_DAYS);
+    let mut by_day = std::collections::BTreeMap::new();
+    for row in stored {
+        let Ok(at) = chrono::DateTime::parse_from_rfc3339(&row.timestamp) else {
+            continue;
+        };
+        let at = at.with_timezone(&chrono::Utc);
+        if at < cutoff || at > now {
+            continue;
+        }
+        let snapshot = agent_gui::dto::KpiSnapshot {
+            timestamp: at,
+            compliance_score: row.compliance_score as f32,
+            incident_count: u32::try_from(row.incident_count).unwrap_or(0),
+            open_vulns: u32::try_from(row.open_vulns).unwrap_or(0),
+            closed_vulns: u32::try_from(row.closed_vulns).unwrap_or(0),
+            remediation_sla_pct: row.remediation_sla_pct as f32,
+        };
+        let latest = by_day
+            .entry(at.date_naive())
+            .or_insert_with(|| snapshot.clone());
+        if snapshot.timestamp >= latest.timestamp {
+            *latest = snapshot;
+        }
+    }
+    by_day.into_values().collect()
+}
+
+/// Share (0–100) of the risks carrying an SLA target that respect it, or
+/// `None` when no risk carries one.
+///
+/// A risk still open or being mitigated respects its target while it is
+/// younger than the target. A closed or accepted risk respects it when it
+/// was treated in time; its last update stands for the treatment date, the
+/// only one the register keeps.
+#[cfg(feature = "gui")]
+fn remediation_sla_pct(
+    risks: &[agent_storage::repositories::grc::StoredRisk],
+    now: chrono::DateTime<chrono::Utc>,
+) -> Option<f32> {
+    let parse = |value: &str| {
+        chrono::DateTime::parse_from_rfc3339(value)
+            .ok()
+            .map(|at| at.with_timezone(&chrono::Utc))
+    };
+    let mut measured = 0u32;
+    let mut within = 0u32;
+    for risk in risks {
+        let Some(target) = risk.sla_target_days.filter(|days| *days > 0) else {
+            continue;
+        };
+        let Some(created) = parse(&risk.created_at) else {
+            continue;
+        };
+        let treated = matches!(
+            risk.status.to_ascii_lowercase().as_str(),
+            "closed" | "accepted"
+        );
+        let until = if treated {
+            parse(&risk.updated_at).unwrap_or(now)
+        } else {
+            now
+        };
+        measured += 1;
+        if until - created <= chrono::Duration::days(i64::from(target)) {
+            within += 1;
+        }
+    }
+    (measured > 0).then(|| within as f32 * 100.0 / measured as f32)
 }
 
 #[cfg(test)]
@@ -313,14 +540,17 @@ mod tests {
         pass.kpi_incident_count = 2;
 
         test.runtime
-            .publish_compliance(&mut st, &pass, &[], &score(91.25, 31, 3, 0, 34), false);
+            .publish_compliance(&mut st, &[], &score(91.25, 31, 3, 0, 34), false);
+        test.runtime
+            .record_kpi_snapshot(st.compliance_score, pass.kpi_incident_count, 4)
+            .await;
 
         assert_eq!(st.gui.cached_policy_summary.map(|s| s.passing), Some(31));
         assert!(st.gui.last_check_at.is_some());
         assert!(!test.runtime.state.scanning.load(Ordering::Acquire));
         match test.events.try_recv() {
             Ok(AgentEvent::Notification { notification }) => {
-                assert_eq!(notification.title, "Compliance vérifiée");
+                assert_eq!(notification.title, "Conformité vérifiée");
             }
             other => panic!("expected a notification, got {:?}", other.map(|_| ())),
         }
@@ -332,9 +562,165 @@ mod tests {
             Ok(AgentEvent::KpiSnapshot { snapshot }) => {
                 assert_eq!(snapshot.incident_count, 2);
                 assert_eq!(snapshot.open_vulns, 4);
+                // No risk carries an SLA target: nothing to measure.
+                assert!(snapshot.remediation_sla_pct < 0.0);
             }
             other => panic!("expected the KPI snapshot, got {:?}", other.map(|_| ())),
         }
+
+        // The snapshot was stored: the next start shows it again.
+        test.runtime.load_kpi_history().await;
+        match test.events.try_recv() {
+            Ok(AgentEvent::KpiSnapshot { snapshot }) => {
+                assert_eq!(snapshot.incident_count, 2);
+                assert!((snapshot.compliance_score - 91.25).abs() < 0.01);
+            }
+            other => panic!("expected the stored snapshot, got {:?}", other.map(|_| ())),
+        }
+    }
+
+    #[cfg(feature = "gui")]
+    fn stored_snapshot(
+        timestamp: &str,
+        incidents: i32,
+    ) -> agent_storage::repositories::grc::StoredKpiSnapshot {
+        agent_storage::repositories::grc::StoredKpiSnapshot {
+            id: 0,
+            timestamp: timestamp.to_string(),
+            compliance_score: 80.0,
+            incident_count: incidents,
+            open_vulns: 0,
+            closed_vulns: 0,
+            remediation_sla_pct: -1.0,
+            synced: false,
+        }
+    }
+
+    #[cfg(feature = "gui")]
+    #[test]
+    fn kpi_history_keeps_the_last_snapshot_of_each_recent_day() {
+        let now = chrono::DateTime::parse_from_rfc3339("2026-06-30T12:00:00Z")
+            .unwrap()
+            .with_timezone(&chrono::Utc);
+        let history = kpi_history(
+            &[
+                stored_snapshot("2026-06-29T18:00:00+00:00", 2),
+                stored_snapshot("2026-06-29T06:00:00+00:00", 1),
+                stored_snapshot("2026-06-30T08:00:00+00:00", 3),
+                // Older than the longest period, unreadable, in the future.
+                stored_snapshot("2026-01-01T00:00:00+00:00", 9),
+                stored_snapshot("hier", 9),
+                stored_snapshot("2026-07-02T00:00:00+00:00", 9),
+            ],
+            now,
+        );
+        let incidents: Vec<u32> = history.iter().map(|s| s.incident_count).collect();
+        assert_eq!(incidents, [2, 3]);
+    }
+
+    #[cfg(feature = "gui")]
+    #[test]
+    fn old_kpi_snapshots_are_thinned_to_one_a_day_then_dropped() {
+        let now = chrono::DateTime::parse_from_rfc3339("2026-06-30T12:00:00Z")
+            .unwrap()
+            .with_timezone(&chrono::Utc);
+        let row = |id: i64, timestamp: &str| {
+            let mut row = stored_snapshot(timestamp, 0);
+            row.id = id;
+            row
+        };
+        let stored = [
+            // Within the last days: all kept.
+            row(1, "2026-06-30T06:00:00+00:00"),
+            row(2, "2026-06-30T08:00:00+00:00"),
+            row(3, "2026-06-25T01:00:00+00:00"),
+            row(4, "2026-06-25T02:00:00+00:00"),
+            // Older: only the last of each day stays (7 and 8).
+            row(5, "2026-05-10T01:00:00+00:00"),
+            row(6, "2026-05-10T09:00:00+00:00"),
+            row(7, "2026-05-10T23:00:00+00:00"),
+            row(8, "2026-05-11T04:00:00+00:00"),
+            // Past the retention, and unreadable.
+            row(9, "2025-01-01T00:00:00+00:00"),
+            row(10, "hier"),
+        ];
+        assert_eq!(kpi_rows_to_prune(&stored, now), [5, 6, 9, 10]);
+        // Nothing left to prune once it has been applied.
+        let kept: Vec<_> = stored
+            .iter()
+            .filter(|row| ![5, 6, 9, 10].contains(&row.id))
+            .cloned()
+            .collect();
+        assert!(kpi_rows_to_prune(&kept, now).is_empty());
+    }
+
+    #[cfg(feature = "gui")]
+    #[tokio::test]
+    async fn pruning_deletes_the_rows_from_the_database() {
+        let test = standalone_runtime();
+        let repo = agent_storage::repositories::grc::KpiSnapshotRepository::new(&test.db);
+        let old = chrono::Utc::now() - chrono::Duration::days(500);
+        repo.insert(&stored_snapshot(&old.to_rfc3339(), 1))
+            .await
+            .unwrap();
+        repo.insert(&stored_snapshot(&chrono::Utc::now().to_rfc3339(), 2))
+            .await
+            .unwrap();
+
+        test.runtime.prune_kpi_snapshots(&test.db).await;
+
+        let left = repo.get_all().await.unwrap();
+        assert_eq!(left.len(), 1);
+        assert_eq!(left[0].incident_count, 2);
+    }
+
+    #[cfg(feature = "gui")]
+    #[test]
+    fn the_remediation_sla_counts_the_risks_within_their_target() {
+        let now = chrono::DateTime::parse_from_rfc3339("2026-06-30T12:00:00Z")
+            .unwrap()
+            .with_timezone(&chrono::Utc);
+        let risk = |status: &str, created: &str, updated: &str, target: Option<i32>| {
+            agent_storage::repositories::grc::StoredRisk {
+                id: String::new(),
+                title: String::new(),
+                description: String::new(),
+                probability: 1,
+                impact: 1,
+                owner: String::new(),
+                status: status.to_string(),
+                mitigation: String::new(),
+                source: String::new(),
+                created_at: created.to_string(),
+                updated_at: updated.to_string(),
+                sla_target_days: target,
+                synced: false,
+            }
+        };
+        let (june_1, june_5, june_25) = (
+            "2026-06-01T00:00:00+00:00",
+            "2026-06-05T00:00:00+00:00",
+            "2026-06-25T00:00:00+00:00",
+        );
+        // Without any target, there is nothing to measure.
+        assert_eq!(
+            remediation_sla_pct(&[risk("open", june_1, june_1, None)], now),
+            None
+        );
+        let risks = [
+            // Open for 29 days against 7: late.
+            risk("open", june_1, june_1, Some(7)),
+            // Open for 5 days against 30: in time.
+            risk("Mitigating", june_25, june_25, Some(30)),
+            // Closed after 4 days against 7: in time.
+            risk("Closed", june_1, june_5, Some(7)),
+            // Accepted after 24 days against 7: late.
+            risk("accepted", june_1, june_25, Some(7)),
+            // No target, no readable date: not measured.
+            risk("open", june_1, june_1, None),
+            risk("open", "?", june_1, Some(7)),
+        ];
+        assert_eq!(remediation_sla_pct(&risks, now), Some(50.0));
     }
 
     /// Give `st` a compliance task that has already ended as `checks` does.

@@ -24,6 +24,288 @@ const WEBHOOK_FORMATS: [(&str, &str); 3] = [
     ("generic", "JSON générique"),
 ];
 
+/// Rule types the form offers. Escalation is left out: the agent keeps no
+/// acknowledgement state, so such a rule would never fire.
+const RULE_TYPES: [AlertRuleType; 2] =
+    [AlertRuleType::SeverityThreshold, AlertRuleType::TypeFilter];
+
+/// Severities of the threshold field, most severe first.
+const SEVERITIES: [Severity; 5] = [
+    Severity::Critical,
+    Severity::High,
+    Severity::Medium,
+    Severity::Low,
+    Severity::Info,
+];
+
+/// Incident types the agent raises, as it reports them, with their labels.
+const INCIDENT_TYPES: [(&str, &str); 10] = [
+    ("malware", "Logiciel malveillant"),
+    ("suspicious_process", "Processus suspect"),
+    ("unauthorized_change", "Modification non autorisée"),
+    ("data_exfiltration", "Exfiltration de données"),
+    ("crypto_miner", "Minage de cryptomonnaie"),
+    ("reverse_shell", "Shell inversé"),
+    ("credential_theft", "Vol d'identifiants"),
+    ("privilege_escalation", "Élévation de privilèges"),
+    ("firewall_disabled", "Pare-feu désactivé"),
+    ("antivirus_disabled", "Antivirus désactivé"),
+];
+
+/// Letters and digits of a type name, lower-cased: the comparison the agent
+/// makes, so `ReverseShell` and `reverse_shell` name the same type.
+fn incident_type_key(name: &str) -> String {
+    name.chars()
+        .filter(char::is_ascii_alphanumeric)
+        .map(|c| c.to_ascii_lowercase())
+        .collect()
+}
+
+/// The incident types of a rule, by their labels, for the list.
+fn incident_types_summary(types: &[String]) -> String {
+    types
+        .iter()
+        .map(|stored| {
+            INCIDENT_TYPES
+                .iter()
+                .find(|(key, _)| incident_type_key(key) == incident_type_key(stored))
+                .map_or(stored.as_str(), |(_, label)| *label)
+        })
+        .collect::<Vec<_>>()
+        .join(", ")
+}
+
+/// Names of the two tables, for their sort state.
+const RULES_TABLE: &str = "alert_rules";
+const WEBHOOKS_TABLE: &str = "alert_webhooks";
+
+/// Text order that ignores case.
+fn text_order(a: &str, b: &str) -> std::cmp::Ordering {
+    a.to_lowercase().cmp(&b.to_lowercase())
+}
+
+/// Rank of a threshold, least severe first; no threshold comes before all.
+fn threshold_rank(severity: Option<Severity>) -> u8 {
+    match severity {
+        None => 0,
+        Some(Severity::Info) => 1,
+        Some(Severity::Low) => 2,
+        Some(Severity::Medium) => 3,
+        Some(Severity::High) => 4,
+        Some(Severity::Critical) => 5,
+    }
+}
+
+/// Natural (ascending) order of two rules on a column of their table.
+fn compare_rules(a: &AlertRule, b: &AlertRule, key: &str) -> std::cmp::Ordering {
+    match key {
+        "name" => text_order(&a.name, &b.name),
+        "type" => text_order(a.rule_type.label_fr(), b.rule_type.label_fr()),
+        "threshold" => {
+            threshold_rank(a.severity_threshold).cmp(&threshold_rank(b.severity_threshold))
+        }
+        // "Tous" (no type listed) first, then by the labels shown.
+        "incidents" => text_order(
+            &incident_types_summary(&a.detection_types),
+            &incident_types_summary(&b.detection_types),
+        ),
+        "enabled" => a.enabled.cmp(&b.enabled),
+        _ => std::cmp::Ordering::Equal,
+    }
+}
+
+/// Natural (ascending) order of two webhooks on a column of their table.
+fn compare_webhooks(a: &WebhookConfig, b: &WebhookConfig, key: &str) -> std::cmp::Ordering {
+    match key {
+        "name" => text_order(&a.name, &b.name),
+        // As displayed: by host, never by the secret path.
+        "url" => text_order(&mask_webhook_url(&a.url), &mask_webhook_url(&b.url)),
+        "format" => text_order(
+            &webhook_format_label(&a.format),
+            &webhook_format_label(&b.format),
+        ),
+        // Chronological; a webhook never used comes first.
+        "last_sent" => a.last_sent.cmp(&b.last_sent),
+        "enabled" => a.enabled.cmp(&b.enabled),
+        _ => std::cmp::Ordering::Equal,
+    }
+}
+
+/// Indices of `items` in the order `sort` asks for (stable; the stored
+/// order when no column is sorted).
+fn sorted_indices<T>(
+    items: &[T],
+    sort: &widgets::TableSort,
+    compare: impl Fn(&T, &T, &str) -> std::cmp::Ordering,
+) -> Vec<usize> {
+    let mut order: Vec<usize> = (0..items.len()).collect();
+    if let Some(key) = widgets::table::sort_key(sort) {
+        order.sort_by(|&a, &b| widgets::table::directed(sort, compare(&items[a], &items[b], key)));
+    }
+    order
+}
+
+/// egui memory slots of the two forms.
+const RULE_DRAFT: &str = "alert_rule_draft";
+const WEBHOOK_DRAFT: &str = "webhook_draft";
+
+fn load_draft<T: Clone + Default + Send + Sync + 'static>(ctx: &egui::Context, slot: &str) -> T {
+    ctx.data(|d| d.get_temp(egui::Id::new(slot)))
+        .unwrap_or_default()
+}
+
+fn store_draft<T: Clone + Send + Sync + 'static>(ctx: &egui::Context, slot: &str, draft: T) {
+    ctx.data_mut(|d| d.insert_temp(egui::Id::new(slot), draft));
+}
+
+fn clear_draft<T: Clone + Send + Sync + 'static>(ctx: &egui::Context, slot: &str) {
+    ctx.data_mut(|d| d.remove::<T>(egui::Id::new(slot)));
+}
+
+/// What the alert rule form holds while it is open.
+#[derive(Debug, Clone, PartialEq)]
+struct RuleDraft {
+    /// Identifier and creation date of the rule being edited; `None` for a
+    /// new rule.
+    editing: Option<(String, chrono::DateTime<chrono::Utc>)>,
+    name: String,
+    /// Index into [`RULE_TYPES`].
+    type_idx: usize,
+    severity: Option<Severity>,
+    /// Incident types, as the agent reports them.
+    types: Vec<String>,
+    enabled: bool,
+}
+
+impl Default for RuleDraft {
+    fn default() -> Self {
+        Self {
+            editing: None,
+            name: String::new(),
+            type_idx: 0,
+            severity: Some(Severity::Critical),
+            types: Vec::new(),
+            enabled: true,
+        }
+    }
+}
+
+impl RuleDraft {
+    /// The form opened on an existing rule. An escalation rule, which the
+    /// form no longer offers, opens as a severity threshold.
+    fn of(rule: &AlertRule) -> Self {
+        Self {
+            editing: Some((rule.id.clone(), rule.created_at)),
+            name: rule.name.clone(),
+            type_idx: RULE_TYPES
+                .iter()
+                .position(|t| *t == rule.rule_type)
+                .unwrap_or(0),
+            severity: rule.severity_threshold,
+            // Stored names are brought back to the keys of the selector.
+            types: rule
+                .detection_types
+                .iter()
+                .map(|stored| {
+                    INCIDENT_TYPES
+                        .iter()
+                        .find(|(key, _)| incident_type_key(key) == incident_type_key(stored))
+                        .map_or_else(|| stored.clone(), |(key, _)| (*key).to_string())
+                })
+                .collect(),
+            enabled: rule.enabled,
+        }
+    }
+
+    /// The rule the form describes. A threshold rule lists no type and
+    /// always carries a severity.
+    fn to_rule(&self) -> AlertRule {
+        let rule_type = RULE_TYPES[self.type_idx.min(RULE_TYPES.len() - 1)];
+        let by_type = rule_type == AlertRuleType::TypeFilter;
+        let (id, created_at) = self
+            .editing
+            .clone()
+            .unwrap_or_else(|| (uuid::Uuid::new_v4().to_string(), chrono::Utc::now()));
+        AlertRule {
+            id,
+            name: self.name.trim().to_string(),
+            rule_type,
+            severity_threshold: if by_type {
+                self.severity
+            } else {
+                Some(self.severity.unwrap_or(Severity::Critical))
+            },
+            detection_types: if by_type {
+                self.types.clone()
+            } else {
+                Vec::new()
+            },
+            escalation_minutes: None,
+            enabled: self.enabled,
+            created_at,
+        }
+    }
+}
+
+/// What the webhook form holds while it is open.
+#[derive(Debug, Clone, PartialEq)]
+struct WebhookDraft {
+    /// Identifier of the webhook being edited; `None` for a new one.
+    editing: Option<String>,
+    name: String,
+    url: String,
+    /// Index into [`WEBHOOK_FORMATS`].
+    format_idx: usize,
+    enabled: bool,
+}
+
+impl Default for WebhookDraft {
+    fn default() -> Self {
+        Self {
+            editing: None,
+            name: String::new(),
+            url: String::new(),
+            format_idx: 0,
+            enabled: true,
+        }
+    }
+}
+
+impl WebhookDraft {
+    fn of(webhook: &WebhookConfig) -> Self {
+        Self {
+            editing: Some(webhook.id.clone()),
+            name: webhook.name.clone(),
+            url: webhook.url.clone(),
+            format_idx: WEBHOOK_FORMATS
+                .iter()
+                .position(|(value, _)| *value == webhook.format)
+                // Unknown formats are sent as generic JSON.
+                .unwrap_or(WEBHOOK_FORMATS.len() - 1),
+            enabled: webhook.enabled,
+        }
+    }
+
+    /// The webhook the form describes; an edited one keeps its identifier
+    /// and the outcome of its last delivery.
+    fn to_webhook(&self, previous: Option<&WebhookConfig>) -> WebhookConfig {
+        WebhookConfig {
+            id: self
+                .editing
+                .clone()
+                .unwrap_or_else(|| uuid::Uuid::new_v4().to_string()),
+            name: self.name.trim().to_string(),
+            url: self.url.trim().to_string(),
+            format: WEBHOOK_FORMATS[self.format_idx.min(WEBHOOK_FORMATS.len() - 1)]
+                .0
+                .to_string(),
+            enabled: self.enabled,
+            last_sent: previous.and_then(|w| w.last_sent),
+            error: previous.and_then(|w| w.error.clone()),
+        }
+    }
+}
+
 /// Label of a stored webhook format, for the list.
 fn webhook_format_label(format: &str) -> String {
     WEBHOOK_FORMATS
@@ -161,25 +443,97 @@ impl NotificationsPage {
             });
         } else {
             const NOTIF_PER_PAGE: usize = 20;
+
+            // Search and filters, kept in egui memory like the forms of the
+            // other tabs.
+            let search_id = egui::Id::new("notifications_search");
+            let unread_id = egui::Id::new("notifications_unread_only");
+            let level_id = egui::Id::new("notifications_level");
+            let mut search: String = ui
+                .memory(|m| m.data.get_temp(search_id))
+                .unwrap_or_default();
+            let mut unread_only: bool = ui.memory(|m| m.data.get_temp(unread_id)).unwrap_or(false);
+            let mut level: Option<NotificationLevel> =
+                ui.memory(|m| m.data.get_temp(level_id)).unwrap_or(None);
+            let previous_search = search.clone();
+
+            let filtered =
+                filtered_notifications(&state.notifications, &search, unread_only, level);
+            let toggled =
+                widgets::SearchFilterBar::new(&mut search, "Rechercher une notification…")
+                    .chip("NON LUES", unread_only, theme::ACCENT)
+                    .chip(
+                        "CRITIQUES",
+                        level == Some(NotificationLevel::Critical),
+                        theme::ERROR,
+                    )
+                    .chip(
+                        "AVERTISSEMENTS",
+                        level == Some(NotificationLevel::Warning),
+                        theme::WARNING,
+                    )
+                    .chip(
+                        "INFORMATIONS",
+                        level == Some(NotificationLevel::Info),
+                        theme::INFO,
+                    )
+                    .result_count(filtered.len())
+                    .show(ui);
+            if let Some(chip) = toggled {
+                let picked = match chip {
+                    1 => Some(NotificationLevel::Critical),
+                    2 => Some(NotificationLevel::Warning),
+                    3 => Some(NotificationLevel::Info),
+                    _ => None,
+                };
+                if chip == 0 {
+                    unread_only = !unread_only;
+                } else if level == picked {
+                    level = None;
+                } else {
+                    level = picked;
+                }
+            }
+            // A changed filter starts again from the first page.
+            let filter_changed = toggled.is_some() || search != previous_search;
+            let filtered = if filter_changed {
+                state.notifications_page = 0;
+                filtered_notifications(&state.notifications, &search, unread_only, level)
+            } else {
+                filtered
+            };
+            ui.memory_mut(|m| {
+                m.data.insert_temp(search_id, search);
+                m.data.insert_temp(unread_id, unread_only);
+                m.data.insert_temp(level_id, level);
+            });
+            ui.add_space(theme::SPACE_MD);
+
             let (nf_start, nf_len, _) = widgets::page_window(
-                state.notifications.len(),
+                filtered.len(),
                 NOTIF_PER_PAGE,
                 &mut state.notifications_page,
             );
             // One card holding a dense list grouped by day: tall standalone
             // cards showed four notifications a screen and repeated "Non
             // lue" on every one. Unread is an accent dot and a bold title.
+            // The newest notification comes first.
             let today = chrono::Local::now().date_naive();
             let mut current_day = None;
             widgets::data_card(ui, "Notifications", |ui: &mut egui::Ui| {
-                for (offset, notif) in state
-                    .notifications
-                    .iter()
-                    .skip(nf_start)
-                    .take(nf_len)
-                    .enumerate()
-                {
-                    let idx = nf_start + offset;
+                if filtered.is_empty() {
+                    widgets::empty_state(
+                        ui,
+                        icons::SEARCH,
+                        "Aucun r\u{00e9}sultat",
+                        Some("Modifiez votre recherche ou vos filtres."),
+                    );
+                    return;
+                }
+                for (offset, &idx) in filtered.iter().skip(nf_start).take(nf_len).enumerate() {
+                    let Some(notif) = state.notifications.get(idx) else {
+                        continue;
+                    };
                     let day = notif.timestamp.with_timezone(&chrono::Local).date_naive();
                     if current_day != Some(day) {
                         current_day = Some(day);
@@ -208,21 +562,24 @@ impl NotificationsPage {
             });
 
             // Keyboard: ↑/↓ walk the displayed order, Enter opens the drawer.
-            let mut position = state.selected_notification;
+            let mut position = state
+                .selected_notification
+                .and_then(|selected| filtered.iter().position(|&idx| idx == selected));
             if widgets::navigate_list(
                 ui.ctx(),
                 &mut position,
-                state.notifications.len(),
+                filtered.len(),
                 &mut state.notification_detail_open,
             ) && let Some(pos) = position
+                && let Some(&idx) = filtered.get(pos)
             {
-                state.selected_notification = Some(pos);
+                state.selected_notification = Some(idx);
                 state.notifications_page = pos / NOTIF_PER_PAGE;
             }
 
             widgets::paginate_controls(
                 ui,
-                state.notifications.len(),
+                filtered.len(),
                 NOTIF_PER_PAGE,
                 &mut state.notifications_page,
             );
@@ -250,13 +607,14 @@ impl NotificationsPage {
             )
             .clicked()
             {
+                store_draft(ui.ctx(), RULE_DRAFT, RuleDraft::default());
                 state.alerting.editing_rule = true;
             }
         });
 
         ui.add_space(theme::SPACE_MD);
 
-        // Inline edit form
+        // Inline create / edit form
         if state.alerting.editing_rule {
             Self::alert_rule_form(ui, state, &mut command);
             ui.add_space(theme::SPACE_MD);
@@ -273,6 +631,11 @@ impl NotificationsPage {
                 );
             });
         } else {
+            let rule_order = sorted_indices(
+                &state.alerting.rules,
+                &widgets::table::sort_of(ui.ctx(), RULES_TABLE),
+                compare_rules,
+            );
             widgets::data_card(ui, "Règles d’alerte", |ui: &mut egui::Ui| {
                 ui.push_id("alert_rules_table", |ui: &mut egui::Ui| {
                     use widgets::table;
@@ -281,33 +644,32 @@ impl NotificationsPage {
                         ui,
                         &[
                             table::Col::fluid(160.0, 2.0), // Nom
-                            table::Col::fluid(140.0, 1.5), // Type
-                            table::Col::fluid(90.0, 0.5),  // Escalade
+                            table::Col::fluid(150.0, 1.0), // Type
+                            table::Col::fluid(90.0, 0.0),  // Seuil
+                            table::Col::fluid(140.0, 2.0), // Incidents
                             table::Col::fixed(72.0),       // Activé
-                            table::Col::fixed(64.0),       // Actions
+                            table::Col::fixed(104.0),      // Actions
                         ],
                     )
                     .header(theme::TABLE_HEADER_HEIGHT, |mut header| {
-                        header.col(|ui: &mut egui::Ui| {
-                            table::header_cell(ui, "NOM");
-                        });
-                        header.col(|ui: &mut egui::Ui| {
-                            table::header_cell(ui, "TYPE");
-                        });
-                        header.col(|ui: &mut egui::Ui| {
-                            table::header_cell(ui, "ESCALADE");
-                        });
-                        header.col(|ui: &mut egui::Ui| {
-                            table::header_cell(ui, "ACTIV\u{00c9}");
-                        });
+                        for (label, key) in [
+                            ("NOM", "name"),
+                            ("TYPE", "type"),
+                            ("SEUIL", "threshold"),
+                            ("INCIDENTS", "incidents"),
+                            ("ACTIV\u{00c9}", "enabled"),
+                        ] {
+                            header.col(|ui: &mut egui::Ui| {
+                                table::header_cell_sortable(ui, label, RULES_TABLE, key);
+                            });
+                        }
                         header.col(|ui: &mut egui::Ui| {
                             table::header_cell(ui, "ACTIONS");
                         });
                     })
                     .body(|mut body| {
-                        // Collect indices to avoid borrow issues
-                        let rule_count = state.alerting.rules.len();
-                        for i in 0..rule_count {
+                        // Rows in the sorted order; `i` stays the rule's index.
+                        for &i in &rule_order {
                             body.row(theme::TABLE_ROW_HEIGHT, |mut row| {
                                 let rule = &state.alerting.rules[i];
                                 let rule_id = rule.id.to_string();
@@ -316,21 +678,42 @@ impl NotificationsPage {
                                     table::cell_strong(ui, &rule.name);
                                 });
                                 row.col(|ui: &mut egui::Ui| {
-                                    widgets::status_badge(
-                                        ui,
-                                        rule.rule_type.label_fr(),
-                                        theme::INFO,
-                                    );
-                                });
-                                row.col(|ui: &mut egui::Ui| match rule.escalation_minutes {
-                                    Some(m) => {
-                                        table::cell_secondary(
+                                    // Escalation rules may still come from the
+                                    // platform; the agent does not evaluate them.
+                                    if rule.rule_type == AlertRuleType::EscalationDelay {
+                                        widgets::status_badge(
                                             ui,
-                                            &crate::format::interval(u64::from(m) * 60),
+                                            "Escalade · non évaluée",
+                                            theme::WARNING,
+                                        );
+                                    } else {
+                                        widgets::status_badge(
+                                            ui,
+                                            rule.rule_type.label_fr(),
+                                            theme::INFO,
+                                        );
+                                    }
+                                });
+                                row.col(|ui: &mut egui::Ui| match rule.severity_threshold {
+                                    Some(severity) => {
+                                        widgets::status_badge(
+                                            ui,
+                                            severity.label(),
+                                            theme::severity_color_typed(&severity),
                                         );
                                     }
                                     None => {
                                         table::cell_empty(ui);
+                                    }
+                                });
+                                row.col(|ui: &mut egui::Ui| {
+                                    if rule.detection_types.is_empty() {
+                                        table::cell_secondary(ui, "Tous");
+                                    } else {
+                                        table::cell_small(
+                                            ui,
+                                            &incident_types_summary(&rule.detection_types),
+                                        );
                                     }
                                 });
                                 row.col(|ui: &mut egui::Ui| {
@@ -352,21 +735,37 @@ impl NotificationsPage {
                                     }
                                 });
                                 row.col(|ui: &mut egui::Ui| {
-                                    if widgets::button::icon_button_with_color(
-                                        ui,
-                                        icons::TRASH,
-                                        Some("Supprimer la règle"),
-                                        theme::readable_color(theme::ERROR),
-                                    )
-                                    .clicked()
-                                    {
-                                        ui.memory_mut(|m| {
-                                            m.data.insert_temp(
-                                                egui::Id::new("delete_rule_id"),
-                                                rule_id,
-                                            );
-                                        });
-                                    }
+                                    ui.horizontal(|ui: &mut egui::Ui| {
+                                        if widgets::button::icon_button(
+                                            ui,
+                                            icons::PENCIL,
+                                            Some("Modifier la règle"),
+                                        )
+                                        .clicked()
+                                        {
+                                            ui.memory_mut(|m| {
+                                                m.data.insert_temp(
+                                                    egui::Id::new("edit_rule_id"),
+                                                    rule_id.clone(),
+                                                );
+                                            });
+                                        }
+                                        if widgets::button::icon_button_with_color(
+                                            ui,
+                                            icons::TRASH,
+                                            Some("Supprimer la règle"),
+                                            theme::readable_color(theme::ERROR),
+                                        )
+                                        .clicked()
+                                        {
+                                            ui.memory_mut(|m| {
+                                                m.data.insert_temp(
+                                                    egui::Id::new("delete_rule_id"),
+                                                    rule_id.clone(),
+                                                );
+                                            });
+                                        }
+                                    });
                                 });
                             });
                         }
@@ -374,17 +773,31 @@ impl NotificationsPage {
                 });
             });
 
-            // Process deferred toggle actions
+            // Process deferred toggle actions. Switching a rule off silences
+            // its alerts, as deleting it does: administrator mode first.
             for i in 0..state.alerting.rules.len() {
                 let toggle_id = egui::Id::new(format!("toggle_rule_{}", i));
                 if let Some(new_val) = ui.memory(|m| m.data.get_temp::<bool>(toggle_id)) {
-                    state.alerting.rules[i].enabled = new_val;
                     ui.memory_mut(|m| m.data.remove::<bool>(toggle_id));
-                    let mut updated = state.alerting.rules[i].clone();
-                    updated.enabled = new_val;
+                    if !new_val && !state.require_admin("Désactiver une règle d'alerte") {
+                        continue;
+                    }
+                    state.alerting.rules[i].enabled = new_val;
+                    let updated = state.alerting.rules[i].clone();
                     command = Some(GuiCommand::SaveAlertRule {
                         rule: Box::new(updated),
                     });
+                }
+            }
+
+            // Deferred edit: open the form on the rule's current values.
+            let edit_id: Option<String> =
+                ui.memory(|m| m.data.get_temp(egui::Id::new("edit_rule_id")));
+            if let Some(rid) = edit_id {
+                ui.memory_mut(|m| m.data.remove::<String>(egui::Id::new("edit_rule_id")));
+                if let Some(rule) = state.alerting.rules.iter().find(|r| r.id == rid) {
+                    store_draft(ui.ctx(), RULE_DRAFT, RuleDraft::of(rule));
+                    state.alerting.editing_rule = true;
                 }
             }
 
@@ -411,7 +824,7 @@ impl NotificationsPage {
                 RULE_DELETE_CONFIRM,
                 "Supprimer la règle d'alerte ?",
                 &format!(
-                    "« {name} » ne déclenchera plus de notification ni d'escalade. \
+                    "« {name} » ne déclenchera plus aucune alerte. \
                      Cette action est irréversible."
                 ),
                 "Supprimer",
@@ -425,151 +838,138 @@ impl NotificationsPage {
         command
     }
 
-    /// Inline form for creating a new alert rule.
+    /// Inline form creating an alert rule, or editing the one it was opened on.
     fn alert_rule_form(ui: &mut Ui, state: &mut AppState, command: &mut Option<GuiCommand>) {
-        let form_id = ui.id().with("alert_rule_form");
-
-        // Form state stored in egui memory
-        let mut name: String = ui
-            .memory(|m| m.data.get_temp(form_id.with("name")))
-            .unwrap_or_default();
-        let mut rule_type_idx: usize = ui
-            .memory(|m| m.data.get_temp(form_id.with("type_idx")))
-            .unwrap_or(0);
-        let mut severity_idx: usize = ui
-            .memory(|m| m.data.get_temp(form_id.with("sev_idx")))
-            .unwrap_or(0);
-        let mut escalation_str: String = ui
-            .memory(|m| m.data.get_temp(form_id.with("escalation")))
-            .unwrap_or_default();
-        let mut enabled: bool = ui
-            .memory(|m| m.data.get_temp(form_id.with("enabled")))
-            .unwrap_or(true);
+        let mut draft: RuleDraft = load_draft(ui.ctx(), RULE_DRAFT);
+        let mut close = false;
 
         widgets::card(ui, |ui: &mut egui::Ui| {
             ui.label(
-                egui::RichText::new("NOUVELLE R\u{00c8}GLE D'ALERTE")
-                    .font(theme::font_label())
-                    .color(theme::text_tertiary())
-                    .extra_letter_spacing(theme::TRACKING_NORMAL)
-                    .strong(),
+                egui::RichText::new(if draft.editing.is_some() {
+                    "MODIFIER LA R\u{00c8}GLE D'ALERTE"
+                } else {
+                    "NOUVELLE R\u{00c8}GLE D'ALERTE"
+                })
+                .font(theme::font_label())
+                .color(theme::text_tertiary())
+                .extra_letter_spacing(theme::TRACKING_NORMAL)
+                .strong(),
             );
             ui.add_space(theme::SPACE_SM);
 
+            let rule_type = RULE_TYPES[draft.type_idx.min(RULE_TYPES.len() - 1)];
+            // A type filter may apply to every severity; a threshold rule
+            // always names one.
+            let mut severities: Vec<(Option<Severity>, &str)> = SEVERITIES
+                .iter()
+                .map(|severity| (Some(*severity), severity.label()))
+                .collect();
+            if rule_type == AlertRuleType::TypeFilter {
+                severities.insert(0, (None, "Toutes"));
+            }
+
             widgets::form::fields(ui, |ui: &mut egui::Ui| {
                 widgets::form::field(ui, "Nom", 300.0, |ui: &mut egui::Ui| {
-                    widgets::text_input(ui, &mut name, "Nom de la r\u{00e8}gle…");
+                    widgets::text_input(ui, &mut draft.name, "Nom de la r\u{00e8}gle…");
                 });
                 widgets::form::field(ui, "Type", 200.0, |ui: &mut egui::Ui| {
-                    let all_types = AlertRuleType::all();
-                    let type_labels: Vec<&str> = all_types.iter().map(|t| t.label_fr()).collect();
+                    let type_labels: Vec<&str> = RULE_TYPES.iter().map(|t| t.label_fr()).collect();
                     widgets::dropdown_width(
                         ui,
                         "rule_type_combo",
                         &type_labels,
-                        &mut rule_type_idx,
+                        &mut draft.type_idx,
                         200.0,
                     );
                 });
                 widgets::form::field(
                     ui,
-                    "S\u{00e9}v\u{00e9}rit\u{00e9}",
+                    "S\u{00e9}v\u{00e9}rit\u{00e9} minimale",
                     150.0,
                     |ui: &mut egui::Ui| {
-                        let sev_labels =
-                            ["CRITIQUE", "\u{00c9}LEV\u{00c9}", "MOYEN", "FAIBLE", "INFO"];
+                        let labels: Vec<&str> =
+                            severities.iter().map(|(_, label)| *label).collect();
+                        let mut index = severities
+                            .iter()
+                            .position(|(severity, _)| *severity == draft.severity)
+                            .unwrap_or(0);
                         widgets::dropdown_width(
                             ui,
-                            "rule_severity_combo",
-                            &sev_labels,
-                            &mut severity_idx,
+                            ("rule_severity_combo", severities.len()),
+                            &labels,
+                            &mut index,
                             150.0,
                         );
+                        draft.severity = severities[index.min(severities.len() - 1)].0;
                     },
                 );
-                widgets::form::field(ui, "Escalade (min)", 120.0, |ui: &mut egui::Ui| {
-                    widgets::text_input(ui, &mut escalation_str, "30");
-                });
                 widgets::form::field(ui, "Activ\u{00e9}", 72.0, |ui: &mut egui::Ui| {
-                    widgets::toggle_switch_labeled(ui, &mut enabled, "Activer à la création");
+                    widgets::toggle_switch_labeled(ui, &mut draft.enabled, "Activer la règle");
                 });
             });
 
+            if rule_type == AlertRuleType::TypeFilter {
+                ui.add_space(theme::SPACE_SM);
+                widgets::form::label(ui, "Types d'incident");
+                ui.horizontal_wrapped(|ui: &mut egui::Ui| {
+                    for (key, label) in INCIDENT_TYPES {
+                        let active = draft.types.iter().any(|t| t == key);
+                        if widgets::chip_button(ui, label, active, theme::ACCENT).clicked() {
+                            if active {
+                                draft.types.retain(|t| t != key);
+                            } else {
+                                draft.types.push(key.to_string());
+                            }
+                        }
+                    }
+                });
+            }
+
             ui.add_space(theme::SPACE_SM);
 
-            let escalation = parse_escalation(&escalation_str);
-            if escalation.is_err() {
-                ui.label(egui::RichText::new("Indiquez un nombre entier de minutes supérieur à zéro, ou laissez vide pour désactiver l’escalade.")
-                    .font(theme::font_small()).color(theme::readable_color(theme::ERROR)));
+            let missing_types = rule_type == AlertRuleType::TypeFilter && draft.types.is_empty();
+            if missing_types {
+                ui.label(
+                    egui::RichText::new("Sélectionnez au moins un type d'incident.")
+                        .font(theme::font_small())
+                        .color(theme::readable_color(theme::ERROR)),
+                );
             }
             ui.horizontal_wrapped(|ui: &mut egui::Ui| {
-                let can_save = !name.trim().is_empty() && escalation.is_ok();
+                let can_save = !draft.name.trim().is_empty() && !missing_types;
                 if widgets::primary_button(ui, format!("{}  Enregistrer", icons::CHECK), can_save)
                     .clicked()
                     && can_save
+                    // Editing can raise a threshold or drop a type, which
+                    // silences alerts as a deletion would.
+                    && (draft.editing.is_none()
+                        || state.require_admin("Modifier une règle d'alerte"))
                 {
-                    let all_types = AlertRuleType::all();
-                    let rule_type = all_types[rule_type_idx.min(all_types.len().saturating_sub(1))];
-                    let severity = match severity_idx {
-                        0 => Severity::Critical,
-                        1 => Severity::High,
-                        2 => Severity::Medium,
-                        3 => Severity::Low,
-                        _ => Severity::Info,
-                    };
-                    let escalation = escalation.unwrap_or(None);
-
-                    let rule = AlertRule {
-                        id: uuid::Uuid::new_v4().to_string(),
-                        name: name.trim().to_string(),
-                        rule_type,
-                        severity_threshold: Some(severity),
-                        detection_types: Vec::new(),
-                        escalation_minutes: escalation,
-                        enabled,
-                        created_at: chrono::Utc::now(),
-                    };
-
-                    state.alerting.rules.push(rule.clone());
+                    let rule = draft.to_rule();
+                    match state.alerting.rules.iter_mut().find(|r| r.id == rule.id) {
+                        Some(existing) => *existing = rule.clone(),
+                        None => state.alerting.rules.push(rule.clone()),
+                    }
                     *command = Some(GuiCommand::SaveAlertRule {
                         rule: Box::new(rule),
                     });
-                    state.alerting.editing_rule = false;
-
-                    // Clear form
-                    ui.memory_mut(|m| {
-                        m.data.remove::<String>(form_id.with("name"));
-                        m.data.remove::<usize>(form_id.with("type_idx"));
-                        m.data.remove::<usize>(form_id.with("sev_idx"));
-                        m.data.remove::<String>(form_id.with("escalation"));
-                        m.data.remove::<bool>(form_id.with("enabled"));
-                    });
+                    close = true;
                 }
 
                 ui.add_space(theme::SPACE_SM);
 
                 if widgets::ghost_button(ui, "Annuler").clicked() {
-                    state.alerting.editing_rule = false;
-                    ui.memory_mut(|m| {
-                        m.data.remove::<String>(form_id.with("name"));
-                        m.data.remove::<usize>(form_id.with("type_idx"));
-                        m.data.remove::<usize>(form_id.with("sev_idx"));
-                        m.data.remove::<String>(form_id.with("escalation"));
-                        m.data.remove::<bool>(form_id.with("enabled"));
-                    });
+                    close = true;
                 }
             });
         });
 
-        // Persist form state
-        ui.memory_mut(|m| {
-            m.data.insert_temp(form_id.with("name"), name);
-            m.data.insert_temp(form_id.with("type_idx"), rule_type_idx);
-            m.data.insert_temp(form_id.with("sev_idx"), severity_idx);
-            m.data
-                .insert_temp(form_id.with("escalation"), escalation_str);
-            m.data.insert_temp(form_id.with("enabled"), enabled);
-        });
+        if close {
+            state.alerting.editing_rule = false;
+            clear_draft::<RuleDraft>(ui.ctx(), RULE_DRAFT);
+        } else {
+            store_draft(ui.ctx(), RULE_DRAFT, draft);
+        }
     }
 
     // ──────────────────────────────────────────────────────────────────────
@@ -587,13 +987,14 @@ impl NotificationsPage {
             )
             .clicked()
             {
+                store_draft(ui.ctx(), WEBHOOK_DRAFT, WebhookDraft::default());
                 state.alerting.editing_webhook = true;
             }
         });
 
         ui.add_space(theme::SPACE_MD);
 
-        // Inline form
+        // Inline create / edit form
         if state.alerting.editing_webhook {
             Self::webhook_form(ui, state, &mut command);
             ui.add_space(theme::SPACE_MD);
@@ -612,6 +1013,11 @@ impl NotificationsPage {
                 );
             });
         } else {
+            let webhook_order = sorted_indices(
+                &state.alerting.webhooks,
+                &widgets::table::sort_of(ui.ctx(), WEBHOOKS_TABLE),
+                compare_webhooks,
+            );
             widgets::data_card(ui, "Webhooks", |ui: &mut egui::Ui| {
                 ui.push_id("webhooks_table", |ui: &mut egui::Ui| {
                     use widgets::table;
@@ -622,34 +1028,30 @@ impl NotificationsPage {
                             table::Col::fluid(120.0, 1.0), // Nom
                             table::Col::fluid(160.0, 3.0), // URL
                             table::Col::fluid(72.0, 0.0),  // Format
-                            table::Col::fluid(116.0, 0.5), // Dernier envoi
+                            table::Col::fluid(124.0, 0.5), // Dernier envoi
                             table::Col::fixed(72.0),       // Activé
-                            table::Col::fixed(148.0),      // Actions
+                            table::Col::fixed(196.0),      // Actions
                         ],
                     )
                     .header(theme::TABLE_HEADER_HEIGHT, |mut header| {
-                        header.col(|ui: &mut egui::Ui| {
-                            table::header_cell(ui, "NOM");
-                        });
-                        header.col(|ui: &mut egui::Ui| {
-                            table::header_cell(ui, "URL");
-                        });
-                        header.col(|ui: &mut egui::Ui| {
-                            table::header_cell(ui, "FORMAT");
-                        });
-                        header.col(|ui: &mut egui::Ui| {
-                            table::header_cell(ui, "DERNIER ENVOI");
-                        });
-                        header.col(|ui: &mut egui::Ui| {
-                            table::header_cell(ui, "ACTIV\u{00c9}");
-                        });
+                        for (label, key) in [
+                            ("NOM", "name"),
+                            ("URL", "url"),
+                            ("FORMAT", "format"),
+                            ("DERNIER ENVOI", "last_sent"),
+                            ("ACTIV\u{00c9}", "enabled"),
+                        ] {
+                            header.col(|ui: &mut egui::Ui| {
+                                table::header_cell_sortable(ui, label, WEBHOOKS_TABLE, key);
+                            });
+                        }
                         header.col(|ui: &mut egui::Ui| {
                             table::header_cell(ui, "ACTIONS");
                         });
                     })
                     .body(|mut body| {
-                        let wh_count = state.alerting.webhooks.len();
-                        for i in 0..wh_count {
+                        // Rows in the sorted order; `i` stays the webhook's index.
+                        for &i in &webhook_order {
                             body.row(theme::TABLE_ROW_HEIGHT, |mut row| {
                                 let wh = &state.alerting.webhooks[i];
                                 let wh_id = wh.id.to_string();
@@ -658,7 +1060,6 @@ impl NotificationsPage {
                                     table::cell_strong(ui, &wh.name);
                                 });
                                 row.col(|ui: &mut egui::Ui| {
-                                    // The cell truncates with the full URL on hover.
                                     // A webhook URL's path is its secret (Slack, Teams): show
                                     // the host only, the full URL stays in the edit form.
                                     table::cell_small(ui, &mask_webhook_url(&wh.url))
@@ -673,11 +1074,24 @@ impl NotificationsPage {
                                         theme::INFO,
                                     );
                                 });
-                                row.col(|ui: &mut egui::Ui| match wh.last_sent {
-                                    Some(dt) => {
+                                row.col(|ui: &mut egui::Ui| match (&wh.error, wh.last_sent) {
+                                    // The last delivery failed: say so, with
+                                    // the reason on hover.
+                                    (Some(error), _) => {
+                                        ui.scope(|ui| {
+                                            widgets::status_badge(
+                                                ui,
+                                                "Échec d'envoi",
+                                                theme::ERROR,
+                                            );
+                                        })
+                                        .response
+                                        .on_hover_text(format!("Dernier envoi en échec : {error}"));
+                                    }
+                                    (None, Some(dt)) => {
                                         table::cell_muted(ui, &crate::format::local_datetime(dt));
                                     }
-                                    None => {
+                                    (None, None) => {
                                         table::cell_empty(ui);
                                     }
                                 });
@@ -709,6 +1123,20 @@ impl NotificationsPage {
                                             ui.memory_mut(|m| {
                                                 m.data.insert_temp(
                                                     egui::Id::new("test_wh_id"),
+                                                    wh_id.clone(),
+                                                );
+                                            });
+                                        }
+                                        if widgets::button::icon_button(
+                                            ui,
+                                            icons::PENCIL,
+                                            Some("Modifier le webhook"),
+                                        )
+                                        .clicked()
+                                        {
+                                            ui.memory_mut(|m| {
+                                                m.data.insert_temp(
+                                                    egui::Id::new("edit_wh_id"),
                                                     wh_id.clone(),
                                                 );
                                             });
@@ -764,6 +1192,20 @@ impl NotificationsPage {
                 ui.memory_mut(|m| m.data.remove::<String>(egui::Id::new("test_wh_id")));
             }
 
+            // Deferred edit. The form shows the full URL, secret included:
+            // administrator mode first.
+            let edit_id: Option<String> =
+                ui.memory(|m| m.data.get_temp(egui::Id::new("edit_wh_id")));
+            if let Some(wid) = edit_id {
+                ui.memory_mut(|m| m.data.remove::<String>(egui::Id::new("edit_wh_id")));
+                if state.require_admin("Modifier la destination des alertes (webhook)")
+                    && let Some(webhook) = state.alerting.webhooks.iter().find(|w| w.id == wid)
+                {
+                    store_draft(ui.ctx(), WEBHOOK_DRAFT, WebhookDraft::of(webhook));
+                    state.alerting.editing_webhook = true;
+                }
+            }
+
             // Deferred delete: administrator mode, then a confirmation.
             let delete_id: Option<String> =
                 ui.memory(|m| m.data.get_temp(egui::Id::new("delete_wh_id")));
@@ -800,47 +1242,38 @@ impl NotificationsPage {
         command
     }
 
-    /// Inline form for creating a new webhook.
+    /// Inline form creating a webhook, or editing the one it was opened on.
     fn webhook_form(ui: &mut Ui, state: &mut AppState, command: &mut Option<GuiCommand>) {
-        let form_id = ui.id().with("webhook_form");
-
-        let mut name: String = ui
-            .memory(|m| m.data.get_temp(form_id.with("name")))
-            .unwrap_or_default();
-        let mut url: String = ui
-            .memory(|m| m.data.get_temp(form_id.with("url")))
-            .unwrap_or_default();
-        let mut format_idx: usize = ui
-            .memory(|m| m.data.get_temp(form_id.with("format_idx")))
-            .unwrap_or(0);
-        let mut enabled: bool = ui
-            .memory(|m| m.data.get_temp(form_id.with("enabled")))
-            .unwrap_or(true);
+        let mut draft: WebhookDraft = load_draft(ui.ctx(), WEBHOOK_DRAFT);
+        let mut close = false;
 
         // One label per format the agent can actually shape a message for.
-        let format_options = WEBHOOK_FORMATS.map(|(value, _)| value);
         let format_labels = WEBHOOK_FORMATS.map(|(_, label)| label);
 
-        let url_check = agent_common::webhook::validate_webhook_url(&url);
+        let url_check = agent_common::webhook::validate_webhook_url(&draft.url);
 
         widgets::card(ui, |ui: &mut egui::Ui| {
             ui.label(
-                egui::RichText::new("NOUVEAU WEBHOOK")
-                    .font(theme::font_label())
-                    .color(theme::text_tertiary())
-                    .extra_letter_spacing(theme::TRACKING_NORMAL)
-                    .strong(),
+                egui::RichText::new(if draft.editing.is_some() {
+                    "MODIFIER LE WEBHOOK"
+                } else {
+                    "NOUVEAU WEBHOOK"
+                })
+                .font(theme::font_label())
+                .color(theme::text_tertiary())
+                .extra_letter_spacing(theme::TRACKING_NORMAL)
+                .strong(),
             );
             ui.add_space(theme::SPACE_SM);
 
             widgets::form::fields(ui, |ui: &mut egui::Ui| {
                 widgets::form::field(ui, "Nom", 260.0, |ui: &mut egui::Ui| {
-                    widgets::text_input(ui, &mut name, "Nom du webhook…");
+                    widgets::text_input(ui, &mut draft.name, "Nom du webhook…");
                 });
                 widgets::form::field(ui, "URL", 380.0, |ui: &mut egui::Ui| {
-                    widgets::text_input(ui, &mut url, "https://hooks.example.com/…");
+                    widgets::text_input(ui, &mut draft.url, "https://hooks.example.com/…");
                     if let Err(error) = &url_check
-                        && !url.trim().is_empty()
+                        && !draft.url.trim().is_empty()
                     {
                         ui.label(
                             egui::RichText::new(error.message_fr())
@@ -854,24 +1287,24 @@ impl NotificationsPage {
                         ui,
                         "webhook_format_combo",
                         &format_labels,
-                        &mut format_idx,
+                        &mut draft.format_idx,
                         150.0,
                     );
                 });
                 widgets::form::field(ui, "Activ\u{00e9}", 72.0, |ui: &mut egui::Ui| {
-                    widgets::toggle_switch_labeled(ui, &mut enabled, "Activer à la création");
+                    widgets::toggle_switch_labeled(ui, &mut draft.enabled, "Activer le webhook");
                 });
             });
 
             ui.add_space(theme::SPACE_SM);
 
             ui.horizontal(|ui: &mut egui::Ui| {
-                let can_save = !name.trim().is_empty() && url_check.is_ok();
+                let can_save = !draft.name.trim().is_empty() && url_check.is_ok();
                 let save =
                     widgets::primary_button(ui, format!("{}  Enregistrer", icons::CHECK), can_save);
                 let save = if can_save {
                     save
-                } else if name.trim().is_empty() {
+                } else if draft.name.trim().is_empty() {
                     save.on_hover_text("Donnez un nom au webhook.")
                 } else {
                     save.on_hover_text("Saisissez une URL https:// valide.")
@@ -880,54 +1313,40 @@ impl NotificationsPage {
                     && can_save
                     && state.require_admin("Modifier la destination des alertes (webhook)")
                 {
-                    let webhook = WebhookConfig {
-                        id: uuid::Uuid::new_v4().to_string(),
-                        name: name.trim().to_string(),
-                        url: url.trim().to_string(),
-                        format: format_options
-                            [format_idx.min(format_options.len().saturating_sub(1))]
-                        .to_string(),
-                        enabled,
-                        last_sent: None,
-                        error: None,
-                    };
-
-                    state.alerting.webhooks.push(webhook.clone());
+                    let previous = draft
+                        .editing
+                        .as_ref()
+                        .and_then(|id| state.alerting.webhooks.iter().find(|w| &w.id == id));
+                    let webhook = draft.to_webhook(previous);
+                    match state
+                        .alerting
+                        .webhooks
+                        .iter_mut()
+                        .find(|w| w.id == webhook.id)
+                    {
+                        Some(existing) => *existing = webhook.clone(),
+                        None => state.alerting.webhooks.push(webhook.clone()),
+                    }
                     *command = Some(GuiCommand::SaveWebhook {
                         webhook: Box::new(webhook),
                     });
-                    state.alerting.editing_webhook = false;
-
-                    // Clear form
-                    ui.memory_mut(|m| {
-                        m.data.remove::<String>(form_id.with("name"));
-                        m.data.remove::<String>(form_id.with("url"));
-                        m.data.remove::<usize>(form_id.with("format_idx"));
-                        m.data.remove::<bool>(form_id.with("enabled"));
-                    });
+                    close = true;
                 }
 
                 ui.add_space(theme::SPACE_SM);
 
                 if widgets::ghost_button(ui, "Annuler").clicked() {
-                    state.alerting.editing_webhook = false;
-                    ui.memory_mut(|m| {
-                        m.data.remove::<String>(form_id.with("name"));
-                        m.data.remove::<String>(form_id.with("url"));
-                        m.data.remove::<usize>(form_id.with("format_idx"));
-                        m.data.remove::<bool>(form_id.with("enabled"));
-                    });
+                    close = true;
                 }
             });
         });
 
-        // Persist form state
-        ui.memory_mut(|m| {
-            m.data.insert_temp(form_id.with("name"), name);
-            m.data.insert_temp(form_id.with("url"), url);
-            m.data.insert_temp(form_id.with("format_idx"), format_idx);
-            m.data.insert_temp(form_id.with("enabled"), enabled);
-        });
+        if close {
+            state.alerting.editing_webhook = false;
+            clear_draft::<WebhookDraft>(ui.ctx(), WEBHOOK_DRAFT);
+        } else {
+            store_draft(ui.ctx(), WEBHOOK_DRAFT, draft);
+        }
     }
 
     fn detail_drawer(ui: &mut Ui, state: &mut AppState, command: &mut Option<GuiCommand>) {
@@ -1030,6 +1449,49 @@ impl NotificationsPage {
     }
 }
 
+/// Severity families the notification list can be narrowed to.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum NotificationLevel {
+    Critical,
+    Warning,
+    Info,
+}
+
+impl NotificationLevel {
+    /// The family of a notification severity as the agent writes it.
+    fn of(severity: &str) -> Self {
+        match severity {
+            "critical" | "error" => Self::Critical,
+            "info" | "low" | "success" => Self::Info,
+            _ => Self::Warning,
+        }
+    }
+}
+
+/// Indices of the notifications to list, newest first, for a search text,
+/// the unread filter and a severity family.
+fn filtered_notifications(
+    notifications: &[crate::dto::GuiNotification],
+    search: &str,
+    unread_only: bool,
+    level: Option<NotificationLevel>,
+) -> Vec<usize> {
+    let search = search.trim().to_lowercase();
+    notifications
+        .iter()
+        .enumerate()
+        .rev()
+        .filter(|(_, n)| {
+            (!unread_only || !n.read)
+                && level.is_none_or(|level| NotificationLevel::of(&n.severity) == level)
+                && (search.is_empty()
+                    || n.title.to_lowercase().contains(&search)
+                    || n.body.to_lowercase().contains(&search))
+        })
+        .map(|(idx, _)| idx)
+        .collect()
+}
+
 fn notification_severity_label(severity: &str) -> &str {
     match severity {
         "critical" => "CRITIQUE",
@@ -1037,21 +1499,11 @@ fn notification_severity_label(severity: &str) -> &str {
         "medium" => "MOYEN",
         "low" => "FAIBLE",
         "info" => "INFO",
+        "error" => "ERREUR",
+        "warning" => "AVERTISSEMENT",
+        "success" => "SUCCÈS",
         _ => severity,
     }
-}
-
-fn parse_escalation(value: &str) -> Result<Option<u32>, ()> {
-    let value = value.trim();
-    if value.is_empty() {
-        return Ok(None);
-    }
-    value
-        .parse::<u32>()
-        .ok()
-        .filter(|minutes| *minutes > 0)
-        .map(Some)
-        .ok_or(())
 }
 
 /// One notification as a list row: unread dot, severity stripe and pill,
@@ -1203,14 +1655,187 @@ mod tests {
         );
     }
 
-    use super::parse_escalation;
+    use super::*;
+
+    fn notification(title: &str, severity: &str, read: bool) -> crate::dto::GuiNotification {
+        let mut n = crate::dto::GuiNotification::info(title, "corps");
+        n.severity = severity.to_string();
+        n.read = read;
+        n
+    }
 
     #[test]
-    fn escalation_never_silently_discards_invalid_input() {
-        assert_eq!(parse_escalation("  "), Ok(None));
-        assert_eq!(parse_escalation(" 30 "), Ok(Some(30)));
-        for value in ["0", "-1", "1.5", "demain", "4294967296"] {
-            assert!(parse_escalation(value).is_err(), "{value}");
-        }
+    fn notifications_are_listed_newest_first_and_filtered() {
+        let list = vec![
+            notification("Ancienne alerte", "critical", true),
+            notification("Scan terminé", "info", false),
+            notification("Webhook refusé", "error", false),
+        ];
+        assert_eq!(filtered_notifications(&list, "", false, None), [2, 1, 0]);
+        assert_eq!(filtered_notifications(&list, "", true, None), [2, 1]);
+        assert_eq!(
+            filtered_notifications(&list, "", false, Some(NotificationLevel::Critical)),
+            [2, 0]
+        );
+        assert_eq!(filtered_notifications(&list, " SCAN ", false, None), [1]);
+        assert!(
+            filtered_notifications(&list, "scan", true, Some(NotificationLevel::Critical))
+                .is_empty()
+        );
+    }
+
+    #[test]
+    fn the_rule_form_never_produces_an_escalation_rule() {
+        assert!(!RULE_TYPES.contains(&AlertRuleType::EscalationDelay));
+        let escalation = AlertRule {
+            id: "r1".into(),
+            name: "Ancienne escalade".into(),
+            rule_type: AlertRuleType::EscalationDelay,
+            severity_threshold: None,
+            detection_types: Vec::new(),
+            escalation_minutes: Some(30),
+            enabled: true,
+            created_at: chrono::Utc::now(),
+        };
+        let edited = RuleDraft::of(&escalation).to_rule();
+        assert_eq!(edited.id, "r1");
+        assert_eq!(edited.created_at, escalation.created_at);
+        assert_eq!(edited.rule_type, AlertRuleType::SeverityThreshold);
+        assert_eq!(edited.severity_threshold, Some(Severity::Critical));
+        assert_eq!(edited.escalation_minutes, None);
+    }
+
+    #[test]
+    fn a_type_filter_keeps_its_types_and_a_threshold_drops_them() {
+        let mut draft = RuleDraft {
+            name: "  Shells  ".into(),
+            type_idx: 1,
+            severity: None,
+            types: vec!["reverse_shell".into()],
+            ..RuleDraft::default()
+        };
+        let rule = draft.to_rule();
+        assert_eq!(rule.name, "Shells");
+        assert_eq!(rule.rule_type, AlertRuleType::TypeFilter);
+        assert_eq!(rule.severity_threshold, None);
+        assert_eq!(rule.detection_types, ["reverse_shell"]);
+        assert_eq!(RuleDraft::of(&rule).types, ["reverse_shell"]);
+
+        draft.type_idx = 0;
+        let rule = draft.to_rule();
+        assert!(rule.detection_types.is_empty());
+        assert_eq!(rule.severity_threshold, Some(Severity::Critical));
+        assert_eq!(
+            incident_types_summary(&["ReverseShell".into(), "autre".into()]),
+            "Shell inversé, autre"
+        );
+    }
+
+    #[test]
+    fn rules_and_webhooks_sort_by_meaning_not_by_spelling() {
+        use crate::widgets::{SortDirection, TableSort};
+        let rule = |name: &str, severity: Option<Severity>, enabled: bool| AlertRule {
+            id: name.into(),
+            name: name.into(),
+            rule_type: AlertRuleType::SeverityThreshold,
+            severity_threshold: severity,
+            detection_types: Vec::new(),
+            escalation_minutes: None,
+            enabled,
+            created_at: chrono::Utc::now(),
+        };
+        let rules = [
+            rule("zèbre", Some(Severity::Low), true),
+            rule("Alpha", Some(Severity::Critical), false),
+            rule("beta", None, true),
+            rule("Gamma", Some(Severity::High), true),
+        ];
+        let names = |sort: &TableSort| -> Vec<&str> {
+            sorted_indices(&rules, sort, compare_rules)
+                .into_iter()
+                .map(|i| rules[i].name.as_str())
+                .collect()
+        };
+        assert_eq!(
+            names(&TableSort::default()),
+            ["zèbre", "Alpha", "beta", "Gamma"]
+        );
+        assert_eq!(
+            names(&TableSort::by("name", SortDirection::Ascending)),
+            ["Alpha", "beta", "Gamma", "zèbre"]
+        );
+        // By rank, not alphabetically: none, low, high, critical.
+        assert_eq!(
+            names(&TableSort::by("threshold", SortDirection::Ascending)),
+            ["beta", "zèbre", "Gamma", "Alpha"]
+        );
+        assert_eq!(
+            names(&TableSort::by("threshold", SortDirection::Descending)),
+            ["Alpha", "Gamma", "zèbre", "beta"]
+        );
+        // Stable: equal rows keep their stored order.
+        assert_eq!(
+            names(&TableSort::by("enabled", SortDirection::Ascending)),
+            ["Alpha", "zèbre", "beta", "Gamma"]
+        );
+
+        let now = chrono::Utc::now();
+        let hook = |name: &str, url: &str, last_sent| WebhookConfig {
+            id: name.into(),
+            name: name.into(),
+            url: url.into(),
+            format: "slack".into(),
+            enabled: true,
+            last_sent,
+            error: None,
+        };
+        let hooks = [
+            hook("récent", "https://b.example/zzz", Some(now)),
+            hook("jamais", "https://c.example/aaa", None),
+            hook(
+                "ancien",
+                "https://A.example/mmm",
+                Some(now - chrono::Duration::days(2)),
+            ),
+        ];
+        let order = |key: &str| -> Vec<&str> {
+            sorted_indices(
+                &hooks,
+                &TableSort::by(key, SortDirection::Ascending),
+                compare_webhooks,
+            )
+            .into_iter()
+            .map(|i| hooks[i].name.as_str())
+            .collect()
+        };
+        assert_eq!(order("last_sent"), ["jamais", "ancien", "récent"]);
+        assert_eq!(order("url"), ["ancien", "récent", "jamais"]);
+    }
+
+    #[test]
+    fn an_edited_webhook_keeps_its_identity_and_delivery_outcome() {
+        let stored = WebhookConfig {
+            id: "w1".into(),
+            name: "SOC".into(),
+            url: "https://hooks.slack.com/services/T0/B0/secret".into(),
+            format: "msteams".into(),
+            enabled: false,
+            last_sent: Some(chrono::Utc::now()),
+            error: Some("HTTP 500".into()),
+        };
+        let mut draft = WebhookDraft::of(&stored);
+        assert_eq!(draft.url, stored.url);
+        assert_eq!(draft.format_idx, 1);
+        draft.name = " SOC nuit ".into();
+        let edited = draft.to_webhook(Some(&stored));
+        assert_eq!(edited.id, "w1");
+        assert_eq!(edited.name, "SOC nuit");
+        assert_eq!(edited.format, "msteams");
+        assert_eq!(edited.last_sent, stored.last_sent);
+        assert_eq!(edited.error, stored.error);
+        assert!(!edited.enabled);
+
+        let created = WebhookDraft::default().to_webhook(None);
+        assert!(!created.id.is_empty() && created.enabled && created.error.is_none());
     }
 }

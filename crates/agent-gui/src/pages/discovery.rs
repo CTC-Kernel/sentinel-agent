@@ -5,6 +5,7 @@
 
 use crate::app::AppState;
 use crate::icons;
+use crate::pages::assets::order;
 use crate::theme;
 use crate::theme::LinearFade as _;
 use crate::widgets;
@@ -50,7 +51,7 @@ impl DiscoveryPage {
                 let btn_response = if is_scanning {
                     widgets::primary_button(
                         ui,
-                        format!("{}  Interrompre l'analyse{lock}", icons::TRASH),
+                        format!("{}  Interrompre l'analyse{lock}", icons::STOP),
                         true,
                     )
                 } else {
@@ -189,6 +190,16 @@ impl DiscoveryPage {
             });
         });
 
+        // A scan that was refused or failed says why, until the next one.
+        if let Some(reason) = state.discovery.error.clone() {
+            ui.add_space(theme::SPACE_SM);
+            widgets::alert::Alert::new(&reason)
+                .level(widgets::alert::AlertLevel::Error)
+                .title("Découverte non effectuée")
+                .compact()
+                .show(ui);
+        }
+
         ui.add_space(theme::SPACE_SM);
 
         // Shadow IT KPI cards
@@ -238,6 +249,12 @@ impl DiscoveryPage {
                 let (label, value, color, icon) = item;
                 if Self::kpi_card(ui, width, label, value, *color, icon) {
                     widgets::open_data_panel(ui.ctx(), "Équipements découverts");
+                    state.discovery.search.clear();
+                    state.discovery.shadow_filter = match *label {
+                        "SHADOW IT" => Some(true),
+                        "AUTORIS\u{00c9}S" => Some(false),
+                        _ => None,
+                    };
                 }
             });
         }
@@ -260,12 +277,20 @@ impl DiscoveryPage {
                 });
                 upper
             });
-        let filtered: Vec<usize> = state
+        let authorized_ips: std::collections::HashSet<&str> =
+            state.assets.assets.iter().map(|a| a.ip.as_str()).collect();
+        let shadow_filter = state.discovery.shadow_filter;
+        let mut filtered: Vec<usize> = state
             .discovery
             .devices
             .iter()
             .enumerate()
             .filter(|(_, d)| {
+                if let Some(shadow_only) = shadow_filter
+                    && authorized_ips.contains(d.ip.as_str()) == shadow_only
+                {
+                    return false;
+                }
                 if search_upper.is_empty() {
                     return true;
                 }
@@ -283,9 +308,23 @@ impl DiscoveryPage {
             })
             .map(|(i, _)| i)
             .collect();
+        order::sort(ui.ctx(), "discovery_devices", &mut filtered, |key, a, b| {
+            let (a, b) = (&state.discovery.devices[a], &state.discovery.devices[b]);
+            match key {
+                // Unauthorised first: what needs a decision leads.
+                "status" => authorized_ips
+                    .contains(a.ip.as_str())
+                    .cmp(&authorized_ips.contains(b.ip.as_str())),
+                _ => compare_devices(key, a, b),
+            }
+        });
 
         // Keyboard: ↑/↓ walk the displayed order, Enter opens the drawer.
-        let mut position = state.discovery.selected_device;
+        // The selection is an index in `devices`; the keys walk `filtered`.
+        let mut position = state
+            .discovery
+            .selected_device
+            .and_then(|real| filtered.iter().position(|&i| i == real));
         if widgets::navigate_list(
             ui.ctx(),
             &mut position,
@@ -298,13 +337,23 @@ impl DiscoveryPage {
 
         let result_count = filtered.len();
 
-        let (_, export) = widgets::SearchFilterBar::new(
+        let (toggled, export) = widgets::SearchFilterBar::new(
             &mut state.discovery.search,
             "Filtrer par adresse IP, nom d'hôte ou constructeur…",
         )
+        .chip("Shadow IT", shadow_filter == Some(true), theme::ERROR)
+        .chip("Autorisés", shadow_filter == Some(false), theme::SUCCESS)
         .result_count(result_count)
         .action(format!("{}  CSV", icons::DOWNLOAD))
         .show_with_action(ui);
+        if let Some(index) = toggled {
+            let target = Some(index == 0);
+            state.discovery.shadow_filter = if shadow_filter == target {
+                None
+            } else {
+                target
+            };
+        }
         if export {
             let success = Self::export_csv(state, &filtered);
             let time = ui.input(|i| i.time);
@@ -327,12 +376,26 @@ impl DiscoveryPage {
             widgets::data_card(ui, "Équipements découverts", |ui: &mut egui::Ui| {
                 ui.vertical_centered(|ui: &mut egui::Ui| {
                     ui.add_space(theme::SPACE_XL);
-                    widgets::empty_state(
-                        ui,
-                        icons::NETWORK,
-                        "Aucun \u{00e9}quipement d\u{00e9}tect\u{00e9}",
-                        Some("Lancez un scan pour identifier les appareils non autoris\u{00e9}s sur votre r\u{00e9}seau (Shadow IT)."),
-                    );
+                    if state.discovery.devices.is_empty() {
+                        widgets::empty_state(
+                            ui,
+                            icons::NETWORK,
+                            "Aucun \u{00e9}quipement d\u{00e9}tect\u{00e9}",
+                            Some("Lancez un scan pour identifier les appareils non autoris\u{00e9}s sur votre r\u{00e9}seau (Shadow IT)."),
+                        );
+                    } else {
+                        // Devices exist: the search or the filter hides them.
+                        widgets::empty_state(
+                            ui,
+                            icons::SEARCH,
+                            "Aucun r\u{00e9}sultat",
+                            Some("Aucun \u{00e9}quipement ne correspond \u{00e0} la recherche ou au filtre."),
+                        );
+                        if widgets::ghost_button(ui, "Effacer la recherche").clicked() {
+                            state.discovery.search.clear();
+                            state.discovery.shadow_filter = None;
+                        }
+                    }
                     ui.add_space(theme::SPACE_XL);
                 });
             });
@@ -341,6 +404,8 @@ impl DiscoveryPage {
                 use widgets::table;
 
                 let mut clicked_idx: Option<usize> = None;
+                let mut copied = false;
+                let mut resorted = false;
                 let selected = state.discovery.selected_device;
 
                 table::fluid_clickable(
@@ -350,36 +415,29 @@ impl DiscoveryPage {
                         table::Col::fluid(84.0, 0.0),  // Statut
                         table::Col::fluid(120.0, 2.5), // Nom d'hôte
                         table::Col::fluid(116.0, 1.5), // Constructeur: header whole
-                        table::Col::fluid(104.0, 0.0), // Type d'actif: header and "IMPRIMANTE" whole
+                        table::Col::fluid(116.0, 0.0), // Type d'actif: header and "COMMUTATEUR" whole
                         table::Col::fluid(96.0, 0.8),  // Services
                         table::Col::fluid(104.0, 0.5), // Dernière vue
                         table::Col::fixed(56.0),       // Copier: one icon button
                     ],
                 )
                 .header(theme::TABLE_HEADER_HEIGHT, |mut header| {
-                    header.col(|ui| {
-                        table::header_cell(ui, "ADRESSE IP / MAC");
-                    });
-                    header.col(|ui| {
-                        table::header_cell(ui, "STATUT");
-                    });
-                    header.col(|ui| {
-                        table::header_cell(ui, "NOM D'HÔTE");
-                    });
-                    header.col(|ui| {
-                        table::header_cell(ui, "CONSTRUCTEUR");
-                    });
-                    header.col(|ui| {
-                        table::header_cell(ui, "TYPE D'ACTIF");
-                    });
-                    header.col(|ui| {
-                        table::header_cell(ui, "SERVICES");
-                    });
-                    header.col(|ui| {
-                        table::header_cell(ui, "DERNIÈRE VUE");
-                    });
-                    // One copy button: no header, or it would be truncated.
-                    header.col(|_| {});
+                    if order::headers(
+                        &mut header,
+                        "discovery_devices",
+                        &[
+                            ("ADRESSE IP / MAC", Some("ip")),
+                            ("STATUT", Some("status")),
+                            ("NOM D'HÔTE", Some("hostname")),
+                            ("CONSTRUCTEUR", Some("vendor")),
+                            ("TYPE D'ACTIF", Some("type")),
+                            ("SERVICES", Some("ports")),
+                            ("DERNIÈRE VUE", Some("last_seen")),
+                            ("", None),
+                        ],
+                    ) {
+                        resorted = true;
+                    }
                 })
                 .body(|body| {
                     let now = chrono::Utc::now();
@@ -465,6 +523,7 @@ impl DiscoveryPage {
                             .clicked()
                             {
                                 ui.ctx().copy_text(device.ip.clone());
+                                copied = true;
                             }
                         });
 
@@ -474,7 +533,14 @@ impl DiscoveryPage {
                     });
                 });
 
-                if let Some(idx) = clicked_idx {
+                // The selection is an index in `devices`: it follows its row.
+                let _ = resorted;
+                if copied {
+                    state.push_toast(
+                        crate::widgets::toast::Toast::success("Adresse IP copiée"),
+                        ui.ctx(),
+                    );
+                } else if let Some(idx) = clicked_idx {
                     state.discovery.selected_device = Some(idx);
                     state.discovery.detail_open = true;
                 }
@@ -522,17 +588,20 @@ impl DiscoveryPage {
 
         let mut actions = vec![
             widgets::DetailAction::primary("Autoriser cet \u{00e9}quipement", icons::PLUS),
-            widgets::DetailAction::primary("Scanner les ports", icons::SEARCH),
+            // It copies the command: the agent does not run nmap itself.
+            widgets::DetailAction::secondary("Copier la commande nmap", icons::COPY),
             widgets::DetailAction::danger("Bloquer", icons::LOCK),
         ];
 
         // Grey-out the import button when already imported.
         if already_imported {
             actions[0] =
-                widgets::DetailAction::secondary("\u{00c9}quipement autoris\u{00e9}", icons::CHECK);
+                widgets::DetailAction::secondary("\u{00c9}quipement autoris\u{00e9}", icons::CHECK)
+                    .enabled(false);
         }
 
-        let action = widgets::DetailDrawer::new("discovery_detail", "Appareil", icons::NETWORK)
+        let title = hostname.clone().unwrap_or_else(|| ip.clone());
+        let action = widgets::DetailDrawer::new("discovery_detail", &title, icons::NETWORK)
             .accent(type_color)
             .subtitle(&ip)
             .show(
@@ -548,7 +617,7 @@ impl DiscoveryPage {
                         widgets::detail_field(ui, "Nom d'hôte", h);
                     }
                     if let Some(ref v) = vendor {
-                        widgets::detail_field(ui, "Fournisseur", v);
+                        widgets::detail_field(ui, "Constructeur", v);
                     }
                     widgets::detail_field_badge(ui, "Type d'appareil", type_label, type_color);
                     widgets::detail_mono(ui, "Sous-réseau", &subnet);
@@ -584,7 +653,12 @@ impl DiscoveryPage {
 
         if let Some(action_idx) = action {
             let time = ui.ctx().input(|i| i.time);
-            if action_idx == 0 && !already_imported {
+            // Authorising a device is an administrator action, here as on
+            // the inventory page.
+            if action_idx == 0
+                && !already_imported
+                && state.require_admin("Autoriser un appareil découvert dans l'inventaire")
+            {
                 // "Ajouter aux actifs" — create a ManagedAsset from the
                 // discovered device and queue it for persistence.
                 let criticality = crate::pages::AssetsPage::infer_criticality_from_device(
@@ -651,7 +725,7 @@ impl DiscoveryPage {
     }
 
     fn export_csv(state: &AppState, indices: &[usize]) -> bool {
-        let headers = &["ip", "hostname", "mac", "vendor", "type", "ports"];
+        let headers = &["ip", "nom_hote", "mac", "constructeur", "type", "ports"];
         let rows: Vec<Vec<String>> = indices
             .iter()
             .filter_map(|&i| {
@@ -681,6 +755,32 @@ impl DiscoveryPage {
     }
 }
 
+/// Order two devices under a column key, ascending. The status column
+/// depends on the inventory and is ordered by the page.
+fn compare_devices(
+    key: &str,
+    a: &crate::dto::GuiDiscoveredDevice,
+    b: &crate::dto::GuiDiscoveredDevice,
+) -> std::cmp::Ordering {
+    match key {
+        "ip" => order::ip(&a.ip, &b.ip),
+        "hostname" => order::opt_text(a.hostname.as_deref(), b.hostname.as_deref()),
+        "vendor" => order::opt_text(a.vendor.as_deref(), b.vendor.as_deref()),
+        "type" => order::text(
+            device_type_badge(&a.device_type).0,
+            device_type_badge(&b.device_type).0,
+        ),
+        // By how many ports answer, then by the lowest of them.
+        "ports" => a
+            .open_ports
+            .len()
+            .cmp(&b.open_ports.len())
+            .then_with(|| a.open_ports.cmp(&b.open_ports)),
+        "last_seen" => a.last_seen.cmp(&b.last_seen),
+        _ => std::cmp::Ordering::Equal,
+    }
+}
+
 fn device_type_badge(device_type: &str) -> (&str, egui::Color32) {
     match device_type {
         "router" => ("ROUTEUR", theme::ACCENT),
@@ -689,7 +789,7 @@ fn device_type_badge(device_type: &str) -> (&str, egui::Color32) {
         "printer" => ("IMPRIMANTE", theme::INFO),
         "iot" => ("IOT", theme::WARNING),
         "phone" => ("TÉLÉPHONE", theme::accent_text()),
-        "switch" => ("SWITCH", theme::INFO),
+        "switch" => ("COMMUTATEUR", theme::INFO),
         _ => ("INCONNU", theme::WARNING),
     }
 }

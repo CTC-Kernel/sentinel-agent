@@ -79,13 +79,13 @@ async fn test_schema_version_after_open_equals_current() {
     );
 }
 
-/// `CURRENT_SCHEMA_VERSION` must equal 12 (the last migration declared).
+/// `CURRENT_SCHEMA_VERSION` must equal 14 (the last migration declared).
 /// This test fails loudly if a migration is added without updating constants.
 #[test]
-fn test_current_schema_version_constant_is_twelve() {
+fn test_current_schema_version_constant_is_fourteen() {
     assert_eq!(
-        CURRENT_SCHEMA_VERSION, 12,
-        "CURRENT_SCHEMA_VERSION should be 12; update this test if a migration is added"
+        CURRENT_SCHEMA_VERSION, 14,
+        "CURRENT_SCHEMA_VERSION should be 14; update this test if a migration is added"
     );
 }
 
@@ -111,7 +111,7 @@ fn test_migrations_idempotent_on_unencrypted_conn() {
     assert_eq!(v, CURRENT_SCHEMA_VERSION);
 }
 
-/// All 12 migrations must be recorded in schema_version after a fresh run.
+/// All 14 migrations must be recorded in schema_version after a fresh run.
 #[test]
 fn test_all_migrations_recorded() {
     let dir = TempDir::new().unwrap();
@@ -124,8 +124,8 @@ fn test_all_migrations_recorded() {
 
     assert_eq!(
         applied.len(),
-        12,
-        "Expected 12 applied migrations, got {}",
+        14,
+        "Expected 14 applied migrations, got {}",
         applied.len()
     );
 
@@ -142,6 +142,8 @@ fn test_all_migrations_recorded() {
         "command_result_outbox_and_webhook_columns",
         "software_inventory_restore_primary_key",
         "webhook_deliveries",
+        "playbook_triggers",
+        "mdm_deployments",
     ];
 
     for (i, name) in expected_names.iter().enumerate() {

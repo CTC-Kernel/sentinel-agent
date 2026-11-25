@@ -10,10 +10,54 @@ use std::sync::Arc;
 
 use agent_core::playbook_engine::{ActionResult, ResolvedAction};
 
+use super::grc::{NOT_QUEUED, NOT_STORED, report_no_database, report_not_saved};
 use super::{CommandContext, expected};
+
+/// Send the playbooks back as the database holds them, with the count of
+/// their runs: after a change that could not be written, the page shows
+/// what is really kept instead of what it had assumed.
+async fn resend_playbooks(
+    db: &agent_storage::Database,
+    events: &std::sync::mpsc::Sender<AgentEvent>,
+) {
+    match agent_storage::repositories::grc::PlaybookRepository::new(db)
+        .get_all()
+        .await
+    {
+        Ok(stored) => {
+            let playbooks = agent_core::threat_pipeline::with_trigger_status(
+                db,
+                agent_core::threat_pipeline::stored_playbooks_to_dto(&stored),
+            )
+            .await;
+            let _ = events.send(AgentEvent::PlaybooksLoaded { playbooks });
+        }
+        Err(e) => warn!("Playbooks not reloaded: {}", e),
+    }
+}
+
+/// Send the detection rules back as the database holds them.
+async fn resend_detection_rules(
+    db: &agent_storage::Database,
+    events: &std::sync::mpsc::Sender<AgentEvent>,
+) {
+    match agent_core::default_rules::load_rules(db).await {
+        Ok(rules) => {
+            let _ = events.send(AgentEvent::DetectionRulesLoaded { rules });
+        }
+        Err(e) => warn!("Detection rules not reloaded: {}", e),
+    }
+}
 
 /// Run one command of this group.
 pub(crate) async fn handle(ctx: &mut CommandContext, command: GuiCommand) {
+    // Playbooks and rules live in the local database. Without it the
+    // handlers did nothing and said nothing, while the page had already
+    // shown the change as made.
+    if ctx.db.is_none() {
+        report_no_database(&ctx.events);
+        return;
+    }
     match command {
         GuiCommand::ExecutePlaybook { playbook_id } => execute_playbook(ctx, playbook_id).await,
         GuiCommand::TogglePlaybook {
@@ -45,7 +89,19 @@ async fn execute_playbook(ctx: &mut CommandContext, playbook_id: String) {
                 Some(playbook) => {
                     run_playbook_manually(playbook, db_clone, tx, sync_client_clone).await;
                 }
-                None => warn!("Cannot execute playbook '{}': not found in database", pid),
+                None => {
+                    warn!("Cannot execute playbook '{}': not found in database", pid);
+                    let _ = tx.send(AgentEvent::Notification {
+                        notification: agent_gui::dto::GuiNotification::error(
+                            "Playbook introuvable",
+                            "Le playbook n'a pas \u{00e9}t\u{00e9} ex\u{00e9}cut\u{00e9} : il n'est pas \
+                             enregistr\u{00e9} sur ce poste. La liste a \u{00e9}t\u{00e9} recharg\u{00e9}e.",
+                        ),
+                    });
+                    if let Some(db) = db_clone.as_ref() {
+                        resend_playbooks(db, &tx).await;
+                    }
+                }
             }
         });
 }
@@ -185,7 +241,7 @@ fn manual_log_entry(
     let actions_executed: Vec<String> = results.iter().map(|r| r.action.clone()).collect();
     let all_success = !results.is_empty() && results.iter().all(|r| r.success);
     let first_error = if results.is_empty() {
-        Some("No executable action resolved for the configured playbook".to_string())
+        Some(agent_core::playbook_engine::NO_ACTION_RESOLVED.to_string())
     } else {
         results
             .iter()
@@ -198,7 +254,7 @@ fn manual_log_entry(
         playbook_id: playbook.id.clone(),
         playbook_name: playbook.name.clone(),
         triggered_at: chrono::Utc::now(),
-        trigger_event: "Manual execution".to_string(),
+        trigger_event: agent_core::playbook_engine::MANUAL_TRIGGER.to_string(),
         actions_executed,
         success: all_success,
         error: first_error,
@@ -232,6 +288,11 @@ async fn run_playbook_manually(
 
     // Build playbook log entry
     let log_entry = manual_log_entry(&playbook, &results);
+    // Counted like an automatic run, so the count survives a restart.
+    if let Some(ref db) = db {
+        agent_core::threat_pipeline::record_playbook_triggers(db, std::slice::from_ref(&log_entry))
+            .await;
+    }
 
     // Sync playbook log to platform
     if let Some(ref client) = sync_client {
@@ -266,6 +327,7 @@ async fn toggle_playbook(ctx: &mut CommandContext, playbook_id: String, enabled:
     if let Some(ref db_arc) = ctx.db {
         let db_clone = std::sync::Arc::clone(db_arc);
         let pid = playbook_id.clone();
+        let tx = ctx.events.clone();
         ctx.tasks
             .spawn_expected("toggle playbook", expected::SHORT, async move {
                 let repo = agent_storage::repositories::grc::PlaybookRepository::new(&db_clone);
@@ -276,11 +338,14 @@ async fn toggle_playbook(ctx: &mut CommandContext, playbook_id: String, enabled:
                             pb.synced = false;
                             if let Err(e) = repo.upsert(&pb).await {
                                 warn!("Failed to persist playbook toggle: {}", e);
+                                report_not_saved(&tx, "Le playbook", NOT_STORED, &e);
+                                resend_playbooks(&db_clone, &tx).await;
                             }
                         }
                     }
                     Err(e) => {
                         warn!("Failed to load playbooks for toggle: {}", e);
+                        report_not_saved(&tx, "Le playbook", NOT_STORED, &e);
                     }
                 }
             });
@@ -326,6 +391,7 @@ async fn save_playbook(ctx: &mut CommandContext, playbook: Box<agent_gui::dto::P
         let db_clone = std::sync::Arc::clone(db_arc);
         let pb_clone = playbook.clone();
         let payload_clone = payload.clone();
+        let tx = ctx.events.clone();
         ctx.tasks
             .spawn_expected("save playbook", expected::SHORT, async move {
                 let now = chrono::Utc::now().to_rfc3339();
@@ -346,6 +412,8 @@ async fn save_playbook(ctx: &mut CommandContext, playbook: Box<agent_gui::dto::P
                 let repo = agent_storage::repositories::grc::PlaybookRepository::new(&db_clone);
                 if let Err(e) = repo.upsert(&stored).await {
                     warn!("Failed to persist playbook to SQLite: {}", e);
+                    report_not_saved(&tx, "Le playbook", NOT_STORED, &e);
+                    resend_playbooks(&db_clone, &tx).await;
                 }
                 if let Ok(json) = serde_json::to_string(&payload_clone) {
                     let repo2 = agent_storage::SyncQueueRepository::new(&db_clone);
@@ -354,7 +422,10 @@ async fn save_playbook(ctx: &mut CommandContext, playbook: Box<agent_gui::dto::P
                         pb_clone.id.to_string(),
                         json,
                     );
-                    let _ = repo2.enqueue(&entry).await;
+                    if let Err(e) = repo2.enqueue(&entry).await {
+                        warn!("Failed to queue playbook for sync: {}", e);
+                        report_not_saved(&tx, "Le playbook", NOT_QUEUED, &e);
+                    }
                 }
             });
     }
@@ -368,6 +439,7 @@ async fn delete_playbook(ctx: &mut CommandContext, playbook_id: String) {
     );
     if let Some(ref db_arc) = ctx.db {
         let db = std::sync::Arc::clone(db_arc);
+        let tx = ctx.events.clone();
         ctx.tasks
             .spawn_expected("delete playbook", expected::SHORT, async move {
                 let queue = agent_storage::SyncQueueRepository::new(&db);
@@ -376,6 +448,10 @@ async fn delete_playbook(ctx: &mut CommandContext, playbook_id: String) {
                     .await
                 {
                     warn!("Failed to persist EDR deletion: {}", e);
+                    // The page already removed it: say it is still there,
+                    // and show it again.
+                    report_not_saved(&tx, "La suppression du playbook", NOT_STORED, &e);
+                    resend_playbooks(&db, &tx).await;
                 }
             });
     }
@@ -389,6 +465,7 @@ async fn save_detection_rule(ctx: &mut CommandContext, rule: Box<agent_gui::dto:
         let db_clone = std::sync::Arc::clone(db_arc);
         let rule_clone = rule.clone();
         let payload_clone = payload.clone();
+        let tx = ctx.events.clone();
         ctx.tasks
             .spawn_expected("save detection rule", expected::SHORT, async move {
                 let stored = agent_core::threat_pipeline::rule_to_stored(&rule_clone, false);
@@ -396,6 +473,8 @@ async fn save_detection_rule(ctx: &mut CommandContext, rule: Box<agent_gui::dto:
                     agent_storage::repositories::grc::DetectionRuleRepository::new(&db_clone);
                 if let Err(e) = repo.upsert(&stored).await {
                     warn!("Failed to persist detection rule to SQLite: {}", e);
+                    report_not_saved(&tx, "La r\u{00e8}gle de d\u{00e9}tection", NOT_STORED, &e);
+                    resend_detection_rules(&db_clone, &tx).await;
                 }
                 if let Ok(json) = serde_json::to_string(&payload_clone) {
                     let repo2 = agent_storage::SyncQueueRepository::new(&db_clone);
@@ -404,7 +483,15 @@ async fn save_detection_rule(ctx: &mut CommandContext, rule: Box<agent_gui::dto:
                         rule_clone.id.to_string(),
                         json,
                     );
-                    let _ = repo2.enqueue(&entry).await;
+                    if let Err(e) = repo2.enqueue(&entry).await {
+                        warn!("Failed to queue detection rule for sync: {}", e);
+                        report_not_saved(
+                            &tx,
+                            "La r\u{00e8}gle de d\u{00e9}tection",
+                            NOT_QUEUED,
+                            &e,
+                        );
+                    }
                 }
             });
     }
@@ -448,6 +535,7 @@ async fn delete_detection_rule(ctx: &mut CommandContext, rule_id: String) {
     );
     if let Some(ref db_arc) = ctx.db {
         let db = std::sync::Arc::clone(db_arc);
+        let tx = ctx.events.clone();
         ctx.tasks
             .spawn_expected("delete detection rule", expected::SHORT, async move {
                 let queue = agent_storage::SyncQueueRepository::new(&db);
@@ -456,6 +544,13 @@ async fn delete_detection_rule(ctx: &mut CommandContext, rule_id: String) {
                     .await
                 {
                     warn!("Failed to persist EDR deletion: {}", e);
+                    report_not_saved(
+                        &tx,
+                        "La suppression de la r\u{00e8}gle de d\u{00e9}tection",
+                        NOT_STORED,
+                        &e,
+                    );
+                    resend_detection_rules(&db, &tx).await;
                 }
             });
     }
@@ -471,6 +566,7 @@ async fn toggle_detection_rule(ctx: &mut CommandContext, rule_id: String, enable
     if let Some(ref db_arc) = ctx.db {
         let db_clone = std::sync::Arc::clone(db_arc);
         let rid = rule_id.clone();
+        let tx = ctx.events.clone();
         ctx.tasks
             .spawn_expected("toggle detection rule", expected::SHORT, async move {
                 let repo =
@@ -482,6 +578,13 @@ async fn toggle_detection_rule(ctx: &mut CommandContext, rule_id: String, enable
                             rule.synced = false;
                             if let Err(e) = repo.upsert(&rule).await {
                                 warn!("Failed to persist detection rule toggle: {}", e);
+                                report_not_saved(
+                                    &tx,
+                                    "La r\u{00e8}gle de d\u{00e9}tection",
+                                    NOT_STORED,
+                                    &e,
+                                );
+                                resend_detection_rules(&db_clone, &tx).await;
                             }
                             // Queue for remote sync
                             let payload = agent_sync::types::DetectionRulePayload {
@@ -514,7 +617,15 @@ async fn toggle_detection_rule(ctx: &mut CommandContext, rule_id: String, enable
                             }
                         }
                     }
-                    Err(e) => warn!("Failed to load detection rules for toggle: {}", e),
+                    Err(e) => {
+                        warn!("Failed to load detection rules for toggle: {}", e);
+                        report_not_saved(
+                            &tx,
+                            "La r\u{00e8}gle de d\u{00e9}tection",
+                            NOT_STORED,
+                            &e,
+                        );
+                    }
                 }
             });
     }
@@ -640,7 +751,7 @@ mod tests {
         assert!(ok.success);
         assert_eq!(ok.error, None);
         assert_eq!(ok.actions_executed, ["kill_process", "notify"]);
-        assert_eq!(ok.trigger_event, "Manual execution");
+        assert_eq!(ok.trigger_event, "Exécution manuelle");
         assert_eq!(ok.playbook_id, "pb-1");
 
         let failed = manual_log_entry(
@@ -660,12 +771,180 @@ mod tests {
         assert!(!entry.success);
         assert_eq!(
             entry.error.as_deref(),
-            Some("No executable action resolved for the configured playbook")
+            Some(agent_core::playbook_engine::NO_ACTION_RESOLVED)
         );
     }
 
     #[tokio::test]
     async fn without_a_database_there_is_no_playbook_to_load() {
         assert!(load_playbook(None, "pb-1").await.is_none());
+    }
+
+    use agent_storage::{Database, DatabaseConfig, KeyManager};
+
+    fn context_with_database() -> (
+        CommandContext,
+        std::sync::mpsc::Receiver<AgentEvent>,
+        Arc<Database>,
+        tempfile::TempDir,
+    ) {
+        let dir = tempfile::tempdir().unwrap();
+        let key = KeyManager::new_with_key(b"01234567890123456789012345678901");
+        let db = Arc::new(
+            Database::open(DatabaseConfig::with_path(dir.path().join("test.db")), &key).unwrap(),
+        );
+        let (mut ctx, events) = crate::gui_commands::testing::context();
+        ctx.db = Some(Arc::clone(&db));
+        (ctx, events, db, dir)
+    }
+
+    /// The events sent until `wanted` of them arrived (the handlers work
+    /// in tasks of their own).
+    async fn events_until(
+        events: &std::sync::mpsc::Receiver<AgentEvent>,
+        wanted: usize,
+    ) -> Vec<AgentEvent> {
+        let mut received = Vec::new();
+        for _ in 0..500 {
+            received.extend(events.try_iter());
+            if received.len() >= wanted {
+                break;
+            }
+            tokio::time::sleep(std::time::Duration::from_millis(10)).await;
+        }
+        received
+    }
+
+    fn is_error_titled(event: &AgentEvent, title: &str) -> bool {
+        matches!(
+            event,
+            AgentEvent::Notification { notification }
+                if notification.severity == "error" && notification.title == title
+        )
+    }
+
+    /// Without a database the handlers returned without a word, the page
+    /// having already shown the change as made.
+    #[tokio::test]
+    async fn without_a_database_the_operator_is_told_nothing_was_saved() {
+        let (mut ctx, events) = crate::gui_commands::testing::context();
+
+        handle(
+            &mut ctx,
+            GuiCommand::DeletePlaybook {
+                playbook_id: "pb-1".to_string(),
+            },
+        )
+        .await;
+
+        let received = events_until(&events, 1).await;
+        assert!(is_error_titled(&received[0], "Base locale indisponible"));
+    }
+
+    #[tokio::test]
+    async fn a_deletion_that_fails_is_reported_and_the_playbook_is_shown_again() {
+        let (mut ctx, events, db, _dir) = context_with_database();
+        let pb = playbook(&[(PlaybookActionType::CreateNotification, "Poste contenu")]);
+        save_playbook(&mut ctx, Box::new(pb.clone())).await;
+        // Wait for the save, then make the deletion impossible.
+        for _ in 0..500 {
+            if load_playbook(Some(&db), &pb.id).await.is_some() {
+                break;
+            }
+            tokio::time::sleep(std::time::Duration::from_millis(10)).await;
+        }
+        db.with_connection(|conn| {
+            conn.execute_batch("DROP TABLE sync_queue;")
+                .map_err(|e| agent_storage::StorageError::Query(e.to_string()))
+        })
+        .await
+        .unwrap();
+        while events.try_recv().is_ok() {}
+
+        handle(
+            &mut ctx,
+            GuiCommand::DeletePlaybook {
+                playbook_id: pb.id.clone(),
+            },
+        )
+        .await;
+
+        let received = events_until(&events, 2).await;
+        assert!(
+            received.iter().any(|event| is_error_titled(
+                event,
+                "La suppression du playbook : enregistrement incomplet"
+            )),
+            "the failure is reported"
+        );
+        assert!(
+            received.iter().any(|event| matches!(
+                event,
+                AgentEvent::PlaybooksLoaded { playbooks }
+                    if playbooks.iter().any(|listed| listed.id == pb.id)
+            )),
+            "the playbook, still stored, is listed again"
+        );
+    }
+
+    /// A playbook the database does not hold: the run was dropped with a
+    /// line in the log, and nothing on screen.
+    #[tokio::test]
+    async fn running_a_playbook_that_is_not_stored_says_so() {
+        let (mut ctx, events, _db, _dir) = context_with_database();
+
+        handle(
+            &mut ctx,
+            GuiCommand::ExecutePlaybook {
+                playbook_id: "pb-unknown".to_string(),
+            },
+        )
+        .await;
+
+        let received = events_until(&events, 2).await;
+        assert!(
+            received
+                .iter()
+                .any(|event| is_error_titled(event, "Playbook introuvable"))
+        );
+        assert!(
+            received
+                .iter()
+                .any(|event| matches!(event, AgentEvent::PlaybooksLoaded { .. }))
+        );
+    }
+
+    /// A manual run counts like an automatic one, and the count is what
+    /// the list shows after a restart.
+    #[tokio::test]
+    async fn a_manual_run_is_counted_in_the_database() {
+        let (_ctx, events, db, _dir) = context_with_database();
+        let pb = playbook(&[(PlaybookActionType::CreateNotification, "Poste contenu")]);
+        let (tx, _unused) = std::sync::mpsc::channel();
+        let _ = events;
+
+        run_playbook_manually(pb.clone(), Some(Arc::clone(&db)), tx, None).await;
+
+        // Counted even though the playbook itself is not stored here: the
+        // status is listed for stored playbooks only.
+        agent_storage::repositories::grc::PlaybookRepository::new(&db)
+            .upsert(&agent_storage::repositories::grc::StoredPlaybook {
+                id: pb.id.clone(),
+                name: pb.name.clone(),
+                description: String::new(),
+                trigger_type: "general".to_string(),
+                severity: "medium".to_string(),
+                steps: "[]".to_string(),
+                enabled: true,
+                created_at: chrono::Utc::now().to_rfc3339(),
+                updated_at: chrono::Utc::now().to_rfc3339(),
+                synced: false,
+                conditions: "[]".to_string(),
+            })
+            .await
+            .unwrap();
+        let listed = agent_core::threat_pipeline::with_trigger_status(&db, vec![pb.clone()]).await;
+        assert_eq!(listed[0].trigger_count, 1);
+        assert!(listed[0].last_triggered.is_some());
     }
 }

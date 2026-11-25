@@ -15,6 +15,72 @@ use crate::widgets;
 
 pub struct FimPage;
 
+/// Why acknowledging an integrity alert needs the administrator mode. One
+/// rule for every place that acknowledges one (this page, the threat views).
+pub(crate) const ACKNOWLEDGE_REASON: &str = "Acquitter une alerte d'intégrité";
+
+/// Status filters of the alerts table: key kept in the state, chip label.
+const STATUS_FILTERS: &[(&str, &str)] = &[
+    ("todo", "À traiter"),
+    ("acknowledged", "Acquittées"),
+    ("authorized", "Autorisées"),
+];
+
+/// Name of the alerts table, under which its sort order is kept.
+const ALERTS_TABLE: &str = "fim_alerts";
+
+/// Workflow rank of an alert: to triage, then acknowledged, then authorized.
+fn status_rank(alert: &crate::dto::GuiFimAlert) -> u8 {
+    if alert.allowlisted {
+        2
+    } else if alert.acknowledged {
+        1
+    } else {
+        0
+    }
+}
+
+/// Ascending order of two alerts on a column of the table.
+fn alert_order(
+    key: &str,
+    a: &crate::dto::GuiFimAlert,
+    b: &crate::dto::GuiFimAlert,
+) -> std::cmp::Ordering {
+    match key {
+        "type" => FimPage::change_type_display(&a.change_type)
+            .0
+            .cmp(FimPage::change_type_display(&b.change_type).0),
+        "path" => a.path.to_lowercase().cmp(&b.path.to_lowercase()),
+        "date" => a.timestamp.cmp(&b.timestamp),
+        "status" => status_rank(a).cmp(&status_rank(b)),
+        _ => std::cmp::Ordering::Equal,
+    }
+}
+
+/// Still to triage: neither acknowledged nor covered by an authorization.
+fn is_active(alert: &crate::dto::GuiFimAlert) -> bool {
+    !alert.acknowledged && !alert.allowlisted
+}
+
+/// Whether an alert passes a status filter (`None`: every alert).
+fn matches_status(alert: &crate::dto::GuiFimAlert, filter: Option<&str>) -> bool {
+    match filter {
+        Some("todo") => is_active(alert),
+        Some("acknowledged") => alert.acknowledged && !alert.allowlisted,
+        Some("authorized") => alert.allowlisted,
+        _ => true,
+    }
+}
+
+/// Whether an alert matches the text typed: its path, what changed, who did.
+fn matches_search(alert: &crate::dto::GuiFimAlert, search_lower: &str) -> bool {
+    let contains = |text: &str| text.to_lowercase().contains(search_lower);
+    contains(&alert.path)
+        || alert.detail.as_deref().is_some_and(contains)
+        || alert.actor.as_deref().is_some_and(contains)
+        || alert.sha256.as_deref().is_some_and(contains)
+}
+
 impl FimPage {
     pub fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
         let mut command = None;
@@ -33,15 +99,12 @@ impl FimPage {
         crate::pages::security_navigation(ui, state);
         ui.add_space(theme::SPACE_MD);
 
-        // ── Summary cards (AAA Grade) ───────────────────────────────────
+        // ── Summary cards ───────────────────────────────────────────────
         {
-            let unacked: String = state
-                .fim
-                .alerts
-                .iter()
-                .filter(|a| !a.acknowledged)
-                .count()
-                .to_string();
+            // Active: still to triage. An alert acknowledged, or on a path
+            // covered by an authorization, is handled.
+            let active = state.fim.alerts.iter().filter(|a| is_active(a)).count();
+            let handled = state.fim.alerts.len() - active;
             let items: Vec<(&str, String, egui::Color32, &str)> = vec![
                 (
                     "FICHIERS SURVEILLÉS",
@@ -57,11 +120,20 @@ impl FimPage {
                 ),
                 (
                     "ALERTES ACTIVES",
-                    state.fim.alerts.len().to_string(),
-                    theme::ERROR,
+                    active.to_string(),
+                    if active > 0 {
+                        theme::ERROR
+                    } else {
+                        theme::text_tertiary()
+                    },
                     icons::WARNING,
                 ),
-                ("NON ACQUITTÉES", unacked, theme::ACCENT, icons::CLOCK),
+                (
+                    "ACQUITTÉES OU AUTORISÉES",
+                    handled.to_string(),
+                    theme::ACCENT,
+                    icons::CIRCLE_CHECK,
+                ),
             ];
 
             let grid = widgets::ResponsiveGrid::new(200.0, theme::SPACE_SM);
@@ -81,7 +153,7 @@ impl FimPage {
 
         ui.add_space(theme::SPACE_MD);
 
-        // ── Alerts table (AAA Grade) ─────────────────────────────────────
+        // ── Alerts table ────────────────────────────────────────────────
         if state.fim.alerts.is_empty() {
             // No alert is not proof the watch works: say what is known.
             let monitored = state.fim.monitored_count;
@@ -104,59 +176,113 @@ impl FimPage {
                 ui,
                 "Alertes d’intégrité des fichiers",
                 |ui: &mut egui::Ui| {
-                    ui.horizontal(|ui: &mut egui::Ui| {
-                        ui.label(
-                            egui::RichText::new("ALERTES FIM RÉCENTES")
-                                .font(theme::font_label())
-                                .color(theme::text_secondary())
-                                .extra_letter_spacing(theme::TRACKING_NORMAL)
-                                .strong(),
+                    // ── Search, status filter, export ──
+                    let previous = (state.fim.search.clone(), state.fim.filter.clone());
+                    let mut export_clicked = false;
+                    ui.horizontal_wrapped(|ui: &mut egui::Ui| {
+                        widgets::search_input(
+                            ui,
+                            &mut state.fim.search,
+                            "Rechercher un chemin, un auteur\u{2026}",
                         );
+                        ui.add_space(theme::SPACE_SM);
+                        for (key, label) in STATUS_FILTERS {
+                            let count = state
+                                .fim
+                                .alerts
+                                .iter()
+                                .filter(|a| matches_status(a, Some(key)))
+                                .count();
+                            let active = state.fim.filter.as_deref() == Some(*key);
+                            if widgets::chip_button(
+                                ui,
+                                &format!("{label} ({count})"),
+                                active,
+                                theme::ACCENT,
+                            )
+                            .clicked()
+                            {
+                                state.fim.filter = (!active).then(|| (*key).to_string());
+                            }
+                        }
                         ui.with_layout(
                             egui::Layout::right_to_left(egui::Align::Center),
                             |ui: &mut egui::Ui| {
-                                if widgets::ghost_button(ui, format!("{}  CSV", icons::DOWNLOAD))
-                                    .clicked()
-                                {
-                                    let all_indices: Vec<usize> =
-                                        (0..state.fim.alerts.len()).collect();
-                                    let toast = if Self::export_events_csv(state, &all_indices) {
-                                        crate::widgets::toast::Toast::success(
-                                            "Alertes FIM export\u{00e9}es en CSV",
-                                        )
-                                    } else {
-                                        crate::widgets::toast::Toast::error(
-                                            "\u{00c9}chec de l'export CSV des alertes FIM",
-                                        )
-                                    };
-                                    state.push_toast(toast, ui.ctx());
-                                }
+                                export_clicked =
+                                    widgets::ghost_button(ui, format!("{}  CSV", icons::DOWNLOAD))
+                                        .on_hover_text("Exporter les alertes affichées")
+                                        .clicked();
                             },
                         );
                     });
+                    if previous != (state.fim.search.clone(), state.fim.filter.clone()) {
+                        // Rows are addressed by position in what is shown.
+                        state.fim.page = 0;
+                        state.fim.selected_alert = None;
+                        state.fim.detail_open = false;
+                    }
+
+                    // Indices, in `state.fim.alerts`, of the alerts shown.
+                    let search = state.fim.search.trim().to_lowercase();
+                    let mut shown: Vec<usize> = state
+                        .fim
+                        .alerts
+                        .iter()
+                        .enumerate()
+                        .filter(|(_, a)| matches_status(a, state.fim.filter.as_deref()))
+                        .filter(|(_, a)| search.is_empty() || matches_search(a, &search))
+                        .map(|(i, _)| i)
+                        .collect();
+                    // Ordered as the header asks, before paging; the export
+                    // follows what is displayed.
+                    let sort = widgets::table::sort_of(ui.ctx(), ALERTS_TABLE);
+                    if let Some(key) = widgets::table::sort_key(&sort) {
+                        shown.sort_by(|&a, &b| {
+                            widgets::table::directed(
+                                &sort,
+                                alert_order(key, &state.fim.alerts[a], &state.fim.alerts[b]),
+                            )
+                        });
+                    }
+
+                    if export_clicked {
+                        let toast = match Self::export_events_csv(state, &shown) {
+                            Ok(path) => crate::widgets::toast::Toast::success(format!(
+                                "Alertes FIM export\u{00e9}es : {}",
+                                path.display()
+                            )),
+                            Err(()) => crate::widgets::toast::Toast::error(
+                                "\u{00c9}chec de l'export CSV des alertes FIM",
+                            ),
+                        };
+                        state.push_toast(toast, ui.ctx());
+                    }
 
                     ui.add_space(theme::SPACE_MD);
 
-                    // Collect ack commands before the table (borrow-safe)
-                    let alert_ids: Vec<String> =
-                        state.fim.alerts.iter().map(|a| a.id.clone()).collect();
-                    let alert_acked: Vec<bool> =
-                        state.fim.alerts.iter().map(|a| a.acknowledged).collect();
+                    if shown.is_empty() {
+                        widgets::empty_state(
+                            ui,
+                            icons::FILTER,
+                            "Aucune alerte ne correspond",
+                            Some("Changez le filtre ou la recherche."),
+                        );
+                        return;
+                    }
+
                     let admin_unlocked = state.security.admin_unlocked;
                     let mut ack_command = None;
                     let mut unlock_requested = false;
 
                     const FIM_PER_PAGE: usize = 50;
-                    let (fim_start, fim_len, _) = widgets::page_window(
-                        state.fim.alerts.len(),
-                        FIM_PER_PAGE,
-                        &mut state.fim.page,
-                    );
+                    let (fim_start, fim_len, _) =
+                        widgets::page_window(shown.len(), FIM_PER_PAGE, &mut state.fim.page);
 
                     use widgets::table;
 
                     let selected = state.fim.selected_alert;
                     let mut clicked_row: Option<usize> = None;
+                    let mut sort_changed = false;
 
                     table::fluid_clickable(
                         ui,
@@ -168,22 +294,23 @@ impl FimPage {
                         ],
                     )
                     .header(theme::TABLE_HEADER_HEIGHT, |mut header| {
-                        header.col(|ui: &mut egui::Ui| {
-                            table::header_cell(ui, "TYPE");
-                        });
-                        header.col(|ui: &mut egui::Ui| {
-                            table::header_cell(ui, "CHEMIN");
-                        });
-                        header.col(|ui: &mut egui::Ui| {
-                            table::header_cell(ui, "DATE");
-                        });
-                        header.col(|ui: &mut egui::Ui| {
-                            table::header_cell(ui, "STATUT");
-                        });
+                        for (label, key) in [
+                            ("TYPE", "type"),
+                            ("CHEMIN", "path"),
+                            ("DATE", "date"),
+                            ("STATUT", "status"),
+                        ] {
+                            header.col(|ui: &mut egui::Ui| {
+                                sort_changed |=
+                                    table::header_cell_sortable(ui, label, ALERTS_TABLE, key);
+                            });
+                        }
                     })
                     .body(|body| {
                         body.rows(theme::TABLE_DATA_ROW_HEIGHT, fim_len, |mut row| {
-                            let idx = fim_start + row.index();
+                            let Some(&idx) = shown.get(fim_start + row.index()) else {
+                                return;
+                            };
                             let Some(alert) = state.fim.alerts.get(idx) else {
                                 return;
                             };
@@ -215,7 +342,14 @@ impl FimPage {
                             });
 
                             row.col(|ui: &mut egui::Ui| {
-                                if alert_acked[idx] {
+                                // An authorized path has nothing to
+                                // acknowledge: the exception already covers it.
+                                if alert.allowlisted {
+                                    table::cell_muted(
+                                        ui,
+                                        &format!("{}  AUTORIS\u{00c9}", icons::SHIELD_CHECK),
+                                    );
+                                } else if alert.acknowledged {
                                     table::cell_muted(
                                         ui,
                                         &format!("{}  ACQUITT\u{00c9}", icons::CIRCLE_CHECK),
@@ -254,24 +388,29 @@ impl FimPage {
                         state.fim.selected_alert = Some(idx);
                         state.fim.detail_open = true;
                     }
+                    if sort_changed {
+                        state.fim.page = 0;
+                    }
 
                     // Keyboard: ↑/↓ walk the displayed order, Enter opens the drawer.
-                    let mut position = state.fim.selected_alert;
+                    let mut position = state
+                        .fim
+                        .selected_alert
+                        .and_then(|sel| shown.iter().position(|&i| i == sel));
                     if widgets::navigate_list(
                         ui.ctx(),
                         &mut position,
-                        state.fim.alerts.len(),
+                        shown.len(),
                         &mut state.fim.detail_open,
                     ) && let Some(pos) = position
+                        && let Some(&idx) = shown.get(pos)
                     {
-                        state.fim.selected_alert = Some(pos);
+                        state.fim.selected_alert = Some(idx);
                         state.fim.page = pos / FIM_PER_PAGE;
                     }
 
                     if unlock_requested {
-                        state
-                            .security
-                            .request_unlock("Acquitter une alerte d'intégrité");
+                        state.security.request_unlock(ACKNOWLEDGE_REASON);
                     }
 
                     // Apply acknowledgment after the table
@@ -280,7 +419,7 @@ impl FimPage {
                     {
                         let alert = &state.fim.alerts[idx];
                         command = Some(GuiCommand::AcknowledgeFimAlert {
-                            alert_id: alert_ids[idx].clone(),
+                            alert_id: alert.id.clone(),
                             path: alert.path.clone(),
                             timestamp: alert.timestamp,
                         });
@@ -288,14 +427,13 @@ impl FimPage {
                         if state.fim.selected_alert == Some(idx) {
                             state.fim.detail_open = false;
                         }
+                        state.push_toast(
+                            widgets::toast::Toast::success("Alerte FIM acquitt\u{00e9}e"),
+                            ui.ctx(),
+                        );
                     }
 
-                    widgets::paginate_controls(
-                        ui,
-                        state.fim.alerts.len(),
-                        FIM_PER_PAGE,
-                        &mut state.fim.page,
-                    );
+                    widgets::paginate_controls(ui, shown.len(), FIM_PER_PAGE, &mut state.fim.page);
                 },
             );
         }
@@ -308,8 +446,9 @@ impl FimPage {
         {
             let alert = state.fim.alerts[sel].clone();
             let (type_label, type_color) = Self::change_type_display(&alert.change_type);
+            let can_acknowledge = is_active(&alert);
             let mut actions = Vec::new();
-            if !alert.acknowledged {
+            if can_acknowledge {
                 actions.push(widgets::DetailAction::primary("Acquitter", icons::CHECK));
             }
             actions.push(widgets::DetailAction::secondary(
@@ -363,52 +502,47 @@ impl FimPage {
                         }
 
                         widgets::detail_section(ui, "STATUT");
-                        if alert.acknowledged {
-                            widgets::detail_field_badge(
-                                ui,
-                                "Acquitt\u{00e9}e",
-                                "OUI",
-                                theme::SUCCESS,
-                            );
+                        let (status, color) = if alert.allowlisted {
+                            ("Autoris\u{00e9}e (exception)", theme::INFO)
+                        } else if alert.acknowledged {
+                            ("Acquitt\u{00e9}e", theme::SUCCESS)
                         } else {
-                            widgets::detail_field_badge(
-                                ui,
-                                "Acquitt\u{00e9}e",
-                                "NON",
-                                theme::WARNING,
-                            );
-                        }
+                            ("\u{00c0} traiter", theme::WARNING)
+                        };
+                        widgets::detail_field_badge(ui, "\u{00c9}tat", status, color);
                     },
                     &actions,
                 );
 
             if let Some(action_idx) = action {
-                if !alert.acknowledged && action_idx == 0 {
-                    state.acknowledge_threat_item("fim", sel);
-                    let acked = &state.fim.alerts[sel];
-                    command = Some(GuiCommand::AcknowledgeFimAlert {
-                        alert_id: acked.id.clone(),
-                        path: acked.path.clone(),
-                        timestamp: acked.timestamp,
-                    });
-                } else {
-                    let export_idx = if alert.acknowledged { 0 } else { 1 };
-                    if action_idx == export_idx {
-                        let time = ctx.input(|i| i.time);
-                        if Self::export_events_csv(state, &[sel]) {
-                            state.toasts.push(
-                                crate::widgets::toast::Toast::success(
-                                    "Alerte FIM export\u{00e9}e en CSV",
-                                )
-                                .with_time(time),
-                            );
-                        } else {
-                            state.toasts.push(
-                                crate::widgets::toast::Toast::error("\u{00c9}chec de l'export CSV")
-                                    .with_time(time),
-                            );
-                        }
+                if can_acknowledge && action_idx == 0 {
+                    // Administrator mode, as in the table.
+                    if state.require_admin(ACKNOWLEDGE_REASON)
+                        && state.acknowledge_threat_item("fim", sel)
+                    {
+                        let acked = &state.fim.alerts[sel];
+                        command = Some(GuiCommand::AcknowledgeFimAlert {
+                            alert_id: acked.id.clone(),
+                            path: acked.path.clone(),
+                            timestamp: acked.timestamp,
+                        });
+                        state.fim.detail_open = false;
+                        state.push_toast(
+                            widgets::toast::Toast::success("Alerte FIM acquitt\u{00e9}e"),
+                            &ctx,
+                        );
                     }
+                } else {
+                    let toast = match Self::export_events_csv(state, &[sel]) {
+                        Ok(path) => crate::widgets::toast::Toast::success(format!(
+                            "Alerte FIM export\u{00e9}e : {}",
+                            path.display()
+                        )),
+                        Err(()) => {
+                            crate::widgets::toast::Toast::error("\u{00c9}chec de l'export CSV")
+                        }
+                    };
+                    state.push_toast(toast, &ctx);
                 }
             }
         }
@@ -487,7 +621,8 @@ impl FimPage {
         }
     }
 
-    fn export_events_csv(state: &AppState, indices: &[usize]) -> bool {
+    /// Export the alerts at `indices` to CSV. Returns the file written.
+    fn export_events_csv(state: &AppState, indices: &[usize]) -> Result<std::path::PathBuf, ()> {
         let headers = &[
             "chemin",
             "modification",
@@ -505,10 +640,12 @@ impl FimPage {
                     e.path.clone(),
                     e.change_type.to_string(),
                     e.timestamp.to_rfc3339(),
-                    if e.acknowledged {
+                    if e.allowlisted {
+                        "Autorisé"
+                    } else if e.acknowledged {
                         "Acquitté"
                     } else {
-                        "En attente"
+                        "À traiter"
                     }
                     .to_string(),
                     e.detection.to_string(),
@@ -518,14 +655,9 @@ impl FimPage {
             })
             .collect();
 
-        let path = crate::export::default_export_path("fim_alertes.csv");
-        match crate::export::export_csv(headers, &rows, &path) {
-            Ok(_) => true,
-            Err(e) => {
-                tracing::warn!("Export CSV FIM failed: {}", e);
-                false
-            }
-        }
+        crate::export::export_csv_timestamped("fim_alertes", headers, &rows).map_err(|e| {
+            tracing::warn!("Export CSV FIM failed: {}", e);
+        })
     }
 }
 
@@ -621,7 +753,8 @@ fn change_mix(ui: &mut Ui, alerts: &std::collections::VecDeque<crate::dto::GuiFi
 fn triage(ui: &mut Ui, alerts: &std::collections::VecDeque<crate::dto::GuiFimAlert>) {
     fim_column_title(ui, icons::CHECK, "Traitement");
     let total = alerts.len();
-    let acked = alerts.iter().filter(|a| a.acknowledged).count();
+    // Handled: acknowledged, or on a path covered by an authorization.
+    let acked = alerts.iter().filter(|a| !is_active(a)).count();
     let ratio = acked as f32 / total.max(1) as f32;
     let color = if ratio >= 0.8 {
         theme::SUCCESS
@@ -670,7 +803,7 @@ fn triage(ui: &mut Ui, alerts: &std::collections::VecDeque<crate::dto::GuiFimAle
                     .color(theme::text_primary()),
             );
             ui.label(
-                egui::RichText::new("alertes acquittées")
+                egui::RichText::new("alertes acquittées ou autorisées")
                     .font(theme::font_caption())
                     .color(theme::text_secondary()),
             );
@@ -734,5 +867,81 @@ fn week_bars(ui: &mut Ui, alerts: &std::collections::VecDeque<crate::dto::GuiFim
             theme::font_micro(),
             theme::text_tertiary(),
         );
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn alert(path: &str, acknowledged: bool, allowlisted: bool) -> crate::dto::GuiFimAlert {
+        crate::dto::GuiFimAlert {
+            id: path.into(),
+            path: path.into(),
+            change_type: FimChangeType::Modified,
+            old_hash: None,
+            new_hash: None,
+            timestamp: chrono::Utc::now(),
+            acknowledged,
+            allowlisted,
+            detection: Default::default(),
+            sha256: None,
+            detail: None,
+            diff: None,
+            actor: Some("root".into()),
+        }
+    }
+
+    #[test]
+    fn an_acknowledged_or_authorized_alert_is_not_active() {
+        assert!(is_active(&alert("/etc/hosts", false, false)));
+        assert!(!is_active(&alert("/etc/hosts", true, false)));
+        assert!(!is_active(&alert("/etc/hosts", false, true)));
+    }
+
+    #[test]
+    fn each_alert_falls_under_one_status_filter() {
+        let todo = alert("/a", false, false);
+        let acknowledged = alert("/b", true, false);
+        // An authorized alert stays "authorized" once acknowledged too.
+        let authorized = alert("/c", true, true);
+        for (alert, expected) in [
+            (&todo, "todo"),
+            (&acknowledged, "acknowledged"),
+            (&authorized, "authorized"),
+        ] {
+            let matching: Vec<&str> = STATUS_FILTERS
+                .iter()
+                .map(|(key, _)| *key)
+                .filter(|key| matches_status(alert, Some(key)))
+                .collect();
+            assert_eq!(matching, [expected]);
+            assert!(matches_status(alert, None));
+        }
+    }
+
+    #[test]
+    fn alerts_sort_by_meaning_not_by_text() {
+        use std::cmp::Ordering;
+        let mut old = alert("/b", true, true);
+        old.timestamp -= chrono::Duration::hours(1);
+        let recent = alert("/A", false, false);
+        // Chronological, case-insensitive, and by workflow rank.
+        assert_eq!(alert_order("date", &old, &recent), Ordering::Less);
+        assert_eq!(alert_order("path", &recent, &old), Ordering::Less);
+        assert_eq!(alert_order("status", &recent, &old), Ordering::Less);
+        assert_eq!(
+            alert_order("status", &alert("/c", true, false), &old),
+            Ordering::Less
+        );
+        assert_eq!(alert_order("unknown", &old, &recent), Ordering::Equal);
+    }
+
+    #[test]
+    fn the_search_reads_the_path_and_the_author() {
+        let alert = alert("/etc/Sudoers.d/admin", false, false);
+        assert!(matches_search(&alert, "sudoers"));
+        assert!(matches_search(&alert, "root"));
+        assert!(!matches_search(&alert, "passwd"));
     }
 }

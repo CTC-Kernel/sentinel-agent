@@ -16,6 +16,8 @@ struct Editor {
     remove: Option<uuid::Uuid>,
     /// The empty state's call to action: focus the target field next frame.
     focus_target: bool,
+    /// Scroll the form into view on its next frame (edit from a card below).
+    reveal: bool,
 }
 const KINDS: [AllowlistRuleType; 5] = [
     AllowlistRuleType::IpAddress,
@@ -40,6 +42,20 @@ fn valid_pattern(kind: AllowlistRuleType, pattern: &str) -> bool {
         || prefix
             .parse::<u32>()
             .is_ok_and(|n| n <= if ip.is_ipv4() { 32 } else { 128 })
+}
+
+/// Name under which the sort order of the authorizations is kept.
+const RULES_TABLE: &str = "authorizations";
+
+/// Ascending order of two authorizations on a sort key.
+fn rule_order(key: &str, a: &AllowlistRule, b: &AllowlistRule) -> std::cmp::Ordering {
+    use super::types::text_order;
+    match key {
+        "pattern" => text_order(&a.pattern, &b.pattern),
+        "kind" => text_order(a.rule_type.label(), b.rule_type.label()),
+        "date" => a.created_at.cmp(&b.created_at),
+        _ => std::cmp::Ordering::Equal,
+    }
 }
 
 fn kind_icon(kind: AllowlistRuleType) -> &'static str {
@@ -112,8 +128,16 @@ pub(super) fn show(ui: &mut egui::Ui, state: &mut AppState) -> Option<GuiCommand
         );
         ui.add_space(theme::SPACE_SM);
     }
+    if total > 1 {
+        super::types::sort_bar(
+            ui,
+            RULES_TABLE,
+            &[("pattern", "Cible"), ("kind", "Type"), ("date", "Date")],
+        );
+        ui.add_space(theme::SPACE_SM);
+    }
     let query = editor.search.to_lowercase();
-    let rules: Vec<AllowlistRule> = state
+    let mut rules: Vec<AllowlistRule> = state
         .threats
         .allowlist_rules
         .iter()
@@ -124,6 +148,11 @@ pub(super) fn show(ui: &mut egui::Ui, state: &mut AppState) -> Option<GuiCommand
         })
         .cloned()
         .collect();
+    super::types::sort_rows(
+        &mut rules,
+        &widgets::table::sort_of(ui.ctx(), RULES_TABLE),
+        rule_order,
+    );
     if rules.is_empty() {
         widgets::data_card(ui, "Règles d’autorisation", |ui| {
             let (title, detail) = if total == 0 {
@@ -159,7 +188,7 @@ pub(super) fn show(ui: &mut egui::Ui, state: &mut AppState) -> Option<GuiCommand
 }
 
 fn editor_form(ui: &mut egui::Ui, state: &mut AppState, editor: &mut Editor) {
-    ui.horizontal(|ui| {
+    let heading = ui.horizontal(|ui| {
         widgets::icon_tile(ui, icons::SHIELD_CHECK, theme::ACCENT, 32.0);
         ui.label(
             egui::RichText::new(if editor.editing.is_some() {
@@ -171,6 +200,9 @@ fn editor_form(ui: &mut egui::Ui, state: &mut AppState, editor: &mut Editor) {
             .color(theme::text_primary()),
         );
     });
+    if std::mem::take(&mut editor.reveal) {
+        heading.response.scroll_to_me(Some(egui::Align::TOP));
+    }
     ui.add_space(theme::SPACE_MD);
 
     section_label(ui, "TYPE D'EXCEPTION");
@@ -398,6 +430,7 @@ fn rule_card(ui: &mut egui::Ui, state: &mut AppState, editor: &mut Editor, rule:
             editor.pattern = rule.pattern.clone();
             editor.reason = rule.description.clone();
             editor.editing = Some(rule.id);
+            editor.reveal = true;
         }
         if editor.remove != Some(rule.id)
             && widgets::button::ghost_button(ui, format!("{}  Révoquer", icons::TRASH)).clicked()
@@ -454,6 +487,23 @@ mod tests {
             assert!(!valid_pattern(AllowlistRuleType::IpAddress, invalid));
         }
     }
+    #[test]
+    fn authorizations_sort_by_target_type_and_date() {
+        use std::cmp::Ordering;
+        let mut old = rule(AllowlistRuleType::ProcessPattern, "Backup-*");
+        old.created_at -= chrono::Duration::days(1);
+        let recent = rule(AllowlistRuleType::IpAddress, "zabbix");
+        assert_eq!(rule_order("pattern", &old, &recent), Ordering::Less);
+        assert_eq!(rule_order("date", &old, &recent), Ordering::Less);
+        assert_eq!(
+            rule_order("kind", &recent, &old),
+            AllowlistRuleType::IpAddress
+                .label()
+                .to_lowercase()
+                .cmp(&AllowlistRuleType::ProcessPattern.label().to_lowercase())
+        );
+    }
+
     #[test]
     fn patterns_are_anchored_and_wildcards_are_explicit() {
         assert!(!rule(AllowlistRuleType::ProcessPattern, "backup").matches("malicious-backup"));

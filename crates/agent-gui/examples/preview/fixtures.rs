@@ -99,6 +99,7 @@ pub fn seed(state: &mut AppState) {
         connection: Some(agent_gui::dto::GuiConnectionSettings {
             server_url: agent_common::constants::DEFAULT_SERVER_URL.to_string(),
             heartbeat_interval_secs: agent_common::constants::DEFAULT_HEARTBEAT_INTERVAL_SECS,
+            ..Default::default()
         }),
         detection: agent_gui::dto::GuiDetectionOptions {
             log_analysis: true,
@@ -108,6 +109,7 @@ pub fn seed(state: &mut AppState) {
             fim_report_changes: true,
             fim_whodata: false,
             process_events: false,
+            usb_storage_blocking: false,
             log_rules: Some(
                 "18 règle(s) sur les journaux, 8 corrélation(s), 0 sur les processus".into(),
             ),
@@ -1562,6 +1564,104 @@ pub fn seed(state: &mut AppState) {
         },
     )
     .collect();
+    // Software deployments ordered by the platform: one of each outcome.
+    state.software.mdm_policy = Some(GuiMdmPolicy {
+        enabled: true,
+        allowed_hosts: vec!["grc.sentinel.example".into(), "dl.example-cdn.com".into()],
+    });
+    state.software.deployments_requested = true;
+    state.software.deployments = [
+        (
+            "Mozilla Firefox ESR",
+            "128.5.0",
+            "update",
+            "pkg",
+            "https://dl.example-cdn.com/firefox-esr-128.5.0.pkg",
+            MdmStatus::Started,
+            None,
+            None,
+        ),
+        (
+            "7-Zip",
+            "24.08",
+            "install",
+            "pkg",
+            "https://grc.sentinel.example/packages/7zip-24.08.pkg",
+            MdmStatus::Succeeded,
+            Some("installed 7-Zip 24.08"),
+            None,
+        ),
+        (
+            "TeamViewer",
+            "15.59.3",
+            "install",
+            "pkg",
+            "https://download.teamviewer.example/TeamViewer.pkg",
+            MdmStatus::Refused,
+            Some(
+                "install source host 'download.teamviewer.example' is neither the platform's nor listed in mdm_allowed_hosts",
+            ),
+            Some("Sources autorisées de l'agent (mdm_allowed_hosts)"),
+        ),
+        (
+            "LibreOffice",
+            "24.8.3",
+            "install",
+            "pkg",
+            "https://dl.example-cdn.com/libreoffice-24.8.3.pkg",
+            MdmStatus::Failed,
+            Some("checksum mismatch: the downloaded package does not match its SHA-256"),
+            None,
+        ),
+        (
+            "Zoom Workplace",
+            "6.2.10",
+            "uninstall",
+            "",
+            "",
+            MdmStatus::Succeeded,
+            Some("uninstalled 'Zoom Workplace'"),
+            None,
+        ),
+        (
+            "Slack",
+            "4.41.105",
+            "update",
+            "pkg",
+            "https://grc.sentinel.example/packages/slack-4.41.105.pkg",
+            MdmStatus::Succeeded,
+            Some("installed Slack 4.41.105"),
+            None,
+        ),
+    ]
+    .into_iter()
+    .enumerate()
+    .map(
+        |(i, (name, version, action, method, source, status, message, refused_by))| {
+            let requested_at = Utc::now() - Duration::hours(i as i64 * 26) - Duration::minutes(7);
+            let text = |value: &str| Some(value.to_string()).filter(|v| !v.is_empty());
+            GuiMdmDeployment {
+                id: format!("cmd-{:04}", 4821 - i),
+                deployment_id: Some(format!("dep-2026-{:03}", 118 - i)),
+                software_id: Some(format!("sw-{:03}", 40 + i)),
+                package_name: text(name),
+                version: text(version),
+                action: action.to_string(),
+                method: text(method),
+                source: text(source),
+                status,
+                requested_at,
+                finished_at: matches!(
+                    status,
+                    MdmStatus::Succeeded | MdmStatus::Failed | MdmStatus::Refused
+                )
+                .then(|| requested_at + Duration::seconds(48)),
+                message: message.map(str::to_string),
+                refused_by: refused_by.map(str::to_string),
+            }
+        },
+    )
+    .collect();
     state.software.native_apps = vec![
         GuiNativeApp {
             name: "Microsoft Teams".into(),
@@ -2017,6 +2117,20 @@ pub fn seed(state: &mut AppState) {
         reason: "Mineur XMRig (heuristique)".into(),
         restored: false,
     });
+    // Blocked addresses: one by an operator for an hour, one by a playbook
+    // without limit.
+    state.threats.blocked_ips = vec![
+        BlockedIp {
+            ip: "185.220.101.47".into(),
+            blocked_at: ago(22),
+            expires_at: Some(ago(22 - 60)),
+        },
+        BlockedIp {
+            ip: "45.155.205.233".into(),
+            blocked_at: ago(60 * 19),
+            expires_at: None,
+        },
+    ];
     let response_log: &[(ResponseActionType, &str, ResponseStatus, i64, Option<&str>)] = &[
         (
             ResponseActionType::QuarantineFile,

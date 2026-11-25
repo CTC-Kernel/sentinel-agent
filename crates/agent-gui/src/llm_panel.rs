@@ -75,7 +75,7 @@ impl LLMPanel {
                     {
                         &state.ai.provider_settings.model
                     } else if state.ai.model_status.model_name.is_empty() {
-                        "Consultez Modèle & diagnostic pour configurer le moteur."
+                        "Consultez l’onglet Paramètres IA pour configurer le moteur."
                     } else {
                         &state.ai.model_status.model_name
                     },
@@ -90,7 +90,9 @@ impl LLMPanel {
         let selected_idx = state.ai.active_tab.index() as usize;
 
         let chat_count = state.ai.chat_history.len() as u32;
-        // Use cached count for badge to avoid building recommendations twice per frame
+        // Counted without building the list, so the badge is right before
+        // the Recommendations tab has ever been opened.
+        state.ai.recommendations_count = Self::recommendation_count(state);
         let rec_count = state.ai.recommendations_count as u32;
 
         let mut assistant_tab = Tab::new("Assistant IA").icon(icons::ROBOT);
@@ -1781,7 +1783,7 @@ impl LLMPanel {
                                         );
                                         ui.add_space(theme::SPACE_XS);
                                         ui.label(
-                                            egui::RichText::new("IA")
+                                            egui::RichText::new(ChatRole::Assistant.label_fr())
                                                 .font(theme::font_label())
                                                 .color(theme::readable_color(theme::SUCCESS))
                                                 .strong(),
@@ -1863,6 +1865,17 @@ impl LLMPanel {
             })
             .map(|(i, _)| i)
             .collect();
+        // The header's order, on top of the default (most severe first).
+        let mut filtered = filtered;
+        let sort = widgets::table::sort_of(ui.ctx(), RECOMMENDATIONS_TABLE);
+        if let Some(key) = widgets::table::sort_key(&sort) {
+            filtered.sort_by(|&a, &b| {
+                widgets::table::directed(
+                    &sort,
+                    compare_recommendations(&recommendations[a], &recommendations[b], key),
+                )
+            });
+        }
 
         let result_count = filtered.len();
 
@@ -1951,8 +1964,28 @@ impl LLMPanel {
             let kind_label = kind_label(rec.kind);
             let kind_icon = kind_icon(rec.kind);
 
+            // Only a compliance recommendation has a check to run again;
+            // the others open the page where their finding is handled.
+            let (primary_label, primary_icon, target_page) = match rec.kind {
+                "vulnerability" => (
+                    "Ouvrir les vuln\u{00e9}rabilit\u{00e9}s",
+                    icons::ARROW_RIGHT,
+                    Some(crate::app::Page::Vulnerabilities),
+                ),
+                "network" => (
+                    "Ouvrir le r\u{00e9}seau",
+                    icons::ARROW_RIGHT,
+                    Some(crate::app::Page::Network),
+                ),
+                "threat" => (
+                    "Ouvrir les menaces",
+                    icons::ARROW_RIGHT,
+                    Some(crate::app::Page::Threats),
+                ),
+                _ => ("Relancer l'analyse", icons::PLAY, None),
+            };
             let actions = vec![
-                widgets::DetailAction::primary("Lancer le contr\u{00f4}le", icons::PLAY),
+                widgets::DetailAction::primary(primary_label, primary_icon),
                 widgets::DetailAction::secondary("Exporter", icons::DOWNLOAD),
             ];
 
@@ -2010,7 +2043,13 @@ impl LLMPanel {
 
             if let Some(action_idx) = drawer_action {
                 match action_idx {
-                    0 => command = Some(GuiCommand::RunCheck),
+                    0 => match target_page {
+                        Some(page) => {
+                            state.ai.detail_open = false;
+                            state.pending_navigation = Some(page);
+                        }
+                        None => command = Some(GuiCommand::RunCheck),
+                    },
                     1 => {
                         Self::export_recommendation(state, &rec);
                     }
@@ -2767,6 +2806,26 @@ impl LLMPanel {
 
     // ── Recommendation builder ───────────────────────────────────────────
 
+    /// Number of recommendations [`build_recommendations`](Self::build_recommendations)
+    /// returns, counted without building them.
+    pub fn recommendation_count(state: &AppState) -> usize {
+        state
+            .checks
+            .iter()
+            .filter(|check| check.status == GuiCheckStatus::Fail)
+            .count()
+            + state
+                .vulnerability_findings
+                .iter()
+                .filter(|vuln| {
+                    vuln.priority.is_pressing()
+                        || matches!(vuln.severity, Severity::Critical | Severity::High)
+                })
+                .count()
+            + state.network.alerts.len()
+            + state.threats.system_incidents.len()
+    }
+
     /// Build prioritized recommendations from current state.
     pub fn build_recommendations(state: &AppState) -> Vec<Recommendation> {
         let mut recs = Vec::new();
@@ -3134,14 +3193,14 @@ impl LLMPanel {
             ],
         )
         .header(theme::TABLE_HEADER_HEIGHT, |mut header| {
-            for label in [
-                "PRIORIT\u{00c9}",
-                "SOURCE",
-                "RECOMMANDATION",
-                "REM\u{00c9}DIATION",
+            for (label, key) in [
+                ("PRIORIT\u{00c9}", "priority"),
+                ("SOURCE", "source"),
+                ("RECOMMANDATION", "title"),
+                ("REM\u{00c9}DIATION", "remediation"),
             ] {
                 header.col(|ui: &mut egui::Ui| {
-                    table::header_cell(ui, label);
+                    table::header_cell_sortable(ui, label, RECOMMENDATIONS_TABLE, key);
                 });
             }
         })
@@ -3210,7 +3269,7 @@ impl LLMPanel {
                     "recommandation",
                     "remediation",
                     "categorie",
-                    "frameworks",
+                    "referentiels",
                 ];
                 let path = crate::export::default_export_path("recommandation_ia.csv");
                 match crate::export::export_csv(headers, &rows, &path) {
@@ -3302,6 +3361,27 @@ impl LLMStatusWidget {
 // ============================================================================
 
 /// Category-to-remediation French text mapping.
+/// Name of the recommendations table, for its sort state.
+const RECOMMENDATIONS_TABLE: &str = "ai_recommendations";
+
+/// Natural (ascending) order of two recommendations on a column.
+fn compare_recommendations(
+    a: &Recommendation,
+    b: &Recommendation,
+    key: &str,
+) -> std::cmp::Ordering {
+    match key {
+        // By severity, least severe first.
+        "priority" => a.severity.weight().total_cmp(&b.severity.weight()),
+        "source" => kind_label(a.kind)
+            .to_lowercase()
+            .cmp(&kind_label(b.kind).to_lowercase()),
+        "title" => a.title.to_lowercase().cmp(&b.title.to_lowercase()),
+        "remediation" => a.subtitle.to_lowercase().cmp(&b.subtitle.to_lowercase()),
+        _ => std::cmp::Ordering::Equal,
+    }
+}
+
 fn category_remediation(category: &str) -> &'static str {
     match category {
         "encryption" => "Activez le chiffrement complet du disque (FileVault/BitLocker/LUKS)",
@@ -3833,6 +3913,66 @@ mod tests {
         let state = AppState::default();
         let score = LLMPanel::compute_ai_score(&state);
         assert!((0.0..=100.0).contains(&score));
+    }
+
+    #[test]
+    fn the_recommendation_count_matches_the_list() {
+        let mut state = AppState::default();
+        assert_eq!(LLMPanel::recommendation_count(&state), 0);
+        state.checks = vec![
+            check(
+                "firewall_active",
+                GuiCheckStatus::Fail,
+                "",
+                serde_json::Value::Null,
+            ),
+            check(
+                "disk_encryption",
+                GuiCheckStatus::Pass,
+                "",
+                serde_json::Value::Null,
+            ),
+        ];
+        assert_eq!(
+            LLMPanel::recommendation_count(&state),
+            LLMPanel::build_recommendations(&state).len()
+        );
+        assert_eq!(LLMPanel::recommendation_count(&state), 1);
+    }
+
+    #[test]
+    fn recommendations_compare_by_severity_rank_and_folded_text() {
+        use std::cmp::Ordering;
+        let rec = |severity: Severity, title: &str, kind: &'static str| Recommendation {
+            kind,
+            severity,
+            title: title.into(),
+            subtitle: String::new(),
+            detail: String::new(),
+            category: String::new(),
+            frameworks: Vec::new(),
+        };
+        let high = rec(Severity::High, "alpha", "network");
+        let critical = rec(Severity::Critical, "Beta", "compliance");
+        // "CRITIQUE" sorts before "ÉLEVÉ" as text; by rank it is above.
+        assert_eq!(
+            compare_recommendations(&high, &critical, "priority"),
+            Ordering::Less
+        );
+        assert_eq!(
+            compare_recommendations(&high, &critical, "title"),
+            Ordering::Less
+        );
+        assert_eq!(
+            compare_recommendations(&high, &critical, "source"),
+            kind_label("network")
+                .to_lowercase()
+                .cmp(&kind_label("compliance").to_lowercase())
+        );
+        assert_eq!(
+            compare_recommendations(&high, &critical, "remediation"),
+            Ordering::Equal
+        );
     }
 
     #[test]

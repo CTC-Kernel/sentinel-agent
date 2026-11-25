@@ -626,6 +626,10 @@ fn run_as_service() -> ExitCode {
     // Initialize logging to file for service mode
     init_logging("info");
 
+    // The desktop interface is this service's companion: serve it.
+    #[cfg(all(windows, feature = "gui"))]
+    service::set_runtime_hook(Box::new(attach_service_channel));
+
     match service::run_as_service() {
         Ok(()) => ExitCode::SUCCESS,
         Err(e) => {
@@ -1393,6 +1397,10 @@ fn run_with_gui(config: AgentConfig, enrolled: bool, log_level: &str) -> ExitCod
     // This installs a custom tracing layer that captures all tracing events
     // and forwards them to the GUI terminal page.
     let tracing_bridge = agent_core::init_logging_with_terminal(log_level);
+    // "Ouvrir les logs" opens the folder the logger really writes to.
+    if let Some(dir) = agent_core::logging::active_log_dir() {
+        agent_gui::tray_bridge::set_logs_dir(dir.to_path_buf());
+    }
 
     info!(
         "Starting Sentinel Agent with egui GUI (enrolled={})",
@@ -1510,6 +1518,7 @@ async fn gui_background(
     let _voice_service: Option<std::sync::Arc<agent_core::voice::VoiceService>> = None;
 
     // Spawn command processor
+    let companion_events = bg_event_tx.clone();
     let ctx = gui_commands::CommandContext {
         handle: handle.clone(),
         events: bg_event_tx,
@@ -1523,12 +1532,20 @@ async fn gui_background(
         remote_ai,
         tasks: agent_core::supervised_tasks::TaskSet::new("interface commands"),
     };
+    let service_is_running = background_service_is_running().await;
+
+    // Companion of a background service: what the service runs goes to it
+    // over the service channel, its events come back the same way, and the
+    // handlers below only keep what belongs to this session.
+    let command_rx = if service_is_running {
+        start_companion(command_rx, companion_events)
+    } else {
+        command_rx
+    };
     agent_core::supervised_tasks::spawn_logged(
         "interface commands",
         gui_commands::run(ctx, command_rx),
     );
-
-    let service_is_running = background_service_is_running().await;
 
     if service_is_running {
         info!(
@@ -1541,6 +1558,169 @@ async fn gui_background(
             error!("Agent runtime error: {}", e);
         }
     }
+}
+
+/// Connect this interface to the background service and split its
+/// commands: returns the commands that stay in this process.
+#[cfg(feature = "gui")]
+fn start_companion(
+    commands: std::sync::mpsc::Receiver<agent_gui::events::GuiCommand>,
+    events: std::sync::mpsc::Sender<agent_gui::events::AgentEvent>,
+) -> std::sync::mpsc::Receiver<agent_gui::events::GuiCommand> {
+    let (local_tx, local_rx) = std::sync::mpsc::channel();
+    let (service, queue) = agent_core::gui_ipc::client::handle();
+    #[cfg(windows)]
+    agent_core::supervised_tasks::spawn_logged(
+        "service channel",
+        agent_core::gui_ipc::client::run(agent_core::gui_ipc::pipe::connect, events.clone(), queue),
+    );
+    // Only Windows runs the agent as a service next to the interface.
+    #[cfg(not(windows))]
+    drop(queue);
+    std::thread::spawn(move || route_companion_commands(commands, local_tx, service, events));
+    local_rx
+}
+
+/// Send each command of a companion interface where it runs: the service
+/// (see [`gui_commands::runs_in_service`]) or this process.
+#[cfg(feature = "gui")]
+fn route_companion_commands(
+    commands: std::sync::mpsc::Receiver<agent_gui::events::GuiCommand>,
+    local: std::sync::mpsc::Sender<agent_gui::events::GuiCommand>,
+    service: agent_core::gui_ipc::ClientHandle,
+    events: std::sync::mpsc::Sender<agent_gui::events::AgentEvent>,
+) {
+    use agent_core::gui_ipc::Outbound;
+    use agent_gui::events::{AgentEvent, GuiCommand, ServiceAdminOutcome};
+
+    // An outage is said once in a while, not once per click.
+    const NOTICE_EVERY: std::time::Duration = std::time::Duration::from_secs(10);
+    let mut last_notice: Option<std::time::Instant> = None;
+
+    for command in commands {
+        let outbound = match command {
+            // The service owns its settings: the preferences saved by this
+            // interface are not pushed to it.
+            GuiCommand::RestoreSettings { .. } => continue,
+            GuiCommand::ServiceAdminUnlock { password } => Outbound::Unlock(password),
+            GuiCommand::ServiceAdminSetPassword { password } => Outbound::SetPassword(password),
+            GuiCommand::ServiceAdminLock => Outbound::Lock,
+            command if gui_commands::runs_in_service(&command) => Outbound::Command(command),
+            command => {
+                if local.send(command).is_err() {
+                    return;
+                }
+                continue;
+            }
+        };
+        let answer_expected = matches!(outbound, Outbound::Unlock(_) | Outbound::SetPassword(_));
+        let is_command = matches!(outbound, Outbound::Command(_));
+        if service.send(outbound).is_ok() {
+            continue;
+        }
+        let event = if answer_expected {
+            // The administrator dialog is waiting for an answer.
+            AgentEvent::ServiceAdmin {
+                outcome: ServiceAdminOutcome::Refused {
+                    message: "Le service Sentinel est injoignable.".to_string(),
+                },
+            }
+        } else if is_command && last_notice.is_none_or(|at| at.elapsed() >= NOTICE_EVERY) {
+            last_notice = Some(std::time::Instant::now());
+            AgentEvent::Notification {
+                notification: agent_gui::dto::GuiNotification::error(
+                    "Action non transmise",
+                    "Le service Sentinel est injoignable : l'action n'a pas été envoyée.",
+                ),
+            }
+        } else {
+            continue;
+        };
+        if events.send(event).is_err() {
+            return;
+        }
+    }
+}
+
+/// Serve the desktop interface from the service: the agent's events go to
+/// the service channel, and the commands received on it go to the same
+/// handlers as those of an interface that runs the agent itself. The
+/// assistant and the voice are not here: they belong to the user's session
+/// (see [`gui_commands::runs_in_service`]).
+#[cfg(feature = "gui")]
+#[cfg_attr(not(windows), allow(dead_code))]
+fn attach_service_channel(
+    runtime: &mut AgentRuntime,
+    db: &std::sync::Arc<agent_storage::Database>,
+    rt: &tokio::runtime::Handle,
+) {
+    use agent_core::gui_ipc;
+    use std::sync::Arc;
+
+    let (event_tx, event_rx) = std::sync::mpsc::channel();
+    let (command_tx, command_rx) = std::sync::mpsc::channel();
+    runtime.set_gui_event_tx(event_tx.clone());
+
+    // What user processes must not write: the administrator password's
+    // hash and the settings the service applies again when it restarts.
+    #[cfg(windows)]
+    let store: Arc<dyn gui_ipc::SecureStore> = Arc::new(gui_ipc::pipe::RegistryStore);
+    #[cfg(not(windows))]
+    let store: Arc<dyn gui_ipc::SecureStore> = Arc::new(gui_ipc::MemoryStore::default());
+    let hub = Arc::new(gui_ipc::Hub::new(
+        gui_ipc::HubConfig::new(
+            agent_common::constants::AGENT_VERSION,
+            gui_commands::runs_in_service,
+        ),
+        store,
+        command_tx,
+    ));
+
+    // The agent emits on a plain channel and never waits: a thread hands
+    // each event to the fan-out, which drops rather than blocks.
+    let fan_out = hub.clone();
+    let pump = std::thread::Builder::new()
+        .name("service-channel-events".to_string())
+        .spawn(move || {
+            for event in event_rx {
+                fan_out.publish(&event);
+            }
+        });
+    if let Err(e) = pump {
+        error!("Service channel disabled: no thread for its events ({})", e);
+        return;
+    }
+
+    let ctx = gui_commands::CommandContext {
+        handle: runtime.handle(),
+        events: event_tx,
+        db: Some(db.clone()),
+        sync_client: runtime.sync_client(),
+        llm_service: None,
+        audit_trail: Some(Arc::new(agent_core::audit_trail::LocalAuditTrail::new(
+            db.clone(),
+        ))),
+        #[cfg(feature = "voice")]
+        voice_service: None,
+        llm_cancel: Arc::new(std::sync::Mutex::new(None)),
+        remote_ai: agent_core::remote_ai::RemoteAi::default(),
+        tasks: agent_core::supervised_tasks::TaskSet::new("interface commands"),
+    };
+    let db = db.clone();
+    let settings = hub.clone();
+    rt.spawn(async move {
+        // The tables the handlers read and write.
+        apply_gui_migrations(&db).await;
+        let restored = settings.restore_settings();
+        if restored > 0 {
+            info!("Service channel: {} saved setting(s) applied", restored);
+        }
+        gui_commands::run(ctx, command_rx).await;
+    });
+    #[cfg(windows)]
+    rt.spawn(gui_ipc::pipe::serve(hub));
+    #[cfg(not(windows))]
+    drop(hub);
 }
 
 /// Companion mode: wait until the GUI requests shutdown.
@@ -1688,21 +1868,27 @@ async fn open_gui_database() -> Option<std::sync::Arc<agent_storage::Database>> 
         }
     };
 
-    // Run v2 persistence migrations (GUI tables: events, notifications, policy_snapshots)
     if let Some(ref db) = db_arc {
-        match db
-            .with_connection_mut(|conn| {
-                agent_persistence::run_v2_migrations(conn)
-                    .map_err(|e| agent_storage::StorageError::Migration(e.to_string()))
-            })
-            .await
-        {
-            Ok(()) => info!("Persistence v2 migrations applied"),
-            Err(e) => warn!("Failed to apply v2 migrations (non-fatal): {}", e),
-        }
+        apply_gui_migrations(db).await;
     }
 
     db_arc
+}
+
+/// Run the v2 persistence migrations (the tables the interface's command
+/// handlers use: events, notifications, policy snapshots).
+#[cfg(feature = "gui")]
+async fn apply_gui_migrations(db: &std::sync::Arc<agent_storage::Database>) {
+    match db
+        .with_connection_mut(|conn| {
+            agent_persistence::run_v2_migrations(conn)
+                .map_err(|e| agent_storage::StorageError::Migration(e.to_string()))
+        })
+        .await
+    {
+        Ok(()) => info!("Persistence v2 migrations applied"),
+        Err(e) => warn!("Failed to apply v2 migrations (non-fatal): {}", e),
+    }
 }
 
 /// The enrollment asked for from the interface of an agent that is not
@@ -1732,7 +1918,8 @@ async fn gui_enrollment(
 
         match cmd {
             Some(
-                cmd @ (EnrollmentCommand::SubmitEnrollment { .. } | EnrollmentCommand::SubmitQr(_)),
+                cmd @ (EnrollmentCommand::SubmitEnrollment { .. }
+                | EnrollmentCommand::SubmitQr { .. }),
             ) => {
                 if process_enrollment_submission(cmd, config, bg_event_tx).await {
                     // Wait for Finish before starting runtime
@@ -1801,6 +1988,136 @@ struct EnrollmentResult {
     client_key: String,
 }
 
+/// The event that hands a new administrator password to the interface, as
+/// an Argon2id hash with a random per-install salt. Only an enrollment that
+/// succeeded produces one: the wizard can be opened from a running agent,
+/// and a failed attempt must not replace the password that guards it.
+#[cfg(feature = "gui")]
+fn admin_password_event(
+    enrolled: bool,
+    admin_password: Option<&str>,
+) -> Option<agent_gui::events::AgentEvent> {
+    let password = admin_password.filter(|_| enrolled)?;
+    match agent_gui::admin_auth::hash_password(password) {
+        Ok(hash) => Some(agent_gui::events::AgentEvent::AdminPasswordSet { hash }),
+        Err(e) => {
+            warn!("Admin password not stored: {}", e);
+            None
+        }
+    }
+}
+
+#[cfg(all(test, feature = "gui"))]
+mod companion_routing_tests {
+    use super::route_companion_commands;
+    use agent_core::gui_ipc::Outbound;
+    use agent_gui::events::{AgentEvent, GuiCommand, Secret, ServiceAdminOutcome};
+
+    #[test]
+    fn each_command_goes_to_the_process_that_runs_it() {
+        let (commands_tx, commands) = std::sync::mpsc::channel();
+        let (local_tx, local) = std::sync::mpsc::channel();
+        let (events_tx, events) = std::sync::mpsc::channel();
+        let (service, mut queue) = agent_core::gui_ipc::client::handle();
+        for command in [
+            GuiCommand::RestoreSettings {
+                commands: vec![GuiCommand::SetLogLevel { level: 0 }],
+            },
+            GuiCommand::RunCheck,
+            GuiCommand::LlmCancel,
+            GuiCommand::ServiceAdminUnlock {
+                password: Secret::new("phrase de passe solide"),
+            },
+            GuiCommand::Shutdown,
+            GuiCommand::Pause,
+        ] {
+            commands_tx.send(command).unwrap();
+        }
+        drop(commands_tx);
+        route_companion_commands(commands, local_tx, service, events_tx);
+
+        assert!(matches!(
+            queue.try_next(),
+            Some(Outbound::Command(GuiCommand::RunCheck))
+        ));
+        assert!(matches!(queue.try_next(), Some(Outbound::Unlock(_))));
+        assert!(matches!(
+            queue.try_next(),
+            Some(Outbound::Command(GuiCommand::Pause))
+        ));
+        assert!(
+            queue.try_next().is_none(),
+            "saved preferences are not pushed"
+        );
+        assert!(matches!(local.try_recv(), Ok(GuiCommand::LlmCancel)));
+        assert!(
+            matches!(local.try_recv(), Ok(GuiCommand::Shutdown)),
+            "quitting the interface never stops the service"
+        );
+        assert!(local.try_recv().is_err());
+        assert!(events.try_recv().is_err());
+    }
+
+    #[test]
+    fn a_full_queue_is_said_to_the_operator_and_to_the_waiting_dialog() {
+        let (commands_tx, commands) = std::sync::mpsc::channel();
+        let (local_tx, _local) = std::sync::mpsc::channel();
+        let (events_tx, events) = std::sync::mpsc::channel();
+        // Nobody drains the queue: it fills up, as with a service that
+        // never answers.
+        let (service, _queue) = agent_core::gui_ipc::client::handle();
+        for _ in 0..600 {
+            commands_tx.send(GuiCommand::RunCheck).unwrap();
+        }
+        commands_tx
+            .send(GuiCommand::ServiceAdminUnlock {
+                password: Secret::new("phrase de passe solide"),
+            })
+            .unwrap();
+        drop(commands_tx);
+        route_companion_commands(commands, local_tx, service, events_tx);
+
+        let received: Vec<AgentEvent> = events.try_iter().collect();
+        let notices = received
+            .iter()
+            .filter(|event| matches!(event, AgentEvent::Notification { .. }))
+            .count();
+        assert_eq!(notices, 1, "one notice for the outage, not one per command");
+        assert!(matches!(
+            received.last(),
+            Some(AgentEvent::ServiceAdmin {
+                outcome: ServiceAdminOutcome::Refused { .. }
+            })
+        ));
+    }
+}
+
+#[cfg(all(test, feature = "gui"))]
+mod admin_password_event_tests {
+    use super::admin_password_event;
+    use agent_gui::events::AgentEvent;
+
+    #[test]
+    fn a_failed_enrollment_never_replaces_the_administrator_password() {
+        assert!(admin_password_event(false, Some("phrase de passe solide")).is_none());
+    }
+
+    #[test]
+    fn a_successful_enrollment_hands_over_the_hash_of_the_password() {
+        match admin_password_event(true, Some("phrase de passe solide")) {
+            Some(AgentEvent::AdminPasswordSet { hash }) => {
+                assert!(hash.starts_with("$argon2id$"), "{hash}");
+            }
+            _ => panic!("expected the administrator password event"),
+        }
+    }
+
+    #[test]
+    fn joining_a_platform_without_a_password_changes_nothing() {
+        assert!(admin_password_event(true, None).is_none());
+    }
+}
+
 /// Enroll with the platform on the GUI's behalf: the token (or QR payload)
 /// goes to the server, the outcome goes back to the wizard as an
 /// `EnrollmentResult`. Returns `true` when the agent is now enrolled.
@@ -1820,21 +2137,20 @@ async fn process_enrollment_submission(
             info!("GUI enrollment: received token");
             config.enrollment_token = Some(token);
 
-            // Hash the admin password for the GUI unlock before zeroizing:
-            // Argon2id with a random per-install salt.
-            if let Some(ref pw) = admin_password {
-                match agent_gui::admin_auth::hash_password(pw) {
-                    Ok(hash) => {
-                        let _ = events.send(AgentEvent::AdminPasswordSet { hash });
-                    }
-                    Err(e) => warn!("Admin password not stored: {}", e),
-                }
-            }
-
             config.admin_password = admin_password.clone();
 
             // Open DB and attempt enrollment
-            let result = enroll_with_config(config, admin_password).await;
+            let result = enroll_with_config(config, admin_password.clone()).await;
+
+            // The password becomes the interface's only once the enrollment
+            // succeeded: a failed attempt (a wrong token typed by anyone at
+            // the keyboard) must leave the current password untouched.
+            if let Some(event) = admin_password_event(result.is_ok(), admin_password.as_deref()) {
+                let _ = events.send(event);
+            }
+            if let Some(mut pw) = admin_password {
+                zeroize::Zeroize::zeroize(&mut pw);
+            }
 
             // Clear admin password from config after enrollment attempt
             // to minimize time sensitive data stays in memory.
@@ -1850,7 +2166,7 @@ async fn process_enrollment_submission(
                     config.client_key = Some(enrollment.client_key);
                     if let Err(e) = events.send(AgentEvent::EnrollmentResult {
                         success: true,
-                        message: format!("Agent enrôlé avec succès.\nID: {}", enrollment.agent_id),
+                        message: format!("Agent enrôlé avec succès.\nID : {}", enrollment.agent_id),
                         agent_id: Some(enrollment.agent_id),
                     }) {
                         error!("Failed to send enrollment success event: {}", e);
@@ -1862,7 +2178,7 @@ async fn process_enrollment_submission(
                     warn!("GUI enrollment failed: {}", e);
                     if let Err(e2) = events.send(AgentEvent::EnrollmentResult {
                         success: false,
-                        message: format!("Échec: {}", e),
+                        message: format!("Échec : {}", e),
                         agent_id: None,
                     }) {
                         error!("Failed to send enrollment failure event: {}", e2);
@@ -1871,7 +2187,10 @@ async fn process_enrollment_submission(
                 }
             }
         }
-        EnrollmentCommand::SubmitQr(qr_data) => {
+        EnrollmentCommand::SubmitQr {
+            payload: qr_data,
+            admin_password,
+        } => {
             info!("GUI enrollment: received QR data");
             // QR payload is JSON with { server_url, token, ... }
             if let Ok(payload) = serde_json::from_str::<serde_json::Value>(&qr_data) {
@@ -1914,7 +2233,13 @@ async fn process_enrollment_submission(
                 config.enrollment_token = Some(qr_data);
             }
 
-            let result = enroll_with_config(config, None).await;
+            let result = enroll_with_config(config, admin_password.clone()).await;
+            if let Some(event) = admin_password_event(result.is_ok(), admin_password.as_deref()) {
+                let _ = events.send(event);
+            }
+            if let Some(mut pw) = admin_password {
+                zeroize::Zeroize::zeroize(&mut pw);
+            }
             match result {
                 Ok(enrollment) => {
                     config.agent_id = Some(enrollment.agent_id.clone());
@@ -1923,7 +2248,7 @@ async fn process_enrollment_submission(
                     config.client_key = Some(enrollment.client_key);
                     if let Err(e) = events.send(AgentEvent::EnrollmentResult {
                         success: true,
-                        message: format!("Agent enrôlé avec succès.\nID: {}", enrollment.agent_id),
+                        message: format!("Agent enrôlé avec succès.\nID : {}", enrollment.agent_id),
                         agent_id: Some(enrollment.agent_id),
                     }) {
                         error!("Failed to send QR enrollment success event: {}", e);
@@ -1933,7 +2258,7 @@ async fn process_enrollment_submission(
                 Err(e) => {
                     if let Err(e2) = events.send(AgentEvent::EnrollmentResult {
                         success: false,
-                        message: format!("Échec: {}", e),
+                        message: format!("Échec : {}", e),
                         agent_id: None,
                     }) {
                         error!("Failed to send QR enrollment failure event: {}", e2);
@@ -2010,7 +2335,8 @@ async fn listen_for_platform_connection(
             Err(std::sync::mpsc::TryRecvError::Disconnected) => return,
         };
         match cmd {
-            cmd @ (EnrollmentCommand::SubmitEnrollment { .. } | EnrollmentCommand::SubmitQr(_)) => {
+            cmd @ (EnrollmentCommand::SubmitEnrollment { .. }
+            | EnrollmentCommand::SubmitQr { .. }) => {
                 info!("Standalone agent: platform connection requested from the GUI");
                 if !process_enrollment_submission(cmd, &mut config, &events).await {
                     continue;
@@ -2022,7 +2348,7 @@ async fn listen_for_platform_connection(
                             path.display()
                         );
                         let mut message = format!(
-                            "Agent enrôlé avec succès.\nID: {}\nLa synchronisation démarre au \
+                            "Agent enrôlé avec succès.\nID : {}\nLa synchronisation démarre au \
                              prochain lancement de l'agent ; d'ici là, la protection locale \
                              continue.",
                             config.agent_id.as_deref().unwrap_or("?")

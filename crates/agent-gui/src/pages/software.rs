@@ -11,6 +11,10 @@ use crate::icons;
 use crate::theme;
 use crate::widgets;
 
+mod deployments;
+
+use super::assets::order;
+
 pub struct SoftwarePage;
 
 use crate::dto::SoftwareTab;
@@ -22,7 +26,7 @@ impl SoftwarePage {
         ui.add_space(theme::SPACE_XS);
         let _ = widgets::page_header_nav(
             ui,
-            &["Actifs & inventaire", "Logiciels"],
+            &["Actifs & inventaire", "Logiciels & MDM"],
             "Inventaire Logiciel",
             Some("Applications et composants système installés sur cet hôte."),
             Some(
@@ -44,6 +48,7 @@ impl SoftwarePage {
                 active == SoftwareTab::Packages,
             ) {
                 state.software.active_tab = SoftwareTab::Packages;
+                state.software.search.clear();
                 state.software.selected_package = None;
                 state.software.detail_open = false;
             }
@@ -56,6 +61,7 @@ impl SoftwarePage {
                     active == SoftwareTab::Applications,
                 ) {
                     state.software.active_tab = SoftwareTab::Applications;
+                    state.software.search.clear();
                     state.software.selected_package = None;
                     state.software.detail_open = false;
                 }
@@ -67,8 +73,22 @@ impl SoftwarePage {
                 active == SoftwareTab::Extensions,
             ) {
                 state.software.active_tab = SoftwareTab::Extensions;
+                state.software.search.clear();
                 state.software.selected_package = None;
                 state.software.detail_open = false;
+            }
+            ui.add_space(theme::SPACE_SM);
+            if Self::tab_button(
+                ui,
+                &format!("{}  Déploiements MDM", icons::CLOUD),
+                active == SoftwareTab::Deployments,
+            ) {
+                state.software.active_tab = SoftwareTab::Deployments;
+                state.software.search.clear();
+                state.software.selected_package = None;
+                state.software.detail_open = false;
+                // Opening the tab reads the history again.
+                state.software.deployments_requested = false;
             }
         });
 
@@ -91,6 +111,9 @@ impl SoftwarePage {
                 upper
             });
 
+        // A page number only means something for one search and one filter.
+        let filters_before = (state.software.search.clone(), state.software.outdated_only);
+
         match active {
             SoftwareTab::Packages => Self::show_packages(ui, state, &search_upper, &mut command),
             #[cfg(any(target_os = "macos", target_os = "windows"))]
@@ -100,6 +123,14 @@ impl SoftwarePage {
             #[cfg(not(any(target_os = "macos", target_os = "windows")))]
             SoftwareTab::Applications => { /* unreachable on unsupported platforms */ }
             SoftwareTab::Extensions => Self::show_extensions(ui, state, &search_upper),
+            SoftwareTab::Deployments => deployments::show(ui, state, &search_upper, &mut command),
+        }
+
+        if filters_before != (state.software.search.clone(), state.software.outdated_only) {
+            state.software.packages_page = 0;
+            state.software.native_page = 0;
+            state.software.extensions_page = 0;
+            state.software.deployments_page = 0;
         }
 
         ui.add_space(theme::SPACE_XL);
@@ -110,16 +141,14 @@ impl SoftwarePage {
                     if sel_idx < state.software.packages.len() {
                         let pkg = state.software.packages[sel_idx].clone();
                         let mut actions = Vec::new();
+                        // The agent does not upgrade packages itself: the
+                        // action copies the command, and says so.
                         if !pkg.up_to_date {
-                            actions.push(widgets::DetailAction::primary(
-                                "Mettre \u{00e0} jour",
-                                icons::DOWNLOAD,
+                            actions.push(widgets::DetailAction::secondary(
+                                "Copier la commande de mise \u{00e0} jour",
+                                icons::COPY,
                             ));
                         }
-                        actions.push(widgets::DetailAction::secondary(
-                            "D\u{00e9}tails",
-                            icons::INFO,
-                        ));
 
                         let drawer_action = widgets::DetailDrawer::new(
                             "software_pkg_detail",
@@ -142,7 +171,7 @@ impl SoftwarePage {
                                 widgets::detail_field(
                                     ui,
                                     "\u{00c9}diteur",
-                                    pkg.publisher.as_deref().unwrap_or("--"),
+                                    pkg.publisher.as_deref().unwrap_or("—"),
                                 );
                                 if let Some(ref installed) = pkg.installed_at {
                                     widgets::detail_field(
@@ -268,6 +297,7 @@ impl SoftwarePage {
                 }
                 #[cfg(not(any(target_os = "macos", target_os = "windows")))]
                 SoftwareTab::Applications => { /* unreachable on unsupported platforms */ }
+                SoftwareTab::Deployments => deployments::drawer(ui, state, sel_idx),
                 SoftwareTab::Extensions => {
                     if let Some(extension) = state.software.browser_extensions.get(sel_idx) {
                         let (label, color) = reach_display(extension.reach);
@@ -295,6 +325,11 @@ impl SoftwarePage {
                             }, &[widgets::DetailAction::secondary("Copier l’identifiant", icons::COPY)]);
                         if action == Some(0) {
                             ui.ctx().copy_text(extension.id.clone());
+                            let time = ui.input(|i| i.time);
+                            state.toasts.push(
+                                crate::widgets::toast::Toast::success("Identifiant copié")
+                                    .with_time(time),
+                            );
                         }
                     }
                 }
@@ -307,7 +342,16 @@ impl SoftwarePage {
     // -- Tab: Extensions de navigateur --
 
     fn show_extensions(ui: &mut Ui, state: &mut AppState, search_upper: &str) {
-        let filtered = filtered_extensions(&state.software.browser_extensions, search_upper);
+        let mut filtered = filtered_extensions(&state.software.browser_extensions, search_upper);
+        order::sort(
+            ui.ctx(),
+            "software_extensions",
+            &mut filtered,
+            |key, a, b| {
+                let extensions = &state.software.browser_extensions;
+                compare_extensions(key, &extensions[a], &extensions[b])
+            },
+        );
         let total = state.software.browser_extensions.len();
         let extended = state
             .software
@@ -357,12 +401,17 @@ impl SoftwarePage {
 
         ui.add_space(theme::SPACE_MD);
 
-        let _ = widgets::SearchFilterBar::new(
+        let (_, export) = widgets::SearchFilterBar::new(
             &mut state.software.search,
             "Rechercher une extension, un navigateur ou un utilisateur…",
         )
         .result_count(filtered.len())
-        .show(ui);
+        .action(format!("{}  CSV", icons::DOWNLOAD))
+        .show_with_action(ui);
+        if export {
+            let success = Self::export_extensions_csv(state, &filtered);
+            Self::export_toast(ui, state, success);
+        }
 
         ui.add_space(theme::SPACE_SM);
 
@@ -399,6 +448,7 @@ impl SoftwarePage {
 
             use widgets::table;
             const EXTENSIONS_PER_PAGE: usize = 25;
+            let mut resorted = false;
             let (page_start, page_len, _) = widgets::page_window(
                 filtered.len(),
                 EXTENSIONS_PER_PAGE,
@@ -417,17 +467,19 @@ impl SoftwarePage {
                 ],
             )
             .header(theme::TABLE_HEADER_HEIGHT, |mut header| {
-                for title in [
-                    "EXTENSION",
-                    "NAVIGATEUR",
-                    "UTILISATEUR",
-                    "VERSION",
-                    "PORTÉE",
-                    "POURQUOI",
-                ] {
-                    header.col(|ui| {
-                        table::header_cell(ui, title);
-                    });
+                if order::headers(
+                    &mut header,
+                    "software_extensions",
+                    &[
+                        ("EXTENSION", Some("name")),
+                        ("NAVIGATEUR", Some("browser")),
+                        ("UTILISATEUR", Some("user")),
+                        ("VERSION", Some("version")),
+                        ("PORTÉE", Some("reach")),
+                        ("POURQUOI", None),
+                    ],
+                ) {
+                    resorted = true;
                 }
             })
             .body(|body| {
@@ -438,6 +490,7 @@ impl SoftwarePage {
                     let Some(extension) = state.software.browser_extensions.get(real_idx) else {
                         return;
                     };
+                    row.set_selected(state.software.selected_package == Some(real_idx));
                     row.col(|ui| {
                         table::cell_stack(ui, &extension.name, &extension.id);
                     });
@@ -476,6 +529,9 @@ impl SoftwarePage {
                     }
                 });
             });
+            if resorted {
+                state.software.extensions_page = 0;
+            }
             let mut position = state
                 .software
                 .selected_package
@@ -509,12 +565,16 @@ impl SoftwarePage {
         search_upper: &str,
         command: &mut Option<GuiCommand>,
     ) {
-        let filtered: Vec<usize> = state
+        let outdated_only = state.software.outdated_only;
+        let mut filtered: Vec<usize> = state
             .software
             .packages
             .iter()
             .enumerate()
             .filter(|(_, p)| {
+                if outdated_only && p.up_to_date {
+                    return false;
+                }
                 if search_upper.is_empty() {
                     return true;
                 }
@@ -528,6 +588,13 @@ impl SoftwarePage {
             })
             .map(|(i, _)| i)
             .collect();
+        order::sort(ui.ctx(), "software_packages", &mut filtered, |key, a, b| {
+            compare_packages(
+                key,
+                &state.software.packages[a],
+                &state.software.packages[b],
+            )
+        });
 
         let result_count = filtered.len();
 
@@ -577,6 +644,8 @@ impl SoftwarePage {
         card_grid.show(ui, &items, |ui, width, (label, value, color, icon)| {
             if Self::summary_card(ui, width, label, value, *color, icon) {
                 widgets::open_data_panel(ui.ctx(), "Paquets et dépendances");
+                state.software.search.clear();
+                state.software.outdated_only = *label == "MISES À JOUR REQUISES";
             }
         });
 
@@ -603,25 +672,20 @@ impl SoftwarePage {
 
         ui.add_space(theme::SPACE_SM);
 
-        let (_, export) = widgets::SearchFilterBar::new(
+        let (toggled, export) = widgets::SearchFilterBar::new(
             &mut state.software.search,
             "Rechercher un paquet, une version ou un éditeur…",
         )
+        .chip("Obsolètes", outdated_only, theme::WARNING)
         .result_count(result_count)
         .action(format!("{}  CSV", icons::DOWNLOAD))
         .show_with_action(ui);
+        if toggled.is_some() {
+            state.software.outdated_only = !outdated_only;
+        }
         if export {
             let success = Self::export_packages_csv(state, &filtered);
-            let time = ui.input(|i| i.time);
-            if success {
-                state.toasts.push(
-                    crate::widgets::toast::Toast::success("Export CSV réussi").with_time(time),
-                );
-            } else {
-                state.toasts.push(
-                    crate::widgets::toast::Toast::error("Échec de l'export CSV").with_time(time),
-                );
-            }
+            Self::export_toast(ui, state, success);
         }
 
         ui.add_space(theme::SPACE_SM);
@@ -651,20 +715,32 @@ impl SoftwarePage {
                             ui.add_space(theme::SPACE_MD);
                         }
                     });
-                } else {
+                } else if state.software.packages.is_empty() {
                     widgets::empty_state(
                         ui,
                         icons::SOFTWARE,
-                        "Aucune occurrence trouv\u{00e9}e",
+                        "Aucun paquet inventori\u{00e9}",
                         Some(
-                            "Ajustez vos crit\u{00e8}res de recherche ou actualisez l'inventaire.",
+                            "L'inventaire est relev\u{00e9} \u{00e0} chaque analyse des vuln\u{00e9}rabilit\u{00e9}s.",
                         ),
                     );
+                } else {
+                    widgets::empty_state(
+                        ui,
+                        icons::SEARCH,
+                        "Aucun r\u{00e9}sultat",
+                        Some("Aucun paquet ne correspond \u{00e0} la recherche ou au filtre."),
+                    );
+                    if widgets::ghost_button(ui, "Effacer la recherche").clicked() {
+                        state.software.search.clear();
+                        state.software.outdated_only = false;
+                    }
                 }
             } else {
                 use widgets::table;
 
                 let mut clicked_idx: Option<usize> = None;
+                let mut resorted = false;
                 let selected = state.software.selected_package;
 
                 table::fluid_clickable(
@@ -679,22 +755,20 @@ impl SoftwarePage {
                     ],
                 )
                 .header(theme::TABLE_HEADER_HEIGHT, |mut header| {
-                    header.col(|ui: &mut egui::Ui| {
-                        table::header_cell(ui, "D\u{00c9}SIGNATION");
-                    });
-                    header.col(|ui: &mut egui::Ui| {
-                        table::header_cell(ui, "VERSION");
-                    });
-                    header.col(|ui: &mut egui::Ui| {
-                        table::header_cell(ui, "\u{00c9}DITEUR / ORIGINE");
-                    });
-                    header.col(|ui: &mut egui::Ui| {
-                        table::header_cell(ui, "\u{00c9}TAT");
-                    });
-                    header.col(|ui: &mut egui::Ui| {
-                        table::header_cell(ui, "CIBLE DE MAJ");
-                    });
-                    header.col(|_ui: &mut egui::Ui| {}); // Actions
+                    if order::headers(
+                        &mut header,
+                        "software_packages",
+                        &[
+                            ("D\u{00c9}SIGNATION", Some("name")),
+                            ("VERSION", Some("version")),
+                            ("\u{00c9}DITEUR / ORIGINE", Some("publisher")),
+                            ("\u{00c9}TAT", Some("state")),
+                            ("CIBLE DE MAJ", Some("latest")),
+                            ("", None),
+                        ],
+                    ) {
+                        resorted = true;
+                    }
                 })
                 .body(|body| {
                     body.rows(theme::TABLE_DATA_ROW_HEIGHT, pkg_len, |mut row| {
@@ -764,6 +838,9 @@ impl SoftwarePage {
                     });
                 });
 
+                if resorted {
+                    state.software.packages_page = 0;
+                }
                 if let Some(idx) = clicked_idx {
                     state.software.selected_package = Some(idx);
                     state.software.detail_open = true;
@@ -847,7 +924,7 @@ impl SoftwarePage {
         search_upper: &str,
         _command: &mut Option<GuiCommand>,
     ) {
-        let filtered: Vec<usize> = state
+        let mut filtered: Vec<usize> = state
             .software
             .native_apps
             .iter()
@@ -862,6 +939,13 @@ impl SoftwarePage {
             })
             .map(|(i, _)| i)
             .collect();
+        order::sort(ui.ctx(), "software_apps", &mut filtered, |key, a, b| {
+            compare_apps(
+                key,
+                &state.software.native_apps[a],
+                &state.software.native_apps[b],
+            )
+        });
 
         let result_count = filtered.len();
         let total = state.software.native_apps.len() as u32;
@@ -915,16 +999,7 @@ impl SoftwarePage {
         .show_with_action(ui);
         if export {
             let success = Self::export_apps_csv(state, &filtered);
-            let time = ui.input(|i| i.time);
-            if success {
-                state.toasts.push(
-                    crate::widgets::toast::Toast::success("Export CSV réussi").with_time(time),
-                );
-            } else {
-                state.toasts.push(
-                    crate::widgets::toast::Toast::error("Échec de l'export CSV").with_time(time),
-                );
-            }
+            Self::export_toast(ui, state, success);
         }
 
         ui.add_space(theme::SPACE_SM);
@@ -953,20 +1028,29 @@ impl SoftwarePage {
                             ui.add_space(theme::SPACE_MD);
                         }
                     });
-                } else {
+                } else if state.software.native_apps.is_empty() {
                     widgets::empty_state(
                         ui,
                         icons::CUBE,
-                        "Aucune entit\u{00e9} identifi\u{00e9}e",
-                        Some(
-                            "Veuillez patienter pendant la fin de la synchronisation de l'inventaire.",
-                        ),
+                        "Aucune application inventori\u{00e9}e",
+                        Some("La liste arrive avec le prochain relev\u{00e9} de l'inventaire."),
                     );
+                } else {
+                    widgets::empty_state(
+                        ui,
+                        icons::SEARCH,
+                        "Aucun r\u{00e9}sultat",
+                        Some("Aucune application ne correspond \u{00e0} la recherche."),
+                    );
+                    if widgets::ghost_button(ui, "Effacer la recherche").clicked() {
+                        state.software.search.clear();
+                    }
                 }
             } else {
                 use widgets::table;
 
                 let mut clicked_idx: Option<usize> = None;
+                let mut resorted = false;
                 let selected = state.software.selected_package;
 
                 table::fluid_clickable(
@@ -980,26 +1064,19 @@ impl SoftwarePage {
                     ],
                 )
                 .header(theme::TABLE_HEADER_HEIGHT, |mut header| {
-                    header.col(|ui: &mut egui::Ui| {
-                        table::header_cell(ui, "APPLICATION");
-                    });
-                    header.col(|ui: &mut egui::Ui| {
-                        table::header_cell(ui, "VERSION");
-                    });
-                    header.col(|ui: &mut egui::Ui| {
-                        table::header_cell(
-                            ui,
-                            if cfg!(target_os = "macos") {
-                                "IDENTIFIANT (BUNDLE ID)"
-                            } else {
-                                "IDENTIFIANT PRODUIT"
-                            },
-                        );
-                    });
-                    header.col(|ui: &mut egui::Ui| {
-                        table::header_cell(ui, "\u{00c9}DITEUR");
-                    });
-                    header.col(|_ui: &mut egui::Ui| {}); // Actions
+                    if order::headers(
+                        &mut header,
+                        "software_apps",
+                        &[
+                            ("APPLICATION", Some("name")),
+                            ("VERSION", Some("version")),
+                            (APP_ID_HEADER, Some("id")),
+                            ("\u{00c9}DITEUR", Some("publisher")),
+                            ("", None),
+                        ],
+                    ) {
+                        resorted = true;
+                    }
                 })
                 .body(|body| {
                     body.rows(theme::TABLE_ROW_HEIGHT, app_len, |mut row| {
@@ -1050,9 +1127,29 @@ impl SoftwarePage {
                     });
                 });
 
+                if resorted {
+                    state.software.native_page = 0;
+                }
                 if let Some(idx) = clicked_idx {
                     state.software.selected_package = Some(idx);
                     state.software.detail_open = true;
+                }
+
+                // Keyboard: ↑/↓ walk the displayed order, Enter opens the drawer,
+                // and the page follows the selection.
+                let mut position = state
+                    .software
+                    .selected_package
+                    .and_then(|real| filtered.iter().position(|&r| r == real));
+                if widgets::navigate_list(
+                    ui.ctx(),
+                    &mut position,
+                    filtered.len(),
+                    &mut state.software.detail_open,
+                ) && let Some(pos) = position
+                {
+                    state.software.selected_package = Some(filtered[pos]);
+                    state.software.native_page = pos / SW_PER_PAGE;
                 }
 
                 widgets::paginate_controls(
@@ -1066,6 +1163,67 @@ impl SoftwarePage {
     }
 
     // -- CSV export helpers --
+
+    /// Say how an export went.
+    fn export_toast(ui: &Ui, state: &mut AppState, success: bool) {
+        let toast = if success {
+            crate::widgets::toast::Toast::success("Export CSV réussi")
+        } else {
+            crate::widgets::toast::Toast::error("Échec de l'export CSV")
+        };
+        state.push_toast(toast, ui.ctx());
+    }
+
+    fn export_extensions_csv(state: &AppState, indices: &[usize]) -> bool {
+        let headers = &[
+            "nom",
+            "identifiant",
+            "version",
+            "navigateur",
+            "profil",
+            "utilisateur",
+            "portee",
+            "etat",
+            "provenance",
+            "permissions",
+        ];
+        let rows: Vec<Vec<String>> = indices
+            .iter()
+            .filter_map(|&i| {
+                let e = state.software.browser_extensions.get(i)?;
+                Some(vec![
+                    e.name.clone(),
+                    e.id.clone(),
+                    e.version.clone(),
+                    e.browser.clone(),
+                    e.profile.clone(),
+                    e.user.clone(),
+                    reach_display(e.reach).0.to_string(),
+                    match e.enabled {
+                        Some(true) => "Activée",
+                        Some(false) => "Désactivée",
+                        None => "Non communiqué",
+                    }
+                    .to_string(),
+                    if e.from_store {
+                        "Magasin"
+                    } else {
+                        "Hors magasin"
+                    }
+                    .to_string(),
+                    e.reasons.join(" ; "),
+                ])
+            })
+            .collect();
+        let path = crate::export::default_export_path("logiciels_extensions.csv");
+        match crate::export::export_csv(headers, &rows, &path) {
+            Ok(_) => true,
+            Err(e) => {
+                tracing::warn!("Export CSV failed: {}", e);
+                false
+            }
+        }
+    }
 
     fn export_packages_csv(state: &AppState, indices: &[usize]) -> bool {
         let headers = &["nom", "version", "editeur", "a_jour", "derniere_version"];
@@ -1133,6 +1291,80 @@ impl SoftwarePage {
         icon: &str,
     ) -> bool {
         widgets::metric_card(ui, width, label, value, color, icon)
+    }
+}
+
+/// Header of the identifier column of the applications table.
+#[cfg(any(target_os = "macos", target_os = "windows"))]
+const APP_ID_HEADER: &str = if cfg!(target_os = "macos") {
+    "IDENTIFIANT (BUNDLE ID)"
+} else {
+    "IDENTIFIANT PRODUIT"
+};
+
+/// Rank of a reach, widest last, so descending puts the widest on top.
+fn reach_rank(reach: crate::dto::Severity) -> u8 {
+    match reach {
+        crate::dto::Severity::Critical | crate::dto::Severity::High => 2,
+        crate::dto::Severity::Medium => 1,
+        crate::dto::Severity::Low | crate::dto::Severity::Info => 0,
+    }
+}
+
+/// Order two extensions under a column key, ascending.
+fn compare_extensions(
+    key: &str,
+    a: &crate::dto::GuiBrowserExtension,
+    b: &crate::dto::GuiBrowserExtension,
+) -> std::cmp::Ordering {
+    match key {
+        "name" => order::text(&a.name, &b.name),
+        "browser" => {
+            order::text(&a.browser, &b.browser).then_with(|| order::text(&a.profile, &b.profile))
+        }
+        "user" => order::text(&a.user, &b.user),
+        "version" => order::version(&a.version, &b.version),
+        "reach" => reach_rank(a.reach).cmp(&reach_rank(b.reach)),
+        _ => std::cmp::Ordering::Equal,
+    }
+}
+
+/// Order two packages under a column key, ascending.
+fn compare_packages(
+    key: &str,
+    a: &crate::dto::GuiSoftwarePackage,
+    b: &crate::dto::GuiSoftwarePackage,
+) -> std::cmp::Ordering {
+    match key {
+        "name" => order::text(&a.name, &b.name),
+        "version" => order::opt_version(Some(&a.version), Some(&b.version)),
+        "publisher" => order::opt_text(a.publisher.as_deref(), b.publisher.as_deref()),
+        // Outdated first: what needs attention leads the ascending order.
+        "state" => a.up_to_date.cmp(&b.up_to_date),
+        // The target shown in the column: only for a package behind it.
+        "latest" => {
+            let target = |p: &'_ crate::dto::GuiSoftwarePackage| {
+                p.latest_version.clone().filter(|_| !p.up_to_date)
+            };
+            order::opt_version(target(a).as_deref(), target(b).as_deref())
+        }
+        _ => std::cmp::Ordering::Equal,
+    }
+}
+
+/// Order two applications under a column key, ascending.
+#[cfg(any(target_os = "macos", target_os = "windows"))]
+fn compare_apps(
+    key: &str,
+    a: &crate::dto::GuiNativeApp,
+    b: &crate::dto::GuiNativeApp,
+) -> std::cmp::Ordering {
+    match key {
+        "name" => order::text(&a.name, &b.name),
+        "version" => order::opt_version(Some(&a.version), Some(&b.version)),
+        "id" => order::opt_text(Some(&a.bundle_id), Some(&b.bundle_id)),
+        "publisher" => order::opt_text(Some(&a.publisher), Some(&b.publisher)),
+        _ => std::cmp::Ordering::Equal,
     }
 }
 
@@ -1293,7 +1525,7 @@ fn platform_upgrade_command(safe_name: &str) -> String {
     }
     #[cfg(not(any(target_os = "macos", target_os = "linux", target_os = "windows")))]
     {
-        format!("# Mettez a jour '{}' manuellement", safe_name)
+        format!("# Mettez à jour '{}' manuellement", safe_name)
     }
 }
 
@@ -1360,6 +1592,20 @@ mod extension_tests {
         assert_eq!(filtered_extensions(&extensions, "BOB"), [1]);
         assert_eq!(filtered_extensions(&extensions, "ID-COUPON"), [1]);
         assert!(filtered_extensions(&extensions, "SAFARI").is_empty());
+    }
+
+    #[test]
+    fn extensions_sort_by_reach_rank_and_version_numbers() {
+        use std::cmp::Ordering::{Greater, Less};
+        let mut wide = extension("Zed", "Chrome", "bob");
+        wide.reach = Severity::High;
+        wide.version = "1.10".to_string();
+        let mut narrow = extension("alpha", "Firefox", "alice");
+        narrow.version = "1.9".to_string();
+        assert_eq!(compare_extensions("reach", &wide, &narrow), Greater);
+        assert_eq!(compare_extensions("version", &wide, &narrow), Greater);
+        assert_eq!(compare_extensions("name", &wide, &narrow), Greater);
+        assert_eq!(compare_extensions("browser", &wide, &narrow), Less);
     }
 
     #[test]

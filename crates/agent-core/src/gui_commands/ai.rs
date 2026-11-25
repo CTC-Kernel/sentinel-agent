@@ -48,6 +48,120 @@ fn analysis_text(target: String, analysis: String) -> AgentEvent {
     }
 }
 
+/// The answer of the AI provider chosen in the settings to one analysis
+/// (nothing streamed), or `None` when the local model is the one chosen.
+/// The three analyses of the pages (vulnerability, threat, risk) used to
+/// know the local model only: with a provider configured and no local
+/// model, each answered that no model was available.
+async fn remote_analysis(
+    remote: &agent_core::remote_ai::RemoteAi,
+    prompt: &str,
+) -> Option<Result<String, String>> {
+    if remote.settings.provider == agent_gui::ai_provider::AiProvider::Local {
+        return None;
+    }
+    let not_cancelled = std::sync::Arc::new(std::sync::atomic::AtomicBool::new(false));
+    Some(
+        remote
+            .infer(ANALYST_SYSTEM_PROMPT, prompt, not_cancelled, &mut |_| {})
+            .await
+            .map(|text| text.trim().to_string()),
+    )
+}
+
+/// What the remote provider is told it is, for the analyses of the pages.
+const ANALYST_SYSTEM_PROMPT: &str = "Tu es l'analyste cybersécurité de l'agent Sentinel GRC. \
+    Réponds en français, de façon concise et factuelle, sans inventer de données.";
+
+/// The question put to the remote provider about a vulnerability finding.
+fn vulnerability_analysis_prompt(finding: &agent_scanner::VulnerabilityFinding) -> String {
+    format!(
+        "Analyse la vulnérabilité suivante : exploitabilité, impact, puis une étape de \
+         correction précise. Moins de 120 mots.\n\n\
+         - Paquet : {}\n- Version installée : {}\n- Version corrigée : {}\n- CVE : {}\n\
+         - Sévérité : {:?}\n- Description : {}",
+        finding.package_name,
+        finding.installed_version,
+        finding.available_version.as_deref().unwrap_or("inconnue"),
+        finding.cve_id.as_deref().unwrap_or("N/A"),
+        finding.severity,
+        finding.description
+    )
+}
+
+/// The question put to the remote provider about a security event.
+fn threat_classification_prompt(event_description: &str) -> String {
+    format!(
+        "Classe l'événement de sécurité suivant. Donne, une ligne chacun : le type de menace, \
+         le niveau (faible, moyen, élevé, critique), ta confiance en pourcentage, le vecteur \
+         d'attaque probable et l'impact. Dis-le clairement s'il s'agit probablement d'un faux \
+         positif.\n\nÉvénement : {event_description}"
+    )
+}
+
+/// The question put to the model about a risk, local or remote: the
+/// answer is read by `parse_risk_analysis_response`.
+fn risk_analysis_prompt(
+    risk_title: &str,
+    risk_description: &str,
+    current_probability: u8,
+    current_impact: u8,
+) -> String {
+    format!(
+        "Tu es un analyste de risques en cybersécurité (GRC). Analyse le risque suivant et fournis :\n\
+         1. Une évaluation de la probabilité (1-5) et de l'impact (1-5)\n\
+         2. Une analyse détaillée (3-5 phrases)\n\
+         3. Des suggestions de mitigation concrètes (2-4 points)\n\n\
+         Risque : {risk_title}\n\
+         Description : {risk_description}\n\
+         Probabilité actuelle : {current_probability}/5\n\
+         Impact actuel : {current_impact}/5\n\n\
+         Réponds en JSON avec ce schéma :\n\
+         {{\n\
+           \"suggested_probability\": 1-5,\n\
+           \"suggested_impact\": 1-5,\n\
+           \"analysis\": \"texte d'analyse\",\n\
+           \"mitigation_suggestions\": [\"suggestion1\", \"suggestion2\"]\n\
+         }}"
+    )
+}
+
+/// The finding of the last vulnerability scan the interface names `target`.
+async fn cached_finding(
+    handle: &agent_core::RuntimeHandle,
+    target: &str,
+) -> Option<agent_scanner::VulnerabilityFinding> {
+    let cache = handle.state.last_vuln_findings.read().await;
+    cache.as_ref().and_then(|res| {
+        res.vulnerabilities
+            .iter()
+            .find(|v| {
+                let id = v
+                    .cve_id
+                    .clone()
+                    .or_else(|| v.advisory_id.clone())
+                    .unwrap_or_else(|| {
+                        format!(
+                            "{}-{}",
+                            v.source.to_uppercase(),
+                            v.package_name.to_uppercase()
+                        )
+                    });
+                agent_gui::state::event_identity(
+                    "finding",
+                    &(
+                        &id,
+                        &v.package_name,
+                        &v.installed_version,
+                        &v.source,
+                        Some(v.detected_at),
+                    ),
+                ) == target
+            })
+            .cloned()
+    })
+}
+
 /// Run one command of this group.
 pub(crate) async fn handle(ctx: &mut CommandContext, command: GuiCommand) {
     match command {
@@ -211,7 +325,7 @@ async fn llm_prompt(
                     .await
                     .unwrap_or_else(|| "Modèle en cours de configuration".to_string());
                 let message = format!(
-                    "Analyse IA indisponible : {reason}.\n\nAucune analyse n’a été exécutée pour cette question. Ouvrez « Modèle & diagnostic » pour vérifier ou charger le modèle, puis renvoyez votre question. Les recommandations déterministes restent consultables dans l’onglet Recommandations."
+                    "Analyse IA indisponible : {reason}.\n\nAucune analyse n’a été exécutée pour cette question. Ouvrez l’onglet « Paramètres IA » pour vérifier ou charger le modèle, puis renvoyez votre question. Les recommandations déterministes restent consultables dans l’onglet Recommandations."
                 );
                 job.unavailable(message, start);
                 return;
@@ -219,7 +333,7 @@ async fn llm_prompt(
         }
         // LLM not available (feature disabled or no service)
         let _ = &svc; // suppress unused-variable warning when llm feature is off
-        let message = "Service IA indisponible. Aucune analyse n’a été exécutée. Consultez Modèle & diagnostic avant de renvoyer votre question.".to_string();
+        let message = "Service IA indisponible. Aucune analyse n’a été exécutée. Consultez l’onglet « Paramètres IA » avant de renvoyer votre question.".to_string();
         job.unavailable(message, start);
     });
 }
@@ -743,46 +857,36 @@ async fn llm_analyze_vulnerability(
     let tx = ctx.events.clone();
     let svc = ctx.llm_service.clone();
     let handle = ctx.handle.clone();
+    let remote = ctx.remote_ai.clone();
     ctx.tasks.spawn_expected(
         "llm analyze vulnerability",
         expected::ANALYSIS,
         async move {
             let target = target_id;
+            // The provider chosen in the settings answers, when it is not
+            // the local model.
+            if remote.settings.provider != agent_gui::ai_provider::AiProvider::Local {
+                let analysis = match cached_finding(&handle, &target).await {
+                    None => "Vulnérabilité introuvable dans la dernière analyse : relancez \
+                             l'analyse des vulnérabilités."
+                        .to_string(),
+                    Some(finding) => {
+                        match remote_analysis(&remote, &vulnerability_analysis_prompt(&finding))
+                            .await
+                        {
+                            Some(Ok(text)) => text,
+                            Some(Err(e)) => format!("Erreur d'analyse : {e}"),
+                            None => String::new(),
+                        }
+                    }
+                };
+                let _ = tx.send(analysis_text(target, analysis));
+                return;
+            }
             #[cfg(feature = "llm")]
             {
                 if let Some(ref svc) = svc {
-                    // Retrieve finding from cache
-                    let finding = {
-                        let cache = handle.state.last_vuln_findings.read().await;
-                        cache.as_ref().and_then(|res| {
-                            res.vulnerabilities
-                                .iter()
-                                .find(|v| {
-                                    let id = v
-                                        .cve_id
-                                        .clone()
-                                        .or_else(|| v.advisory_id.clone())
-                                        .unwrap_or_else(|| {
-                                            format!(
-                                                "{}-{}",
-                                                v.source.to_uppercase(),
-                                                v.package_name.to_uppercase()
-                                            )
-                                        });
-                                    agent_gui::state::event_identity(
-                                        "finding",
-                                        &(
-                                            &id,
-                                            &v.package_name,
-                                            &v.installed_version,
-                                            &v.source,
-                                            Some(v.detected_at),
-                                        ),
-                                    ) == target
-                                })
-                                .cloned()
-                        })
-                    };
+                    let finding = cached_finding(&handle, &target).await;
 
                     if let Some(finding) = finding {
                         match svc.analyze_vulnerability(&finding).await {
@@ -1082,8 +1186,18 @@ async fn llm_classify_threat(
     );
     let tx = ctx.events.clone();
     let svc = ctx.llm_service.clone();
+    let remote = ctx.remote_ai.clone();
     ctx.tasks.spawn_expected("llm classify threat", expected::ANALYSIS, async move {
         let start = std::time::Instant::now();
+        // The provider chosen in the settings answers, when it is not the
+        // local model.
+        if let Some(answer) =
+            remote_analysis(&remote, &threat_classification_prompt(&event_description)).await
+        {
+            let analysis = answer.unwrap_or_else(|e| format!("Erreur de classification : {e}"));
+            let _ = tx.send(analysis_text(target_id, analysis));
+            return;
+        }
         #[cfg(feature = "llm")]
         {
             if let Some(ref svc) = svc
@@ -1156,68 +1270,82 @@ async fn llm_analyze_risk(
     let tx = ctx.events.clone();
     let svc = ctx.llm_service.clone();
     let rid = risk_id.clone();
-    ctx.tasks.spawn_expected("llm analyze risk", expected::ANALYSIS, async move {
-        #[cfg(feature = "llm")]
-        {
-            if let Some(ref svc) = svc
-                && let Some(manager) = svc.get_manager().await
-            {
-                let prompt = format!(
-                    "Tu es un analyste de risques en cybersécurité (GRC). Analyse le risque suivant et fournis :\n\
-                     1. Une évaluation de la probabilité (1-5) et de l'impact (1-5)\n\
-                     2. Une analyse détaillée (3-5 phrases)\n\
-                     3. Des suggestions de mitigation concrètes (2-4 points)\n\n\
-                     Risque : {risk_title}\n\
-                     Description : {risk_description}\n\
-                     Probabilité actuelle : {current_probability}/5\n\
-                     Impact actuel : {current_impact}/5\n\n\
-                     Réponds en JSON avec ce schéma :\n\
-                     {{\n\
-                       \"suggested_probability\": 1-5,\n\
-                       \"suggested_impact\": 1-5,\n\
-                       \"analysis\": \"texte d'analyse\",\n\
-                       \"mitigation_suggestions\": [\"suggestion1\", \"suggestion2\"]\n\
-                     }}"
-                );
-                let req = agent_llm::engine::InferenceRequest::new(&prompt)
-                    .with_max_tokens(1024)
-                    .with_temperature(0.4);
-                match manager.engine().infer(req).await {
-                    Ok(resp) => {
-                        // Try to parse structured JSON from the response
-                        let (sugg_prob, sugg_impact, analysis, mitigations) =
-                            crate::parse_risk_analysis_response(&resp.text);
-                        let _ = tx.send(AgentEvent::LlmRiskAnalysis {
-                            risk_id: rid,
-                            suggested_probability: sugg_prob,
-                            suggested_impact: sugg_impact,
-                            analysis,
-                            mitigation_suggestions: mitigations,
-                        });
-                    }
-                    Err(e) => {
-                        warn!("LLM risk analysis error: {}", e);
-                        let _ = tx.send(AgentEvent::LlmRiskAnalysis {
-                            risk_id: rid,
-                            suggested_probability: None,
-                            suggested_impact: None,
-                            analysis: format!("Erreur d'analyse IA : {}", e),
-                            mitigation_suggestions: vec![],
-                        });
-                    }
-                }
+    let remote = ctx.remote_ai.clone();
+    ctx.tasks
+        .spawn_expected("llm analyze risk", expected::ANALYSIS, async move {
+            // The provider chosen in the settings answers, when it is not the
+            // local model.
+            let question = risk_analysis_prompt(
+                &risk_title,
+                &risk_description,
+                current_probability,
+                current_impact,
+            );
+            if let Some(answer) = remote_analysis(&remote, &question).await {
+                let (suggested_probability, suggested_impact, analysis, mitigation_suggestions) =
+                    match answer {
+                        Ok(text) => crate::parse_risk_analysis_response(&text),
+                        Err(e) => (None, None, format!("Erreur d'analyse IA : {e}"), vec![]),
+                    };
+                let _ = tx.send(AgentEvent::LlmRiskAnalysis {
+                    risk_id: rid,
+                    suggested_probability,
+                    suggested_impact,
+                    analysis,
+                    mitigation_suggestions,
+                });
                 return;
             }
-        }
-        let _ = &svc;
-        let _ = tx.send(AgentEvent::LlmRiskAnalysis {
-            risk_id: rid,
-            suggested_probability: None,
-            suggested_impact: None,
-            analysis: "Modèle IA non disponible pour l'analyse des risques.".to_string(),
-            mitigation_suggestions: vec![],
+            #[cfg(feature = "llm")]
+            {
+                if let Some(ref svc) = svc
+                    && let Some(manager) = svc.get_manager().await
+                {
+                    let prompt = risk_analysis_prompt(
+                        &risk_title,
+                        &risk_description,
+                        current_probability,
+                        current_impact,
+                    );
+                    let req = agent_llm::engine::InferenceRequest::new(&prompt)
+                        .with_max_tokens(1024)
+                        .with_temperature(0.4);
+                    match manager.engine().infer(req).await {
+                        Ok(resp) => {
+                            // Try to parse structured JSON from the response
+                            let (sugg_prob, sugg_impact, analysis, mitigations) =
+                                crate::parse_risk_analysis_response(&resp.text);
+                            let _ = tx.send(AgentEvent::LlmRiskAnalysis {
+                                risk_id: rid,
+                                suggested_probability: sugg_prob,
+                                suggested_impact: sugg_impact,
+                                analysis,
+                                mitigation_suggestions: mitigations,
+                            });
+                        }
+                        Err(e) => {
+                            warn!("LLM risk analysis error: {}", e);
+                            let _ = tx.send(AgentEvent::LlmRiskAnalysis {
+                                risk_id: rid,
+                                suggested_probability: None,
+                                suggested_impact: None,
+                                analysis: format!("Erreur d'analyse IA : {}", e),
+                                mitigation_suggestions: vec![],
+                            });
+                        }
+                    }
+                    return;
+                }
+            }
+            let _ = &svc;
+            let _ = tx.send(AgentEvent::LlmRiskAnalysis {
+                risk_id: rid,
+                suggested_probability: None,
+                suggested_impact: None,
+                analysis: "Modèle IA non disponible pour l'analyse des risques.".to_string(),
+                mitigation_suggestions: vec![],
+            });
         });
-    });
 }
 
 #[cfg(test)]
@@ -1423,5 +1551,84 @@ mod tests {
         let (mut ctx, _events) = testing::context();
         log_ai_interaction(&mut ctx, "llm prompt: audit trail", "question".to_string());
         assert!(ctx.tasks.is_empty());
+    }
+
+    #[tokio::test]
+    async fn the_local_model_leaves_the_analyses_to_the_local_service() {
+        let remote = agent_core::remote_ai::RemoteAi::default();
+        assert!(remote_analysis(&remote, "question").await.is_none());
+    }
+
+    /// With a provider chosen in the settings, the analyses of the pages
+    /// go to it: they used to answer that no local model was available.
+    #[tokio::test]
+    async fn a_threat_classification_goes_to_the_provider_chosen_in_the_settings() {
+        let (mut ctx, events) = testing::context();
+        ctx.remote_ai.settings.provider = agent_gui::ai_provider::AiProvider::OpenAi;
+        // No model named: the provider refuses before any request is made.
+        ctx.remote_ai.settings.model.clear();
+
+        llm_classify_threat(
+            &mut ctx,
+            "xmrig started".to_string(),
+            "process:1".to_string(),
+        )
+        .await;
+
+        let answer = loop {
+            match events.try_recv() {
+                Ok(AgentEvent::LlmAnalysisComplete {
+                    target, analysis, ..
+                }) => break (target, analysis),
+                Ok(_) => {}
+                Err(_) => tokio::task::yield_now().await,
+            }
+        };
+        assert_eq!(answer.0, "process:1");
+        assert!(
+            answer
+                .1
+                .starts_with("Erreur de classification : Renseignez un identifiant"),
+            "{}",
+            answer.1
+        );
+    }
+
+    #[tokio::test]
+    async fn a_risk_analysis_goes_to_the_provider_chosen_in_the_settings() {
+        let (mut ctx, events) = testing::context();
+        ctx.remote_ai.settings.provider = agent_gui::ai_provider::AiProvider::Anthropic;
+        ctx.remote_ai.settings.model.clear();
+
+        llm_analyze_risk(
+            &mut ctx,
+            "risk-1".to_string(),
+            "Rançongiciel".to_string(),
+            "Chiffrement des partages".to_string(),
+            3,
+            4,
+        )
+        .await;
+
+        let (risk_id, analysis) = loop {
+            match events.try_recv() {
+                Ok(AgentEvent::LlmRiskAnalysis {
+                    risk_id, analysis, ..
+                }) => break (risk_id, analysis),
+                Ok(_) => {}
+                Err(_) => tokio::task::yield_now().await,
+            }
+        };
+        assert_eq!(risk_id, "risk-1");
+        assert!(analysis.starts_with("Erreur d'analyse IA : "), "{analysis}");
+        assert!(!analysis.contains("non disponible"));
+    }
+
+    #[test]
+    fn the_risk_question_carries_the_risk_and_asks_for_json() {
+        let prompt = risk_analysis_prompt("Rançongiciel", "Chiffrement des partages", 3, 4);
+        assert!(prompt.contains("Risque : Rançongiciel"));
+        assert!(prompt.contains("Probabilité actuelle : 3/5"));
+        assert!(prompt.contains("\"suggested_impact\": 1-5"));
     }
 }

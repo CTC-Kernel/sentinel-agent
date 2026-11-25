@@ -225,7 +225,13 @@ fn run_service(_arguments: Vec<OsString>) -> windows_service::Result<()> {
         });
 
         let db = std::sync::Arc::new(db);
-        let runtime = crate::AgentRuntime::new(config).with_database(db);
+        let mut runtime = crate::AgentRuntime::new(config).with_database(db.clone());
+
+        // What the binary plugs into the service's agent before it runs:
+        // the channel that serves the desktop interface.
+        if let Some(hook) = super::take_runtime_hook() {
+            hook(&mut runtime, &db, rt.handle());
+        }
 
         // Link SERVICE_SHUTDOWN to runtime shutdown
         let shutdown_signal = runtime.shutdown_signal();
@@ -493,6 +499,17 @@ pub fn get_service_state() -> ServiceResult<ServiceState> {
         | WinServiceState::PausePending
         | WinServiceState::ContinuePending => ServiceState::Paused,
     })
+}
+
+/// Process of the running service, as the service manager reports it;
+/// `None` when the service is not installed or not running.
+pub fn service_process_id() -> Option<u32> {
+    let service_manager =
+        ServiceManager::local_computer(None::<&str>, ServiceManagerAccess::CONNECT).ok()?;
+    let service = service_manager
+        .open_service(SERVICE_NAME, ServiceAccess::QUERY_STATUS)
+        .ok()?;
+    service.query_status().ok()?.process_id
 }
 
 /// Start the service.

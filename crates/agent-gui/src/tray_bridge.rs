@@ -29,15 +29,8 @@ static TRAY_ICON_PNG: &[u8] = include_bytes!("../../../assets/icons/png/tray_22.
 #[cfg(not(target_os = "macos"))]
 static TRAY_ICON_PNG: &[u8] = include_bytes!("../../../assets/icons/png/icon_32x32.png");
 
-/// Branding constants.
-mod branding {
-    pub const PRODUCT_NAME: &str = "Sentinel GRC Nexus";
-    pub const COMPANY_NAME: &str = "Cyber Threat Consulting";
-    pub const EMAIL: &str = "***REMOVED***";
-    pub const WEBSITE: &str = "https://cyber-threat-consulting.com";
-    pub const GUIDE: &str = "https://cyber-threat-consulting.com/docs";
-    pub const CONSOLE: &str = "https://app.cyber-threat-consulting.com";
-}
+// One set of product names and links for the tray and the pages.
+use crate::pages::about::branding;
 
 /// Commands from the tray menu.
 #[derive(Debug, Clone)]
@@ -125,6 +118,8 @@ pub struct TrayBridge {
     sync_item: MenuItem,
     console_item: MenuItem,
     jarvis_item: CheckMenuItem,
+    /// Pause state the menu currently shows, so it is redrawn on change only.
+    paused: std::sync::atomic::AtomicBool,
     /// Whether the platform entries (sync, console) are currently offered.
     platform_entries: std::sync::atomic::AtomicBool,
 }
@@ -141,7 +136,7 @@ impl TrayBridge {
         // === Header Section ===
         let header_item = MenuItem::with_id(
             ids::HEADER,
-            format!("─── {} ───", branding::PRODUCT_NAME.to_uppercase()),
+            format!("─── {} ───", branding::PRODUCT.to_uppercase()),
             false,
             None,
         );
@@ -162,7 +157,7 @@ impl TrayBridge {
         // === Control Section ===
         let pause_item = MenuItem::with_id(ids::PAUSE, "⏸  Mettre en pause", true, None);
         let resume_item = MenuItem::with_id(ids::RESUME, "▶  Reprendre", false, None);
-        let check_item = MenuItem::with_id(ids::CHECK, "🔄  Vérifier maintenant", true, None);
+        let check_item = MenuItem::with_id(ids::CHECK, "🔄  Lancer l'analyse", true, None);
         let sync_item = MenuItem::with_id(ids::SYNC, "☁  Synchroniser", true, None);
 
         // === Resources Section ===
@@ -258,6 +253,7 @@ impl TrayBridge {
             sync_item,
             console_item,
             jarvis_item,
+            paused: std::sync::atomic::AtomicBool::new(false),
             platform_entries: std::sync::atomic::AtomicBool::new(true),
         })
     }
@@ -294,14 +290,25 @@ impl TrayBridge {
         self.resources_item.set_text(&text);
     }
 
-    /// Set paused state (toggles pause/resume menu items).
+    /// Show the pause state: the pause/resume entries, the status line and
+    /// the icon's tooltip. Cheap to call every frame: the menu is only
+    /// redrawn when the state changes, wherever the pause came from (tray,
+    /// settings, palette, automatic resume).
     pub fn set_paused(&self, paused: bool) {
+        use std::sync::atomic::Ordering;
+        if self.paused.swap(paused, Ordering::AcqRel) == paused {
+            return;
+        }
         self.pause_item.set_enabled(!paused);
         self.resume_item.set_enabled(paused);
-        if paused {
-            self.status_item.set_text("⏸ En pause");
+        let (status, tooltip) = if paused {
+            ("⏸ En pause", "Sentinel GRC Nexus — En pause")
         } else {
-            self.status_item.set_text("✓ Actif");
+            ("✓ Actif", "Sentinel GRC Nexus — Actif")
+        };
+        self.status_item.set_text(status);
+        if let Err(e) = self._tray_icon.set_tooltip(Some(tooltip)) {
+            debug!("Tray tooltip not updated: {}", e);
         }
     }
 
@@ -410,13 +417,37 @@ impl TrayBridge {
 // Platform Utilities (used by TrayAction handlers in app.rs)
 // ============================================================================
 
-/// Open the logs folder in the system file browser.
-pub fn open_logs_folder() {
-    let log_path = get_logs_path();
-    if let Err(e) = open::that(&log_path) {
-        warn!("Failed to open logs folder: {}", e);
-        if let Some(parent) = log_path.parent() {
-            let _ = open::that(parent);
+/// The folder the logger writes to, told by the runtime once logging is set
+/// up. The interface cannot guess it: the logger falls back from the system
+/// directory to a per-user one when it may not write there.
+static LOGS_DIR: OnceLock<std::path::PathBuf> = OnceLock::new();
+
+/// Record the folder the logger writes to (first call wins).
+pub fn set_logs_dir(dir: std::path::PathBuf) {
+    let _ = LOGS_DIR.set(dir);
+}
+
+/// The folder "Ouvrir les logs" opens: the one the runtime announced, or
+/// the first existing candidate when none was (previews, tests).
+pub fn logs_dir() -> Option<std::path::PathBuf> {
+    LOGS_DIR
+        .get()
+        .cloned()
+        .or_else(|| fallback_logs_dirs().into_iter().find(|dir| dir.is_dir()))
+}
+
+/// Open the logs folder in the system file browser. `false` when there is
+/// no folder to open or the system refused, so the caller can say so.
+pub fn open_logs_folder() -> bool {
+    let Some(log_path) = logs_dir() else {
+        warn!("No log folder to open");
+        return false;
+    };
+    match open::that(&log_path) {
+        Ok(()) => true,
+        Err(e) => {
+            warn!("Failed to open logs folder {}: {}", log_path.display(), e);
+            false
         }
     }
 }
@@ -442,51 +473,45 @@ pub fn open_console() {
     open_url(&format!("{}/dashboard", branding::CONSOLE));
 }
 
-/// Open the about page.
-pub fn open_about() {
-    let version = AGENT_VERSION;
-    let os_info = format!("{} {}", std::env::consts::OS, std::env::consts::ARCH);
-
-    info!(
-        "{} v{} — {} | {} | {}",
-        branding::PRODUCT_NAME,
-        version,
-        branding::COMPANY_NAME,
-        os_info,
-        branding::EMAIL,
-    );
-
-    // URL-encode the os_info (contains spaces like "windows x86_64")
-    let os_encoded = os_info.replace(' ', "%20");
-    let about_url = format!(
-        "{}?version={}&os={}",
-        branding::WEBSITE,
-        version,
-        os_encoded
-    );
-    if open::that(&about_url).is_err() {
-        let _ = open::that(branding::WEBSITE);
+/// Where the logger may be writing, most likely first: the same order as
+/// its own choice (system directory, per-user directory, temporary one).
+fn fallback_logs_dirs() -> Vec<std::path::PathBuf> {
+    let mut candidates = vec![std::path::PathBuf::from(if cfg!(target_os = "windows") {
+        r"C:\ProgramData\Sentinel\logs"
+    } else if cfg!(target_os = "linux") {
+        "/var/log/sentinel-grc"
+    } else {
+        "/var/log/sentinel"
+    })];
+    if let Some(dirs) = directories::ProjectDirs::from("com", "sentinel-grc", "Sentinel") {
+        candidates.push(dirs.data_local_dir().join("logs"));
     }
+    candidates.push(std::env::temp_dir().join("sentinel-logs"));
+    candidates
 }
 
-/// Get the platform-specific logs path.
-fn get_logs_path() -> std::path::PathBuf {
-    #[cfg(target_os = "macos")]
-    {
-        directories::BaseDirs::new()
-            .map(|dirs| dirs.data_dir().join("SentinelGRC").join("logs"))
-            .unwrap_or_else(|| {
-                std::path::PathBuf::from("/Library/Application Support/SentinelGRC/logs")
-            })
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn the_folder_announced_by_the_runtime_is_the_one_opened() {
+        let dir = std::env::temp_dir().join("sentinel-logs-announced");
+        set_logs_dir(dir.clone());
+        assert_eq!(logs_dir(), Some(dir));
+        // A later announcement does not move it: the logger is set up once.
+        set_logs_dir(std::env::temp_dir().join("elsewhere"));
+        assert!(logs_dir().is_some_and(|d| d.ends_with("sentinel-logs-announced")));
     }
 
-    #[cfg(target_os = "windows")]
-    {
-        std::path::PathBuf::from(r"C:\ProgramData\Sentinel\logs")
-    }
-
-    #[cfg(not(any(target_os = "macos", target_os = "windows")))]
-    {
-        std::path::PathBuf::from("/var/log/sentinel-grc")
+    #[test]
+    fn the_candidates_follow_the_loggers_own_order() {
+        let candidates = fallback_logs_dirs();
+        assert!(candidates.len() >= 2);
+        assert!(
+            candidates
+                .last()
+                .is_some_and(|d| d.ends_with("sentinel-logs"))
+        );
     }
 }

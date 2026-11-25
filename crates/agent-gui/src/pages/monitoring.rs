@@ -4,8 +4,8 @@
 //! Surveillance & SIEM page -- premium AAA monitoring dashboard.
 //!
 //! Integrates real-time resource monitoring with SIEM log collection,
-//! event analytics, and security statistics. Features three operational
-//! views: Resources, SIEM Journal, and Statistics.
+//! event analytics, and security statistics. Two views: the SIEM journal,
+//! and the statistics with the resource charts.
 
 use egui::{RichText, Ui};
 use egui_plot::{Line, Plot, PlotPoints};
@@ -27,6 +27,10 @@ const RESOURCE_WARNING_THRESHOLD: f64 = 70.0;
 #[allow(dead_code)]
 const CHART_HEIGHT: f32 = 190.0;
 const LOGS_PER_PAGE: usize = 50;
+/// Name of the journal table, for its sort state.
+const JOURNAL_TABLE: &str = "siem_journal";
+/// Tab of the settings page holding the SIEM forwarding and the collector.
+const SETTINGS_SIEM_SECTION: usize = 2;
 
 pub struct MonitoringPage;
 
@@ -41,7 +45,7 @@ impl MonitoringPage {
             "Surveillance & SIEM",
             Some("Surveillance temps réel et intégration SIEM."),
             Some(
-                "Monitoring des ressources système, collecte et analyse des journaux de sécurité, statistiques d'événements SIEM.",
+                "Surveillance des ressources système, collecte et analyse des journaux de sécurité, statistiques d'événements SIEM.",
             ),
         );
         ui.add_space(theme::SPACE_LG);
@@ -105,7 +109,7 @@ impl MonitoringPage {
         let siem_active = state.settings.siem_enabled || state.settings.log_collector_enabled;
 
         if !siem_active {
-            Self::siem_disabled_state(ui);
+            Self::siem_disabled_state(ui, state);
             return None;
         }
 
@@ -133,9 +137,9 @@ impl MonitoringPage {
                 // Event count
                 ui.label(
                     RichText::new(format!(
-                        "{}  {} événements",
+                        "{}  {}",
                         icons::DATABASE,
-                        state.siem.log_entries.len()
+                        crate::format::count(state.siem.log_entries.len(), "événement")
                     ))
                     .font(theme::font_label())
                     .color(theme::text_secondary()),
@@ -147,7 +151,7 @@ impl MonitoringPage {
                 if state.siem.stats.events_per_minute > 0.0 {
                     ui.label(
                         RichText::new(format!(
-                            "{}  {} evt/min",
+                            "{}  {} év./min",
                             icons::BOLT,
                             crate::format::decimal(state.siem.stats.events_per_minute, 1)
                         ))
@@ -179,15 +183,21 @@ impl MonitoringPage {
         ui.add_space(theme::SPACE_SM);
 
         // ── Search and filters ─────────────────────────────────────────────
+        let mut export_journal = false;
         ui.horizontal(|ui: &mut egui::Ui| {
             // Search input: the product's field, sized to leave the two
             // filter chips their room on the trailing edge.
-            let search_width = (ui.available_width() - 300.0).clamp(200.0, 560.0);
+            let search_width = (ui.available_width() - 460.0).clamp(200.0, 560.0);
+            let previous_search = state.siem.search.clone();
             widgets::SearchInput::new(&mut state.siem.search, "Rechercher dans les journaux…")
                 .width(search_width)
                 .height(theme::SEARCH_INPUT_HEIGHT)
                 .id_salt("siem_search")
                 .show(ui);
+            // A new search starts again from the first page, like the chips.
+            if state.siem.search != previous_search {
+                state.siem.logs_page = 0;
+            }
 
             ui.add_space(theme::SPACE_SM);
 
@@ -219,11 +229,14 @@ impl MonitoringPage {
             ui.add_space(theme::SPACE_XS);
 
             // Severity filter
-            let severity_label = state
-                .siem
-                .severity_filter
-                .map(|s| s.full_label())
-                .unwrap_or("Sévérité");
+            // The filter keeps the chosen level and every more severe one.
+            let severity_label = match state.siem.severity_filter {
+                None => "Sévérité".to_owned(),
+                Some(SiemLogSeverity::Critical) => {
+                    SiemLogSeverity::Critical.full_label().to_owned()
+                }
+                Some(level) => format!("≥ {}", level.full_label()),
+            };
             if widgets::chip_button(
                 ui,
                 &format!("{}  {}", icons::WARNING, severity_label),
@@ -257,52 +270,66 @@ impl MonitoringPage {
                     state.siem.logs_page = 0;
                 }
             }
+
+            // Export of the journal as filtered, on the row it applies to.
+            ui.with_layout(
+                egui::Layout::right_to_left(egui::Align::Center),
+                |ui: &mut egui::Ui| {
+                    if !state.siem.log_entries.is_empty()
+                        && widgets::ghost_button(ui, format!("{}  CSV", icons::DOWNLOAD))
+                            .on_hover_text("Exporter les événements affichés au format CSV")
+                            .clicked()
+                    {
+                        export_journal = true;
+                    }
+                },
+            );
         });
 
         ui.add_space(theme::SPACE_SM);
 
         // ── Log well ───────────────────────────────────────────────────────
-        let search_lower = state.siem.search.to_lowercase();
         // Indices into `log_entries`, so the selection survives a page change.
-        let filtered: Vec<usize> = state
-            .siem
-            .log_entries
-            .iter()
-            .enumerate()
-            .filter(|(_, e)| {
-                if let Some(src) = state.siem.source_filter
-                    && e.source != src
-                {
-                    return false;
+        let mut filtered = filtered_logs(&state.siem);
+        // Sorted before the pagination and the export, which follow the
+        // displayed order. Any order other than newest first stops AUTO:
+        // the first page no longer holds the latest entries.
+        let sort = widgets::table::sort_of(ui.ctx(), JOURNAL_TABLE);
+        if let Some(key) = widgets::table::sort_key(&sort) {
+            let entries = &state.siem.log_entries;
+            filtered.sort_by(|&a, &b| {
+                widgets::table::directed(&sort, compare_logs(&entries[a], &entries[b], key))
+            });
+            if !keeps_newest_first(&sort) {
+                state.siem.auto_scroll = false;
+            }
+        }
+        if export_journal {
+            let toast = match Self::export_journal_csv(state, &filtered) {
+                Ok(path) => widgets::toast::Toast::success(format!(
+                    "Export CSV enregistré : {}",
+                    path.display()
+                )),
+                Err(error) => {
+                    widgets::toast::Toast::error(format!("Export CSV impossible : {error}"))
                 }
-                if let Some(sev) = state.siem.severity_filter
-                    && e.severity < sev
-                {
-                    return false;
-                }
-                if !search_lower.is_empty() {
-                    let msg_lower = e.message.to_lowercase();
-                    let cat_lower = e.category.to_lowercase();
-                    if !msg_lower.contains(&search_lower) && !cat_lower.contains(&search_lower) {
-                        return false;
-                    }
-                }
-                true
-            })
-            .map(|(i, _)| i)
-            .collect();
+            };
+            state.toasts.push(toast.with_time(ui.input(|i| i.time)));
+        }
 
         let total = filtered.len();
-        // AUTO keeps the journal on its last page, where the newest entries
-        // land; `page_window` clamps the overshoot to that page.
+        // AUTO keeps the journal on its first page, where the newest entries
+        // land (they are pushed at the front).
         if state.siem.auto_scroll {
-            state.siem.logs_page = usize::MAX;
+            state.siem.logs_page = 0;
         }
         let (page_start, page_len, _) =
             widgets::page_window(total, LOGS_PER_PAGE, &mut state.siem.logs_page);
 
         let mut clicked_idx: Option<usize> = None;
+        let mut sort_changed = false;
         let selected = state.siem.selected_log;
+        let journal_empty = state.siem.log_entries.is_empty();
 
         widgets::data_card(ui, "Journal SIEM", |ui: &mut egui::Ui| {
             ui.label(
@@ -320,11 +347,19 @@ impl MonitoringPage {
 
             if page_len == 0 {
                 ui.add_space(theme::SPACE_LG);
-                widgets::empty_state_compact(
-                    ui,
-                    icons::DATABASE,
-                    "Aucun événement — les événements SIEM apparaîtront ici en temps réel.",
-                );
+                if journal_empty {
+                    widgets::empty_state_compact(
+                        ui,
+                        icons::DATABASE,
+                        "Aucun événement — les événements SIEM apparaîtront ici en temps réel.",
+                    );
+                } else {
+                    widgets::empty_state_compact(
+                        ui,
+                        icons::SEARCH,
+                        "Aucun résultat — modifiez la recherche ou les filtres.",
+                    );
+                }
                 ui.add_space(theme::SPACE_LG);
                 return;
             }
@@ -335,24 +370,22 @@ impl MonitoringPage {
                 ui,
                 &[
                     table::Col::fixed(76.0),       // Heure
-                    table::Col::fixed(64.0),       // Sévérité
+                    table::Col::fixed(76.0),       // Sévérité
                     table::Col::fluid(100.0, 0.5), // Source
                     table::Col::fluid(200.0, 4.0), // Message
                 ],
             )
             .header(theme::TABLE_HEADER_HEIGHT, |mut header| {
-                header.col(|ui: &mut egui::Ui| {
-                    table::header_cell(ui, "HEURE");
-                });
-                header.col(|ui: &mut egui::Ui| {
-                    table::header_cell(ui, "SEV");
-                });
-                header.col(|ui: &mut egui::Ui| {
-                    table::header_cell(ui, "SOURCE");
-                });
-                header.col(|ui: &mut egui::Ui| {
-                    table::header_cell(ui, "MESSAGE");
-                });
+                for (label, key) in [
+                    ("HEURE", "time"),
+                    ("SÉV.", "severity"),
+                    ("SOURCE", "source"),
+                    ("MESSAGE", "message"),
+                ] {
+                    header.col(|ui: &mut egui::Ui| {
+                        sort_changed |= table::header_cell_sortable(ui, label, JOURNAL_TABLE, key);
+                    });
+                }
             })
             .body(|body| {
                 body.rows(theme::TABLE_ROW_HEIGHT, page_len, |mut row| {
@@ -404,9 +437,17 @@ impl MonitoringPage {
             state.siem.selected_log = Some(idx);
             state.siem.detail_open = true;
         }
+        // A new order starts again from the first page.
+        if sort_changed {
+            state.siem.logs_page = 0;
+        }
 
-        // Pagination
+        // Pagination. Leaving the first page stops AUTO, which would bring
+        // the journal straight back to it.
         widgets::paginate_controls(ui, total, LOGS_PER_PAGE, &mut state.siem.logs_page);
+        if state.siem.logs_page != 0 {
+            state.siem.auto_scroll = false;
+        }
 
         Self::siem_log_drawer(ui, state);
 
@@ -421,13 +462,14 @@ impl MonitoringPage {
     // SIEM Statistics Tab
     // ════════════════════════════════════════════════════════════════════════
 
-    fn siem_stats_tab(ui: &mut Ui, state: &AppState) {
+    fn siem_stats_tab(ui: &mut Ui, state: &mut AppState) {
         let siem_active = state.settings.siem_enabled || state.settings.log_collector_enabled;
 
         if !siem_active {
-            Self::siem_disabled_state(ui);
+            Self::siem_disabled_state(ui, state);
             return;
         }
+        let state = &*state;
 
         let stats = &state.siem.stats;
 
@@ -457,7 +499,7 @@ impl MonitoringPage {
                 icons::DATABASE,
             ),
             (
-                "DÉBIT (evt/min)",
+                "DÉBIT (ÉV./MIN)",
                 crate::format::decimal(stats.events_per_minute, 1),
                 theme::accent_text(),
                 icons::BOLT,
@@ -862,7 +904,7 @@ impl MonitoringPage {
                     }
                 )
             } else {
-                "Collecteur de logs désactivé".to_string()
+                "Collecteur de journaux désactivé".to_string()
             };
 
             ui.label(
@@ -988,7 +1030,7 @@ impl MonitoringPage {
         });
     }
 
-    fn siem_disabled_state(ui: &mut Ui) {
+    fn siem_disabled_state(ui: &mut Ui, state: &mut AppState) {
         ui.add_space(theme::SPACE_XL);
         widgets::card(ui, |ui: &mut egui::Ui| {
             ui.add_space(theme::SPACE_LG);
@@ -1008,18 +1050,22 @@ impl MonitoringPage {
                 ui.add_space(theme::SPACE_SM);
                 ui.label(
                     RichText::new(
-                        "Activez le collecteur de logs ou le transfert SIEM dans les paramètres pour accéder au journal des événements et aux statistiques.",
+                        "Activez le collecteur de journaux ou le transfert SIEM dans la configuration pour accéder au journal des événements et aux statistiques.",
                     )
                     .font(theme::font_body())
                     .color(theme::text_secondary()),
                 );
                 ui.add_space(theme::SPACE_LG);
-                ui.label(
-                    RichText::new(format!("{}  Configuration > Intégration SIEM", icons::SETTINGS))
-                        .font(theme::font_label())
-                        .color(theme::accent_text())
-                        .strong(),
-                );
+                if widgets::primary_button(
+                    ui,
+                    format!("{}  Ouvrir Configuration › Connexions & SIEM", icons::SETTINGS),
+                    true,
+                )
+                .clicked()
+                {
+                    state.settings.active_section = SETTINGS_SIEM_SECTION;
+                    state.pending_navigation = Some(crate::app::Page::Settings);
+                }
             });
             ui.add_space(theme::SPACE_LG);
         });
@@ -1070,11 +1116,11 @@ impl MonitoringPage {
 
     fn severity_style(severity: &SiemLogSeverity) -> (egui::Color32, &'static str) {
         match severity {
-            SiemLogSeverity::Critical => (theme::ERROR, "CRT"),
-            SiemLogSeverity::Error => (theme::ERROR, "ERR"),
-            SiemLogSeverity::Warning => (theme::WARNING, "WRN"),
-            SiemLogSeverity::Notice => (theme::INFO, "NTC"),
-            SiemLogSeverity::Info => (theme::text_tertiary(), "INF"),
+            SiemLogSeverity::Critical => (theme::ERROR, "CRIT."),
+            SiemLogSeverity::Error => (theme::ERROR, "ERR."),
+            SiemLogSeverity::Warning => (theme::WARNING, "AVERT."),
+            SiemLogSeverity::Notice => (theme::INFO, "AVIS"),
+            SiemLogSeverity::Info => (theme::text_tertiary(), "INFO"),
         }
     }
 
@@ -1208,6 +1254,48 @@ impl MonitoringPage {
         }
     }
 
+    /// Export the journal entries at `indices` (the filtered list, newest first).
+    fn export_journal_csv(
+        state: &AppState,
+        indices: &[usize],
+    ) -> Result<std::path::PathBuf, String> {
+        let headers = &[
+            "horodatage",
+            "severite",
+            "source",
+            "categorie",
+            "hote",
+            "processus",
+            "pid",
+            "utilisateur",
+            "message",
+        ];
+        let rows: Vec<Vec<String>> = indices
+            .iter()
+            .filter_map(|&idx| state.siem.log_entries.get(idx))
+            .map(|entry| {
+                vec![
+                    entry.timestamp.to_rfc3339(),
+                    entry.severity.full_label().to_string(),
+                    entry.source.label().to_string(),
+                    entry.category.clone(),
+                    entry.hostname.clone().unwrap_or_default(),
+                    entry.process.clone().unwrap_or_default(),
+                    entry.pid.map(|pid| pid.to_string()).unwrap_or_default(),
+                    entry.user.clone().unwrap_or_default(),
+                    entry.message.clone(),
+                ]
+            })
+            .collect();
+        let path = crate::export::default_export_path("journal_siem.csv");
+        crate::export::export_csv(headers, &rows, &path)?;
+        info!(
+            "[AUDIT] GUI user exported the SIEM journal to {}",
+            path.display()
+        );
+        Ok(path)
+    }
+
     fn export_metrics_csv(state: &AppState) -> Result<std::path::PathBuf, String> {
         let headers = &[
             "timestamp",
@@ -1266,6 +1354,54 @@ impl MonitoringPage {
     }
 }
 
+/// Indices of the journal entries matching the source, the minimum severity
+/// and the search text, in journal order (newest first).
+fn filtered_logs(siem: &crate::state::SiemViewState) -> Vec<usize> {
+    let search = siem.search.to_lowercase();
+    siem.log_entries
+        .iter()
+        .enumerate()
+        .filter(|(_, e)| {
+            siem.source_filter.is_none_or(|source| e.source == source)
+                && siem.severity_filter.is_none_or(|level| e.severity >= level)
+                && (search.is_empty()
+                    || e.message.to_lowercase().contains(&search)
+                    || e.category.to_lowercase().contains(&search))
+        })
+        .map(|(idx, _)| idx)
+        .collect()
+}
+
+/// Natural (ascending) order of two journal entries on a column.
+fn compare_logs(
+    a: &crate::dto::GuiSiemLogEntry,
+    b: &crate::dto::GuiSiemLogEntry,
+    key: &str,
+) -> std::cmp::Ordering {
+    match key {
+        "time" => a.timestamp.cmp(&b.timestamp),
+        // By level, least severe first.
+        "severity" => a.severity.cmp(&b.severity),
+        "source" => a
+            .source
+            .label()
+            .to_lowercase()
+            .cmp(&b.source.label().to_lowercase()),
+        "message" => a.message.to_lowercase().cmp(&b.message.to_lowercase()),
+        _ => std::cmp::Ordering::Equal,
+    }
+}
+
+/// Whether `sort` leaves the newest entries on the first page, as the
+/// journal's own order does: no sort, or the time column descending.
+fn keeps_newest_first(sort: &widgets::TableSort) -> bool {
+    match widgets::table::sort_key(sort) {
+        None => true,
+        Some("time") => matches!(sort.direction, widgets::SortDirection::Descending),
+        Some(_) => false,
+    }
+}
+
 /// French name of a SIEM event category or log source key.
 fn siem_category_label(key: &str) -> &str {
     match key.to_ascii_lowercase().as_str() {
@@ -1280,5 +1416,70 @@ fn siem_category_label(key: &str) -> &str {
         "audit" => "Audit",
         "kernel" => "Noyau",
         _ => key,
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::widgets::{SortDirection, TableSort};
+    use std::cmp::Ordering;
+
+    fn entry(severity: SiemLogSeverity, message: &str, minute: u32) -> crate::dto::GuiSiemLogEntry {
+        crate::dto::GuiSiemLogEntry {
+            id: message.into(),
+            timestamp: chrono::DateTime::parse_from_rfc3339(&format!(
+                "2026-06-30T12:{minute:02}:00Z"
+            ))
+            .unwrap()
+            .with_timezone(&chrono::Utc),
+            severity,
+            source: SiemLogSource::System,
+            category: String::new(),
+            message: message.into(),
+            hostname: None,
+            process: None,
+            pid: None,
+            user: None,
+        }
+    }
+
+    #[test]
+    fn journal_columns_compare_by_meaning() {
+        let warning = entry(SiemLogSeverity::Warning, "zeta", 1);
+        let critical = entry(SiemLogSeverity::Critical, "Alpha", 2);
+        // By level, never by label.
+        assert_eq!(
+            compare_logs(&warning, &critical, "severity"),
+            Ordering::Less
+        );
+        assert_eq!(
+            compare_logs(&entry(SiemLogSeverity::Info, "", 0), &warning, "severity"),
+            Ordering::Less
+        );
+        assert_eq!(compare_logs(&warning, &critical, "time"), Ordering::Less);
+        assert_eq!(
+            compare_logs(&warning, &critical, "message"),
+            Ordering::Greater
+        );
+        assert_eq!(compare_logs(&warning, &critical, "source"), Ordering::Equal);
+        assert_eq!(compare_logs(&warning, &critical, "?"), Ordering::Equal);
+    }
+
+    #[test]
+    fn only_the_newest_first_orders_keep_auto() {
+        assert!(keeps_newest_first(&TableSort::default()));
+        assert!(keeps_newest_first(&TableSort::by(
+            "time",
+            SortDirection::Descending
+        )));
+        assert!(!keeps_newest_first(&TableSort::by(
+            "time",
+            SortDirection::Ascending
+        )));
+        assert!(!keeps_newest_first(&TableSort::by(
+            "severity",
+            SortDirection::Descending
+        )));
     }
 }

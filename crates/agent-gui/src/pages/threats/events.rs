@@ -17,7 +17,7 @@ use crate::widgets::data_table::{
 use crate::widgets::pagination::PaginationState;
 
 use super::mitre;
-use super::types::{ThreatEvent, build_threat_list, kind_badge};
+use super::types::{self, ThreatEvent, build_threat_list, kind_badge};
 
 const ITEMS_PER_PAGE: usize = 25;
 
@@ -35,6 +35,8 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
         }
         if widgets::button::ghost_button(ui, "Gérer les autorisations →").clicked() {
             state.threats.active_tab = crate::dto::EdrTab::Authorizations;
+            state.threats.selected_threat = None;
+            state.threats.detail_open = false;
         }
     });
     if old_filter != state.threats.events_status_filter {
@@ -96,11 +98,7 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
     // Apply text search
     let search_lower = state.threats.search.to_lowercase();
     if !search_lower.is_empty() {
-        threats.retain(|t| {
-            t.title.to_lowercase().contains(&search_lower)
-                || t.description.to_lowercase().contains(&search_lower)
-                || t.kind.contains(&search_lower)
-        });
+        threats.retain(|t| types::matches_search(t, &search_lower));
     }
 
     sort_threats(&mut threats, &state.threats.events_sort);
@@ -190,9 +188,17 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
     }
 
     if page_threats.is_empty() {
+        // Say whether there is nothing at all or nothing under the filters.
+        let filtered = state.threats.events_status_filter != 0
+            || state.threats.events_severity_filter.is_some()
+            || !state.threats.search.is_empty();
         table.show_empty(
             ui,
-            "Aucun \u{00e9}v\u{00e9}nement de s\u{00e9}curit\u{00e9}",
+            if filtered {
+                "Aucun \u{00e9}v\u{00e9}nement ne correspond aux filtres"
+            } else {
+                "Aucun \u{00e9}v\u{00e9}nement de s\u{00e9}curit\u{00e9}"
+            },
         );
     } else {
         for (row_idx, threat) in page_threats.iter().enumerate() {
@@ -200,11 +206,12 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
             // their semantic colour, the same ones the detail modal shows.
             // Warm hues belong to severity alone; "to triage" is the brand
             // sapphire, so the two columns never read as the same signal.
-            let (sev_label, sev_color) = match threat.severity {
-                "critical" => ("Critique", theme::ERROR),
-                "high" => ("\u{00c9}lev\u{00e9}", theme::SEVERITY_HIGH),
-                "medium" => ("Moyen", theme::SEVERITY_MEDIUM),
-                _ => ("Faible", theme::INFO),
+            let sev_label = types::severity_label_fr(threat.severity);
+            let sev_color = match threat.severity {
+                "critical" => theme::ERROR,
+                "high" => theme::SEVERITY_HIGH,
+                "medium" => theme::SEVERITY_MEDIUM,
+                _ => theme::INFO,
             };
             let (kind_label, _) = kind_badge(threat.kind);
 
@@ -273,13 +280,28 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
             };
             let mitre_info = mitre::mitre_mapping(threat.kind, &subtype);
 
-            let actions = vec![
+            // Only the sources with a page of their own lead somewhere.
+            let module = match threat.kind {
+                "network" => Some("Ouvrir R\u{00e9}seau"),
+                "fim" => Some("Ouvrir Int\u{00e9}grit\u{00e9}"),
+                "vulnerability" => Some("Ouvrir Vuln\u{00e9}rabilit\u{00e9}s"),
+                _ => None,
+            };
+            let mut actions = vec![
                 widgets::DetailAction::secondary("Copier les détails", icons::COPY),
                 widgets::DetailAction::primary("Acquitter", icons::CHECK).enabled(
                     !threat.acknowledged && !threat.allowlisted && threat.kind != "vulnerability",
                 ),
-                widgets::DetailAction::secondary("Ouvrir le module", icons::SEARCH),
+                // Authorizing and responding are in the event's full
+                // detail, shared with the overview.
+                widgets::DetailAction::secondary(
+                    "Autoriser ou r\u{00e9}pondre\u{2026}",
+                    icons::SHIELD_CHECK,
+                ),
             ];
+            if let Some(label) = module {
+                actions.push(widgets::DetailAction::secondary(label, icons::ARROW_RIGHT));
+            }
             let drawer_action =
                 widgets::DetailDrawer::new("events_detail", &threat.title, icons::LIST)
                     .accent(sev_color)
@@ -297,7 +319,7 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                             widgets::detail_field_badge(
                                 ui,
                                 "S\u{00e9}v\u{00e9}rit\u{00e9}",
-                                threat.severity,
+                                types::severity_label_fr(threat.severity),
                                 sev_color,
                             );
                             widgets::detail_field(ui, "Date", &ts);
@@ -328,7 +350,11 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                         &actions,
                     );
 
+            // An integrity alert is acknowledged in administrator mode,
+            // here as on the integrity page.
             if drawer_action == Some(1)
+                && (threat.kind != "fim"
+                    || state.require_admin(crate::pages::fim::ACKNOWLEDGE_REASON))
                 && state.acknowledge_threat_item(threat.kind, threat.source_index)
             {
                 // Keep the platform in sync, as the FIM page does.
@@ -349,26 +375,33 @@ pub(super) fn show(ui: &mut Ui, state: &mut AppState) -> Option<GuiCommand> {
                 );
             }
             if drawer_action == Some(2) {
+                state.threats.detail_open = false;
+                state.threats.selected_threat = None;
+                types::request_open(ui.ctx(), threat.kind, threat.source_index);
+                state.threats.active_tab = crate::dto::EdrTab::Overview;
+            }
+            if drawer_action == Some(3) {
                 use crate::app::Page;
                 state.threats.detail_open = false;
                 state.threats.selected_threat = None;
-                state.pending_navigation = Some(match threat.kind {
+                match threat.kind {
                     "network" => {
                         state.network.active_section = 1;
-                        Page::Network
+                        state.pending_navigation = Some(Page::Network);
                     }
-                    "fim" => Page::FileIntegrity,
-                    "vulnerability" => Page::Vulnerabilities,
-                    _ => {
-                        state.threats.active_tab = crate::dto::EdrTab::Overview;
-                        Page::Threats
-                    }
-                });
+                    "fim" => state.pending_navigation = Some(Page::FileIntegrity),
+                    "vulnerability" => state.pending_navigation = Some(Page::Vulnerabilities),
+                    _ => {}
+                }
             }
             if let Some(0) = drawer_action {
                 let details = format!(
-                    "Type: {}\nTitre: {}\nS\u{00e9}v\u{00e9}rit\u{00e9}: {}\nDescription: {}\nDate: {}",
-                    kind_label, threat.title, threat.severity, threat.description, ts,
+                    "Type : {}\nTitre : {}\nS\u{00e9}v\u{00e9}rit\u{00e9} : {}\nDescription : {}\nDate : {}",
+                    kind_label,
+                    threat.title,
+                    types::severity_label_fr(threat.severity),
+                    threat.description,
+                    ts,
                 );
                 ui.ctx().copy_text(details);
             }

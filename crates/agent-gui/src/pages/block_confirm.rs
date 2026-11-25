@@ -36,7 +36,7 @@ pub(crate) fn resolve(
         title,
         &format!(
             "Tout le trafic avec {ip} sera bloqu\u{00e9} sur ce poste, sans limite de dur\u{00e9}e, \
-             jusqu'\u{00e0} un d\u{00e9}blocage manuel (Menaces \u{203a} R\u{00e9}ponse)."
+             jusqu'\u{00e0} un d\u{00e9}blocage manuel (Menaces \u{203a} R\u{00e9}ponse \u{203a} Adresses bloqu\u{00e9}es)."
         ),
         "Bloquer",
     );

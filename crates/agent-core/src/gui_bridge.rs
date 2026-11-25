@@ -52,6 +52,132 @@ pub(crate) fn fim_change_detail(alert: &agent_common::types::FimAlert) -> Option
     (!parts.is_empty()).then(|| parts.join(" \u{00b7} "))
 }
 
+/// The alert rules and the webhooks of the local database as the interface
+/// lists them, each webhook with the outcome of the last alert sent to it.
+///
+/// Sent at start-up and after every delivery: the "dernier envoi" and the
+/// error of a webhook used to stay empty until a rule or a webhook was
+/// edited, the only moment the delivery status was read.
+#[cfg(feature = "gui")]
+pub async fn alerting_loaded_event(db: &agent_storage::Database) -> AgentEvent {
+    let alert_repo = agent_storage::repositories::grc::AlertRuleRepository::new(db);
+    let webhook_repo = agent_storage::repositories::grc::WebhookRepository::new(db);
+    let stored_rules = alert_repo.get_all().await.unwrap_or_default();
+    let stored_webhooks = webhook_repo.get_all().await.unwrap_or_default();
+    let deliveries = webhook_repo.delivery_status().await.unwrap_or_default();
+
+    let rules = stored_rules
+        .iter()
+        .map(|s| agent_gui::dto::AlertRule {
+            id: s.id.clone(),
+            name: s.name.clone(),
+            rule_type: match s.rule_type.as_str() {
+                "TypeFilter" | "DetectionType" => agent_gui::dto::AlertRuleType::TypeFilter,
+                "EscalationDelay" | "Escalation" => agent_gui::dto::AlertRuleType::EscalationDelay,
+                _ => agent_gui::dto::AlertRuleType::SeverityThreshold,
+            },
+            severity_threshold: s.severity_threshold.as_deref().map(|sev| match sev {
+                "critical" | "Critical" => GuiSeverity::Critical,
+                "high" | "High" => GuiSeverity::High,
+                "low" | "Low" => GuiSeverity::Low,
+                "info" | "Info" => GuiSeverity::Info,
+                _ => GuiSeverity::Medium,
+            }),
+            detection_types: serde_json::from_str(&s.detection_types).unwrap_or_default(),
+            escalation_minutes: s.escalation_minutes.map(|v| v as u32),
+            enabled: s.enabled,
+            created_at: chrono::DateTime::parse_from_rfc3339(&s.created_at)
+                .map(|dt| dt.with_timezone(&chrono::Utc))
+                .unwrap_or_else(|_| chrono::Utc::now()),
+        })
+        .collect();
+
+    let webhooks = stored_webhooks
+        .iter()
+        .map(|s| {
+            let delivery = deliveries.get(&s.id);
+            agent_gui::dto::WebhookConfig {
+                id: s.id.clone(),
+                name: s.name.clone(),
+                url: s.url.clone(),
+                // The stored `events` column carries the format.
+                format: s.events.clone(),
+                enabled: s.enabled,
+                last_sent: delivery
+                    .and_then(|d| d.last_sent.as_deref())
+                    .and_then(|at| chrono::DateTime::parse_from_rfc3339(at).ok())
+                    .map(|at| at.with_timezone(&chrono::Utc)),
+                error: delivery.and_then(|d| d.last_error.clone()),
+            }
+        })
+        .collect();
+
+    AgentEvent::AlertingLoaded { rules, webhooks }
+}
+
+/// The risk register of the local database as the interface lists it:
+/// sent at start-up, and again when a change asked for from the interface
+/// could not be written, so the page shows what is really kept. `None`
+/// when the register cannot be read.
+#[cfg(feature = "gui")]
+pub async fn risks_snapshot_event(db: &agent_storage::Database) -> Option<AgentEvent> {
+    let stored = agent_storage::repositories::grc::RiskRepository::new(db)
+        .get_all()
+        .await
+        .ok()?;
+    let risks = stored
+        .iter()
+        .map(|s| agent_gui::dto::RiskEntry {
+            id: s.id.clone(),
+            title: s.title.clone(),
+            description: s.description.clone(),
+            probability: s.probability.clamp(1, 5) as u8,
+            impact: s.impact.clamp(1, 5) as u8,
+            owner: s.owner.clone(),
+            status: match s.status.as_str() {
+                "mitigating" => agent_gui::dto::RiskStatus::Mitigating,
+                "accepted" => agent_gui::dto::RiskStatus::Accepted,
+                "closed" => agent_gui::dto::RiskStatus::Closed,
+                _ => agent_gui::dto::RiskStatus::Open,
+            },
+            mitigation: s.mitigation.clone(),
+            source: s.source.clone(),
+            created_at: chrono::DateTime::parse_from_rfc3339(&s.created_at)
+                .map(|dt| dt.with_timezone(&chrono::Utc))
+                .unwrap_or_else(|_| chrono::Utc::now()),
+            updated_at: chrono::DateTime::parse_from_rfc3339(&s.updated_at)
+                .map(|dt| dt.with_timezone(&chrono::Utc))
+                .unwrap_or_else(|_| chrono::Utc::now()),
+            sla_target_days: s.sla_target_days.map(|v| v as u32),
+        })
+        .collect();
+    Some(AgentEvent::RisksSnapshot { risks })
+}
+
+/// The statistics of the SIEM forwarder as the interface shows them.
+/// "Connected" needs both the forwarding switched on and a last delivery
+/// that went through; how long the forwarder has been up is not measured,
+/// and stays at zero (the interface then leaves it out).
+#[cfg(feature = "gui")]
+pub(crate) fn siem_stats_to_gui(
+    forwarder: &agent_siem::SiemStats,
+    events_buffered: usize,
+    enabled: bool,
+    events_per_minute: f32,
+    category_counts: Vec<(String, u32)>,
+) -> agent_gui::dto::GuiSiemStats {
+    agent_gui::dto::GuiSiemStats {
+        events_sent: forwarder.events_sent,
+        events_dropped: forwarder.events_dropped,
+        events_buffered: u32::try_from(events_buffered).unwrap_or(u32::MAX),
+        connected: enabled && forwarder.is_connected,
+        last_sent_at: forwarder.last_success,
+        uptime_secs: 0,
+        events_per_minute,
+        category_counts,
+    }
+}
+
 #[cfg(feature = "gui")]
 impl AgentRuntime {
     /// Emit a GUI event (no-op if no sender set).
@@ -131,6 +257,13 @@ impl AgentRuntime {
                 .try_read()
                 .map(|interval| *interval)
                 .unwrap_or(self.config.heartbeat_interval_secs),
+            // What the agent runs with, whoever set it last (configuration,
+            // platform or settings page): the page shows this, not what
+            // the interface remembered from a previous session.
+            check_interval_secs: Some(self.state.get_check_interval()),
+            log_level: Some(
+                crate::logging::tracing_level_index().unwrap_or(self.state.get_log_level()),
+            ),
         }
     }
 
@@ -144,6 +277,7 @@ impl AgentRuntime {
             fim_report_changes: self.config.fim_report_changes,
             fim_whodata: self.config.fim_whodata,
             process_events: self.config.process_event_telemetry,
+            usb_storage_blocking: self.config.usb_block_mass_storage,
             log_rules: self.log_rules_summary.clone(),
         }
     }
@@ -557,32 +691,25 @@ impl AgentRuntime {
         self.emit_gui_event(AgentEvent::SiemLogBatch { entries });
     }
 
-    /// Emit SIEM forwarder stats to the GUI.
+    /// Emit the statistics of the SIEM forwarder to the GUI: its own
+    /// counters, not figures made up from the last collection.
     pub(crate) fn emit_siem_stats(
         &self,
-        events_collected: u64,
-        connected: bool,
+        forwarder: &agent_siem::SiemStats,
+        events_buffered: usize,
+        enabled: bool,
         events_per_minute: f32,
         category_counts: Vec<(String, u32)>,
     ) {
-        use agent_gui::dto::GuiSiemStats;
-
-        let stats = GuiSiemStats {
-            events_sent: events_collected,
-            events_dropped: 0,
-            events_buffered: 0,
-            connected,
-            last_sent_at: if connected {
-                Some(chrono::Utc::now())
-            } else {
-                None
-            },
-            uptime_secs: 0,
-            events_per_minute,
-            category_counts,
-        };
-
-        self.emit_gui_event(AgentEvent::SiemStatsUpdate { stats });
+        self.emit_gui_event(AgentEvent::SiemStatsUpdate {
+            stats: siem_stats_to_gui(
+                forwarder,
+                events_buffered,
+                enabled,
+                events_per_minute,
+                category_counts,
+            ),
+        });
     }
 
     /// Convert an `agent_scanner::SecurityIncident` to a `GuiSystemIncident` and emit it.
@@ -649,14 +776,17 @@ impl AgentRuntime {
         });
     }
 
-    /// Build and emit a KPI snapshot from current state.
+    /// Build and emit a KPI snapshot from current state, and return it so
+    /// the caller can store it. `remediation_sla_pct` is `None` when no risk
+    /// carries an SLA target; the snapshot then holds a negative value.
     pub(crate) fn emit_kpi_snapshot(
         &self,
         compliance_score: Option<f64>,
         incident_count: u32,
         open_vulns: u32,
         closed_vulns: u32,
-    ) {
+        remediation_sla_pct: Option<f32>,
+    ) -> agent_gui::dto::KpiSnapshot {
         use agent_gui::dto::KpiSnapshot;
 
         let snapshot = KpiSnapshot {
@@ -665,21 +795,13 @@ impl AgentRuntime {
             incident_count,
             open_vulns,
             closed_vulns,
-            remediation_sla_pct: 0.0,
+            remediation_sla_pct: remediation_sla_pct.unwrap_or(-1.0),
         };
 
         self.emit_gui_event(AgentEvent::KpiSnapshot {
-            snapshot: Box::new(snapshot),
+            snapshot: Box::new(snapshot.clone()),
         });
-    }
-
-    /// Emit loaded alert rules and webhooks to the GUI.
-    pub(crate) fn emit_alerting_loaded(
-        &self,
-        rules: Vec<agent_gui::dto::AlertRule>,
-        webhooks: Vec<agent_gui::dto::WebhookConfig>,
-    ) {
-        self.emit_gui_event(AgentEvent::AlertingLoaded { rules, webhooks });
+        snapshot
     }
 
     /// Emit a GUI alert from a `NetworkSecurityAlert`.
@@ -734,5 +856,82 @@ impl AgentRuntime {
                 allowlisted: false,
             },
         });
+    }
+}
+
+#[cfg(all(test, feature = "gui"))]
+mod tests {
+    use super::siem_stats_to_gui;
+
+    #[test]
+    fn siem_statistics_are_the_counters_of_the_forwarder() {
+        let sent_at = chrono::Utc::now();
+        let forwarder = agent_siem::SiemStats {
+            events_sent: 120,
+            events_dropped: 7,
+            bytes_sent: 4096,
+            last_success: Some(sent_at),
+            last_error: None,
+            is_connected: true,
+        };
+
+        let shown = siem_stats_to_gui(&forwarder, 3, true, 2.5, Vec::new());
+        assert_eq!(shown.events_sent, 120);
+        assert_eq!(shown.events_dropped, 7);
+        assert_eq!(shown.events_buffered, 3);
+        assert_eq!(shown.last_sent_at, Some(sent_at));
+        assert!(shown.connected);
+
+        // Forwarding switched off: not connected, whatever the last delivery.
+        assert!(!siem_stats_to_gui(&forwarder, 0, false, 0.0, Vec::new()).connected);
+        // Switched on, but nothing delivered yet.
+        let idle = agent_siem::SiemStats::default();
+        let shown = siem_stats_to_gui(&idle, 0, true, 0.0, Vec::new());
+        assert!(!shown.connected);
+        assert_eq!(shown.last_sent_at, None);
+    }
+
+    /// The start-up list carried no delivery status: "dernier envoi" and
+    /// the error stayed empty until something was edited.
+    #[tokio::test]
+    async fn the_webhooks_listed_carry_the_outcome_of_their_last_alert() {
+        use agent_gui::events::AgentEvent;
+        use agent_storage::repositories::grc::{StoredWebhook, WebhookRepository};
+
+        let test = crate::main_loop::testing::standalone_runtime();
+        let repo = WebhookRepository::new(&test.db);
+        let now = chrono::Utc::now();
+        for id in ["wh-ok", "wh-failed", "wh-never"] {
+            repo.upsert(&StoredWebhook {
+                id: id.to_string(),
+                name: id.to_string(),
+                url: "https://hooks.example.org/sentinel".to_string(),
+                events: "generic".to_string(),
+                secret: None,
+                enabled: true,
+                created_at: now.to_rfc3339(),
+                updated_at: now.to_rfc3339(),
+                synced: false,
+            })
+            .await
+            .unwrap();
+        }
+        repo.record_delivery("wh-ok", now, None).await.unwrap();
+        repo.record_delivery("wh-failed", now, Some("HTTP 500".to_string()))
+            .await
+            .unwrap();
+
+        let AgentEvent::AlertingLoaded { webhooks, .. } =
+            super::alerting_loaded_event(&test.db).await
+        else {
+            panic!("expected the alerting list");
+        };
+        let by_id = |id: &str| webhooks.iter().find(|w| w.id == id).unwrap();
+        assert!(by_id("wh-ok").last_sent.is_some());
+        assert_eq!(by_id("wh-ok").error, None);
+        assert_eq!(by_id("wh-failed").last_sent, None);
+        assert_eq!(by_id("wh-failed").error.as_deref(), Some("HTTP 500"));
+        assert_eq!(by_id("wh-never").last_sent, None);
+        assert_eq!(by_id("wh-never").error, None);
     }
 }

@@ -14,7 +14,7 @@ use rusqlite::Connection;
 use tracing::{debug, error, info, warn};
 
 /// Current schema version (incremented with each migration).
-pub const CURRENT_SCHEMA_VERSION: i32 = 12;
+pub const CURRENT_SCHEMA_VERSION: i32 = 14;
 
 /// A database migration.
 struct Migration {
@@ -534,6 +534,50 @@ const MIGRATIONS: &[Migration] = &[
         "#,
         down: "DROP TABLE IF EXISTS webhook_deliveries;",
     },
+    Migration {
+        version: 13,
+        name: "playbook_triggers",
+        up: r#"
+            -- How many times each playbook ran and when it last did. Kept
+            -- apart from `playbooks`, whose rows are replaced whole on
+            -- every save and every synchronisation.
+            CREATE TABLE IF NOT EXISTS playbook_triggers (
+                playbook_id TEXT PRIMARY KEY NOT NULL,
+                trigger_count INTEGER NOT NULL DEFAULT 0,
+                last_triggered TEXT NOT NULL
+            );
+        "#,
+        down: "DROP TABLE IF EXISTS playbook_triggers;",
+    },
+    Migration {
+        version: 14,
+        name: "mdm_deployments",
+        up: r#"
+            -- Software deployments the platform ordered on this machine,
+            -- one row per command, from received to its outcome.
+            CREATE TABLE IF NOT EXISTS mdm_deployments (
+                id TEXT PRIMARY KEY NOT NULL,
+                deployment_id TEXT,
+                software_id TEXT,
+                package_name TEXT,
+                version TEXT,
+                action TEXT NOT NULL,
+                method TEXT,
+                source TEXT,
+                status TEXT NOT NULL,
+                requested_at TEXT NOT NULL,
+                finished_at TEXT,
+                message TEXT,
+                refused_by TEXT
+            );
+            CREATE INDEX IF NOT EXISTS idx_mdm_deployments_requested_at
+                ON mdm_deployments(requested_at);
+        "#,
+        down: r#"
+            DROP INDEX IF EXISTS idx_mdm_deployments_requested_at;
+            DROP TABLE IF EXISTS mdm_deployments;
+        "#,
+    },
 ];
 
 /// Initialize the schema_version table if it doesn't exist.
@@ -948,7 +992,11 @@ mod tests {
         run_migrations(&mut conn).unwrap();
         assert_eq!(get_schema_version(&conn).unwrap(), CURRENT_SCHEMA_VERSION);
 
-        // Rollback from v12 down to v0
+        // Rollback from v14 down to v0
+        rollback_migration(&mut conn, 14).unwrap();
+        assert_eq!(get_schema_version(&conn).unwrap(), 13);
+        rollback_migration(&mut conn, 13).unwrap();
+        assert_eq!(get_schema_version(&conn).unwrap(), 12);
         rollback_migration(&mut conn, 12).unwrap();
         assert_eq!(get_schema_version(&conn).unwrap(), 11);
         rollback_migration(&mut conn, 11).unwrap();

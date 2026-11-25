@@ -242,6 +242,16 @@ impl AgentRuntime {
                 .await;
                 drop(siem_delivery);
 
+                // Counted here, connected or not: the interface shows how
+                // often each playbook ran, and since when, after a restart.
+                if let Some(ref db) = self.db {
+                    crate::threat_pipeline::record_playbook_triggers(
+                        db,
+                        &pipeline_result.playbook_logs,
+                    )
+                    .await;
+                }
+
                 if !pipeline_result.rule_matches.is_empty()
                     || !pipeline_result.playbook_logs.is_empty()
                 {

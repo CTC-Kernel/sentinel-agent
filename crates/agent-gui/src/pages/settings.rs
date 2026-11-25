@@ -20,11 +20,11 @@ impl SettingsPage {
         ui.add_space(theme::SPACE_XS);
         let _ = widgets::page_header_nav(
             ui,
-            &["Configuration"],
-            "Configuration",
-            Some("Paramètres de l'agent et contrôle des services Sentinel."),
+            &["Système", "Paramètres"],
+            "Paramètres",
+            Some("Réglages de l'agent et contrôle des services Sentinel."),
             Some(
-                "Configurez le comportement de l'agent, les fréquences de scan et les exclusions. Vous pouvez également ajuster les paramètres d'export et les options d'affichage.",
+                "Réglez le comportement de l'agent, la fréquence des analyses et les moteurs de détection, l'apparence de l'interface, puis les connexions : SIEM, collecte des journaux et plateforme.",
             ),
         );
         ui.add_space(theme::SPACE_LG);
@@ -141,9 +141,9 @@ impl SettingsPage {
 
                 let is_scanning = state.summary.status == GuiAgentStatus::Scanning;
                 let check_label = if is_scanning {
-                    format!("{}  Vérification…", icons::CHECK)
+                    format!("{}  Analyse en cours…", icons::CHECK)
                 } else {
-                    format!("{}  Vérifier maintenant", icons::CHECK)
+                    format!("{}  Lancer l'analyse", icons::CHECK)
                 };
                 let can_check = !state.settings.is_paused && !is_scanning;
                 let check_clicked = if is_paused {
@@ -377,10 +377,14 @@ impl SettingsPage {
                     if widgets::toggle_switch_labeled(ui, &mut enabled, option.label_fr())
                         .changed()
                         // Turning detection off lowers protection: administrator
-                        // mode first, as for the decoys.
-                        && (enabled
-                            || !option.lowers_protection_when_off()
-                            || state.require_admin("Désactiver une détection"))
+                        // mode first, as for the decoys. USB blocking asks for
+                        // it both ways.
+                        && (!option.needs_admin(enabled)
+                            || state.require_admin(if enabled {
+                                "Activer le blocage du stockage USB"
+                            } else {
+                                "Désactiver une détection"
+                            }))
                     {
                         state.settings.detection_requested.insert(option, enabled);
                         *command = Some(GuiCommand::SetDetectionOption { option, enabled });
@@ -477,6 +481,42 @@ impl SettingsPage {
                     .font(theme::font_caption())
                     .color(theme::text_secondary()),
             );
+
+            // Where the journal is, and the way to it: the tray menu was
+            // the only one, and not every session has a tray.
+            ui.add_space(theme::SPACE_MD);
+            let logs_dir = crate::tray_bridge::logs_dir();
+            ui.horizontal(|ui: &mut egui::Ui| {
+                let button = widgets::button::secondary_button(
+                    ui,
+                    format!("{}  Ouvrir le dossier", icons::FOLDER_OPEN),
+                    logs_dir.is_some(),
+                );
+                let button = if logs_dir.is_none() {
+                    button.on_hover_text("Aucun dossier de journaux sur ce poste pour l'instant.")
+                } else {
+                    button
+                };
+                if button.clicked() && !crate::tray_bridge::open_logs_folder() {
+                    let time = ui.input(|i| i.time);
+                    state.toasts.push(
+                        widgets::toast::Toast::error("Impossible d'ouvrir le dossier des journaux")
+                            .with_time(time),
+                    );
+                }
+                if let Some(dir) = &logs_dir {
+                    ui.add_space(theme::SPACE_SM);
+                    ui.add(
+                        egui::Label::new(
+                            egui::RichText::new(dir.display().to_string())
+                                .font(theme::font_mono_sm())
+                                .color(theme::text_tertiary()),
+                        )
+                        .truncate()
+                        .selectable(true),
+                    );
+                }
+            });
         });
     }
 
@@ -535,9 +575,15 @@ impl SettingsPage {
         };
 
         let can_click = !state.settings.is_paused && !is_busy;
-        if widgets::button::primary_button_loading(ui, btn_text, can_click, is_busy)
-            .clicked()
-        {
+        let button = widgets::button::primary_button_loading(ui, btn_text, can_click, is_busy);
+        let button = if state.settings.is_paused {
+            button.on_hover_text(
+                "Indisponible pendant la pause : reprenez la protection pour mettre à jour.",
+            )
+        } else {
+            button
+        };
+        if button.clicked() {
             // Reflect the request in the same frame instead of
             // leaving the previous checkmark visible until the
             // runtime loop receives and processes the command.
@@ -546,6 +592,22 @@ impl SettingsPage {
         }
     });
 });
+
+            // A failure says why: "Réessayer" alone left the operator
+            // guessing between the network, the signature and the disk.
+            if let crate::dto::UpdateStatus::Failed(reason) = &state.settings.update_status {
+                ui.add_space(theme::SPACE_SM);
+                let reason = reason.trim();
+                widgets::alert::alert_compact(
+                    ui,
+                    widgets::alert::AlertLevel::Error,
+                    &if reason.is_empty() {
+                        "La mise à jour a échoué.".to_string()
+                    } else {
+                        format!("La mise à jour a échoué : {reason}")
+                    },
+                );
+            }
         });
     }
 
@@ -579,17 +641,16 @@ impl SettingsPage {
                         &mut state.discovery.enabled,
                         "Cartographie dynamique des actifs",
                     );
-                    if state.discovery.enabled != prev_discovery {
-                        if state.discovery.enabled {
-                            *command = Some(GuiCommand::StartDiscovery);
-                        } else {
-                            *command = Some(GuiCommand::StopDiscovery);
-                        }
+                    // Turned on, the shell starts a scan at once and then one
+                    // an hour (see `SentinelApp::logic`); turned off, the
+                    // scan in progress is cancelled.
+                    if prev_discovery && !state.discovery.enabled {
+                        *command = Some(GuiCommand::StopDiscovery);
                     }
                 });
                 ui.add_space(theme::SPACE_XS);
                 ui.label(
-    egui::RichText::new("L'agent scanne périodiquement le réseau local pour découvrir et authentifier de nouveaux actifs.")
+    egui::RichText::new("Tant que l'option est active, l'agent scanne le réseau local dès l'activation puis toutes les heures, pour découvrir les nouveaux équipements. Les analyses sont suspendues pendant une pause de la protection.")
         .font(theme::font_label())
         .color(theme::text_tertiary()),
 );
@@ -708,13 +769,29 @@ impl SettingsPage {
                                 .font(theme::font_mono()),
                         );
                     });
-                if !state.settings.architecture_url.is_empty() {
+                // Cartography only opens an HTTPS address: the tick says
+                // the link will work, not that the field holds something.
+                if state
+                    .settings
+                    .architecture_url
+                    .trim()
+                    .starts_with("https://")
+                {
                     ui.label(
                         egui::RichText::new(icons::CHECK)
                             .color(theme::readable_color(theme::SUCCESS)),
                     );
                 }
             });
+            let url = state.settings.architecture_url.trim();
+            if !url.is_empty() && !url.starts_with("https://") {
+                ui.add_space(theme::SPACE_XS);
+                ui.label(
+                    egui::RichText::new("L'adresse doit commencer par https://")
+                        .font(theme::font_small())
+                        .color(theme::readable_color(theme::ERROR)),
+                );
+            }
             ui.add_space(theme::SPACE_XS);
             ui.label(
                 egui::RichText::new("Lien vers la visualisation externe ou le jumeau numérique.")
@@ -814,9 +891,18 @@ impl SettingsPage {
     }
 
     fn intervals_card(ui: &mut Ui, state: &AppState) {
-        widgets::data_card(ui, "Transfert et synchronisation", |ui: &mut egui::Ui| {
+        // Nothing is transferred or synchronised without a platform.
+        let (card_name, title) = if state.summary.standalone {
+            ("Fréquence des analyses", "FRÉQUENCE DES ANALYSES")
+        } else {
+            (
+                "Transfert et synchronisation",
+                "TRANSFERT ET SYNCHRONISATION",
+            )
+        };
+        widgets::data_card(ui, card_name, |ui: &mut egui::Ui| {
             ui.label(
-                egui::RichText::new("TRANSFERT ET SYNCHRONISATION")
+                egui::RichText::new(title)
                     .font(theme::font_label())
                     .color(theme::text_tertiary())
                     .extra_letter_spacing(theme::TRACKING_NORMAL)
@@ -918,7 +1004,7 @@ impl SettingsPage {
     fn danger_zone_card(ui: &mut Ui, state: &mut AppState, command: &mut Option<GuiCommand>) {
         let confirm_id = ui.make_persistent_id("quit_confirm");
         let confirming = ui.memory(|mem| mem.data.get_temp::<bool>(confirm_id).unwrap_or(false));
-        let configured = !state.settings.admin_password_hash.is_empty();
+        let configured = state.admin_password_configured();
 
         widgets::danger_card(ui, |ui: &mut egui::Ui| {
             ui.label(
@@ -1053,7 +1139,7 @@ impl SettingsPage {
                 });
             } else if widgets::destructive_button(
                 ui,
-                format!("{}  Quitter l'agent sentinel", icons::POWER_OFF),
+                format!("{}  Quitter l'agent Sentinel", icons::POWER_OFF),
                 true,
             )
             .clicked()
@@ -1143,11 +1229,18 @@ impl SettingsPage {
                 } else {
                     ("Transfert inactif", theme::text_tertiary())
                 };
-                let prev = state.settings.siem_enabled;
-                widgets::toggle_switch_labeled(ui, &mut state.settings.siem_enabled, "Export SIEM");
+                // Stopping the transfer removes visibility: administrator
+                // mode first, so the switch never shows a state the agent
+                // does not have.
+                let mut enabled = state.settings.siem_enabled;
+                let toggled = widgets::toggle_switch_labeled(ui, &mut enabled, "Export SIEM")
+                    .changed()
+                    && (enabled
+                        || state.require_admin("Arrêter le transfert des événements vers le SIEM"));
                 ui.add_space(theme::SPACE_SM);
                 widgets::status_badge(ui, status_label, status_color);
-                if state.settings.siem_enabled != prev {
+                if toggled {
+                    state.settings.siem_enabled = enabled;
                     command = Some(GuiCommand::UpdateSiemConfig {
                         enabled: state.settings.siem_enabled,
                         format: state.settings.siem_format.clone(),
@@ -1234,9 +1327,54 @@ impl SettingsPage {
                 } else {
                     "syslog.example.com:514"
                 };
-                let prev_dest = state.settings.siem_destination.clone();
-                widgets::text_input(ui, &mut state.settings.siem_destination, hint);
-                if state.settings.siem_destination != prev_dest {
+                // The address is typed into a draft and applied as a whole:
+                // sent on every keystroke, the agent was pointed at each
+                // prefix of the address in turn.
+                let draft_id = ui.make_persistent_id("siem_destination_draft");
+                let mut draft = ui
+                    .data(|data| data.get_temp::<String>(draft_id))
+                    .unwrap_or_else(|| state.settings.siem_destination.clone());
+                let issue = siem_destination_issue(&state.settings.siem_transport, &draft);
+                let changed = draft.trim() != state.settings.siem_destination;
+                // Field, then its button on the next line: the field takes
+                // the width it is given, whatever the card's.
+                let field = widgets::text_input(ui, &mut draft, hint);
+                let submitted = field.lost_focus() && ui.input(|i| i.key_pressed(egui::Key::Enter));
+                ui.add_space(theme::SPACE_SM);
+                let can_apply = changed && issue.is_none();
+                let button = widgets::button::primary_button(ui, "Appliquer", can_apply);
+                let button = if can_apply {
+                    button
+                } else {
+                    // A disabled button says what it is waiting for.
+                    button.on_hover_text(issue.unwrap_or("Cette adresse est déjà appliquée."))
+                };
+                let apply = can_apply && (button.clicked() || submitted);
+                if let Some(issue) = issue.filter(|_| !draft.trim().is_empty()) {
+                    ui.add_space(theme::SPACE_XS);
+                    ui.label(
+                        egui::RichText::new(issue)
+                            .font(theme::font_small())
+                            .color(theme::readable_color(theme::ERROR)),
+                    );
+                } else if state.settings.siem_destination.is_empty() {
+                    ui.add_space(theme::SPACE_XS);
+                    ui.label(
+                        egui::RichText::new(
+                            "Aucune destination appliquée : rien n'est transféré pour l'instant.",
+                        )
+                        .font(theme::font_small())
+                        .color(theme::readable_color(theme::WARNING)),
+                    );
+                }
+                // Sending security events somewhere else is an administrator
+                // decision; a first destination is not a redirection.
+                if apply
+                    && (state.settings.siem_destination.is_empty()
+                        || state.require_admin("Changer la destination du transfert SIEM"))
+                {
+                    draft = draft.trim().to_string();
+                    state.settings.siem_destination.clone_from(&draft);
                     command = Some(GuiCommand::UpdateSiemConfig {
                         enabled: state.settings.siem_enabled,
                         format: state.settings.siem_format.clone(),
@@ -1244,6 +1382,7 @@ impl SettingsPage {
                         destination: state.settings.siem_destination.clone(),
                     });
                 }
+                ui.data_mut(|data| data.insert_temp(draft_id, draft));
             } else {
                 ui.label(
                     egui::RichText::new(
@@ -1278,15 +1417,15 @@ impl SettingsPage {
                 } else {
                     ("Collecte inactive", theme::text_tertiary())
                 };
-                let prev = state.settings.log_collector_enabled;
-                widgets::toggle_switch_labeled(
-                    ui,
-                    &mut state.settings.log_collector_enabled,
-                    "Collecte des journaux",
-                );
+                let mut enabled = state.settings.log_collector_enabled;
+                let toggled =
+                    widgets::toggle_switch_labeled(ui, &mut enabled, "Collecte des journaux")
+                        .changed()
+                        && (enabled || state.require_admin("Arrêter la collecte des journaux"));
                 ui.add_space(theme::SPACE_SM);
                 widgets::status_badge(ui, status_label, status_color);
-                if state.settings.log_collector_enabled != prev {
+                if toggled {
+                    state.settings.log_collector_enabled = enabled;
                     command = Some(GuiCommand::UpdateLogCollectorConfig {
                         enabled: state.settings.log_collector_enabled,
                         sources: state.settings.log_collector_sources.clone(),
@@ -1425,6 +1564,45 @@ impl SettingsPage {
         });
 
         command
+    }
+}
+
+/// What is wrong with a SIEM destination for the given transport, in the
+/// operator's language; `None` when it can be applied.
+///
+/// Syslog takes `host:port`; HTTP takes an HTTPS URL without credentials,
+/// since security events must not travel in clear or carry a password in
+/// their address.
+fn siem_destination_issue(transport: &str, destination: &str) -> Option<&'static str> {
+    let destination = destination.trim();
+    if destination.is_empty() {
+        return Some("Indiquez une adresse de destination.");
+    }
+    if destination.chars().any(char::is_whitespace) {
+        return Some("L'adresse ne doit pas contenir d'espace.");
+    }
+    if transport == "HTTP" {
+        let Some(rest) = destination.strip_prefix("https://") else {
+            return Some("L'adresse HTTP doit commencer par https://");
+        };
+        let authority = rest.split(['/', '?', '#']).next().unwrap_or_default();
+        if authority.is_empty() {
+            return Some("Indiquez le nom du serveur après https://");
+        }
+        if authority.contains('@') {
+            return Some("L'adresse ne doit pas contenir d'identifiants.");
+        }
+        return None;
+    }
+    let Some((host, port)) = destination.rsplit_once(':') else {
+        return Some("Format attendu : serveur:port, par exemple syslog.example.com:514");
+    };
+    if host.is_empty() || host.contains('/') || host.contains('@') {
+        return Some("Format attendu : serveur:port, par exemple syslog.example.com:514");
+    }
+    match port.parse::<u16>() {
+        Ok(port) if port != 0 => None,
+        _ => Some("Le port doit être un nombre entre 1 et 65535."),
     }
 }
 
@@ -1627,4 +1805,47 @@ fn paint_theme_preview(painter: &egui::Painter, rect: egui::Rect, dark: bool) {
         egui::Stroke::new(theme::BORDER_HAIRLINE, line),
         egui::StrokeKind::Inside,
     );
+}
+
+#[cfg(test)]
+mod tests {
+    use super::siem_destination_issue;
+
+    #[test]
+    fn a_syslog_destination_is_a_host_and_a_port() {
+        assert!(siem_destination_issue("Syslog", "syslog.example.com:514").is_none());
+        assert!(siem_destination_issue("Syslog", " 10.0.0.5:6514 ").is_none());
+        assert!(siem_destination_issue("Syslog", "[2001:db8::1]:514").is_none());
+        for wrong in [
+            "",
+            "syslog.example.com",
+            "syslog.example.com:",
+            "syslog.example.com:0",
+            "syslog.example.com:70000",
+            ":514",
+            "https://siem.example.com:514",
+            "syslog example.com:514",
+        ] {
+            assert!(
+                siem_destination_issue("Syslog", wrong).is_some(),
+                "{wrong:?}"
+            );
+        }
+    }
+
+    #[test]
+    fn an_http_destination_is_https_without_credentials() {
+        assert!(siem_destination_issue("HTTP", "https://siem.example.com/api/events").is_none());
+        assert!(siem_destination_issue("HTTP", "https://siem.example.com:8443").is_none());
+        for wrong in [
+            "",
+            "http://siem.example.com/api",
+            "siem.example.com:514",
+            "https://",
+            "https:///api",
+            "https://user:secret@siem.example.com/api",
+        ] {
+            assert!(siem_destination_issue("HTTP", wrong).is_some(), "{wrong:?}");
+        }
+    }
 }

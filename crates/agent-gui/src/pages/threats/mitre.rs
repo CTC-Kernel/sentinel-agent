@@ -107,7 +107,7 @@ pub(super) fn mitre_mapping(kind: &str, subtype: &str) -> Option<MitreTechnique>
                     name_fr: "Balise HTTP/S",
                     tactic: MitreTactic::CommandAndControl,
                 })
-            } else if sub.contains("mining") {
+            } else if sub.contains("mining") || sub.contains("minage") {
                 Some(MitreTechnique {
                     id: "T1496",
                     name_fr: "D\u{00e9}tournement de ressources",

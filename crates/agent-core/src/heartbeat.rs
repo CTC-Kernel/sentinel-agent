@@ -752,6 +752,20 @@ impl AgentRuntime {
     ) -> agent_sync::SyncResult<()> {
         // What this machine's own configuration lets the platform deploy.
         let policy = crate::mdm::MdmPolicy::from_config(&self.config);
+
+        // The history kept on the machine: the command as received, then
+        // started unless this machine refuses it, then its outcome.
+        let received = crate::mdm::received_deployment(cmd_id, action, payload, chrono::Utc::now());
+        self.record_mdm_deployment(&received).await;
+        let refusal = crate::mdm::refusal(&policy, action, payload);
+        if refusal.is_none() {
+            self.record_mdm_deployment(&agent_storage::repositories::StoredMdmDeployment {
+                status: agent_storage::repositories::MdmDeploymentStatus::Started,
+                ..received.clone()
+            })
+            .await;
+        }
+
         let result = match action {
             "install" | "update" => {
                 let api_guard = self.api_client.read().await;
@@ -777,6 +791,14 @@ impl AgentRuntime {
                 format!("unsupported MDM action: {other}"),
             ),
         };
+
+        self.record_mdm_deployment(&crate::mdm::finished_deployment(
+            &received,
+            &result,
+            refusal.as_ref(),
+            chrono::Utc::now(),
+        ))
+        .await;
 
         // Every deployment command leaves a trace on the machine it ran
         // on, refused or not: software installed as root is not something
@@ -824,6 +846,36 @@ impl AgentRuntime {
         } else {
             warn!("MDM {} failed: {}", action, result.message);
             service.report_failure(cmd_id, result.to_output()).await
+        }
+    }
+}
+
+impl AgentRuntime {
+    /// Write one step of a deployment in the history, then show the
+    /// history as it now stands. A failure to write is logged: the
+    /// deployment itself goes on.
+    async fn record_mdm_deployment(
+        &self,
+        deployment: &agent_storage::repositories::StoredMdmDeployment,
+    ) {
+        let Some(db) = &self.db else {
+            return;
+        };
+        if let Err(e) = agent_storage::repositories::MdmDeploymentsRepository::new(db)
+            .record(deployment)
+            .await
+        {
+            warn!("Failed to record MDM deployment {}: {}", deployment.id, e);
+        }
+        #[cfg(feature = "gui")]
+        self.emit_mdm_history().await;
+    }
+
+    /// Send the deployment history and the local policy to the interface.
+    #[cfg(feature = "gui")]
+    pub(crate) async fn emit_mdm_history(&self) {
+        if let Some(db) = &self.db {
+            self.emit_gui_event(crate::mdm::gui_history(db, Some(&self.config)).await);
         }
     }
 }

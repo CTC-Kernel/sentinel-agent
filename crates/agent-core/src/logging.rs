@@ -31,7 +31,7 @@ static ACTIVE_LOG_DIR: std::sync::OnceLock<std::path::PathBuf> = std::sync::Once
 
 /// Directory selected by logging initialization, without creating another sink.
 #[cfg_attr(not(feature = "tray"), allow(dead_code))] // Only the tray opens the log folder.
-pub(crate) fn active_log_dir() -> Option<&'static std::path::Path> {
+pub fn active_log_dir() -> Option<&'static std::path::Path> {
     ACTIVE_LOG_DIR.get().map(std::path::PathBuf::as_path)
 }
 
@@ -106,15 +106,51 @@ static TRACING_RELOAD_FN: std::sync::OnceLock<TracingReloadFn> = std::sync::Once
 /// Falls back silently if the tracing subscriber was not initialized with a
 /// reload handle (e.g. non-GUI mode).
 pub fn set_tracing_level(level: &str) {
-    if let Some(reload_fn) = TRACING_RELOAD_FN.get()
-        && let Err(e) = reload_fn(level)
-    {
-        tracing::warn!("Failed to reload tracing filter: {}", e);
+    if let Some(reload_fn) = TRACING_RELOAD_FN.get() {
+        match reload_fn(level) {
+            Ok(()) => remember_level(level),
+            Err(e) => tracing::warn!("Failed to reload tracing filter: {}", e),
+        }
+    }
+}
+
+/// The log level in effect, as the interface numbers it (0 = trace …
+/// 4 = error); [`LEVEL_UNKNOWN`] until logging is initialized.
+static ACTIVE_LEVEL: std::sync::atomic::AtomicU8 = std::sync::atomic::AtomicU8::new(LEVEL_UNKNOWN);
+const LEVEL_UNKNOWN: u8 = u8::MAX;
+
+/// The number the interface gives to a level name, when it is one.
+fn level_index(level: &str) -> Option<u8> {
+    match level.trim().to_ascii_lowercase().as_str() {
+        "trace" => Some(0),
+        "debug" => Some(1),
+        "info" => Some(2),
+        "warn" | "warning" => Some(3),
+        "error" => Some(4),
+        _ => None,
+    }
+}
+
+fn remember_level(level: &str) {
+    if let Some(index) = level_index(level) {
+        ACTIVE_LEVEL.store(index, std::sync::atomic::Ordering::Release);
+    }
+}
+
+/// The log level the agent runs with (0 = trace … 4 = error): the one it
+/// was started with, then the last one set while it runs. `None` before
+/// logging is initialized, or when it was started with a filter that is
+/// not a plain level.
+pub fn tracing_level_index() -> Option<u8> {
+    match ACTIVE_LEVEL.load(std::sync::atomic::Ordering::Acquire) {
+        LEVEL_UNKNOWN => None,
+        index => Some(index),
     }
 }
 
 pub fn init_logging(log_level: &str) {
     use tracing_subscriber::{EnvFilter, fmt, prelude::*};
+    remember_level(log_level);
 
     // Build filter: use RUST_LOG env if set, otherwise use the configured level.
     // Always suppress noisy arboard clipboard errors (benign on headless/service sessions).
@@ -159,6 +195,7 @@ pub fn init_logging(log_level: &str) {
 pub fn init_logging_with_terminal(log_level: &str) -> crate::tracing_layer::GuiTracingBridge {
     use tracing_subscriber::{EnvFilter, fmt, prelude::*};
 
+    remember_level(log_level);
     let bridge = crate::tracing_layer::GuiTracingBridge::new();
     let gui_layer = crate::tracing_layer::GuiTracingLayer::new(&bridge);
 

@@ -156,6 +156,14 @@ pub fn escalate_repeated_blocks(actions: &[ResolvedAction]) -> Vec<ResolvedActio
         .collect()
 }
 
+/// What an execution log says when a playbook ran and none of its actions
+/// had a target to act on. Shown as written by the interface.
+pub const NO_ACTION_RESOLVED: &str =
+    "Aucune action exécutable : les actions de ce playbook n'ont pas de cible";
+
+/// What an execution log names as the trigger of a run started by hand.
+pub const MANUAL_TRIGGER: &str = "Exécution manuelle";
+
 /// An account lock lasts this long when the playbook action gives no duration.
 pub const DEFAULT_ACCOUNT_LOCK_SECS: u64 = 3600;
 
@@ -289,7 +297,7 @@ pub async fn evaluate_playbook(
                 for process in &threat_context.suspicious_processes {
                     if process.name.to_lowercase().contains(&condition_value) {
                         matched_conditions.push(format!(
-                            "Process '{}' matches '{}'",
+                            "Processus « {} » correspond à « {} »",
                             process.name, condition.value
                         ));
                         actions.push(ResolvedAction::KillProcess {
@@ -309,8 +317,10 @@ pub async fn evaluate_playbook(
                         || alert.description.to_lowercase().contains(&condition_value)
                         || alert.severity.to_lowercase() == condition_value
                     {
-                        matched_conditions
-                            .push(format!("Network alert matches '{}'", condition.value));
+                        matched_conditions.push(format!(
+                            "Alerte réseau correspondant à « {} »",
+                            condition.value
+                        ));
                         if let Some(ref ip) = alert.remote_ip {
                             actions.push(ResolvedAction::BlockIp {
                                 ip: ip.clone(),
@@ -332,8 +342,10 @@ pub async fn evaluate_playbook(
                     if fim_alert.path.to_lowercase().contains(&condition_value)
                         || fim_alert.change_type.to_lowercase() == condition_value
                     {
-                        matched_conditions
-                            .push(format!("FIM alert on path matching '{}'", condition.value));
+                        matched_conditions.push(format!(
+                            "Fichier modifié correspondant à « {} »",
+                            condition.value
+                        ));
                         actions.push(ResolvedAction::QuarantineFile {
                             path: fim_alert.path.clone(),
                         });
@@ -346,7 +358,7 @@ pub async fn evaluate_playbook(
                     if matches!((severity_rank(&alert.severity), severity_rank(&condition_value)), (Some(actual), Some(threshold)) if actual >= threshold)
                     {
                         matched_conditions
-                            .push(format!("Severity '{}' matches threshold", condition.value));
+                            .push(format!("Sévérité au moins « {} »", condition.value));
                         base_confidence += 0.2;
                     }
                 }
@@ -667,31 +679,37 @@ fn validate_target(action: &ResolvedAction) -> Result<(), String> {
     }
 }
 
-/// How an action reads in results, logs and the audit trail.
+/// How an action reads in results, logs and the audit trail. In French:
+/// the execution log of the interface and the platform show it as written.
 fn describe(action: &ResolvedAction) -> String {
     match action {
         ResolvedAction::KillProcess { name, pid } => {
-            format!("Kill process {} (PID {})", name, pid)
+            format!("Arrêt du processus {} (PID {})", name, pid)
         }
-        ResolvedAction::QuarantineFile { path } => format!("Quarantine {}", path),
-        ResolvedAction::BlockIp { ip, .. } => format!("Block IP {}", ip),
+        ResolvedAction::QuarantineFile { path } => format!("Quarantaine de {}", path),
+        ResolvedAction::BlockIp { ip, .. } => format!("Blocage de l'adresse {}", ip),
         ResolvedAction::IsolateHost { duration_secs: 0 } => {
-            "Isolate host until released".to_string()
+            "Isolement du poste jusqu'à sa levée".to_string()
         }
         ResolvedAction::IsolateHost { duration_secs } => {
-            format!("Isolate host for {}s", duration_secs)
+            format!("Isolement du poste pendant {} s", duration_secs)
         }
         ResolvedAction::DisableAccount {
             user,
             duration_secs: 0,
-        } => format!("Lock account {} until unlocked", user),
+        } => format!("Verrouillage du compte {} jusqu'au déverrouillage", user),
         ResolvedAction::DisableAccount {
             user,
             duration_secs,
-        } => format!("Lock account {} for {}s", user, duration_secs),
-        ResolvedAction::RunCommand { name, .. } => format!("Run response command '{}'", name),
-        ResolvedAction::Alert { title, .. } => format!("Alert: {}", title),
-        ResolvedAction::Notify { message } => format!("Notify: {}", message),
+        } => format!(
+            "Verrouillage du compte {} pendant {} s",
+            user, duration_secs
+        ),
+        ResolvedAction::RunCommand { name, .. } => {
+            format!("Commande de réponse « {} »", name)
+        }
+        ResolvedAction::Alert { title, .. } => format!("Alerte SIEM : {}", title),
+        ResolvedAction::Notify { message } => format!("Notification : {}", message),
     }
 }
 
@@ -784,7 +802,7 @@ async fn run_playbook_actions(
                 playbook_name, reason
             );
             results.push(ActionResult {
-                action: format!("{:?}", action),
+                action: describe(action),
                 success: false,
                 error: Some(format!("Rejected by target validation: {}", reason)),
             });
@@ -799,7 +817,7 @@ async fn run_playbook_actions(
                     playbook_name, MAX_DESTRUCTIVE_ACTIONS_PER_RUN
                 );
                 results.push(ActionResult {
-                    action: format!("{:?}", action),
+                    action: describe(action),
                     success: false,
                     error: Some(format!(
                         "Refused: playbook exceeded the {} destructive-action limit for a single run",
@@ -1517,18 +1535,18 @@ mod tests {
         ];
         let results = simulate_playbook_actions("sim", &actions, None).await;
 
-        let quarantine = format!("[Simulation] Quarantine {dropped}");
+        let quarantine = format!("[Simulation] Quarantaine de {dropped}");
         assert_eq!(
             results
                 .iter()
                 .map(|r| r.action.as_str())
                 .collect::<Vec<_>>(),
             [
-                "[Simulation] Kill process evil_miner (PID 4242)",
+                "[Simulation] Arrêt du processus evil_miner (PID 4242)",
                 quarantine.as_str(),
-                "[Simulation] Block IP 203.0.113.7",
-                "[Simulation] Isolate host until released",
-                "[Simulation] Notify: seen",
+                "[Simulation] Blocage de l'adresse 203.0.113.7",
+                "[Simulation] Isolement du poste jusqu'à sa levée",
+                "[Simulation] Notification : seen",
             ]
         );
         // Would run: no destination or privilege is needed to say so.
@@ -1592,7 +1610,10 @@ mod tests {
         let described: Vec<String> = evaluation.actions.iter().map(describe).collect();
         assert_eq!(
             described,
-            ["Block IP 203.0.113.9", "Lock account deploy for 900s"]
+            [
+                "Blocage de l'adresse 203.0.113.9",
+                "Verrouillage du compte deploy pendant 900 s"
+            ]
         );
 
         // The same alert, a playbook that only blocks: no account is touched.
@@ -1606,7 +1627,7 @@ mod tests {
         );
 
         // No duration given: an hour. Zero: until an administrator unlocks.
-        for (parameter, expected) in [("", "for 3600s"), ("0", "until unlocked")] {
+        for (parameter, expected) in [("", "pendant 3600 s"), ("0", "jusqu'au déverrouillage")] {
             let playbook =
                 on_critical_network_alert(&[(PlaybookActionType::DisableAccount, parameter)]);
             let evaluation = eval(&playbook, &context).await;
@@ -1702,8 +1723,8 @@ mod tests {
                 .map(|r| r.action.as_str())
                 .collect::<Vec<_>>(),
             [
-                "[Simulation] Lock account deploy until unlocked",
-                "[Simulation] Run response command 'open-ticket'"
+                "[Simulation] Verrouillage du compte deploy jusqu'au déverrouillage",
+                "[Simulation] Commande de réponse « open-ticket »"
             ]
         );
         assert!(results.iter().all(|r| r.success));
@@ -1777,7 +1798,7 @@ mod tests {
         assert_eq!(
             simulated.playbook_logs[0].actions_executed,
             [format!(
-                "[Simulation] Kill process sleep (PID {})",
+                "[Simulation] Arrêt du processus sleep (PID {})",
                 child.id()
             )]
         );
@@ -1789,7 +1810,7 @@ mod tests {
         let armed = run(false).await;
         assert_eq!(
             armed.playbook_logs[0].actions_executed,
-            [format!("Kill process sleep (PID {})", child.id())]
+            [format!("Arrêt du processus sleep (PID {})", child.id())]
         );
         assert!(
             armed.playbook_logs[0].success,

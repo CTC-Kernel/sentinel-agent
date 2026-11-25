@@ -353,22 +353,160 @@ pub(super) fn system_incident_type_label(incident_type: &str) -> &'static str {
     }
 }
 
-/// Export threats to CSV.
-pub(super) fn export_threats_csv(threats: &[ThreatEvent]) -> bool {
+/// French label of a severity key ("critical"), as the tables say it.
+pub(super) fn severity_label_fr(severity: &str) -> &'static str {
+    match severity {
+        "critical" => "Critique",
+        "high" => "\u{00c9}lev\u{00e9}e",
+        "medium" => "Moyenne",
+        _ => "Faible",
+    }
+}
+
+/// Whether an event matches a search typed by the operator: its title, its
+/// description, or its kind as the interface names it ("réseau", "processus").
+pub(super) fn matches_search(threat: &ThreatEvent, search_lower: &str) -> bool {
+    threat.title.to_lowercase().contains(search_lower)
+        || threat.description.to_lowercase().contains(search_lower)
+        || kind_badge(threat.kind)
+            .0
+            .to_lowercase()
+            .contains(search_lower)
+        || threat.kind.contains(search_lower)
+}
+
+/// An event another tab asks the overview to open in its detail modal: the
+/// source collection and the index in it.
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+pub(super) struct OpenRequest {
+    pub kind: &'static str,
+    pub source_index: usize,
+}
+
+fn open_request_id() -> egui::Id {
+    egui::Id::new("threats_open_event_request")
+}
+
+/// Ask the overview to open the detail of an event. The caller switches to
+/// the overview tab; the feed's filters are lifted there if they hide it.
+pub(super) fn request_open(ctx: &egui::Context, kind: &'static str, source_index: usize) {
+    ctx.data_mut(|d| d.insert_temp(open_request_id(), OpenRequest { kind, source_index }));
+}
+
+/// The pending request, left in place until [`clear_open_request`].
+pub(super) fn open_request(ctx: &egui::Context) -> Option<OpenRequest> {
+    ctx.data(|d| d.get_temp(open_request_id()))
+}
+
+pub(super) fn clear_open_request(ctx: &egui::Context) {
+    ctx.data_mut(|d| d.remove::<OpenRequest>(open_request_id()));
+}
+
+/// The `&'static` source key of a kind named by another module.
+pub(super) fn static_kind(kind: &str) -> Option<&'static str> {
+    [
+        "process",
+        "usb",
+        "fim",
+        "network",
+        "system",
+        "vulnerability",
+    ]
+    .into_iter()
+    .find(|known| *known == kind)
+}
+
+/// A row of sort chips for a list that has no header row (cards, journal
+/// lines). The order is kept like a table's, under `table`: read it back
+/// with `widgets::table::sort_of`. A click cycles ascending, descending,
+/// then the list's own order. Returns true when the order changed.
+pub(crate) fn sort_bar(ui: &mut egui::Ui, table: &'static str, columns: &[(&str, &str)]) -> bool {
+    use crate::widgets::data_table::{SortDirection, TableSort};
+    use crate::widgets::table;
+
+    let mut sort = table::sort_of(ui.ctx(), table);
+    let mut changed = false;
+    ui.horizontal_wrapped(|ui: &mut egui::Ui| {
+        ui.label(
+            egui::RichText::new("TRIER PAR")
+                .font(theme::font_label())
+                .color(theme::text_tertiary()),
+        );
+        ui.add_space(theme::SPACE_XS);
+        for (key, label) in columns {
+            let active = table::sort_key(&sort) == Some(*key);
+            let icon = match (active, sort.direction) {
+                (true, SortDirection::Ascending) => icons::SORT_UP,
+                (true, SortDirection::Descending) => icons::SORT_DOWN,
+                _ => icons::SORT,
+            };
+            if crate::widgets::chip_button(ui, &format!("{label}  {icon}"), active, theme::ACCENT)
+                .on_hover_text(format!("Trier par {}", label.to_lowercase()))
+                .clicked()
+            {
+                sort = match (active, sort.direction) {
+                    (true, SortDirection::Ascending) => {
+                        TableSort::by(key, SortDirection::Descending)
+                    }
+                    (true, SortDirection::Descending) => TableSort::default(),
+                    _ => TableSort::by(key, SortDirection::Ascending),
+                };
+                changed = true;
+            }
+        }
+    });
+    if changed {
+        ui.data_mut(|d| d.insert_temp(egui::Id::new(("table_sort", table)), sort));
+        ui.ctx().request_repaint();
+    }
+    changed
+}
+
+/// Order `items` as `sort` asks, keeping the list's own order between equal
+/// rows and when no column is chosen. `compare` gives the ascending order of
+/// a column key; an unknown key leaves the list as it is.
+pub(crate) fn sort_rows<T>(
+    items: &mut [T],
+    sort: &crate::widgets::data_table::TableSort,
+    compare: impl Fn(&str, &T, &T) -> std::cmp::Ordering,
+) {
+    let Some(key) = crate::widgets::table::sort_key(sort) else {
+        return;
+    };
+    items.sort_by(|a, b| crate::widgets::table::directed(sort, compare(key, a, b)));
+}
+
+/// Case-insensitive order of two texts.
+pub(crate) fn text_order(a: &str, b: &str) -> std::cmp::Ordering {
+    a.to_lowercase().cmp(&b.to_lowercase())
+}
+
+/// Rank of a severity key, lowest first.
+pub(crate) fn severity_rank(severity: &str) -> u8 {
+    match severity {
+        "critical" => 3,
+        "high" => 2,
+        "medium" => 1,
+        _ => 0,
+    }
+}
+
+/// Export threats to CSV. Returns the file written.
+pub(super) fn export_threats_csv(threats: &[ThreatEvent]) -> Option<std::path::PathBuf> {
     let headers = &[
-        "kind",
-        "severity",
-        "title",
+        "type",
+        "severite",
+        "titre",
         "description",
-        "timestamp",
-        "confidence",
+        "date",
+        "confiance",
     ];
     let rows: Vec<Vec<String>> = threats
         .iter()
         .map(|t| {
             vec![
-                t.kind.to_string(),
-                t.severity.to_string(),
+                kind_badge(t.kind).0.to_string(),
+                severity_label_fr(t.severity).to_string(),
                 t.title.clone(),
                 t.description.clone(),
                 t.timestamp.to_rfc3339(),
@@ -376,12 +514,11 @@ pub(super) fn export_threats_csv(threats: &[ThreatEvent]) -> bool {
             ]
         })
         .collect();
-    let path = crate::export::default_export_path("menaces_export.csv");
-    match crate::export::export_csv(headers, &rows, &path) {
-        Ok(_) => true,
+    match crate::export::export_csv_timestamped("menaces_export", headers, &rows) {
+        Ok(path) => Some(path),
         Err(e) => {
             tracing::warn!("Export CSV failed: {}", e);
-            false
+            None
         }
     }
 }
