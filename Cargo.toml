@@ -50,8 +50,8 @@ argon2 = { version = "0.5", features = ["std"] }
 # Copy/Paste/Select All predefined menu items, which our menus do not use
 # (separators only), and it made the packages require libxdo.so.3, which
 # RHEL and its rebuilds ship only in EPEL.
-tray-icon = { version = "0.27", default-features = false }
-muda = { version = "0.22", default-features = false }
+tray-icon = { version = "0.19", default-features = false }
+muda = { version = "0.15", default-features = false }
 image = { version = "0.25", default-features = false, features = ["png"] }
 open = "5"
 tao = { version = "0.30", default-features = false, features = ["rwh_06"] }
