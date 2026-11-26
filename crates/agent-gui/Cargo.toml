@@ -18,6 +18,7 @@ render = ["dep:eframe", "dep:egui", "dep:egui_extras", "dep:egui_plot", "dep:ima
 llm = ["dep:agent_llm"]
 
 [dependencies]
+hex.workspace = true
 agent-common = { path = "../agent-common" }
 agent-storage = { path = "../agent-storage" }
 agent-sync = { path = "../agent-sync" }

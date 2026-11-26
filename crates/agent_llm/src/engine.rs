@@ -277,7 +277,7 @@ impl ResponseCache {
             metadata,
         ))
         .expect("cache key contains only serializable primitive values");
-        format!("{:x}", Sha256::digest(encoded))
+        hex::encode(Sha256::digest(encoded))
     }
 
     /// Try to read a cached response. Returns `None` if caching is disabled,
@@ -481,9 +481,10 @@ impl MistralEngine {
             .ok()
             .map(|m| (m.len(), m.modified().ok()));
         let scope = format!("{:?}:{:?}:{:?}", config, inference_config, identity);
-        scoped_cache.directory = scoped_cache
-            .directory
-            .join(format!("v2-{:x}", Sha256::digest(scope.as_bytes())));
+        scoped_cache.directory = scoped_cache.directory.join(format!(
+            "v2-{}",
+            hex::encode(Sha256::digest(scope.as_bytes()))
+        ));
         Self {
             model: Arc::new(tokio::sync::Mutex::new(None)),
             config,

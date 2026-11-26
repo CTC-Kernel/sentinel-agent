@@ -197,7 +197,7 @@ pub fn verify_password(attempt: &str, stored: &str) -> Verification {
     let mut hasher = Sha256::new();
     hasher.update(salt.as_bytes());
     hasher.update(attempt.as_bytes());
-    let computed = format!("{:x}", hasher.finalize());
+    let computed = hex::encode(hasher.finalize());
     if constant_time_eq(
         computed.as_bytes(),
         expected.to_ascii_lowercase().as_bytes(),
@@ -255,7 +255,7 @@ mod tests {
         let mut hasher = Sha256::new();
         hasher.update(LEGACY_SHARED_SALT.as_bytes());
         hasher.update(password.as_bytes());
-        format!("{LEGACY_SALTED_PREFIX}{:x}", hasher.finalize())
+        format!("{LEGACY_SALTED_PREFIX}{}", hex::encode(hasher.finalize()))
     }
 
     #[test]
@@ -290,7 +290,7 @@ mod tests {
         );
         assert_eq!(verify_password("autre", &salted), Verification::Rejected);
 
-        let unsalted = format!("{:x}", Sha256::digest(b"ancien mot de passe"));
+        let unsalted = hex::encode(Sha256::digest(b"ancien mot de passe"));
         assert_eq!(
             verify_password("ancien mot de passe", &unsalted),
             Verification::Accepted { rehash: true }

@@ -1,7 +1,7 @@
 //! Application-layer request authentication shared by both HTTP clients.
 //! The server signs JSON.stringify(req.body), with millisecond timestamps and a nonce.
 use base64::Engine;
-use hmac::{Hmac, Mac};
+use hmac::{Hmac, KeyInit, Mac};
 use sha2::Sha256;
 use zeroize::Zeroizing;
 

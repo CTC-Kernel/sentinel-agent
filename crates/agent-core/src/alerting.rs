@@ -362,7 +362,7 @@ impl AlertDispatcher {
 
 /// Hex HMAC-SHA256 of `body` under `secret`.
 fn sign(secret: &str, body: &str) -> Option<String> {
-    use hmac::{Hmac, Mac};
+    use hmac::{Hmac, KeyInit, Mac};
     let mut mac = Hmac::<sha2::Sha256>::new_from_slice(secret.as_bytes()).ok()?;
     mac.update(body.as_bytes());
     Some(hex::encode(mac.finalize().into_bytes()))

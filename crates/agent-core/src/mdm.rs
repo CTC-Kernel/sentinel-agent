@@ -346,7 +346,7 @@ fn verify_checksum(path: &Path, expected: &str) -> Result<()> {
         }
         hasher.update(&buffer[..n]);
     }
-    let actual = format!("{:x}", hasher.finalize());
+    let actual = hex::encode(hasher.finalize());
 
     let ct_equal = actual.len() == expected.len()
         && actual

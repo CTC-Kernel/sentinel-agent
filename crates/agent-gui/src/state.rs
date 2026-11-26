@@ -35,7 +35,10 @@ pub fn event_identity(kind: &str, event: &impl Serialize) -> String {
                 )
         });
     }
-    format!("{kind}:{:x}", Sha256::digest(value.to_string().as_bytes()))
+    format!(
+        "{kind}:{}",
+        hex::encode(Sha256::digest(value.to_string().as_bytes()))
+    )
 }
 
 /// Detections produced by periodic scans of a persistent condition. They are

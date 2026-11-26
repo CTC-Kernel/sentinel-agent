@@ -1256,11 +1256,12 @@ fn run_with_tray(runtime: AgentRuntime) -> ExitCode {
     > = std::sync::Arc::new(std::sync::Mutex::new(std::collections::VecDeque::new()));
 
     let menu_q = menu_events.clone();
-    MenuEvent::set_event_handler(Some(move |event: MenuEvent| {
+    // muda 0.22 : le gestionnaire est un Arc<dyn Fn(MenuEvent) + Send + Sync>.
+    MenuEvent::set_event_handler(Some(std::sync::Arc::new(move |event: MenuEvent| {
         if let Ok(mut q) = menu_q.lock() {
             q.push_back(event);
         }
-    }));
+    })));
 
     let tray_q = tray_events.clone();
     tray_icon::TrayIconEvent::set_event_handler(Some(move |event: tray_icon::TrayIconEvent| {

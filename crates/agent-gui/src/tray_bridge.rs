@@ -92,12 +92,13 @@ fn tray_icon_events_queue() -> &'static Arc<Mutex<VecDeque<TrayIconEvent>>> {
 /// are initialised to our closures rather than to `None`.
 fn install_event_handlers() {
     let menu_q = menu_events_queue().clone();
-    MenuEvent::set_event_handler(Some(move |event: MenuEvent| {
+    // muda 0.22 : le gestionnaire est un Arc<dyn Fn(MenuEvent) + Send + Sync>.
+    MenuEvent::set_event_handler(Some(Arc::new(move |event: MenuEvent| {
         info!("MENU EVENT HANDLER: id={}", event.id().0);
         if let Ok(mut q) = menu_q.lock() {
             q.push_back(event);
         }
-    }));
+    })));
 
     let tray_q = tray_icon_events_queue().clone();
     TrayIconEvent::set_event_handler(Some(move |event: TrayIconEvent| {
@@ -225,23 +226,23 @@ impl TrayBridge {
 
         let icon = Self::load_icon()?;
 
-        let tray_icon = if cfg!(target_os = "macos") {
-            TrayIconBuilder::new()
-                .with_menu(Box::new(menu))
-                .with_tooltip("Sentinel GRC Nexus — Actif")
-                .with_icon(icon)
-                .with_icon_as_template(true)
-                .build()
-                .map_err(|e| format!("tray build: {}", e))?
-        } else {
-            TrayIconBuilder::new()
-                .with_menu(Box::new(menu))
-                .with_menu_on_left_click(true)
-                .with_tooltip("Sentinel GRC Nexus — Actif")
-                .with_icon(icon)
-                .build()
-                .map_err(|e| format!("tray build: {}", e))?
-        };
+        // with_icon_templated n'existe que sur macOS (tray-icon 0.27) : cfg,
+        // et non cfg!(), pour que les autres plateformes compilent.
+        #[cfg(target_os = "macos")]
+        let tray_icon = TrayIconBuilder::new()
+            .with_menu(Box::new(menu))
+            .with_tooltip("Sentinel GRC Nexus — Actif")
+            .with_icon_templated(icon)
+            .build()
+            .map_err(|e| format!("tray build: {}", e))?;
+        #[cfg(not(target_os = "macos"))]
+        let tray_icon = TrayIconBuilder::new()
+            .with_menu(Box::new(menu))
+            .with_menu_on_left_click(true)
+            .with_tooltip("Sentinel GRC Nexus — Actif")
+            .with_icon(icon)
+            .build()
+            .map_err(|e| format!("tray build: {}", e))?;
 
         info!("System tray icon created (full menu, event handlers installed)");
         Ok(Self {

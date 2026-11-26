@@ -1142,8 +1142,10 @@ mod tests {
     #[test]
     fn custom_ca_path_is_loaded_or_rejected() {
         // Missing file: explicit error instead of silently using the system store.
-        let mut config = AgentConfig::default();
-        config.ca_cert_path = Some("/nonexistent/sentinel-ca.pem".to_string());
+        let mut config = AgentConfig {
+            ca_cert_path: Some("/nonexistent/sentinel-ca.pem".to_string()),
+            ..Default::default()
+        };
         let err = ApiClient::new(&config).err().expect("missing CA must fail");
         assert!(err.to_string().contains("CA certificate"));
 

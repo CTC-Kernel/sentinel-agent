@@ -114,7 +114,7 @@ impl KeyManager {
     pub fn get_database_key(&self) -> StorageResult<Vec<u8>> {
         #[cfg(unix)]
         {
-            use hmac::{Hmac, Mac};
+            use hmac::{Hmac, KeyInit, Mac};
 
             let hwid = self.get_hwid().map_err(|e| {
                 StorageError::KeyManagement(format!("Failed to retrieve Hardware ID: {}", e))
@@ -216,7 +216,7 @@ impl KeyManager {
     /// Returns an error if the platform CSPRNG is unavailable.
     /// This function MUST NOT fall back to a weak key.
     fn generate_key() -> [u8; KEY_LENGTH] {
-        use getrandom::getrandom;
+        use getrandom::fill as getrandom;
 
         let mut key = [0u8; KEY_LENGTH];
 

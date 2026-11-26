@@ -122,7 +122,7 @@ impl LogBuffer {
             // Use SHA-256 for chain hashing (not MD5 which is cryptographically weak)
             let mut hasher = Sha256::new();
             hasher.update(format!("{}:{}", prev_hash, sig).as_bytes());
-            let hash = format!("{:x}", hasher.finalize());
+            let hash = hex::encode(hasher.finalize());
             (Some(sig), hash)
         } else {
             (None, prev_hash.clone())
