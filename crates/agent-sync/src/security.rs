@@ -10,7 +10,7 @@
 use crate::error::{SyncError, SyncResult};
 use agent_common::process::silent_async_command;
 use chrono::{DateTime, Utc};
-use hmac::{Hmac, Mac};
+use hmac::{Hmac, KeyInit, Mac};
 use serde::{Deserialize, Serialize};
 use sha2::Sha256;
 use tokio::sync::RwLock;

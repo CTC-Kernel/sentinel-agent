@@ -206,7 +206,7 @@ fn sha256_file(path: &Path) -> Result<String> {
         }
         hasher.update(&buffer[..count]);
     }
-    Ok(format!("{:x}", hasher.finalize()))
+    Ok(hex::encode(hasher.finalize()))
 }
 
 // ── What became of an update ────────────────────────────────────────────────
@@ -939,7 +939,7 @@ mod tests {
         UpdateManifest {
             version: version.to_string(),
             package: PACKAGE.to_string(),
-            sha256: format!("{:x}", Sha256::digest(content)),
+            sha256: hex::encode(Sha256::digest(content)),
             size: content.len() as u64,
         }
     }
@@ -968,7 +968,7 @@ mod tests {
             &published.1,
             announced,
             PACKAGE,
-            &format!("{:x}", Sha256::digest(content)),
+            &hex::encode(Sha256::digest(content)),
             content.len() as u64,
         )
     }
@@ -1069,7 +1069,7 @@ mod tests {
         std::fs::write(&path, b"package bytes").unwrap();
         assert_eq!(
             sha256_file(&path).unwrap(),
-            format!("{:x}", Sha256::digest(b"package bytes"))
+            hex::encode(Sha256::digest(b"package bytes"))
         );
     }
 

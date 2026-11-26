@@ -334,7 +334,7 @@ fn build_manifest(file: &str, version: &str) -> Result<agent_common::types::Upda
     let manifest = agent_common::types::UpdateManifest {
         version: version.trim().trim_start_matches('v').to_string(),
         package: name.to_string(),
-        sha256: format!("{:x}", Sha256::digest(&package)),
+        sha256: hex::encode(Sha256::digest(&package)),
         size: package.len() as u64,
     };
     manifest

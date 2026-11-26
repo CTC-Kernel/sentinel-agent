@@ -88,7 +88,7 @@ impl ProofGenerator {
 
     /// Compute a signature for a proof (HMAC-SHA256).
     pub fn sign(&self, proof: &mut Proof, key: &[u8]) {
-        use hmac::{Hmac, Mac};
+        use hmac::{Hmac, KeyInit, Mac};
         type HmacSha256 = Hmac<Sha256>;
 
         let data_json = serde_json::to_string(&proof.data).unwrap_or_default();
@@ -103,7 +103,7 @@ impl ProofGenerator {
 
     /// Verify a proof signature.
     pub fn verify_signature(&self, proof: &Proof, key: &[u8]) -> bool {
-        use hmac::{Hmac, Mac};
+        use hmac::{Hmac, KeyInit, Mac};
         type HmacSha256 = Hmac<Sha256>;
 
         let signature = match &proof.signature {

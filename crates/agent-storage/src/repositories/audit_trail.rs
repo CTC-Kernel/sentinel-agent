@@ -52,7 +52,7 @@ impl<'a> AuditTrailRepository<'a> {
         hasher.update(action_data.as_bytes());
         hasher.update(b"|");
         hasher.update(actor.as_bytes());
-        format!("{:x}", hasher.finalize())
+        hex::encode(hasher.finalize())
     }
 
     /// Store a new audit entry with an integrity hash embedded in details.
