@@ -59,8 +59,14 @@ impl AgentRuntime {
                 _ => continue,
             };
 
-            let title = format!("Contrôle défaillant : {}", def.name);
-            if existing_titles.contains(&title) {
+            // Libellé français du contrôle (le même que la console) : le titre
+            // mêlait le préfixe français et le nom anglais du scanner
+            // (« Contrôle défaillant : Update Management Status »). Les titres
+            // déjà générés restent reconnus pour ne pas créer de doublon.
+            let display_name = french_check_name(&def.id).unwrap_or(def.name.as_str());
+            let title = format!("Contrôle défaillant : {}", display_name);
+            let legacy_title = format!("Contrôle défaillant : {}", def.name);
+            if existing_titles.contains(&title) || existing_titles.contains(&legacy_title) {
                 continue;
             }
 
@@ -68,7 +74,7 @@ impl AgentRuntime {
             let description = exec.result.message.clone().unwrap_or_else(|| {
                 format!(
                     "Le contrôle {} a échoué lors du scan de conformité",
-                    def.name
+                    display_name
                 )
             });
 
@@ -205,5 +211,73 @@ impl AgentRuntime {
                 }
             }
         }
+    }
+}
+
+/// French label of a built-in check, identical to the platform console
+/// (`AGENT_CHECK_DEFINITIONS` in sentinel-grc). `None` for checks the console
+/// does not name yet: the scanner name is used instead.
+pub(crate) fn french_check_name(check_id: &str) -> Option<&'static str> {
+    match check_id {
+        "mfa_enabled" => Some("Authentification MFA"),
+        "disk_encryption" => Some("Chiffrement disque"),
+        "firewall_active" => Some("Pare-feu actif"),
+        "audit_logging" => Some("Journalisation audit"),
+        "patches_current" => Some("Correctifs à jour"),
+        "antivirus_active" => Some("Antivirus actif"),
+        "screen_lock" => Some("Verrouillage écran"),
+        "password_policy" => Some("Politique mot de passe"),
+        "remote_access_secure" => Some("Accès distant sécurisé"),
+        "backup_configured" => Some("Sauvegarde configurée"),
+        "admin_accounts" => Some("Comptes administrateur"),
+        "obsolete_protocols" => Some("Protocoles obsolètes"),
+        "auto_login" => Some("Connexion automatique"),
+        "bluetooth" => Some("Bluetooth"),
+        "browser_security" => Some("Sécurité navigateur"),
+        "guest_account" => Some("Compte invité"),
+        "ipv6_config" => Some("Configuration IPv6"),
+        "kernel_hardening" => Some("Durcissement noyau"),
+        "log_rotation" => Some("Rotation des logs"),
+        "time_sync" => Some("Synchronisation NTP"),
+        "usb_storage" => Some("Stockage USB"),
+        "gpo_password_policy" => Some("GPO politique de mot de passe"),
+        "gpo_lockout_policy" => Some("GPO verrouillage de compte"),
+        "privileged_groups" => Some("Groupes privilégiés"),
+        "ldap_security" => Some("Sécurité LDAP"),
+        "windows_hardening" => Some("Durcissement Windows"),
+        "secure_boot" => Some("Démarrage sécurisé"),
+        "linux_hardening" => Some("Durcissement Linux"),
+        "update_status" => Some("État des mises à jour"),
+        "dns_security" => Some("Sécurité DNS"),
+        "ssh_hardening" => Some("Durcissement SSH"),
+        "container_security" => Some("Sécurité des conteneurs"),
+        "certificate_validation" => Some("Validation des certificats"),
+        // Identifiants du scanner différents de ceux de la console (mêmes libellés).
+        "auto_login_disabled" => Some("Connexion automatique"),
+        "bluetooth_disabled" => Some("Bluetooth"),
+        "gpo_account_lockout" => Some("GPO verrouillage de compte"),
+        "gpo_audit_policy" => Some("GPO politique d'audit"),
+        "guest_account_disabled" => Some("Compte invité"),
+        "ipv6_hardening" => Some("Configuration IPv6"),
+        "usb_storage_disabled" => Some("Stockage USB"),
+        _ => None,
+    }
+}
+
+#[cfg(test)]
+mod french_name_tests {
+    use super::french_check_name;
+
+    #[test]
+    fn known_checks_have_the_console_label() {
+        assert_eq!(
+            french_check_name("kernel_hardening"),
+            Some("Durcissement noyau")
+        );
+        assert_eq!(
+            french_check_name("mfa_enabled"),
+            Some("Authentification MFA")
+        );
+        assert_eq!(french_check_name("does_not_exist"), None);
     }
 }
