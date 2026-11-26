@@ -559,6 +559,21 @@ impl ApiClient {
             );
         }
 
+        // Custom CA (on-premise platform with a private or self-signed
+        // certificate). The sync clients already honoured `ca_cert_path`, but
+        // this client did not: heartbeat, network snapshot and vulnerability
+        // uploads failed with UnknownIssuer while inventory and check results
+        // went through (end-to-end on-premise test, 2026-11-26).
+        if let Some(ref ca_path) = config.ca_cert_path {
+            debug!("Loading custom CA certificate from: {}", ca_path);
+            let ca_cert = std::fs::read(ca_path).map_err(|e| {
+                CommonError::network(format!("Failed to read CA certificate {}: {}", ca_path, e))
+            })?;
+            let cert = reqwest::Certificate::from_pem(&ca_cert)
+                .map_err(|e| CommonError::network(format!("Invalid CA certificate: {}", e)))?;
+            builder = builder.add_root_certificate(cert);
+        }
+
         // Configure proxy if present
         if let Some(ref proxy_config) = config.proxy {
             let mut proxy = reqwest::Proxy::all(&proxy_config.url)
@@ -1123,6 +1138,25 @@ impl ApiClient {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn custom_ca_path_is_loaded_or_rejected() {
+        // Missing file: explicit error instead of silently using the system store.
+        let mut config = AgentConfig::default();
+        config.ca_cert_path = Some("/nonexistent/sentinel-ca.pem".to_string());
+        let err = ApiClient::new(&config).err().expect("missing CA must fail");
+        assert!(err.to_string().contains("CA certificate"));
+
+        // Valid PEM: accepted as an extra root.
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("ca.pem");
+        std::fs::write(&path, TEST_CA_PEM).unwrap();
+        config.ca_cert_path = Some(path.to_string_lossy().into_owned());
+        assert!(ApiClient::new(&config).is_ok());
+    }
+
+    /// Self-signed certificate of an on-premise test instance (public data).
+    const TEST_CA_PEM: &str = "-----BEGIN CERTIFICATE-----\nMIIBzTCCAXSgAwIBAgIUP7Crvn9CmpMWXGrieMVBZvi6F28wCgYIKoZIzj0EAwIw\nPDEeMBwGA1UEAwwVc2VudGluZWwuZXhhbXBsZS50ZXN0MRowGAYDVQQKDBFTZW50\naW5lbCBHUkMgdGVzdDAeFw0yNjExMjYwMDA1MTlaFw0zNjExMjMwMDA1MTlaMDwx\nHjAcBgNVBAMMFXNlbnRpbmVsLmV4YW1wbGUudGVzdDEaMBgGA1UECgwRU2VudGlu\nZWwgR1JDIHRlc3QwWTATBgcqhkjOPQIBBggqhkjOPQMBBwNCAASbakPJ6A78ldrA\na+qZES2fP1tnDhFXKiWew4WPcj8Fft9sF1qmvv5Ptk3JnvT4ClTL7em7X7nk+okJ\nzEV0Wryso1QwUjAdBgNVHQ4EFgQUACN8c20j7Y1GH71xpvKIGn9aJpAwDwYDVR0T\nAQH/BAUwAwEB/zAgBgNVHREEGTAXghVzZW50aW5lbC5leGFtcGxlLnRlc3QwCgYI\nKoZIzj0EAwIDRwAwRAIge2zlBT3uzu9+5swgDxII2i/RoHkWEra2ikR9A5yrJv0C\nIB7b0kYa63IEWwkxxDBfLsH2ipsk2a53eOPDSazy/VEv\n-----END CERTIFICATE-----\n";
 
     #[test]
     fn test_enrollment_request_serialization() {
