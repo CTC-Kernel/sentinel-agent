@@ -597,6 +597,27 @@ fn handle_enroll(token: &str, server_url: Option<&str>) -> ExitCode {
                     ),
                 }
             }
+            // Private CA given at enrollment (SENTINEL_CA_CERT_PATH): the service
+            // started afterwards must trust the same certificate, otherwise every
+            // call to an on-premise platform with a self-signed certificate fails
+            // with UnknownIssuer.
+            if let Some(ref ca_path) = config.ca_cert_path {
+                match AgentConfig::persist_value_to(
+                    &AgentConfig::platform_config_path(),
+                    "ca_cert_path",
+                    serde_json::Value::String(ca_path.clone()),
+                ) {
+                    Ok(()) => info!(
+                        "CA certificate path saved to the configuration: {}",
+                        ca_path
+                    ),
+                    Err(e) => warn!(
+                        "Enrolled, but the CA certificate path could not be saved: {}. \
+                         Set \"ca_cert_path\" manually in agent.json before starting the service.",
+                        e
+                    ),
+                }
+            }
             // An enrolled agent is a connected one: leave standalone mode.
             if config.standalone {
                 match AgentConfig::persist_standalone(false) {
