@@ -583,10 +583,11 @@ impl Check for FirewallCheck {
                 raw_data,
             ))
         } else {
-            Ok(CheckOutput::fail(
-                format!("{} is not enabled", status.firewall_type),
-                raw_data,
-            ))
+            let message = match crate::check::product_name(&status.firewall_type) {
+                Some(name) => format!("{} is not enabled", name),
+                None => "No active firewall detected".to_string(),
+            };
+            Ok(CheckOutput::fail(message, raw_data))
         }
     }
 }

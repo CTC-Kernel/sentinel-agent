@@ -170,15 +170,19 @@ impl AgentRuntime {
             warn!("Shipped detection rules not installed: {}", e);
         }
 
+        // The bundled check rules back the results table's foreign key
+        // (check_results.check_rule_id): without them every result of the
+        // first passes is refused ("Failed to store check result"). The
+        // platform's rules replace them once the sync services run, which
+        // an agent that cannot reach its platform yet never gets to.
+        self.seed_builtin_check_rules().await;
+
         if self.config.standalone {
             // ── Standalone: no platform, local protection only ──
             info!(
                 "Standalone mode: no enrollment, heartbeat, upload or remote command; \
                  detection, file integrity, compliance and scanning run locally"
             );
-            // The bundled check rules back the results table's foreign key;
-            // the platform normally seeds them through the sync services.
-            self.seed_builtin_check_rules().await;
         } else {
             self.run_platform_startup().await?;
         }

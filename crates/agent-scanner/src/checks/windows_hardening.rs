@@ -607,6 +607,12 @@ impl Check for WindowsHardeningCheck {
 
     async fn execute(&self) -> ScannerResult<CheckOutput> {
         debug!("Executing Windows hardening check");
+        if !cfg!(target_os = "windows") {
+            return Ok(CheckOutput::not_applicable(
+                "Contrôle Windows : non applicable sur ce système",
+                serde_json::json!({ "platform": crate::check::current_platform() }),
+            ));
+        }
 
         let status = self.check_hardening().await?;
         let raw_data = serde_json::to_value(&status).unwrap_or_default();
@@ -770,6 +776,12 @@ impl Check for SecureBootCheck {
 
     async fn execute(&self) -> ScannerResult<CheckOutput> {
         debug!("Executing Secure Boot check");
+        if !cfg!(target_os = "windows") {
+            return Ok(CheckOutput::not_applicable(
+                "Contrôle Windows : non applicable sur ce système",
+                serde_json::json!({ "platform": crate::check::current_platform() }),
+            ));
+        }
 
         let status = self.check_secure_boot().await?;
         let raw_data = serde_json::to_value(&status).unwrap_or_default();

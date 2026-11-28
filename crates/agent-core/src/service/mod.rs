@@ -32,6 +32,9 @@ mod unix;
 #[cfg(unix)]
 pub use unix::*;
 
+#[cfg(unix)]
+pub mod data_dir;
+pub mod enrollment_wait;
 pub mod watchdog;
 
 /// What the binary runs on the service's agent once it is built and before

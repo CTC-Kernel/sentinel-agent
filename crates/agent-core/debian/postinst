@@ -25,6 +25,18 @@ chown sentinel-grc:sentinel-grc /var/lib/sentinel-grc/cache
 chown sentinel-grc:sentinel-grc /var/lib/sentinel-grc/cache/llm
 chown sentinel-grc:sentinel-grc /var/log/sentinel-grc
 chown sentinel-grc:sentinel-grc /etc/sentinel
+# Files a command run as root left behind (`sudo sentinel-agent enroll`
+# before the service had created its database, up to 4.0.60): the service
+# could not write them ("attempt to write a readonly database").
+# Only the service's own files: the privileged helper keeps its state there
+# as root on purpose.
+for f in /var/lib/sentinel-grc/agent.db /var/lib/sentinel-grc/agent.db-wal \
+         /var/lib/sentinel-grc/agent.db-shm /var/lib/sentinel-grc/agent.db.bak \
+         /var/lib/sentinel-grc/.sentinel-key /etc/sentinel/agent.json /etc/sentinel/llm.json; do
+    if [ -e "$f" ] && [ "$(stat -c %u "$f" 2>/dev/null)" = 0 ]; then
+        chown -h sentinel-grc:sentinel-grc "$f" || true
+    fi
+done
 chmod 700 /var/lib/sentinel-grc
 chmod 755 /var/lib/sentinel-grc/models
 chmod 755 /var/lib/sentinel-grc/cache
@@ -125,6 +137,8 @@ echo "Sentinel GRC Agent installe avec succes."
 echo "Service : systemctl status sentinel-agent"
 echo "Config  : /etc/sentinel/agent.json"
 echo "Mode    : 'sentinel-agent standalone' (protection locale) / 'sentinel-agent enroll' (plateforme)"
+echo "Tant que l'agent n'est ni enrole ni autonome, le service attend sans executer de controle ;"
+echo "'sentinel-agent enroll' le redemarre une fois l'enrolement fait."
 echo "LLM     : /etc/sentinel/llm.json"
 echo "Models  : /var/lib/sentinel-grc/models/"
 echo "Logs    : /var/log/sentinel-grc/"

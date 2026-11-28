@@ -84,6 +84,7 @@ pub mod threat_intel_feeds;
 #[cfg(feature = "gui")]
 pub use scanning::export_sbom;
 mod remediation_ops;
+mod risk_description;
 mod risk_generation;
 mod scanning;
 mod self_update;
@@ -402,6 +403,10 @@ pub struct AgentRuntime {
     re_enrollment_attempts: std::sync::atomic::AtomicU32,
     /// Timestamp of the last re-enrollment attempt (epoch seconds).
     last_re_enrollment_attempt: std::sync::atomic::AtomicU64,
+    /// The platform announced a configuration change before the sync
+    /// services existed (the probe heartbeat right after the enrollment):
+    /// the download runs as soon as they are initialized.
+    pending_config_sync: AtomicBool,
 }
 
 /// A lightweight handle to the running agent that can be shared with the GUI
@@ -795,6 +800,7 @@ impl AgentRuntime {
             auth_failure_count: std::sync::atomic::AtomicU32::new(0),
             re_enrollment_attempts: std::sync::atomic::AtomicU32::new(0),
             last_re_enrollment_attempt: std::sync::atomic::AtomicU64::new(0),
+            pending_config_sync: AtomicBool::new(false),
         }
     }
 
@@ -1053,6 +1059,65 @@ mod tests {
             "15 règle(s) sur les journaux, 6 corrélation(s), 2 sur les processus, \
              1 refusée(s) (voir le journal de l'agent)"
         );
+    }
+
+    /// The checks whose code reads one system only, and that system.
+    const SINGLE_PLATFORM_CHECKS: [(&str, &str); 8] = [
+        ("gpo_password_policy", "windows"),
+        ("gpo_account_lockout", "windows"),
+        ("gpo_audit_policy", "windows"),
+        ("privileged_groups", "windows"),
+        ("windows_hardening", "windows"),
+        ("secure_boot", "windows"),
+        ("linux_hardening", "linux"),
+        ("ldap_security", "linux"),
+    ];
+
+    #[test]
+    fn single_platform_checks_declare_their_system_only() {
+        let mut registry = CheckRegistry::new();
+        register_builtin_checks(&mut registry);
+        for (id, platform) in SINGLE_PLATFORM_CHECKS {
+            let check = registry
+                .get(id)
+                .unwrap_or_else(|| panic!("{id} registered"));
+            assert_eq!(check.definition().platforms, [platform], "{id}");
+        }
+    }
+
+    /// Group Policy checks run on Linux produced failures, then risks on
+    /// the platform. No check of another system may fail here: not when
+    /// the runner is given it, not when its code is called directly.
+    #[tokio::test]
+    async fn no_check_of_another_system_fails_here() {
+        let mut registry = CheckRegistry::new();
+        register_builtin_checks(&mut registry);
+        let foreign: Vec<_> = registry
+            .all()
+            .into_iter()
+            .filter(|check| !check.is_platform_supported())
+            .collect();
+        assert!(!foreign.is_empty(), "every OS has checks of another one");
+
+        let runner = agent_scanner::CheckRunner::with_defaults(Arc::new(CheckRegistry::new()));
+        for result in runner.run_checks(foreign.clone()).await {
+            assert_eq!(
+                result.result.status,
+                agent_common::types::CheckStatus::Skipped,
+                "{}",
+                result.result.check_id
+            );
+        }
+        for check in foreign {
+            let output = check.execute().await.expect("runs");
+            assert!(
+                output.is_not_applicable(),
+                "{}: {} (passed: {})",
+                check.id(),
+                output.message,
+                output.passed
+            );
+        }
     }
 
     #[test]

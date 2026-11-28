@@ -71,12 +71,16 @@ impl AgentRuntime {
             }
 
             let risk_id = uuid::Uuid::new_v4();
-            let description = exec.result.message.clone().unwrap_or_else(|| {
-                format!(
-                    "Le contrôle {} a échoué lors du scan de conformité",
-                    display_name
-                )
-            });
+            // En français, comme le titre : le message du scanner est en
+            // anglais et y insérait le produit détecté même quand il n'y en
+            // avait pas (« None issues: AV not enabled », « none is not
+            // enabled »).
+            let description = crate::risk_description::french_risk_description(
+                &def.id,
+                display_name,
+                &exec.result.details,
+                exec.result.message.as_deref(),
+            );
 
             let stored = agent_storage::repositories::grc::StoredRisk {
                 id: risk_id.to_string(),

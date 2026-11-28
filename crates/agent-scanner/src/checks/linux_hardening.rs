@@ -574,6 +574,12 @@ impl Check for LinuxHardeningCheck {
 
     async fn execute(&self) -> ScannerResult<CheckOutput> {
         debug!("Executing Linux hardening check");
+        if !cfg!(target_os = "linux") {
+            return Ok(CheckOutput::not_applicable(
+                "Contrôle Linux : non applicable sur ce système",
+                serde_json::json!({ "platform": crate::check::current_platform() }),
+            ));
+        }
 
         let status = self.check_hardening().await?;
         let raw_data = serde_json::to_value(&status).unwrap_or_default();

@@ -50,10 +50,19 @@ fn keepalive_interval(watchdog_usec: &str) -> Option<Duration> {
 
 /// Start sending keepalives when systemd asked for them. Call from the async
 /// runtime, before the first long start-up step: the timeout already runs.
+///
+/// Only the first call starts the keepalives: the service calls it while it
+/// waits for its enrollment, then again when the agent starts.
 pub fn start() {
+    static STARTED: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
     beat();
+    let first = !STARTED.swap(true, Ordering::SeqCst);
     #[cfg(unix)]
-    unix::start();
+    if first {
+        unix::start();
+    }
+    #[cfg(not(unix))]
+    let _ = first;
 }
 
 #[cfg(unix)]

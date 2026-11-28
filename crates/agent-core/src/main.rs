@@ -229,6 +229,38 @@ fn main() -> ExitCode {
         init_logging(&cli.log_level);
     }
 
+    // A command run as root (enroll, standalone, status, inventory…) may
+    // create files in the agent's directories: what it creates, and the
+    // service's own files (database, key, configuration — which repairs a
+    // database an earlier root run left behind), go back to the account
+    // that owns those directories, the service's.
+    #[cfg(unix)]
+    let hands_files_back = matches!(
+        cli.command,
+        Some(
+            Commands::Enroll { .. }
+                | Commands::Standalone { .. }
+                | Commands::Install
+                | Commands::Start
+                | Commands::Stop
+                | Commands::Status
+                | Commands::Inventory
+        )
+    );
+    #[cfg(unix)]
+    if hands_files_back {
+        service::data_dir::remember_root_owned_entries();
+    }
+    let code = run_command(cli);
+    #[cfg(unix)]
+    if hands_files_back {
+        service::data_dir::hand_agent_files_to_their_owner();
+    }
+    code
+}
+
+/// Run the subcommand of the command line (the agent itself without one).
+fn run_command(cli: Cli) -> ExitCode {
     // Handle subcommands
     match cli.command {
         Some(Commands::Enroll { token, server }) => {
@@ -629,7 +661,24 @@ fn handle_enroll(token: &str, server_url: Option<&str>) -> ExitCode {
                     ),
                 }
             }
-            info!("You can now start the agent with: sentinel-agent");
+            // `sudo enroll` right after the installation creates the database
+            // as root, before the service did: hand it to the service's
+            // account, or every write of the service fails.
+            #[cfg(unix)]
+            service::data_dir::hand_agent_files_to_their_owner();
+            // The packages start the service before the enrollment; it waits
+            // for it. Restart it now so that it runs with the identity and
+            // the configuration just written.
+            match service::restart_after_enrollment() {
+                Ok(true) => info!("Service restarted: the agent now runs enrolled"),
+                Ok(false) => info!("You can now start the agent with: sentinel-agent"),
+                Err(e) => warn!(
+                    "Enrolled, but the service could not be restarted ({}). The service \
+                     picks the enrollment up by itself within a minute, or restart it \
+                     (systemctl restart sentinel-agent).",
+                    e
+                ),
+            }
             ExitCode::SUCCESS
         }
         Err(e) => {
@@ -847,6 +896,10 @@ fn handle_run(config_path: Option<String>, mut no_tray: bool, log_level: &str) -
     use agent_sync::EnrollmentManager;
 
     info!("Starting Sentinel GRC Agent in foreground mode");
+    // A database a `sudo` command created is not writable by this account
+    // (the macOS LaunchAgent): say so once, with the fix.
+    #[cfg(unix)]
+    service::data_dir::report_unwritable_store();
 
     // Load configuration
     let mut config = match AgentConfig::load(config_path.as_deref()) {
@@ -1089,17 +1142,35 @@ fn handle_run(config_path: Option<String>, mut no_tray: bool, log_level: &str) -
     if !is_enrolled && !standalone {
         info!("Agent not enrolled. Requesting enrollment token.");
 
-        // Try to get token from config or prompt user
-        let token = config.enrollment_token.clone().or_else(|| {
-            if no_tray {
-                warn!("Agent is not enrolled. Run 'sentinel-agent enroll --token <TOKEN>' first.");
-                None
-            } else {
-                show_enrollment_dialog()
+        // Try to get token from config or prompt user. Headless (a service
+        // manager, `run --no-tray`), wait for `sentinel-agent enroll`
+        // instead of exiting, which launchd and systemd would answer with a
+        // restart loop: nothing runs meanwhile.
+        let mut token = config.enrollment_token.clone();
+        if token.is_none() && no_tray {
+            let never = std::sync::atomic::AtomicBool::new(false);
+            let Some(ready) = rt.block_on(service::enrollment_wait::wait_for_enrollment(
+                config.clone(),
+                &db,
+                &never,
+            )) else {
+                return ExitCode::SUCCESS;
+            };
+            config = ready;
+            token = config.enrollment_token.clone();
+            if let Ok(Some(creds)) = rt.block_on(agent_sync::CredentialsRepository::new(&db).load())
+            {
+                config.agent_id = Some(creds.agent_id.to_string());
+                config.organization_id = Some(creds.organization_id.to_string());
+                config.client_certificate = Some(creds.client_certificate.clone());
+                config.client_key = Some(creds.client_private_key.clone());
             }
-        });
+        } else if token.is_none() {
+            token = show_enrollment_dialog();
+        }
 
         match token {
+            _ if config.agent_id.is_some() || config.standalone => {}
             Some(token) => {
                 config.enrollment_token = Some(token.clone());
                 let enrollment_manager = EnrollmentManager::new(&config, &db);

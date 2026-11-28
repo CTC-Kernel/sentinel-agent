@@ -196,6 +196,26 @@ impl CheckRunner {
 
         debug!("Executing check: {}", check_id);
 
+        // A check written for another system (Group Policy on Linux, a
+        // Linux sysctl on Windows) has nothing to read here: whatever its
+        // code would say, it is not applicable, never failed.
+        if !check.is_platform_supported() {
+            let mut result = CheckResult::fail(
+                &check_id,
+                format!(
+                    "Non applicable sur ce système ({}) : contrôle prévu pour {}",
+                    crate::check::current_platform(),
+                    check.definition().platforms.join(", ")
+                ),
+            );
+            result.status = CheckStatus::Skipped;
+            return Ok(CheckExecutionResult {
+                result: result.with_duration(0),
+                proof: None,
+                duration_ms: 0,
+            });
+        }
+
         let timeout_duration = Duration::from_millis(self.config.check_timeout_ms);
 
         // Wrap check execution in AssertUnwindSafe + catch_unwind to prevent
@@ -570,5 +590,35 @@ mod tests {
         assert_eq!(config.check_timeout_ms, DEFAULT_CHECK_TIMEOUT_MS);
         assert_eq!(config.concurrency, DEFAULT_CONCURRENCY);
         assert!(config.generate_proofs);
+    }
+
+    /// A check of another system run anyway (an explicit list, a rule
+    /// received from the platform) is skipped, whatever its code says.
+    #[tokio::test]
+    async fn a_check_of_another_system_is_never_failed() {
+        let foreign = if cfg!(target_os = "windows") {
+            "linux"
+        } else {
+            "windows"
+        };
+        let check: Arc<dyn Check> = Arc::new(FailingCheck {
+            definition: CheckDefinitionBuilder::new("foreign")
+                .name("Foreign check")
+                .category(CheckCategory::General)
+                .platforms(vec![foreign.to_string()])
+                .build(),
+        });
+        let runner = CheckRunner::with_defaults(Arc::new(CheckRegistry::new()));
+        let results = runner.run_checks(vec![check]).await;
+
+        assert_eq!(results.len(), 1);
+        assert_eq!(results[0].result.status, CheckStatus::Skipped);
+        assert!(
+            results[0]
+                .result
+                .message
+                .as_deref()
+                .is_some_and(|m| m.contains(foreign))
+        );
     }
 }
