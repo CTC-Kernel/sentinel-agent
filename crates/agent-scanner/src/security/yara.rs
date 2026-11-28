@@ -138,8 +138,9 @@ impl YaraScanner {
     /// Start `helper` on the rules of `rules_dir`.
     ///
     /// Both must be trusted: on Unix, owned by root or the agent's user and
-    /// writable by nobody else (the helper runs with the agent's rights, and
-    /// whoever writes the rules decides what is detected).
+    /// writable by nobody else; on Windows, owned by SYSTEM, Administrators or
+    /// TrustedInstaller and writable by nobody else (the helper runs with the
+    /// agent's rights, and whoever writes the rules decides what is detected).
     pub fn start(helper: &Path, rules_dir: &Path) -> Result<(Self, YaraLoadReport), String> {
         for path in [helper, rules_dir] {
             crate::checks::custom::is_trusted(path)

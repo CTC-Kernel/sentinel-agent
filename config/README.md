@@ -19,6 +19,15 @@ L'agent determine automatiquement les chemins en fonction du systeme d'exploitat
 | Base de donnees | `C:\ProgramData\Sentinel\data\agent.db` |
 | Logs | `C:\ProgramData\Sentinel\logs\` |
 
+`C:\ProgramData\Sentinel` est reserve a SYSTEM et aux Administrateurs
+(proprietaire Administrateurs, heritage de `ProgramData` coupe, aucun droit
+pour les autres comptes) : l'installateur l'applique, et le service a chaque
+demarrage. L'application de bureau s'ouvre donc avec les droits
+d'administrateur (demande d'elevation). Le jeton d'enrolement donne a
+l'installateur (`ENROLLMENTTOKEN`) est remis a l'agent dans une valeur du
+registre que seuls SYSTEM et les Administrateurs peuvent lire
+(`HKLM\SOFTWARE\Sentinel\Agent\Enrollment`), jamais sur une ligne de commande.
+
 ### Linux
 
 | Type de chemin | Emplacement |
@@ -104,8 +113,10 @@ jusqu'a une semaine (recidive, comme `repeated_offenders` chez Wazuh).
 Le programme recoit sur son entree standard un document JSON (playbook,
 conditions reconnues, processus, adresses, fichiers et comptes vises) et
 reussit en sortant avec le code 0. Sous Unix il doit appartenir a root ou au
-compte de l'agent et n'etre modifiable par personne d'autre. Un playbook ne
-peut que nommer une commande declaree : rien de ce qu'il contient n'est execute.
+compte de l'agent et n'etre modifiable par personne d'autre ; sous Windows,
+appartenir a SYSTEM, aux Administrateurs ou a TrustedInstaller et n'etre
+modifiable par aucun autre compte. Un playbook ne peut que nommer une commande
+declaree : rien de ce qu'il contient n'est execute.
 
 ## Commandes surveillees
 
@@ -358,6 +369,16 @@ chaque analyse de securite. Les regles de la communaute SigmaHQ pour
 
 Les fichiers `*.toml` du dossier `checks.d` du dossier de donnees declarent
 des controles supplementaires. Voir `checks.example.toml`.
+
+Les dossiers de regles (`checks.d`, `sca.d`, `sigma.d`, `yara.d`) et leurs
+fichiers suivent la meme regle que les programmes des commandes de reponse :
+sous Windows, un fichier dont le proprietaire n'est ni SYSTEM, ni les
+Administrateurs, ni TrustedInstaller est ignore, avec la raison dans le
+journal. Un fichier cree par un administrateur sur un poste client appartient
+a son compte : le donner au groupe avec
+`icacls <fichier> /setowner *S-1-5-32-544`. Le service ne change pas le
+proprietaire de ce qui se trouve dans ces dossiers : un fichier ecrit par un
+autre compte reste refuse.
 
 ## Mode autonome (standalone)
 

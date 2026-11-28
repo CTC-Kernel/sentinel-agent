@@ -17,22 +17,31 @@ if (-not $currentPrincipal.IsInRole([Security.Principal.WindowsBuiltInRole]::Adm
 Write-Host "Correction des permissions pour l'installation MSI..." -ForegroundColor Yellow
 
 # Utiliser les SIDs universels (fonctionnent sur toutes les langues Windows)
-# S-1-5-32-545 = Builtin\Users (Utilisateurs)
 # S-1-5-32-544 = Builtin\Administrators (Administrateurs)
 # S-1-5-18     = NT AUTHORITY\SYSTEM
+#
+# C:\ProgramData\Sentinel est reserve a SYSTEM et aux Administrateurs : le
+# service (LocalSystem) y lit sa configuration, sa cle, sa base et des regles
+# qui lancent des programmes. Aucun droit pour les Utilisateurs.
+# /L : agir sur les liens eux-memes, jamais sur ce qu'ils designent.
+
+function Set-SentinelDataAcl {
+    param([string]$Root)
+    # Proprietaire Administrateurs partout, regles propres retirees : tout
+    # herite de la racine (ce qui retire aussi l'ancien droit des Utilisateurs).
+    icacls $Root /setowner "*S-1-5-32-544" /T /C /L /Q | Out-Null
+    icacls $Root /reset /T /C /L /Q | Out-Null
+    # Racine : heritage de ProgramData coupe, SYSTEM et Administrateurs seuls.
+    icacls $Root /inheritance:r /grant:r "*S-1-5-18:(OI)(CI)(F)" "*S-1-5-32-544:(OI)(CI)(F)" /C /L /Q | Out-Null
+}
 
 # 1. Nettoyer les installations précédentes
 if ($Force -or (Test-Path "C:\ProgramData\Sentinel")) {
     Write-Host "Nettoyage de l'installation precedente..." -ForegroundColor Green
 
     try {
-        # Prendre ownership
-        takeown /A /F "C:\ProgramData\Sentinel" /R /D Y 2>$null | Out-Null
-
-        # Donner permissions complètes via SIDs universels
-        icacls "C:\ProgramData\Sentinel" /grant "*S-1-5-32-545:(OI)(CI)(F)" /T /C /Q | Out-Null
-        icacls "C:\ProgramData\Sentinel" /grant "*S-1-5-32-544:(OI)(CI)(F)" /T /C /Q | Out-Null
-        icacls "C:\ProgramData\Sentinel" /grant "*S-1-5-18:(OI)(CI)(F)" /T /C /Q | Out-Null
+        # Prendre possession et restreindre aux Administrateurs et a SYSTEM
+        Set-SentinelDataAcl "C:\ProgramData\Sentinel"
 
         # Supprimer les fichiers existants
         Remove-Item "C:\ProgramData\Sentinel\*" -Recurse -Force -ErrorAction SilentlyContinue
@@ -98,12 +107,10 @@ foreach ($dir in $dirs) {
         New-Item -ItemType Directory -Path $dir -Force | Out-Null
         Write-Host "Cree: $dir" -ForegroundColor White
     }
-
-    # Appliquer les permissions via SIDs universels
-    icacls $dir /grant "*S-1-5-32-545:(OI)(CI)(F)" /T /C /Q | Out-Null
-    icacls $dir /grant "*S-1-5-32-544:(OI)(CI)(F)" /T /C /Q | Out-Null
-    icacls $dir /grant "*S-1-5-18:(OI)(CI)(F)" /T /C /Q | Out-Null
 }
+
+# Appliquer les permissions via SIDs universels
+Set-SentinelDataAcl "C:\ProgramData\Sentinel"
 
 # 6. Vérifier que le fichier de config existe
 $configPath = "C:\ProgramData\Sentinel\agent.json"

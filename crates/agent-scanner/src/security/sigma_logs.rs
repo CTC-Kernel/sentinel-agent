@@ -1312,7 +1312,7 @@ mod tests {
         let dir = tempfile::tempdir().unwrap();
         // The shipped rules for a log source this endpoint does not read, and
         // the correlations over them, are counted and are not errors.
-        let (shipped_only, default_engine) = load(dir.path(), &coverage);
+        let (shipped_only, default_engine) = load(trusted(dir.path()), &coverage);
         assert!(
             shipped_only.report.errors.is_empty(),
             "{:?}",
@@ -1338,7 +1338,7 @@ mod tests {
             ),
         )
         .unwrap();
-        let (loaded, mut engine) = load(dir.path(), &coverage);
+        let (loaded, mut engine) = load(trusted(dir.path()), &coverage);
         assert!(
             loaded.report.errors.is_empty(),
             "{:?}",
@@ -1357,7 +1357,7 @@ mod tests {
             format!("# off\n{shipped}\n"),
         )
         .unwrap();
-        let (loaded, mut engine) = load(dir.path(), &coverage);
+        let (loaded, mut engine) = load(trusted(dir.path()), &coverage);
         assert_eq!(engine.rule_count(), default_engine.rule_count() - 1);
         assert!(sshd_detections(&mut engine, &[("action", "login_success")]).is_empty());
         assert!(
@@ -1369,6 +1369,14 @@ mod tests {
             "{:?}",
             loaded.report.errors
         );
+    }
+
+    /// `dir`, which only administrators may now write, as the agent's rule
+    /// directory: on Windows, files written since are given back to them.
+    fn trusted(dir: &Path) -> &Path {
+        #[cfg(windows)]
+        agent_common::windows_acl::secure_data_dir(dir).unwrap();
+        dir
     }
 
     fn sshd_detections(engine: &mut LogRuleEngine, pairs: &[(&str, &str)]) -> Vec<Detection> {

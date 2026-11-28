@@ -369,7 +369,9 @@ sentinel-agent --log-level debug run --no-tray
 sentinel-agent inventory
 ```
 
-Sous Windows, les journaux sont dans `C:\ProgramData\Sentinel\logs\`.
+Sous Windows, les journaux sont dans `C:\ProgramData\Sentinel\logs\`. Ce
+dossier de données est réservé à SYSTEM et aux Administrateurs : l'application
+de bureau s'ouvre avec les droits d'administrateur.
 
 ---
 

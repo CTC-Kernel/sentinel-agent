@@ -283,6 +283,12 @@ jobs:
             sentinel-agent-*.msi
             sentinel-agent-*.sha256
 
+      # Install it on the runner over a data directory left as earlier
+      # versions left it, and check its permissions and the enrollment token.
+      - name: Check the installation
+        run: ./wix/check-install.ps1 -Msi (Get-Item "sentinel-agent-$env:MSI_VERSION.msi").FullName
+        shell: pwsh
+
   # Build Linux DEB package
   build-deb:
     name: Build DEB Package
