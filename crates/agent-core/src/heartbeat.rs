@@ -670,7 +670,7 @@ impl AgentRuntime {
         }
 
         // React to config changes
-        if response.config_changed {
+        if response.config_changed && self.config_change_can_sync_now().await {
             info!("Server indicates configuration has changed, syncing...");
             self.apply_config_changes().await;
         }

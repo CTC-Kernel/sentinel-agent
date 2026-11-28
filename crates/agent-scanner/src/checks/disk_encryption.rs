@@ -459,13 +459,14 @@ impl Check for DiskEncryptionCheck {
                 raw_data,
             ))
         } else {
-            Ok(CheckOutput::fail(
-                format!(
-                    "{} encryption is not enabled. Status: {}",
-                    status.encryption_type, status.protection_status
-                ),
-                raw_data,
-            ))
+            let mut message = match crate::check::product_name(&status.encryption_type) {
+                Some(kind) => format!("{} encryption is not enabled", kind),
+                None => "Disk encryption is not enabled".to_string(),
+            };
+            if let Some(protection) = crate::check::product_name(&status.protection_status) {
+                message.push_str(&format!(". Status: {}", protection));
+            }
+            Ok(CheckOutput::fail(message, raw_data))
         }
     }
 }

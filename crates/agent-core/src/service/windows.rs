@@ -116,11 +116,11 @@ fn run_service(_arguments: Vec<OsString>) -> windows_service::Result<()> {
     check_environment();
 
     // Initialize and run the agent
-    {
+    'agent: {
         use agent_common::config::AgentConfig;
         use agent_storage::{Database, DatabaseConfig, KeyManager};
 
-        let mut config = AgentConfig::load(None).unwrap_or_else(|e| {
+        let config = AgentConfig::load(None).unwrap_or_else(|e| {
             warn!("No config found, using defaults: {}", e);
             AgentConfig::default()
         });
@@ -191,6 +191,18 @@ fn run_service(_arguments: Vec<OsString>) -> windows_service::Result<()> {
                 SERVICE_SHUTDOWN.store(true, Ordering::SeqCst);
                 return Ok(());
             }
+        };
+
+        // The MSI starts the service before the agent is enrolled: wait for
+        // the enrollment (logged once, nothing run or stored); the desktop
+        // wizard or `sentinel-agent enroll` ends the wait.
+        let Some(mut config) = rt.block_on(super::enrollment_wait::wait_for_enrollment(
+            config,
+            &db,
+            &SERVICE_SHUTDOWN,
+        )) else {
+            info!("Service stopped before the agent was enrolled");
+            break 'agent;
         };
 
         // Load credentials if enrolled
@@ -588,6 +600,33 @@ pub fn stop_service() -> ServiceResult<()> {
 
     info!("Service '{}' stopped", SERVICE_NAME);
     Ok(())
+}
+
+/// Restart the installed service after `enroll`, so that it runs with the
+/// identity and the configuration just written instead of waiting for its
+/// next look. Returns whether a service was restarted; `Ok(false)` when no
+/// service is installed.
+pub fn restart_after_enrollment() -> ServiceResult<bool> {
+    match get_service_state() {
+        Err(ServiceError::NotInstalled) => return Ok(false),
+        Err(e) => return Err(e),
+        Ok(_) => {}
+    }
+    match stop_service() {
+        Ok(()) | Err(ServiceError::NotRunning) => {}
+        Err(e) => return Err(e),
+    }
+    // The service reports Stopped once its runtime has shut down.
+    for _ in 0..60 {
+        if matches!(get_service_state(), Ok(ServiceState::Stopped)) {
+            break;
+        }
+        std::thread::sleep(Duration::from_millis(500));
+    }
+    match start_service() {
+        Ok(()) | Err(ServiceError::AlreadyRunning) => Ok(true),
+        Err(e) => Err(e),
+    }
 }
 
 /// Configure service recovery options (AC4).

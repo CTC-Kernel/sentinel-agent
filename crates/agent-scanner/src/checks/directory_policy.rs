@@ -18,6 +18,19 @@ use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 use tracing::{debug, info, warn};
 
+/// What a Group Policy check reports off Windows, should it be run there
+/// anyway (a rule received from the platform, a forced run): not
+/// applicable, never a failure.
+fn not_applicable_off_windows() -> Option<CheckOutput> {
+    if cfg!(target_os = "windows") {
+        return None;
+    }
+    Some(CheckOutput::not_applicable(
+        "Stratégie de groupe Windows : non applicable sur ce système",
+        serde_json::json!({ "platform": crate::check::current_platform() }),
+    ))
+}
+
 // ============================================================================
 // GPO Password Policy Check
 // ============================================================================
@@ -107,11 +120,10 @@ impl GpoPasswordPolicyCheck {
             .framework("ISO_27001")
             .framework("HDS")
             .framework("ANSSI_HYGIENE")
-            .platforms(vec![
-                "windows".to_string(),
-                "linux".to_string(),
-                "macos".to_string(),
-            ])
+            // Group Policy and the local security policy exist on Windows
+            // only: elsewhere the auditor has nothing to read and every
+            // setting would read as zero, i.e. non-compliant.
+            .platforms(vec!["windows".to_string()])
             .build();
 
         Self { definition }
@@ -132,6 +144,9 @@ impl Check for GpoPasswordPolicyCheck {
 
     async fn execute(&self) -> ScannerResult<CheckOutput> {
         debug!("Executing GPO password policy check");
+        if let Some(output) = not_applicable_off_windows() {
+            return Ok(output);
+        }
 
         let auditor = DirectoryAuditor::new();
         let result = auditor.audit_local_policies().await?;
@@ -263,11 +278,10 @@ impl GpoLockoutPolicyCheck {
             .framework("ISO_27001")
             .framework("HDS")
             .framework("ANSSI_HYGIENE")
-            .platforms(vec![
-                "windows".to_string(),
-                "linux".to_string(),
-                "macos".to_string(),
-            ])
+            // Group Policy and the local security policy exist on Windows
+            // only: elsewhere the auditor has nothing to read and every
+            // setting would read as zero, i.e. non-compliant.
+            .platforms(vec!["windows".to_string()])
             .build();
 
         Self { definition }
@@ -288,6 +302,9 @@ impl Check for GpoLockoutPolicyCheck {
 
     async fn execute(&self) -> ScannerResult<CheckOutput> {
         debug!("Executing GPO account lockout policy check");
+        if let Some(output) = not_applicable_off_windows() {
+            return Ok(output);
+        }
 
         let auditor = DirectoryAuditor::new();
         let result = auditor.audit_local_policies().await?;
@@ -407,11 +424,10 @@ impl GpoAuditPolicyCheck {
             .framework("ISO_27001")
             .framework("HDS")
             .framework("ANSSI_HYGIENE")
-            .platforms(vec![
-                "windows".to_string(),
-                "linux".to_string(),
-                "macos".to_string(),
-            ])
+            // Group Policy and the local security policy exist on Windows
+            // only: elsewhere the auditor has nothing to read and every
+            // setting would read as zero, i.e. non-compliant.
+            .platforms(vec!["windows".to_string()])
             .build();
 
         Self { definition }
@@ -432,6 +448,9 @@ impl Check for GpoAuditPolicyCheck {
 
     async fn execute(&self) -> ScannerResult<CheckOutput> {
         debug!("Executing GPO audit policy check");
+        if let Some(output) = not_applicable_off_windows() {
+            return Ok(output);
+        }
 
         let auditor = DirectoryAuditor::new();
         let result = auditor.audit_local_policies().await?;
@@ -780,6 +799,15 @@ impl Check for LdapSecurityCheck {
 
     async fn execute(&self) -> ScannerResult<CheckOutput> {
         debug!("Executing LDAP security check");
+        if !cfg!(target_os = "linux") {
+            return Ok(CheckOutput::not_applicable(
+                "Contrôle LDAP (serveur Linux) : non applicable sur ce système",
+                serde_json::json!({
+                    "platform": crate::check::current_platform(),
+                    "compliant": false,
+                }),
+            ));
+        }
 
         // Default to localhost if no URI specified
         let uri = self

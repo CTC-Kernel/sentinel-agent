@@ -154,106 +154,73 @@ impl TimeSyncCheck {
         Ok(status)
     }
 
-    /// Check time synchronization on Linux.
+    /// Check time synchronization on Linux: a time daemon (chrony,
+    /// systemd-timesyncd, ntpd) must run and the clock must be synchronized.
+    /// A clock the hypervisor keeps right, with no daemon, is not compliant.
     #[cfg(target_os = "linux")]
     async fn check_linux(&self) -> ScannerResult<TimeSyncStatus> {
         debug!("Checking Linux time synchronization");
 
-        let mut status = TimeSyncStatus {
-            synchronized: false,
-            sync_method: "Unknown".to_string(),
-            ntp_source: None,
-            leap_status: None,
-            service_running: false,
-            issues: vec![],
-            raw_output: String::new(),
-        };
+        let mut evidence = LinuxTimeEvidence::default();
 
-        // Try chronyc first
+        // chrony: `tracking` answers only when chronyd runs.
         if let Ok(output) = silent_command("chronyc").args(["tracking"]).output() {
-            let result = String::from_utf8_lossy(&output.stdout).to_string();
-            status
+            let stdout = String::from_utf8_lossy(&output.stdout).to_string();
+            evidence
                 .raw_output
-                .push_str(&format!("=== chronyc tracking ===\n{}\n", result));
-
+                .push_str(&format!("=== chronyc tracking ===\n{}\n", stdout));
             if output.status.success() {
-                status.sync_method = "chrony".to_string();
-                status.service_running = true;
-
-                for line in result.lines() {
-                    let line_lower = line.to_lowercase();
-                    if line_lower.contains("leap status")
-                        && let Some(value) = line.split(':').next_back()
-                    {
-                        let leap = value.trim().to_string();
-                        status.synchronized = leap.to_lowercase().contains("normal");
-                        status.leap_status = Some(leap);
-                    }
-                    if line_lower.contains("reference")
-                        && !line_lower.contains("reference time")
-                        && let Some(value) = line.split(':').next_back()
-                    {
-                        let source = value.trim().to_string();
-                        if !source.is_empty() {
-                            status.ntp_source = Some(source);
-                        }
-                    }
-                }
-
-                if status.synchronized {
-                    return Ok(status);
-                }
+                evidence.chrony_tracking = Some(stdout);
             }
         }
 
-        // Fall back to timedatectl
-        if let Ok(output) = silent_command("timedatectl").args(["status"]).output() {
-            let result = String::from_utf8_lossy(&output.stdout).to_string();
-            status
+        // The time daemons systemd runs, whatever their package calls them.
+        if let Ok(output) = silent_command("systemctl")
+            .arg("is-active")
+            .args(TIME_DAEMON_UNITS)
+            .output()
+        {
+            let stdout = String::from_utf8_lossy(&output.stdout).to_string();
+            evidence
                 .raw_output
-                .push_str(&format!("=== timedatectl ===\n{}\n", result));
-
-            if output.status.success() {
-                if status.sync_method == "Unknown" {
-                    status.sync_method = "systemd-timesyncd".to_string();
-                }
-
-                for line in result.lines() {
-                    let line_lower = line.to_lowercase();
-                    // Different systemd versions use different labels
-                    if (line_lower.contains("ntp synchronized:")
-                        || line_lower.contains("system clock synchronized:"))
-                        && let Some(value) = line.split(':').next_back()
-                    {
-                        let sync_val = value.trim().to_lowercase();
-                        status.synchronized = sync_val == "yes";
-                        status.service_running = true;
-                    }
-                    if (line_lower.contains("ntp service:") || line_lower.contains("ntp enabled:"))
-                        && let Some(value) = line.split(':').next_back()
-                    {
-                        let ntp_val = value.trim().to_lowercase();
-                        if ntp_val != "active" && ntp_val != "yes" && ntp_val != "enabled" {
-                            status.service_running = false;
-                        }
-                    }
-                }
-            }
+                .push_str(&format!("=== systemctl is-active ===\n{}\n", stdout));
+            evidence.active_units = active_units(&stdout);
         }
 
-        if !status.service_running {
-            status
-                .issues
-                .push("No NTP service is running (chrony or systemd-timesyncd)".to_string());
+        // ntpd without systemd: `ntpq` answers only when ntpd runs.
+        if evidence.active_units.is_empty()
+            && evidence.chrony_tracking.is_none()
+            && let Ok(output) = silent_command("ntpq").args(["-pn"]).output()
+            && output.status.success()
+        {
+            let stdout = String::from_utf8_lossy(&output.stdout).to_string();
+            evidence
+                .raw_output
+                .push_str(&format!("=== ntpq -pn ===\n{}\n", stdout));
+            evidence.ntpq_peers = Some(stdout);
         }
 
-        if !status.synchronized {
-            status
-                .issues
-                .push("System clock is not synchronized".to_string());
+        // The kernel's view: synchronized by whichever daemon.
+        if let Ok(output) = silent_command("timedatectl")
+            .args(["show", "-p", "NTP", "-p", "NTPSynchronized"])
+            .output()
+            && output.status.success()
+        {
+            let stdout = String::from_utf8_lossy(&output.stdout).to_string();
+            evidence
+                .raw_output
+                .push_str(&format!("=== timedatectl show ===\n{}\n", stdout));
+            evidence.ntp_synchronized = show_property(&stdout, "NTPSynchronized");
+        } else if let Ok(output) = silent_command("timedatectl").args(["status"]).output() {
+            // systemd before 239 has no `show` for timedated.
+            let stdout = String::from_utf8_lossy(&output.stdout).to_string();
+            evidence
+                .raw_output
+                .push_str(&format!("=== timedatectl ===\n{}\n", stdout));
+            evidence.ntp_synchronized = status_synchronized(&stdout);
         }
 
-        Ok(status)
+        Ok(evaluate_linux(evidence))
     }
 
     /// Check time synchronization on macOS.
@@ -387,6 +354,127 @@ impl TimeSyncCheck {
     }
 }
 
+/// The systemd units of the time daemons: chrony (Debian, RHEL), systemd's
+/// own client, ntpd (classic, NTPsec) and OpenNTPD.
+#[cfg_attr(not(target_os = "linux"), allow(dead_code))]
+const TIME_DAEMON_UNITS: [&str; 7] = [
+    "chrony",
+    "chronyd",
+    "systemd-timesyncd",
+    "ntp",
+    "ntpd",
+    "ntpsec",
+    "openntpd",
+];
+
+/// What the Linux commands said about time synchronization.
+#[derive(Debug, Default)]
+#[cfg_attr(not(any(target_os = "linux", test)), allow(dead_code))]
+struct LinuxTimeEvidence {
+    /// Output of `chronyc tracking`, when chronyd answered.
+    chrony_tracking: Option<String>,
+    /// The units of [`TIME_DAEMON_UNITS`] systemd reports active.
+    active_units: Vec<String>,
+    /// Output of `ntpq -pn`, when ntpd answered.
+    ntpq_peers: Option<String>,
+    /// `NTPSynchronized` of timedated (the kernel's synchronized flag).
+    ntp_synchronized: Option<bool>,
+    raw_output: String,
+}
+
+/// The units `systemctl is-active <units…>` reports active, in the order
+/// asked (one state per line).
+#[cfg_attr(not(any(target_os = "linux", test)), allow(dead_code))]
+fn active_units(stdout: &str) -> Vec<String> {
+    TIME_DAEMON_UNITS
+        .iter()
+        .zip(stdout.lines())
+        .filter(|(_, state)| state.trim() == "active")
+        .map(|(unit, _)| unit.to_string())
+        .collect()
+}
+
+/// A yes/no property of `timedatectl show` output.
+#[cfg_attr(not(any(target_os = "linux", test)), allow(dead_code))]
+fn show_property(stdout: &str, name: &str) -> Option<bool> {
+    stdout.lines().find_map(|line| {
+        let (key, value) = line.split_once('=')?;
+        (key.trim() == name).then(|| value.trim().eq_ignore_ascii_case("yes"))
+    })
+}
+
+/// "System clock synchronized: yes" (or "NTP synchronized: yes" on older
+/// systemd) of `timedatectl status`.
+#[cfg_attr(not(any(target_os = "linux", test)), allow(dead_code))]
+fn status_synchronized(stdout: &str) -> Option<bool> {
+    stdout.lines().find_map(|line| {
+        let (key, value) = line.split_once(':')?;
+        let key = key.trim().to_ascii_lowercase();
+        (key == "system clock synchronized" || key == "ntp synchronized")
+            .then(|| value.trim().eq_ignore_ascii_case("yes"))
+    })
+}
+
+/// The verdict on Linux: synchronized only when a time daemon runs and the
+/// clock is synchronized; every reason against it is in `issues`.
+#[cfg_attr(not(any(target_os = "linux", test)), allow(dead_code))]
+fn evaluate_linux(evidence: LinuxTimeEvidence) -> TimeSyncStatus {
+    let mut status = TimeSyncStatus {
+        synchronized: false,
+        sync_method: "None".to_string(),
+        ntp_source: None,
+        leap_status: None,
+        service_running: false,
+        issues: vec![],
+        raw_output: evidence.raw_output,
+    };
+
+    let mut chrony_synchronized = false;
+    if let Some(ref tracking) = evidence.chrony_tracking {
+        status.sync_method = "chrony".to_string();
+        status.service_running = true;
+        for line in tracking.lines() {
+            let Some((key, value)) = line.split_once(':') else {
+                continue;
+            };
+            let key = key.trim().to_ascii_lowercase();
+            let value = value.trim();
+            if key == "leap status" {
+                chrony_synchronized = value.eq_ignore_ascii_case("normal");
+                status.leap_status = Some(value.to_string());
+            } else if key == "reference id" && !value.is_empty() {
+                status.ntp_source = Some(value.to_string());
+            }
+        }
+    } else if let Some(unit) = evidence.active_units.first() {
+        status.service_running = true;
+        status.sync_method = match unit.as_str() {
+            "chrony" | "chronyd" => "chrony",
+            "systemd-timesyncd" => "systemd-timesyncd",
+            _ => "ntpd",
+        }
+        .to_string();
+    } else if evidence.ntpq_peers.is_some() {
+        status.service_running = true;
+        status.sync_method = "ntpd".to_string();
+    }
+
+    let clock_synchronized = chrony_synchronized || evidence.ntp_synchronized == Some(true);
+    status.synchronized = status.service_running && clock_synchronized;
+
+    if !status.service_running {
+        status
+            .issues
+            .push("No NTP service is running (chrony, systemd-timesyncd or ntpd)".to_string());
+    }
+    if !clock_synchronized {
+        status
+            .issues
+            .push("System clock is not synchronized".to_string());
+    }
+    status
+}
+
 #[cfg(any(target_os = "macos", test))]
 fn ntp_response_verified(success: bool, response: &str) -> bool {
     success && (response.contains("+/-") || response.contains("offset"))
@@ -448,7 +536,8 @@ impl Check for TimeSyncCheck {
 
         let raw_data = serde_json::to_value(&status).unwrap_or_default();
 
-        if status.synchronized {
+        // The verdict never contradicts its proof: a reported issue fails.
+        if status.synchronized && status.issues.is_empty() {
             let mut details = vec![format!("method={}", status.sync_method)];
             if let Some(source) = &status.ntp_source {
                 details.push(format!("source={}", source));
@@ -473,6 +562,112 @@ impl Check for TimeSyncCheck {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    const CHRONY_SYNCED: &str = "Reference ID    : C0A80001 (192.168.0.1)\n\
+Stratum         : 3\n\
+Leap status     : Normal\n";
+
+    fn evidence() -> LinuxTimeEvidence {
+        LinuxTimeEvidence::default()
+    }
+
+    /// The case seen on a Debian VM: the hypervisor keeps the clock right,
+    /// no daemon runs. It passed with "No NTP service is running" in its proof.
+    #[test]
+    fn a_synchronized_clock_without_a_daemon_fails() {
+        let status = evaluate_linux(LinuxTimeEvidence {
+            ntp_synchronized: Some(true),
+            ..evidence()
+        });
+        assert!(!status.synchronized);
+        assert!(!status.service_running);
+        assert_eq!(status.issues.len(), 1);
+        assert!(status.issues[0].contains("No NTP service is running"));
+    }
+
+    #[test]
+    fn chrony_in_sync_passes() {
+        let status = evaluate_linux(LinuxTimeEvidence {
+            chrony_tracking: Some(CHRONY_SYNCED.to_string()),
+            active_units: vec!["chrony".to_string()],
+            ..evidence()
+        });
+        assert!(status.synchronized, "{:?}", status.issues);
+        assert!(status.issues.is_empty());
+        assert_eq!(status.sync_method, "chrony");
+        assert_eq!(status.leap_status.as_deref(), Some("Normal"));
+        assert_eq!(status.ntp_source.as_deref(), Some("C0A80001 (192.168.0.1)"));
+    }
+
+    #[test]
+    fn chrony_not_in_sync_fails() {
+        let status = evaluate_linux(LinuxTimeEvidence {
+            chrony_tracking: Some("Leap status     : Not synchronised\n".to_string()),
+            ntp_synchronized: Some(false),
+            ..evidence()
+        });
+        assert!(!status.synchronized);
+        assert!(status.service_running);
+        assert_eq!(status.issues, ["System clock is not synchronized"]);
+    }
+
+    #[test]
+    fn timesyncd_and_ntpd_count_as_time_daemons() {
+        for (unit, method) in [
+            ("systemd-timesyncd", "systemd-timesyncd"),
+            ("ntpsec", "ntpd"),
+        ] {
+            let status = evaluate_linux(LinuxTimeEvidence {
+                active_units: vec![unit.to_string()],
+                ntp_synchronized: Some(true),
+                ..evidence()
+            });
+            assert!(status.synchronized, "{unit}");
+            assert_eq!(status.sync_method, method);
+        }
+        let ntpq = evaluate_linux(LinuxTimeEvidence {
+            ntpq_peers: Some("*192.168.0.1 ...".to_string()),
+            ntp_synchronized: Some(true),
+            ..evidence()
+        });
+        assert!(ntpq.synchronized);
+        assert_eq!(ntpq.sync_method, "ntpd");
+    }
+
+    #[test]
+    fn a_daemon_with_an_unsynchronized_clock_fails() {
+        let status = evaluate_linux(LinuxTimeEvidence {
+            active_units: vec!["systemd-timesyncd".to_string()],
+            ntp_synchronized: Some(false),
+            ..evidence()
+        });
+        assert!(!status.synchronized);
+        assert_eq!(status.issues, ["System clock is not synchronized"]);
+    }
+
+    #[test]
+    fn systemctl_and_timedatectl_outputs_are_read() {
+        // One state per unit asked, in order.
+        let states = "inactive\ninactive\nactive\ninactive\nunknown\ninactive\ninactive\n";
+        assert_eq!(active_units(states), ["systemd-timesyncd"]);
+        assert!(active_units("inactive\n").is_empty());
+
+        assert_eq!(
+            show_property("NTP=yes\nNTPSynchronized=no\n", "NTPSynchronized"),
+            Some(false)
+        );
+        assert_eq!(
+            show_property("NTP=no\nNTPSynchronized=yes\n", "NTPSynchronized"),
+            Some(true)
+        );
+        assert_eq!(show_property("NTP=yes\n", "NTPSynchronized"), None);
+
+        let status = "               Local time: Fri 2026-11-28 10:00:00 CET\n\
+System clock synchronized: yes\n\
+              NTP service: inactive\n";
+        assert_eq!(status_synchronized(status), Some(true));
+        assert_eq!(status_synchronized("NTP synchronized: no\n"), Some(false));
+    }
 
     #[test]
     fn ntp_requires_successful_measurement() {

@@ -329,3 +329,48 @@ impl AgentRuntime {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use agent_common::types::CheckResult;
+    use agent_scanner::CheckExecutionResult;
+    use agent_storage::CheckResultsRepository;
+
+    fn result_of(check_id: &str) -> CheckExecutionResult {
+        CheckExecutionResult {
+            result: CheckResult::pass(check_id),
+            proof: None,
+            duration_ms: 1,
+        }
+    }
+
+    // The results table refers to the check rules: an agent that never
+    // reached its platform (not enrolled yet, platform down) only has the
+    // bundled rules, seeded at start-up whatever the mode.
+    #[tokio::test]
+    async fn an_agent_not_enrolled_yet_stores_its_results() {
+        let test = crate::main_loop::testing::unenrolled_runtime();
+        let check_id = test
+            .runtime
+            .check_registry
+            .all()
+            .first()
+            .expect("bundled checks")
+            .definition()
+            .id
+            .clone();
+        let results = CheckResultsRepository::new(&test.db);
+
+        // Without the rules the foreign key refuses the result.
+        test.runtime
+            .store_check_results(&[result_of(&check_id)])
+            .await;
+        assert_eq!(results.count().await.unwrap(), 0);
+
+        test.runtime.seed_builtin_check_rules().await;
+        test.runtime
+            .store_check_results(&[result_of(&check_id)])
+            .await;
+        assert_eq!(results.count().await.unwrap(), 1);
+    }
+}

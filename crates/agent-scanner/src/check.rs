@@ -118,6 +118,18 @@ pub trait Check: Send + Sync {
     }
 }
 
+/// A product name a check detected, or `None` for the placeholders the
+/// checks record when they found nothing ("None", "none", "Unknown", an
+/// empty string): such a value is never written into a sentence.
+pub fn product_name(name: &str) -> Option<&str> {
+    let name = name.trim();
+    let placeholder = name.is_empty()
+        || ["none", "unknown", "n/a", "null", "-"]
+            .iter()
+            .any(|p| name.eq_ignore_ascii_case(p));
+    (!placeholder).then_some(name)
+}
+
 /// Get the current platform identifier.
 pub fn current_platform() -> String {
     #[cfg(target_os = "windows")]

@@ -645,10 +645,11 @@ impl Check for AntivirusCheck {
                 issues.push("Definitions outdated (>7 days)");
             }
 
-            Ok(CheckOutput::fail(
-                format!("{} issues: {}", status.av_name, issues.join(", ")),
-                raw_data,
-            ))
+            let message = match crate::check::product_name(&status.av_name) {
+                Some(name) => format!("{} issues: {}", name, issues.join(", ")),
+                None => "No antivirus product detected".to_string(),
+            };
+            Ok(CheckOutput::fail(message, raw_data))
         }
     }
 }

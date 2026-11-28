@@ -135,10 +135,34 @@ pub fn run_as_service() -> ServiceResult<()> {
     info!("Running as systemd service");
 
     // Load configuration
-    let mut config = AgentConfig::load(None).unwrap_or_else(|e| {
+    let config = AgentConfig::load(None).unwrap_or_else(|e| {
         warn!("No config found, using defaults: {}", e);
         AgentConfig::default()
     });
+
+    // Create tokio runtime for async operations
+    let rt = tokio::runtime::Runtime::new()
+        .map_err(|e| ServiceError::System(format!("Failed to create Tokio runtime: {}", e)))?;
+
+    // A database left by a command run as root cannot be written by the
+    // service's account: say it once and wait for the fix, instead of an
+    // error on every write. systemd's SIGTERM ends the wait.
+    if !super::data_dir::report_unwritable_store() {
+        rt.block_on(async {
+            super::watchdog::start();
+            let data_dir = AgentConfig::platform_data_dir();
+            loop {
+                for _ in 0..super::data_dir::STORE_POLL_INTERVAL.as_secs() {
+                    super::watchdog::beat();
+                    tokio::time::sleep(std::time::Duration::from_secs(1)).await;
+                }
+                if super::data_dir::unwritable_store_files(&data_dir).is_empty() {
+                    info!("Local database writable again: starting");
+                    break;
+                }
+            }
+        });
+    }
 
     // Initialize encrypted database
     let key_manager = KeyManager::new()
@@ -146,9 +170,16 @@ pub fn run_as_service() -> ServiceResult<()> {
     let db = Database::open(DatabaseConfig::default(), &key_manager)
         .map_err(|e| ServiceError::System(format!("Failed to open database: {}", e)))?;
 
-    // Create tokio runtime for async operations
-    let rt = tokio::runtime::Runtime::new()
-        .map_err(|e| ServiceError::System(format!("Failed to create Tokio runtime: {}", e)))?;
+    // A package starts the service before the agent is enrolled: wait for
+    // the enrollment (logged once, nothing run or stored) instead of
+    // running checks that have no platform and no rules to go to.
+    // systemd's SIGTERM ends the wait (default action).
+    let never = std::sync::atomic::AtomicBool::new(false);
+    let Some(mut config) = rt.block_on(super::enrollment_wait::wait_for_enrollment(
+        config, &db, &never,
+    )) else {
+        return Ok(());
+    };
 
     // Load credentials if enrolled
     rt.block_on(async {
@@ -319,7 +350,8 @@ pub fn install_service(executable_path: &str) -> ServiceResult<()> {
 /// Stops the service, disables it, and removes the unit file.
 /// Requires root privileges.
 pub fn uninstall_service() -> ServiceResult<()> {
-    // Check if installed
+    // Check if installed (by `install`: a package's unit belongs to the
+    // package manager)
     if !Path::new(SYSTEMD_UNIT_PATH).exists() {
         return Err(ServiceError::NotInstalled);
     }
@@ -395,7 +427,7 @@ pub fn uninstall_service() -> ServiceResult<()> {
 /// Get the current service state via systemctl.
 pub fn get_service_state() -> ServiceResult<ServiceState> {
     // Check if unit file exists
-    if !Path::new(SYSTEMD_UNIT_PATH).exists() {
+    if !systemd_unit_installed() {
         return Err(ServiceError::NotInstalled);
     }
 
@@ -425,7 +457,7 @@ pub fn start_service() -> ServiceResult<()> {
         ));
     }
 
-    if !Path::new(SYSTEMD_UNIT_PATH).exists() {
+    if !systemd_unit_installed() {
         return Err(ServiceError::NotInstalled);
     }
 
@@ -460,7 +492,7 @@ pub fn stop_service() -> ServiceResult<()> {
         ));
     }
 
-    if !Path::new(SYSTEMD_UNIT_PATH).exists() {
+    if !systemd_unit_installed() {
         return Err(ServiceError::NotInstalled);
     }
 
@@ -483,6 +515,92 @@ pub fn stop_service() -> ServiceResult<()> {
 
     info!("Service stopped");
     Ok(())
+}
+
+/// launchd label of the agent (`macos/com.cyber-threat-consulting.sentinel-agent.plist`).
+#[cfg(target_os = "macos")]
+const LAUNCHD_LABEL: &str = "com.cyber-threat-consulting.sentinel-agent";
+
+/// The systemd units `install` (/etc) and the deb/rpm packages (/lib,
+/// /usr/lib) put in place.
+const SYSTEMD_UNIT_PATHS: [&str; 3] = [
+    SYSTEMD_UNIT_PATH,
+    "/lib/systemd/system/sentinel-agent.service",
+    "/usr/lib/systemd/system/sentinel-agent.service",
+];
+
+/// Whether a systemd unit of the agent is installed, by `install` or by a
+/// package.
+fn systemd_unit_installed() -> bool {
+    SYSTEMD_UNIT_PATHS.iter().any(|p| Path::new(p).exists())
+}
+
+/// Restart the installed service after `enroll`, so that it runs with the
+/// identity and the configuration (server URL, CA) just written instead of
+/// waiting for its next look. Returns whether a service was restarted;
+/// `Ok(false)` when no service is installed (a foreground agent).
+#[cfg(not(target_os = "macos"))]
+pub fn restart_after_enrollment() -> ServiceResult<bool> {
+    if !systemd_unit_installed() {
+        return Ok(false);
+    }
+    if !Path::new("/run/systemd/system").exists() {
+        // A container or a chroot: the service starts at the next boot.
+        return Ok(false);
+    }
+    if !is_root() {
+        return Err(ServiceError::PermissionDenied(
+            "root privileges required to restart sentinel-agent.service".to_string(),
+        ));
+    }
+    let _ = silent_command("systemctl")
+        .args(["enable", "sentinel-agent.service"])
+        .output();
+    // The helper is PartOf= the agent, which Wants= it: one restart of the
+    // agent restarts or starts both.
+    let output = silent_command("systemctl")
+        .args(["restart", "sentinel-agent.service"])
+        .output()
+        .map_err(|e| ServiceError::System(format!("Failed to restart service: {}", e)))?;
+    if !output.status.success() {
+        return Err(ServiceError::System(format!(
+            "Failed to restart service: {}",
+            String::from_utf8_lossy(&output.stderr).trim()
+        )));
+    }
+    Ok(true)
+}
+
+/// Restart the installed service after `enroll` (see the Linux version):
+/// on macOS the agent is a LaunchAgent of the logged-in user.
+#[cfg(target_os = "macos")]
+pub fn restart_after_enrollment() -> ServiceResult<bool> {
+    // `sudo sentinel-agent enroll`: the agent runs in the session of the
+    // user who called sudo, not in root's.
+    let uid = std::env::var("SUDO_UID")
+        .ok()
+        .and_then(|uid| uid.trim().parse::<u32>().ok())
+        .unwrap_or_else(|| unsafe { libc::getuid() });
+    let target = format!("gui/{}/{}", uid, LAUNCHD_LABEL);
+    let loaded = silent_command("launchctl")
+        .args(["print", &target])
+        .output()
+        .map(|o| o.status.success())
+        .unwrap_or(false);
+    if !loaded {
+        return Ok(false);
+    }
+    let output = silent_command("launchctl")
+        .args(["kickstart", "-k", &target])
+        .output()
+        .map_err(|e| ServiceError::System(format!("Failed to restart the agent: {}", e)))?;
+    if !output.status.success() {
+        return Err(ServiceError::System(format!(
+            "Failed to restart the agent: {}",
+            String::from_utf8_lossy(&output.stderr).trim()
+        )));
+    }
+    Ok(true)
 }
 
 /// Check if running as root.

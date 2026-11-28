@@ -6,6 +6,7 @@
 use agent_sync::{
     AuditSyncService, CommandResultsService, ConfigSyncService, ResultUploader, RuleSyncService,
 };
+use std::sync::atomic::Ordering;
 use tracing::{debug, info, warn};
 
 use super::AgentRuntime;
@@ -59,6 +60,12 @@ impl AgentRuntime {
         // Seed built-in check rules so the FK constraint is satisfied
         self.seed_builtin_check_rules().await;
 
+        // A configuration change announced before the services existed.
+        if self.pending_config_sync.swap(false, Ordering::AcqRel) {
+            info!("Applying the configuration change announced at start-up");
+            self.apply_config_changes().await;
+        }
+
         // Initial rule sync (will overwrite built-in rules with server versions)
         if let Some(ref rule_sync) = *self.rule_sync.read().await {
             match rule_sync.sync_if_needed().await {
@@ -69,6 +76,20 @@ impl AgentRuntime {
                 Err(e) => warn!("Initial rule sync failed: {}", e),
             }
         }
+    }
+
+    /// Whether a configuration change the platform announced can be
+    /// downloaded now. Before the sync services exist (the probe heartbeat
+    /// of the start-up, sent right after the enrollment) the change is kept
+    /// and downloaded by [`Self::init_sync_services`], instead of a warning
+    /// and a wait for the next heartbeat.
+    pub(crate) async fn config_change_can_sync_now(&self) -> bool {
+        if self.config_sync.read().await.is_some() {
+            return true;
+        }
+        info!("Server indicates configuration has changed: synced once the sync services start");
+        self.pending_config_sync.store(true, Ordering::Release);
+        false
     }
 
     /// Apply configuration changes received from the server.
@@ -421,5 +442,29 @@ impl AgentRuntime {
             0
         };
         results + commands
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use std::sync::atomic::Ordering;
+
+    // Right after the enrollment the probe heartbeat announced a
+    // configuration change before the sync services existed: a warning,
+    // then a minute until the next heartbeat. The change is now kept and
+    // downloaded when the services start.
+    #[tokio::test]
+    async fn a_change_announced_before_the_sync_services_is_synced_when_they_start() {
+        let test = crate::main_loop::testing::unenrolled_runtime();
+        let runtime = &test.runtime;
+
+        assert!(!runtime.config_change_can_sync_now().await);
+        assert!(runtime.pending_config_sync.load(Ordering::Acquire));
+
+        runtime.init_sync_services().await;
+
+        assert!(!runtime.pending_config_sync.load(Ordering::Acquire));
+        assert!(runtime.config_change_can_sync_now().await);
+        assert!(!runtime.pending_config_sync.load(Ordering::Acquire));
     }
 }
